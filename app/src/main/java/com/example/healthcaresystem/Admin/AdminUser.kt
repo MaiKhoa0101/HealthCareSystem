@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.example.healthcaresystem.Admin
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,15 +16,24 @@ import com.example.healthcaresystem.model.GetUser
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 
 class AdminUser : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             HealthCareSystemTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    UserListScreen(modifier = Modifier.padding(innerPadding))
+                    UserListScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        sharedPreferences = sharedPreferences
+                    )
                 }
             }
         }
@@ -32,19 +41,40 @@ class AdminUser : ComponentActivity() {
 }
 
 @Composable
-fun UserListScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewModel()) {
+fun UserListScreen(modifier: Modifier = Modifier, sharedPreferences: SharedPreferences) {
+    val context = LocalContext.current
+    val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
     val users by viewModel.users.collectAsState()
+    var userName by remember { mutableStateOf("Người dùng") }
+    var role by remember { mutableStateOf("Người dùng") }
 
     // Gọi API khi màn hình được tạo
     LaunchedEffect(Unit) {
         viewModel.fetchUsers()
+        userName = viewModel.getUserNameFromToken()
+        role = viewModel.getUserRole()
     }
 
     Column(modifier = modifier.padding(16.dp)) {
-        Text(text = "Danh sách người dùng", style = MaterialTheme.typography.headlineMedium)
+        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+            Text(text = "Xin chào,$role $userName", style = MaterialTheme.typography.headlineMedium)
+            Button(onClick = {
+                viewModel.logout(context)
+            }) {
+                Text(text = "Đăng xuất")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = "Danh sách người dùng", style = MaterialTheme.typography.headlineSmall)
 
         if (users.isEmpty()) {
-            CircularProgressIndicator(modifier = Modifier.padding(top = 20.dp))
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                CircularProgressIndicator()
+            }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
                 items(users) { user ->
@@ -74,7 +104,9 @@ fun UserItem(user: GetUser) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewUserListScreen() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     HealthCareSystemTheme {
-        UserListScreen()
+        UserListScreen(sharedPreferences = sharedPreferences)
     }
 }

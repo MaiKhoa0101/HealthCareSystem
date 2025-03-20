@@ -1,10 +1,9 @@
-package com.example.healthcaresystem
+package com.example.healthcaresystem.User
 
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -15,9 +14,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.healthcaresystem.R
 import com.example.healthcaresystem.api.RetrofitInstance
 import com.example.healthcaresystem.model.SignUpRequest
-import com.example.healthcaresystem.model.SignUpResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

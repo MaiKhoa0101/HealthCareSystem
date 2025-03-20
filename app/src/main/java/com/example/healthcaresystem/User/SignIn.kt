@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.example.healthcaresystem.User
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.content.Intent
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -18,6 +17,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.auth0.android.jwt.JWT
+import com.example.healthcaresystem.Admin.AdminUser
+import com.example.healthcaresystem.R
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,14 +78,27 @@ class SignIn : AppCompatActivity() {
 
                         if (token != null) {
                             saveToken(token) // Lưu token vào SharedPreferences
-                        }
 
-                        Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@SignIn, MainPage::class.java))
+                            // Giải mã token để lấy thông tin role
+                            val jwt = JWT(token)
+                            val role = jwt.getClaim("role").asString() // Lấy giá trị role từ claim
+
+                            // Chuyển đến trang phù hợp
+                            val intent = when (role) {
+                                "admin" -> Intent(this@SignIn, AdminUser::class.java)
+                                "user" -> Intent(this@SignIn, MainPage::class.java)
+                                else -> {
+                                    Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
+                                    return@withContext
+                                }
+                            }
+
+                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            startActivity(intent)
+                        }
                     } else {
                         val errorBody = response.errorBody()?.string()
                         Toast.makeText(this@SignIn, "Lỗi: $errorBody", Toast.LENGTH_SHORT).show()
-
                     }
                 }
             } catch (e: Exception) {

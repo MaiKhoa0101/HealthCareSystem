@@ -5,7 +5,7 @@
     android:id="@+id/main_sign_in"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignIn">
+    tools:context=".User.SignIn">
     <ImageButton
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -54,6 +54,7 @@
         android:textColorHint="@color/black"
         android:drawablePadding="10dp"
         android:drawableLeft="@drawable/baseline_email_24"
+        android:inputType="textPassword"
         />
     <Button
         android:layout_width="300dp"
@@ -102,10 +103,13 @@
         <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_margin="20dp"></ImageView>
+            android:layout_margin="20dp">
+
+        </ImageView>
         <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_margin="20dp"></ImageView>
+            android:layout_margin="20dp">
+        </ImageView>
     </LinearLayout>
 </RelativeLayout>
