@@ -5,11 +5,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com/"
+    private const val BASE_URL = "http://192.168.1.4:3000/"
 
     private val client = OkHttpClient.Builder()
         .build()
-
     // Tạo instance Retrofit duy nhất
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
