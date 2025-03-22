@@ -6,6 +6,9 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface AdminService {
     @Headers("Content-Type: application/json")
@@ -14,4 +17,10 @@ interface AdminService {
 
     @GET("user/get/:id")
     suspend fun GetByUserID(@Body request: GetUserID): Response<GetUser>
+
+    @PUT("admin/updateuser/{id}")
+    suspend fun updateUserByID(
+        @Path("id") id: String,
+        @Body user: GetUser
+    ):  Response<Unit>
 }

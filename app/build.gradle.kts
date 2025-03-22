@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlinCompose)
 }
-
 android {
     namespace = "com.example.healthcaresystem"
     compileSdk = 35

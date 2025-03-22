@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -39,7 +40,6 @@ class AdminUser : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun UserListScreen(modifier: Modifier = Modifier, sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
@@ -51,7 +51,7 @@ fun UserListScreen(modifier: Modifier = Modifier, sharedPreferences: SharedPrefe
     var userName by remember { mutableStateOf("Người dùng") }
     var role by remember { mutableStateOf("Người dùng") }
 
-    // Gọi API khi màn hình được tạo
+    // Fetch users on screen creation
     LaunchedEffect(Unit) {
         viewModel.fetchUsers()
         userName = viewModel.getUserNameFromToken()
@@ -59,8 +59,11 @@ fun UserListScreen(modifier: Modifier = Modifier, sharedPreferences: SharedPrefe
     }
 
     Column(modifier = modifier.padding(16.dp)) {
-        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-            Text(text = "Xin chào,$role $userName", style = MaterialTheme.typography.headlineMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Xin chào, $role $userName", style = MaterialTheme.typography.headlineMedium)
             Button(onClick = {
                 viewModel.logout(context)
             }) {
@@ -72,34 +75,125 @@ fun UserListScreen(modifier: Modifier = Modifier, sharedPreferences: SharedPrefe
         Text(text = "Danh sách người dùng", style = MaterialTheme.typography.headlineSmall)
 
         if (users.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 10.dp)
+            ) {
                 items(users) { user ->
-                    UserItem(user)
+                    UserItem(user = user, onEdit = { updatedUser ->
+                        viewModel.updateUser(updatedUser)
+                    })
                 }
             }
         }
     }
 }
-
 @Composable
-fun UserItem(user: GetUser) {
+fun UserItem(user: GetUser, onEdit: (GetUser) -> Unit) {
+    var id by remember { mutableStateOf(user.id)}
+    var isEditing by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(user.name) }
+    var email by remember { mutableStateOf(user.email) }
+    var role by remember { mutableStateOf(user.role) }
+    var password by remember { mutableStateOf(user.password) }
+    var phonenum by remember { mutableStateOf(user.phone) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Tên: ${user.name}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "Email: ${user.email}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Vai trò: ${user.role}", style = MaterialTheme.typography.bodyMedium)
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "ID: $id", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Tên: $name", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Email: $email", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Số điện thoại: $phonenum", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Vai trò: $role", style = MaterialTheme.typography.bodyMedium)
+            }
+            IconButton(onClick = { isEditing = true }) {
+                Text(text = "Chỉnh sửa")
+            }
         }
     }
+
+    if (isEditing) {
+        AlertDialog(
+            onDismissRequest = { isEditing = false },
+            title = { Text("Chỉnh sửa thông tin người dùng") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = role,
+                        onValueChange = { role = it },
+                        label = { Text("Vai trò") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Tên") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = phonenum,
+                        onValueChange = { phonenum = it },
+                        label = { Text("Số điện thoại") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Mật khẩu") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    try {
+                        // Close dialog
+                        isEditing = false
+
+                        // Update user data
+                        onEdit(user.copy(
+                            name = name.trim(),
+                            email = email.trim(),
+                            role = role.trim(),
+                            password = password.trim(),
+                            phone = phonenum.trim()
+                        ))
+                    } catch (e: Exception) {
+                        e.printStackTrace() // Log the exception
+                    }
+                }) {
+                    Text("Lưu")
+                }
+
+            },
+            dismissButton = {
+                Button(onClick = { isEditing = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
 }
+
 
 @Preview(showBackground = true)
 @Composable
