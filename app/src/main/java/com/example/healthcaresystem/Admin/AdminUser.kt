@@ -97,6 +97,7 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
     var role by remember { mutableStateOf(user.role) }
     var phone by remember { mutableStateOf(user.phone) }
     var password by remember { mutableStateOf("") } // Không điền sẵn để tránh rủi ro bảo mật
+    val currentPassword = user.password ?: ""
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -150,6 +151,12 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
                         label = { Text("Mật khẩu (để trống nếu không đổi)") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedTextField(
+                        value = role,
+                        onValueChange = { role = it},
+                        label = {Text("Role")},
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             },
             confirmButton = {
@@ -158,7 +165,8 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
                         name = name,
                         email = email,
                         phone = phone,
-                        password = if (password.isNotEmpty()) password else null // Chỉ gửi nếu có thay đổi
+                        password = if (password.isNotEmpty()) password else currentPassword, // Chỉ gửi nếu có thay đổi
+                        role = role
                     )
 
                     Log.d("UserItem", "User ID cần cập nhật: ${user.id}")
