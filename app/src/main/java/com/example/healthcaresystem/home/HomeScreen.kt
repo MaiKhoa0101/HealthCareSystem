@@ -64,17 +64,19 @@ val remoteServices = listOf(
     RemoteService("Bác sĩ da liễu từ xa", R.drawable.doctor)
 )
 
-@Composable
-fun Index() {
-    Box(modifier = Modifier.padding(top = 45.dp)) {
-
-        Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
-            Headbar()
-            HealthMateHomeScreen()
-        }
-        Menu()
-    }
-}
+//@Composable
+//fun Index(modifier: Modifier =Modifier) {
+//    Box(modifier = Modifier.padding(top = 45.dp)) {
+//        Column(
+//            Modifier.fillMaxSize(),
+//            Arrangement.Center,
+//            Alignment.CenterHorizontally) {
+//            HealthMateHomeScreen()
+//        }
+//        SidebarMenu()
+//        Menu()
+//    }
+//}
 
 @Composable
 fun HealthMateHomeScreen() {

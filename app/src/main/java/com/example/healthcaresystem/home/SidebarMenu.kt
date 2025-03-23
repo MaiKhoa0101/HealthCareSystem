@@ -81,7 +81,7 @@ import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 import kotlinx.serialization.Serializable
 
 @Composable
-fun SidebarMenu(navController: NavController) {
+fun SidebarMenu() {
     var isExpanded by remember { mutableStateOf(false) }
     val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
     val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
@@ -98,29 +98,28 @@ fun SidebarMenu(navController: NavController) {
             Icons.Default.Menu,
             modifier = Modifier
                 .clickable { isExpanded = !isExpanded }
-                .size(40.dp),
+                .size(45.dp),
             contentDescription = null,
-            tint = Color.White
+            tint = Color.Magenta
         )
 
         if (isExpanded) {
             Spacer(modifier = Modifier.height(20.dp))
-//            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded) {navController.navigate(ScreenInfo)}
-//            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded) {navController.navigate(ScreenInfo)}
-//            DrawerItem(Icons.Default.Info, "Topic", isExpanded) {navController.navigate(ScreenInfo)}
-//            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded) {navController.navigate(ScreenInfo)}
+            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded)
+            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded)
+            DrawerItem(Icons.Default.Info, "Topic", isExpanded)
+            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded)
         }
     }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean, onClick: () -> Unit){
+fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
-            .clickable { onClick() },
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = Color.White)
         AnimatedContent(

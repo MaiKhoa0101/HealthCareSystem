@@ -72,7 +72,7 @@ fun Headbar() {
     Box(
         modifier = Modifier
             .height(60.dp)
-            .background(color = Color.White)
+            .background(color = Color.Yellow)
             .fillMaxWidth()
     ) {
         Image(
