@@ -15,10 +15,20 @@
         android:theme="@style/Theme.HealthCareSystem"
         tools:targetApi="31">
         <activity
+            android:name=".ScreenInfo"
+            android:exported="false"
+            android:label="@string/title_activity_screen_info"
+            android:theme="@style/Theme.HealthCareSystem" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.HealthCareSystem" />
+        <activity
             android:name=".AdminUser"
             android:exported="true"
             android:label="@string/title_activity_admin_user"
-            android:theme="@style/Theme.HealthCareSystem" >
+            android:theme="@style/Theme.HealthCareSystem">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,15 +39,13 @@
             android:name=".Home"
             android:exported="true"
             android:label="@string/title_activity_home"
-            android:theme="@style/Theme.HealthCareSystem"></activity>
+            android:theme="@style/Theme.HealthCareSystem" />
         <activity
             android:name=".SignUpSuccess"
             android:exported="false" />
         <activity
             android:name=".StartScreen"
-            android:exported="true">
-
-        </activity>
+            android:exported="true" />
         <activity
             android:name=".Intro3"
             android:exported="false" />
@@ -47,7 +55,7 @@
         <activity
             android:name=".Intro1"
             android:exported="true"
-            android:theme="@style/Theme.HealthCareSystem"></activity>
+            android:theme="@style/Theme.HealthCareSystem" />
         <activity
             android:name=".SignIn"
             android:exported="true" />
