@@ -86,14 +86,8 @@ class Home : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HealthCareSystemTheme {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = ScreenIndex
-                ){
-                    composable<ScreenIndex> { Index(navController) }
-                    composable<ScreenInfo> { InfoScreen(navController) }
-                }
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Index(modifier = Modifier.padding(innerPadding))
             }
         }
     }
@@ -106,16 +100,16 @@ class Home : ComponentActivity() {
 //    }
 //}
 @Composable
-fun Index(navController: NavController) {
+fun Index(modifier: Modifier =Modifier) {
     Box(modifier = Modifier.padding(top = 45.dp)) {
         Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
             HomeScreen()
         }
-        SidebarMenu(navController)
+        SidebarMenu()
     }
 }
 @Composable
-fun SidebarMenu(navController: NavController) {
+fun SidebarMenu() {
     var isExpanded by remember { mutableStateOf(false) }
     val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
     val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
@@ -139,10 +133,10 @@ fun SidebarMenu(navController: NavController) {
 
         if (isExpanded) {
             Spacer(modifier = Modifier.height(20.dp))
-            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded) {navController.navigate(ScreenInfo)}
-            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded) {navController.navigate(ScreenInfo)}
-            DrawerItem(Icons.Default.Info, "Topic", isExpanded) {navController.navigate(ScreenInfo)}
-            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded) {navController.navigate(ScreenInfo)}
+            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded)
+            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded)
+            DrawerItem(Icons.Default.Info, "Topic", isExpanded)
+            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded)
         }
     }
 }
@@ -186,12 +180,11 @@ fun HomeScreen() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean, onClick: () -> Unit){
+fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
-            .clickable { onClick() },
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = Color.White)
         AnimatedContent(
@@ -370,7 +363,7 @@ fun TextFind(){
 
 @Composable
 fun Service(){
-    Column(modifier = Modifier.fillMaxHeight()) {
+    Column {
         Row(modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 7.dp),
@@ -381,188 +374,6 @@ fun Service(){
             )
             Spacer(modifier = Modifier.weight(1f))
             Text("Xem thêm", color = Color.Cyan, modifier = Modifier.clickable {  })
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Box(modifier = Modifier
-            .padding(10.dp)
-            .size(170.dp,70.dp)
-            .background(color = Color.White)
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .clickable {  },
-            contentAlignment = Alignment.Center
-        )
-        {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painterResource(id = R.drawable.avarta1),
-                    contentDescription = "circle avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(start = 5.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Khám Chuyên khoaKhám Chuyên khoKhám Chuyên kho",
-                    color = Color.Gray,
-                    overflow = TextOverflow.Ellipsis)
-            }
         }
         Box(modifier = Modifier
             .padding(10.dp)
@@ -725,11 +536,7 @@ fun CommonSpace(){
 @Composable
 fun GreetingPreview() {
     HealthCareSystemTheme {
-        val navController = rememberNavController()
-        Index(navController)
+        Index()
     }
 }
-@Serializable
-object ScreenIndex
-@Serializable
-object ScreenInfo
+}
