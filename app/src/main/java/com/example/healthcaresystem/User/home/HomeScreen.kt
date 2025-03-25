@@ -1,10 +1,10 @@
-package com.example.healthcaresystem.home
+package com.example.healthcaresystem.User.home
 
-import com.example.healthcaresystem.home.model.Service
-import com.example.healthcaresystem.home.model.Specialty
-import com.example.healthcaresystem.home.model.Doctor
-import com.example.healthcaresystem.home.model.RemoteService
-import com.example.healthcaresystem.home.model.FAQItem
+import com.example.healthcaresystem.User.home.model.Service
+import com.example.healthcaresystem.User.home.model.Specialty
+import com.example.healthcaresystem.User.home.model.Doctor
+import com.example.healthcaresystem.User.home.model.RemoteService
+import com.example.healthcaresystem.User.home.model.FAQItem
 
 import android.widget.Toast
 import androidx.compose.foundation.Image

@@ -1,20 +1,5 @@
-package com.example.healthcaresystem.home
+package com.example.healthcaresystem.User.home
 
-import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -65,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -79,76 +63,49 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.healthcaresystem.R
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 import kotlinx.serialization.Serializable
 
 @Composable
-fun SidebarMenu() {
-    var isExpanded by remember { mutableStateOf(false) }
-    val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
-    val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
-
-    Column(
-        Modifier
-            .fillMaxHeight()
-            .width(widthAnim)
-            .background(Color.Blue.copy(alpha = alphaAnim))
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Icon(
-            Icons.Default.Menu,
-            modifier = Modifier
-                .clickable { isExpanded = !isExpanded }
-                .size(45.dp),
-            contentDescription = null,
-            tint = Color.Magenta
-        )
-
-        if (isExpanded) {
-            Spacer(modifier = Modifier.height(20.dp))
-            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded)
-            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded)
-            DrawerItem(Icons.Default.Info, "Topic", isExpanded)
-            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded)
-        }
-    }
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
-    Row(
-        Modifier
+fun Headbar() {
+    Box(
+        modifier = Modifier
+            .height(60.dp)
+            .background(color = Color.Yellow)
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = Color.White)
-        AnimatedContent(
-            targetState = expanded,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(150, 150)) togetherWith fadeOut(
-                    tween(150)
-                ) using SizeTransform { initialSize, targetSize ->
-                    keyframes {
-                        IntSize(targetSize.width, initialSize.height) at 150
-                        durationMillis = 300
-                    }
-                }
-            }
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.menu_icon),
+            contentDescription = "Logo Icon",
+            modifier = Modifier
+                .size(50.dp)
+                .padding(start = 10.dp, top = 7.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.doctor),
+            contentDescription = "Logo Icon",
+            modifier = Modifier
+                .size(50.dp)
+                .align(Alignment.Center)
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp)
+                .clickable {  },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-                targetState ->
-            if (targetState){
-                val context = LocalContext.current
-                Row(Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = title,
-                        color = Color.White,
-                        modifier = Modifier.clickable { Toast.makeText(context, "Clicked: ${title}", Toast.LENGTH_SHORT).show() })
-                }
-            }
+            Image(
+                painter = painterResource(id = R.drawable.time_icon),
+                contentDescription = "Time Icon",
+                modifier = Modifier.size(30.dp)
+            )
+            Text(
+                text = "Lịch hẹn",
+                fontSize = 12.sp,
+                color = Color.Cyan
+            )
         }
-
     }
 }
