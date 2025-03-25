@@ -43,4 +43,5 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
     <string name="title_activity_home">Home</string>
+    <string name="title_activity_admin_user">Admin_user</string>
 </resources>

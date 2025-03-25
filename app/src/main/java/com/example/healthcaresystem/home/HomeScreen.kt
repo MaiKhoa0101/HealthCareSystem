@@ -309,7 +309,7 @@ fun GridServiceList(items: List<Service>, onClick: (Service) -> Unit) {
                                 contentScale = ContentScale.Fit
                             )
                             Spacer(modifier = Modifier.width(3.dp))
-                            Text(item.title)
+                            Text(text = item.title, color = Color.Black)
                         }
                     }
                 }
@@ -339,7 +339,7 @@ fun SpecialtyItem(specialty: Specialty, onClick: () -> Unit) {
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(specialty.title)
+            Text(text = specialty.title, color = Color.Black)
         }
     }
 }

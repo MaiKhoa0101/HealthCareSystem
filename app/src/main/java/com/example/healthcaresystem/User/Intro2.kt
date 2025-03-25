@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.example.healthcaresystem.User
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.healthcaresystem.R
 
 class Intro2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

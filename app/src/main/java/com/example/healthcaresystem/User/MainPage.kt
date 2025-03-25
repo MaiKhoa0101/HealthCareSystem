@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.example.healthcaresystem.User
 
 import android.content.Context
 import android.content.Intent
@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.auth0.android.jwt.JWT
+import com.example.healthcaresystem.R
 
 class MainPage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +33,8 @@ class MainPage : AppCompatActivity() {
         if (token != null) {
             val userInfo = decodeJWT(token)
             val userName = userInfo?.get("name") as? String ?: "Người dùng"
-            userNameTextView.text = "Xin chào, $userName"
+            val role = userInfo?.get("role") as? String ?: "Người dùng"
+            userNameTextView.text = "Xin chào, $role $userName"
         } else {
             Toast.makeText(this, "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show()
             navigateToLogin()

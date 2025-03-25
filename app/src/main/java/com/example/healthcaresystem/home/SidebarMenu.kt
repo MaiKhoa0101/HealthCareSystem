@@ -1,6 +1,7 @@
 package com.example.healthcaresystem.home
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -64,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -137,9 +139,13 @@ fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
         ) {
                 targetState ->
             if (targetState){
+                val context = LocalContext.current
                 Row(Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(title, color = Color.White)
+                    Text(
+                        text = title,
+                        color = Color.White,
+                        modifier = Modifier.clickable { Toast.makeText(context, "Clicked: ${title}", Toast.LENGTH_SHORT).show() })
                 }
             }
         }
