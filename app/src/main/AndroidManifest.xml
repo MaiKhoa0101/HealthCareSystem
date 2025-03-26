@@ -16,7 +16,7 @@
         android:theme="@style/Theme.HealthCareSystem"
         tools:targetApi="31">
         <activity
-            android:name=".Admin.AdminUser"
+            android:name=".admin.AdminUser"
             android:exported="true"
             android:label="@string/title_activity_admin_user"
             android:theme="@style/Theme.HealthCareSystem" >
@@ -27,38 +27,38 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".User.Home"
+            android:name=".user.home.HomeActivity"
             android:exported="true"
             android:label="@string/title_activity_home"
             android:theme="@style/Theme.HealthCareSystem">
         </activity>
         <activity
-            android:name=".User.SignUpSuccess"
+            android:name=".user.SignUpSuccess"
             android:exported="false" />
         <activity
-            android:name=".User.StartScreen"
+            android:name=".user.StartScreen"
             android:exported="true">
         </activity>
         <activity
-            android:name=".User.Intro3"
+            android:name=".user.Intro3"
             android:exported="false" />
         <activity
-            android:name=".User.Intro2"
+            android:name=".user.Intro2"
             android:exported="false" />
         <activity
-            android:name=".User.Intro1"
+            android:name=".user.Intro1"
             android:exported="true"
             android:theme="@style/Theme.HealthCareSystem">
 
         </activity>
         <activity
-            android:name=".User.SignIn"
+            android:name=".user.SignIn"
             android:exported="true" />
         <activity
-            android:name=".User.MainPage"
+            android:name=".user.MainPage"
             android:exported="true" />
         <activity
-            android:name=".User.SignUp"
+            android:name=".user.SignUp"
             android:exported="true" />
     </application>
 

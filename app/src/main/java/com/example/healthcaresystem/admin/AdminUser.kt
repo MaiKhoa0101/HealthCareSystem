@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.Admin
+package com.example.healthcaresystem.admin
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,11 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.drawable.Icon
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -36,7 +34,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.healthcaresystem.R
 import com.example.healthcaresystem.model.UpdateUser
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 class AdminUser : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

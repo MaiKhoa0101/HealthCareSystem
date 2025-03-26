@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.example.healthcaresystem.model.GetUser
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.User.SignIn
+import com.example.healthcaresystem.user.SignIn
 import com.example.healthcaresystem.model.UpdateUser
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {

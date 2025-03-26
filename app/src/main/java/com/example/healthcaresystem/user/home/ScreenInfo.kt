@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home
+package com.example.healthcaresystem.user.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User
+package com.example.healthcaresystem.user
 
 import android.content.Intent
 import android.os.Bundle

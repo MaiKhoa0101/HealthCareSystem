@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User
+package com.example.healthcaresystem.user
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.Admin.AdminUser
+import com.example.healthcaresystem.admin.AdminUser
 import com.example.healthcaresystem.R
 
 class SignIn : AppCompatActivity() {
