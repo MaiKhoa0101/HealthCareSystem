@@ -1,5 +1,6 @@
 package com.example.healthcaresystem.user.home
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.healthcaresystem.R
 
 @Composable
-fun Headbar() {
+fun Headbar(sharedPreferences: SharedPreferences) {
     Box(
         modifier = Modifier
             .height(60.dp)

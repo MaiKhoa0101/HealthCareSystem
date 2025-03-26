@@ -1,6 +1,5 @@
-package com.example.healthcaresystem.User.profile.ui.theme
+package com.example.healthcaresystem.user.profile.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

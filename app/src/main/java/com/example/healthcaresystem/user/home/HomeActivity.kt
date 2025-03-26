@@ -15,11 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHost
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.User.home.model.HeadbarIcon
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 class HomeActivity : ComponentActivity() {
@@ -47,7 +43,6 @@ class HomeActivity : ComponentActivity() {
                 Headbar(sharedPreferences)
                 HealthMateHomeScreen()
             }
-            SidebarMenu()
             FootBar()
         }
     }

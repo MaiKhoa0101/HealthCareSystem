@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.profile.ui.theme
+package com.example.healthcaresystem.user.profile.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.profile.ui.theme
+package com.example.healthcaresystem.user.profile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
