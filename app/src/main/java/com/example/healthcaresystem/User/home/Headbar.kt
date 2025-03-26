@@ -1,89 +1,39 @@
 package com.example.healthcaresystem.User.home
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.User.profile.UserInfo
-import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
-import kotlinx.serialization.Serializable
+import com.example.healthcaresystem.User.home.model.HeadbarIcon
 
-@Composable
-fun HeadbarScreen() {
-    Column() {
-        Headbar(
-            icon1 = R.drawable.menu_icon,
-            icon2 = R.drawable.doctor,
-            icon3 = R.drawable.time_icon,
-        )
-    }
-}
+//@Composable
+//fun HeadbarScreen() {
+//    Column() {
+//        Headbar(
+//            icon1 = R.drawable.menu_icon,
+//            icon2 = R.drawable.doctor,
+//            icon3 = R.drawable.time_icon,
+//        )
+//    }
+//}
 @Composable
 fun Headbar(
-    @DrawableRes icon1: Int,
-    @DrawableRes icon2: Int,
-    @DrawableRes icon3: Int
+    icon1: HeadbarIcon,
+    icon2: HeadbarIcon,
+    icon3: HeadbarIcon,
 ) {
     Box(
         modifier = Modifier
@@ -91,31 +41,36 @@ fun Headbar(
             .background(color = Color.Yellow)
             .fillMaxWidth()
     ) {
+        // Icon bên trái
         Image(
-            painterResource(id = icon1),
+            painter = painterResource(id = icon1.iconRes),
             contentDescription = "Logo Icon",
             modifier = Modifier
                 .size(50.dp)
                 .padding(start = 10.dp, top = 7.dp)
         )
+
+        // Icon ở giữa
         Image(
-            painterResource(id = icon2),
-            contentDescription = "Logo Icon",
+            painter = painterResource(id = icon2.iconRes),
+            contentDescription = "Center Icon",
             modifier = Modifier
                 .size(50.dp)
                 .align(Alignment.Center)
         )
+
+        // Icon bên phải với văn bản "Lịch hẹn"
         Column(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 10.dp)
-                .clickable {  },
+                .clickable { },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painterResource(id = icon3),
+                painter = painterResource(id = icon3.iconRes),
                 contentDescription = "Time Icon",
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.padding(top = 8.dp).size(30.dp)
             )
             Text(
                 text = "Lịch hẹn",
