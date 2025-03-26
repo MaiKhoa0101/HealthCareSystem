@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/com/example/healthcaresystem/user/SignIn.kt
 package com.example.healthcaresystem.user
-========
-package com.example.healthcaresystem.User.home.startscreen
->>>>>>>> ce5425e84c79aeca4a4f987e5211c4cffde86b9d:app/src/main/java/com/example/healthcaresystem/User/home/startscreen/SignIn.kt
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -22,13 +18,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
-<<<<<<<< HEAD:app/src/main/java/com/example/healthcaresystem/user/SignIn.kt
-import com.example.healthcaresystem.admin.AdminUser
-========
+import com.example.healthcaresystem.user.home.startscreen.SignUp
+
 import com.example.healthcaresystem.Admin.AdminRoot
->>>>>>>> ce5425e84c79aeca4a4f987e5211c4cffde86b9d:app/src/main/java/com/example/healthcaresystem/User/home/startscreen/SignIn.kt
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.User.MainPage
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/com/example/healthcaresystem/user/Intro1.kt
 package com.example.healthcaresystem.user
-========
-package com.example.healthcaresystem.User.home.startscreen
->>>>>>>> ce5425e84c79aeca4a4f987e5211c4cffde86b9d:app/src/main/java/com/example/healthcaresystem/User/home/startscreen/Intro1.kt
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

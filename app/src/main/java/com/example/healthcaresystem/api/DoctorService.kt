@@ -1,6 +1,6 @@
 package com.example.healthcaresystem.api
 
-import com.example.healthcaresystem.model.GetUser
+import com.example.healthcaresystem.responsemodel.GetDoctorsResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -8,5 +8,5 @@ import retrofit2.http.Headers
 interface DoctorService {
     @Headers("Content-Type: application/json")
     @GET("doctor/get-all")
-    suspend fun getUsers(): Response<List<GetUser>>
+    suspend fun getDoctors(): Response<List<GetDoctorsResponse>>
 }

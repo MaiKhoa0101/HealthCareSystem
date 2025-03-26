@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/com/example/healthcaresystem/user/StartScreen.kt
 package com.example.healthcaresystem.user
-========
-package com.example.healthcaresystem.User.home.startscreen
->>>>>>>> ce5425e84c79aeca4a4f987e5211c4cffde86b9d:app/src/main/java/com/example/healthcaresystem/User/home/startscreen/StartScreen.kt
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.user.home.startscreen.Intro3
+import com.example.healthcaresystem.user.home.startscreen.SignIn
+import com.example.healthcaresystem.user.home.startscreen.SignUp
 
 class StartScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -12,7 +12,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.auth0.android.jwt.JWT
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.User.home.startscreen.SignIn
 
 class MainPage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

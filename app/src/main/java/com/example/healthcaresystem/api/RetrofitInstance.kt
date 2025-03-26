@@ -21,4 +21,5 @@ object RetrofitInstance {
     // Các service API
     val api: AuthService by lazy { retrofit.create(AuthService::class.java) }
     val admin: AdminService by lazy { retrofit.create(AdminService::class.java) }
+    val doctor: DoctorService by lazy { retrofit.create(DoctorService::class.java) }
 }

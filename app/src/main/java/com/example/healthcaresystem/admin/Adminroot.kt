@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.Admin
+package com.example.healthcaresystem.admin
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -16,8 +16,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.User.home.FootBar
-import com.example.healthcaresystem.User.home.Headbar
+import com.example.healthcaresystem.user.home.FootBar
+import com.example.healthcaresystem.user.home.Headbar
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 class AdminRoot: ComponentActivity() {
