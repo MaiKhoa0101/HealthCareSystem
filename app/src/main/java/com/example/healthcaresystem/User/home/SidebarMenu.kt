@@ -85,8 +85,8 @@ import kotlinx.serialization.Serializable
 @Composable
 fun SidebarMenu() {
     var isExpanded by remember { mutableStateOf(false) }
-    val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
-    val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
+    val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp) // Animates width
+    val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f) // Animates opacity
 
     Column(
         Modifier
@@ -96,21 +96,24 @@ fun SidebarMenu() {
             .padding(horizontal = 10.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.Start
     ) {
+        // Menu Icon that toggles expansion
         Icon(
             Icons.Default.Menu,
             modifier = Modifier
                 .clickable { isExpanded = !isExpanded }
                 .size(45.dp),
-            contentDescription = null,
+            contentDescription = "Toggle Sidebar",
             tint = Color.Magenta
         )
 
         if (isExpanded) {
             Spacer(modifier = Modifier.height(20.dp))
-            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded)
-            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded)
-            DrawerItem(Icons.Default.Info, "Topic", isExpanded)
-            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded)
+
+            // Drawer items
+            DrawerItem(icon = Icons.Default.Person,"Thông tin", isExpanded)
+            DrawerItem(icon = Icons.Default.Settings,  "Cài đặt", isExpanded)
+            DrawerItem(icon = Icons.Default.Info, "Topic", isExpanded)
+            DrawerItem(icon = Icons.Default.Search,  "Khám bệnh", isExpanded)
         }
     }
 }

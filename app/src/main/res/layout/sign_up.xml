@@ -5,7 +5,7 @@ xmlns:tools="http://schemas.android.com/tools"
 android:id="@+id/main_sign_up"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context=".User.SignUp">
+tools:context=".User.home.startscreen.SignUp">
 
     <ImageButton
         android:layout_width="50dp"

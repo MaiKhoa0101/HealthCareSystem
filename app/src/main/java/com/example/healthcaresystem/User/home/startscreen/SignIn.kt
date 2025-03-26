@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User
+package com.example.healthcaresystem.User.home.startscreen
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -18,8 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.Admin.AdminUser
+import com.example.healthcaresystem.Admin.AdminRoot
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.User.MainPage
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +86,7 @@ class SignIn : AppCompatActivity() {
 
                             // Chuyển đến trang phù hợp
                             val intent = when (role) {
-                                "admin" -> Intent(this@SignIn, AdminUser::class.java)
+                                "admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                 "user" -> Intent(this@SignIn, MainPage::class.java)
                                 else -> {
                                     Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()

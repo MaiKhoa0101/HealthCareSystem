@@ -38,23 +38,24 @@ import com.example.healthcaresystem.R
 import com.example.healthcaresystem.model.UpdateUser
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
-class AdminUser : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            HealthCareSystemTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    UserListScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        sharedPreferences = sharedPreferences
-                    )
-                }
-            }
-        }
-    }
-}
+//class AdminUser : ComponentActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        enableEdgeToEdge()
+//        setContent {
+//            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+//            HealthCareSystemTheme {
+//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//                    UserListScreen(
+//                        modifier = Modifier.padding(innerPadding),
+//                        sharedPreferences = sharedPreferences
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+
 
 @Composable
 fun UserListScreen(
