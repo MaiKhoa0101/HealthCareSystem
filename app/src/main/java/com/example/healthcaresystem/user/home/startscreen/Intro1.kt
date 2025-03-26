@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home.startscreen
+package com.example.healthcaresystem.user.home.startscreen
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

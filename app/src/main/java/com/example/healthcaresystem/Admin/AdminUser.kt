@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.Admin
+package com.example.healthcaresystem.admin
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

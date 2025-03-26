@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home.model
+package com.example.healthcaresystem.user.home.model
 
 data class Service(
     val title: String,

@@ -1,10 +1,10 @@
-package com.example.healthcaresystem.User.home
+package com.example.healthcaresystem.user.home
 
-import com.example.healthcaresystem.User.home.model.Service
-import com.example.healthcaresystem.User.home.model.Specialty
-import com.example.healthcaresystem.User.home.model.Doctor
-import com.example.healthcaresystem.User.home.model.RemoteService
-import com.example.healthcaresystem.User.home.model.FAQItem
+import com.example.healthcaresystem.user.home.model.Service
+import com.example.healthcaresystem.user.home.model.Specialty
+import com.example.healthcaresystem.user.home.model.Doctor
+import com.example.healthcaresystem.user.home.model.RemoteService
+import com.example.healthcaresystem.user.home.model.FAQItem
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.healthcaresystem.R
 
 val faqs = listOf(
