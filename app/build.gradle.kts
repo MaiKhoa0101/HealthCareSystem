@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlinCompose)
     alias(libs.plugins.kotlin.serialization)
+//    id("com.android.application")
+    id("com.google.gms.google-services")
 }
 android {
     namespace = "com.example.healthcaresystem"
@@ -59,6 +61,8 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("com.google.accompanist:accompanist-flowlayout:0.26.5-rc")
     implementation("io.coil-kt:coil-compose:2.2.0")//them
+    implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
+    implementation("com.google.firebase:firebase-analytics")
     dependencies {
         val nav_version = "2.8.9"
 
