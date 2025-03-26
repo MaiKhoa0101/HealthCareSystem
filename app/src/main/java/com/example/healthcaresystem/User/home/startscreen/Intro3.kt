@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home.startscreen
+package com.example.healthcaresystem.user.home.startscreen
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.user.Intro2
+import com.example.healthcaresystem.user.StartScreen
 
 class Intro3 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

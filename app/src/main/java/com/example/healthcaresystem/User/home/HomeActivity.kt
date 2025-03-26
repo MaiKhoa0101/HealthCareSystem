@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home
+package com.example.healthcaresystem.user.home
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -44,15 +44,7 @@ class HomeActivity : ComponentActivity() {
                 Arrangement.Center,
                 Alignment.CenterHorizontally
             ) {
-<<<<<<< HEAD
                 Headbar(sharedPreferences)
-=======
-                Headbar(
-                    icon1 = HeadbarIcon(R.drawable.menu_icon),
-                    icon2 = HeadbarIcon(R.drawable.doctor),
-                    icon3 = HeadbarIcon(R.drawable.time_icon)
-                )
->>>>>>> 44ec552a1b4458273b0f3d4330873ed75307f7ee
                 HealthMateHomeScreen()
             }
             SidebarMenu()

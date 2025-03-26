@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home.startscreen
+package com.example.healthcaresystem.user
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,9 +17,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
 import com.example.healthcaresystem.api.RetrofitInstance
 import com.example.healthcaresystem.model.SignUpRequest
-import com.example.healthcaresystem.user.SignIn
-import com.example.healthcaresystem.user.SignUpSuccess
-import com.example.healthcaresystem.user.StartScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

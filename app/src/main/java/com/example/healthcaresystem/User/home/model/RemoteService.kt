@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.User.home.model
+package com.example.healthcaresystem.user.home.model
 
 // Dữ liệu dịch vụ khám từ xa
 data class RemoteService(

@@ -5,8 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    //private const val BASE_URL = "http://192.168.0.104:4000"
-    private const val BASE_URL = "http://192.168.5.177:4000"
+    private const val BASE_URL = "http://192.168.1.50:3000"
 
     private val client = OkHttpClient.Builder()
         .build()
@@ -22,4 +21,5 @@ object RetrofitInstance {
     // Các service API
     val api: AuthService by lazy { retrofit.create(AuthService::class.java) }
     val admin: AdminService by lazy { retrofit.create(AdminService::class.java) }
+    val doctor: DoctorService by lazy { retrofit.create(DoctorService::class.java) }
 }

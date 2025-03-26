@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home.startscreen
+package com.example.healthcaresystem.user
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.user.SignIn
+import com.example.healthcaresystem.user.home.startscreen.SignIn
 
 class SignUpSuccess : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
