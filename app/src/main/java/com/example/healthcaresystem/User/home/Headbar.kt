@@ -4,53 +4,28 @@ import android.content.SharedPreferences
 import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+<<<<<<< HEAD
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+=======
+>>>>>>> 44ec552a1b4458273b0f3d4330873ed75307f7ee
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+<<<<<<< HEAD
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -94,6 +69,29 @@ fun Headbar(
         role = viewModel.getUserRole()
     }
 
+=======
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.healthcaresystem.User.home.model.HeadbarIcon
+
+//@Composable
+//fun HeadbarScreen() {
+//    Column() {
+//        Headbar(
+//            icon1 = R.drawable.menu_icon,
+//            icon2 = R.drawable.doctor,
+//            icon3 = R.drawable.time_icon,
+//        )
+//    }
+//}
+@Composable
+fun Headbar(
+    icon1: HeadbarIcon,
+    icon2: HeadbarIcon,
+    icon3: HeadbarIcon,
+) {
+>>>>>>> 44ec552a1b4458273b0f3d4330873ed75307f7ee
     Box(
         modifier = Modifier
             .height(100.dp)
@@ -101,6 +99,7 @@ fun Headbar(
             .background(color = Color.Yellow).padding(vertical = 5.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
+<<<<<<< HEAD
         // Hình bác sĩ ở giữa
         Image(
             painter = painterResource(id = R.drawable.doctor),
@@ -115,13 +114,51 @@ fun Headbar(
                 .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
+=======
+        // Icon bên trái
+        Image(
+            painter = painterResource(id = icon1.iconRes),
+            contentDescription = "Logo Icon",
+            modifier = Modifier
+                .size(50.dp)
+                .padding(start = 10.dp, top = 7.dp)
+        )
+
+        // Icon ở giữa
+        Image(
+            painter = painterResource(id = icon2.iconRes),
+            contentDescription = "Center Icon",
+            modifier = Modifier
+                .size(50.dp)
+                .align(Alignment.Center)
+        )
+
+        // Icon bên phải với văn bản "Lịch hẹn"
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp)
+                .clickable { },
+            horizontalAlignment = Alignment.CenterHorizontally
+>>>>>>> 44ec552a1b4458273b0f3d4330873ed75307f7ee
         ) {
             // Icon bên trái
             Image(
+<<<<<<< HEAD
                 painter = painterResource(id = R.drawable.menu_icon),
                 contentDescription = "Menu Icon",
                 modifier = Modifier
                     .size(50.dp)
+=======
+                painter = painterResource(id = icon3.iconRes),
+                contentDescription = "Time Icon",
+                modifier = Modifier.padding(top = 8.dp).size(30.dp)
+            )
+            Text(
+                text = "Lịch hẹn",
+                fontSize = 12.sp,
+                color = Color.Cyan
+>>>>>>> 44ec552a1b4458273b0f3d4330873ed75307f7ee
             )
 
             // Cột chứa Text và nút logout ở bên phải
