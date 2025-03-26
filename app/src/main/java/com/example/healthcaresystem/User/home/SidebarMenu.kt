@@ -19,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -82,47 +83,16 @@ import androidx.navigation.compose.rememberNavController
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 import kotlinx.serialization.Serializable
 
-@Composable
-fun SidebarMenu() {
-    var isExpanded by remember { mutableStateOf(false) }
-    val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
-    val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
-
-    Column(
-        Modifier
-            .fillMaxHeight()
-            .width(widthAnim)
-            .background(Color.Blue.copy(alpha = alphaAnim))
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Icon(
-            Icons.Default.Menu,
-            modifier = Modifier
-                .clickable { isExpanded = !isExpanded }
-                .size(45.dp),
-            contentDescription = null,
-            tint = Color.Magenta
-        )
-
-        if (isExpanded) {
-            Spacer(modifier = Modifier.height(20.dp))
-            DrawerItem(Icons.Default.Person, "Thông tin", isExpanded)
-            DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded)
-            DrawerItem(Icons.Default.Info, "Topic", isExpanded)
-            DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded)
-        }
-    }
-}
-
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
+fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+            .padding(vertical = 10.dp)
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Icon(icon, contentDescription = null, tint = Color.White)
         AnimatedContent(
             targetState = expanded,
@@ -136,19 +106,63 @@ fun DrawerItem(icon: ImageVector, title: String, expanded: Boolean){
                     }
                 }
             }
-        ) {
-                targetState ->
-            if (targetState){
-                val context = LocalContext.current
+        ) { targetState ->
+            if (targetState) {
                 Row(Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = title,
-                        color = Color.White,
-                        modifier = Modifier.clickable { Toast.makeText(context, "Clicked: ${title}", Toast.LENGTH_SHORT).show() })
+                    Text(title, color = Color.White)
                 }
             }
         }
-
     }
 }
+
+@Composable
+fun SidebarMenu() {
+    var isExpanded by remember { mutableStateOf(false) }
+    val widthAnim by animateDpAsState(targetValue = if (isExpanded) 200.dp else 0.dp)
+    val alphaAnim by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
+
+    Box(Modifier.fillMaxSize()) {
+        if (isExpanded) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        isExpanded = false
+                    }
+            )
+        }
+
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .width(widthAnim)
+                .background(Color.Blue.copy(alpha = alphaAnim))
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Icon(
+                Icons.Default.Menu,
+                modifier = Modifier
+                    .clickable { isExpanded = !isExpanded }
+                    .size(45.dp),
+                contentDescription = null,
+                tint = Color.Magenta
+            )
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(20.dp))
+                DrawerItem(Icons.Default.Person, "Thông tin", isExpanded) {}
+                DrawerItem(Icons.Default.Settings, "Cài đặt", isExpanded) {}
+                DrawerItem(Icons.Default.Info, "Topic", isExpanded) {}
+                DrawerItem(Icons.Default.Search, "Khám bệnh", isExpanded) {}
+            }
+        }
+    }
+}
+
