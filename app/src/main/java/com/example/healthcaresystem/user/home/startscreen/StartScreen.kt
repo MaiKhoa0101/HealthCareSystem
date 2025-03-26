@@ -9,8 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.user.Intro3
-import com.example.healthcaresystem.user.SignIn
+//import com.example.healthcaresystem.user.home.startscreen.Intro3
+//import com.example.healthcaresystem.user.SignIn
 
 class StartScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

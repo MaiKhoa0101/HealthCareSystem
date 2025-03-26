@@ -28,30 +28,24 @@
         </activity>
         <activity
             android:name=".user.home.HomeActivity"
-            android:name=".user.home.HomeActivity"
             android:exported="true"
             android:label="@string/title_activity_home"
             android:theme="@style/Theme.HealthCareSystem">
         </activity>
         <activity
             android:name=".user.home.startscreen.SignUpSuccess"
-            android:name=".user.home.startscreen.SignUpSuccess"
             android:exported="false" />
         <activity
-            android:name=".user.home.startscreen.StartScreen"
             android:name=".user.home.startscreen.StartScreen"
             android:exported="true">
         </activity>
         <activity
             android:name=".user.home.startscreen.Intro3"
-            android:name=".user.home.startscreen.Intro3"
             android:exported="false" />
         <activity
             android:name=".user.home.startscreen.Intro2"
-            android:name=".user.home.startscreen.Intro2"
             android:exported="false" />
         <activity
-            android:name=".user.home.startscreen.Intro1"
             android:name=".user.home.startscreen.Intro1"
             android:exported="true"
             android:theme="@style/Theme.HealthCareSystem">
@@ -59,16 +53,13 @@
         </activity>
         <activity
             android:name=".user.home.startscreen.SignIn"
-            android:name=".user.home.startscreen.SignIn"
             android:exported="true" >
 
         </activity>
         <activity
             android:name=".user.MainPage"
-            android:name=".user.MainPage"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.SignUp"
             android:name=".user.home.startscreen.SignUp"
             android:exported="true" />
     </application>
