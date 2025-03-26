@@ -39,7 +39,7 @@ class HomeActivity : ComponentActivity() {
                 Arrangement.Center,
                 Alignment.CenterHorizontally
             ) {
-                Headbar()
+                HeadbarScreen()
                 HealthMateHomeScreen()
             }
             SidebarMenu()

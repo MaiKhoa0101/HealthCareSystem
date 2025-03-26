@@ -1,5 +1,6 @@
 package com.example.healthcaresystem.User.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -64,11 +65,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.User.profile.UserInfo
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 import kotlinx.serialization.Serializable
 
 @Composable
-fun Headbar() {
+fun HeadbarScreen() {
+    Column() {
+        Headbar(
+            icon1 = R.drawable.menu_icon,
+            icon2 = R.drawable.doctor,
+            icon3 = R.drawable.time_icon,
+        )
+    }
+}
+@Composable
+fun Headbar(
+    @DrawableRes icon1: Int,
+    @DrawableRes icon2: Int,
+    @DrawableRes icon3: Int
+) {
     Box(
         modifier = Modifier
             .height(60.dp)
@@ -76,14 +92,14 @@ fun Headbar() {
             .fillMaxWidth()
     ) {
         Image(
-            painter = painterResource(id = R.drawable.menu_icon),
+            painterResource(id = icon1),
             contentDescription = "Logo Icon",
             modifier = Modifier
                 .size(50.dp)
                 .padding(start = 10.dp, top = 7.dp)
         )
         Image(
-            painter = painterResource(id = R.drawable.doctor),
+            painterResource(id = icon2),
             contentDescription = "Logo Icon",
             modifier = Modifier
                 .size(50.dp)
@@ -97,7 +113,7 @@ fun Headbar() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.time_icon),
+                painterResource(id = icon3),
                 contentDescription = "Time Icon",
                 modifier = Modifier.size(30.dp)
             )
