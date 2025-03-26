@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -38,12 +37,8 @@ class AdminRoot: ComponentActivity() {
 @Composable
 fun AdminScreen(sharedPreferences: SharedPreferences) {
     Scaffold(
-        topBar = { Headbar() },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* do something */ }) {
-                Icon(painterResource(id = R.drawable.menu_icon), contentDescription = "")
-            }
-        },
+        topBar = { Headbar(sharedPreferences) },
+
         bottomBar = { FootBar() },
         content = { paddingValues ->
             UserListScreen(

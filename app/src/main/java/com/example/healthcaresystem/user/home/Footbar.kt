@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -29,16 +29,56 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+@Preview
+@Composable
+fun FootBar() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .background(Color.White),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        // Bottom bar with icons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(110.dp)
+                .background(Color.Cyan)
+                .padding(horizontal = 16.dp).padding(top=10.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.Top,
+
+        ) {
+            BoxItem(text = "Trang chủ", icon = Icons.Default.Home)
+            BoxItem(text = "Tìm kiếm", icon = Icons.Default.Search)
+            Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
+            BoxItem(text = "Thông báo", icon = Icons.Default.MailOutline)
+            BoxItem(text = "Cá nhân", icon = Icons.Default.Person)
+        }
+
+        // Floating button in the center
+        CircleButton(
+            onClick = {},
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = -30.dp), // Elevate the button
+            backgroundColor = Color.Cyan
+        )
+    }
+}
 
 @Composable
 fun CircleButton(
     onClick: () -> Unit,
     backgroundColor: Color = Color.Cyan,
     iconColor: Color = Color.White,
-    size: Dp = 56.dp,
+    size: Dp = 64.dp,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -50,66 +90,32 @@ fun CircleButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            Icons.Default.Add,
+            imageVector = Icons.Default.Add,
             contentDescription = "Add",
             tint = iconColor,
-            modifier = Modifier.size(size * 0.8f)
+            modifier = Modifier.size(size * 0.5f)
         )
     }
 }
 
 @Composable
-fun FootBar() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(70.dp)
-                .background(Color.Cyan)
-                .align(Alignment.BottomCenter)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BoxItem(color = Color.Cyan, text = "Trang chủ", icon = Icons.Default.Home)
-                BoxItem(color = Color.Cyan, text = "Tìm kiếm", icon = Icons.Default.Search)
-                Spacer(modifier = Modifier.width(56.dp))
-                BoxItem(color = Color.Cyan, text = "Thông báo", icon = Icons.Default.MailOutline)
-                BoxItem(color = Color.Cyan, text = "Cá nhân", icon = Icons.Default.Person)
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = (-37).dp)
-        ) {
-            CircleButton(onClick = {})
-        }
-    }
-}
-
-@Composable
 fun BoxItem(
-    modifier: Modifier = Modifier,
-    color: Color,
-    width: Dp = 80.dp,
-    height: Dp = 70.dp,
     text: String,
-    icon: ImageVector
+    icon: ImageVector,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .size(width, height)
-            .background(color = color)
-            .clickable {  },
-        contentAlignment = Alignment.Center
-    ){
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = "home", Modifier.size(24.dp))
-            Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        }
+    Column(
+        modifier = modifier.clickable { },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
     }
 }
+

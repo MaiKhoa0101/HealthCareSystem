@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 package com.example.healthcaresystem.user.home.startscreen
+=======
+<<<<<<<< HEAD:app/src/main/java/com/example/healthcaresystem/user/SignUpSuccess.kt
+package com.example.healthcaresystem.user
+========
+package com.example.healthcaresystem.user.home.startscreen
+>>>>>>>> ca90ff817dfc39f7bff798a857390860606ccc54:app/src/main/java/com/example/healthcaresystem/user/home/startscreen/SignUpSuccess.kt
+>>>>>>> ca90ff817dfc39f7bff798a857390860606ccc54
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
+<<<<<<< HEAD
 import com.example.healthcaresystem.user.SignIn
+=======
+import com.example.healthcaresystem.user.home.startscreen.SignIn
+>>>>>>> ca90ff817dfc39f7bff798a857390860606ccc54
 
 class SignUpSuccess : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
