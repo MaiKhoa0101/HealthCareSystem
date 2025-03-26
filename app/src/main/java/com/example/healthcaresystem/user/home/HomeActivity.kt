@@ -42,7 +42,7 @@ class HomeActivity : ComponentActivity() {
                 HealthMateHomeScreen()
             }
             SidebarMenu()
-            Menu()
+            FootBar()
         }
     }
 

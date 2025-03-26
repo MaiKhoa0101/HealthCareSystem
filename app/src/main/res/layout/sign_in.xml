@@ -5,7 +5,7 @@
     android:id="@+id/main_sign_in"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".user.SignIn">
+    tools:context=".User.home.startscreen.SignIn">
     <ImageButton
         android:layout_width="50dp"
         android:layout_height="50dp"

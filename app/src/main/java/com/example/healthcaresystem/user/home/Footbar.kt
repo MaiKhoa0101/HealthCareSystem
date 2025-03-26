@@ -59,7 +59,7 @@ fun CircleButton(
 }
 
 @Composable
-fun Menu() {
+fun FootBar() {
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier

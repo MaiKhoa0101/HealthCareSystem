@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".user.Intro1">
+    tools:context=".User.home.startscreen.Intro1">
 
     <TextView
         android:layout_width="match_parent"
