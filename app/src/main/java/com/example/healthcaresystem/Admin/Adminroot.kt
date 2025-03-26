@@ -38,12 +38,8 @@ class AdminRoot: ComponentActivity() {
 @Composable
 fun AdminScreen(sharedPreferences: SharedPreferences) {
     Scaffold(
-        topBar = { Headbar() },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* do something */ }) {
-                Icon(painterResource(id = R.drawable.menu_icon), contentDescription = "")
-            }
-        },
+        topBar = { Headbar(sharedPreferences) },
+
         bottomBar = { FootBar() },
         content = { paddingValues ->
             UserListScreen(

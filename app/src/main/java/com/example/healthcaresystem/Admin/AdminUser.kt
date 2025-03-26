@@ -82,12 +82,6 @@ fun UserListScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HeaderSection(
-            userName = userName,
-            role = role,
-            onLogout = { viewModel.logout(context) }
-        )
-
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
@@ -104,48 +98,6 @@ fun UserListScreen(
     }
 }
 
-@Composable
-fun HeaderSection(userName: String, role: String, onLogout: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)) // Round only the bottom corners
-            .background(Color.Cyan) // Apply the background after the clip
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = { /*Ham mo menu*/ }) {
-            Icon(
-                modifier = Modifier.size(30.dp),
-                painter = painterResource(id = R.drawable.threestick),
-                contentDescription = "Edit",
-                tint = Color.Unspecified
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Xin chào \n$userName",
-                style = MaterialTheme.typography.headlineMedium,
-                fontSize = 15.sp,
-                textAlign = TextAlign.Left,
-                lineHeight = 20.sp
-            )
-            Spacer(modifier = Modifier.width(8.dp)) // Add space between components
-            IconButton(onClick = onLogout, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    modifier = Modifier.size(30.dp),
-                    painter = painterResource(id = R.drawable.logout),
-                    contentDescription = "Edit",
-                    tint = Color.Unspecified
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun EmptyUserList() {
@@ -188,7 +140,7 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp),
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp), // Space between the two cards
         verticalAlignment = Alignment.CenterVertically
     ) {

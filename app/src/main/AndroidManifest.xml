@@ -20,7 +20,11 @@
             android:exported="true"
             android:label="@string/title_activity_admin_user"
             android:theme="@style/Theme.HealthCareSystem" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".User.home.HomeActivity"
@@ -50,11 +54,7 @@
         <activity
             android:name=".User.home.startscreen.SignIn"
             android:exported="true" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".User.MainPage"

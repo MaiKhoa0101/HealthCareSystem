@@ -1,5 +1,7 @@
 package com.example.healthcaresystem.User.home
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,23 +25,24 @@ class HomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             HealthCareSystemTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Index(modifier = Modifier.padding(innerPadding))
+                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
                 }
             }
         }
     }
 
     @Composable
-    fun Index(modifier: Modifier = Modifier) {
+    fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences) {
         Box(modifier = Modifier.padding(top = 45.dp)) {
             Column(
                 Modifier.fillMaxSize(),
                 Arrangement.Center,
                 Alignment.CenterHorizontally
             ) {
-                Headbar()
+                Headbar(sharedPreferences)
                 HealthMateHomeScreen()
             }
             SidebarMenu()
@@ -47,12 +50,5 @@ class HomeActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true, showSystemUi = true)
-    @Composable
-    fun GreetingPreview() {
-        HealthCareSystemTheme {
-            Index()
-        }
-    }
 }
 
