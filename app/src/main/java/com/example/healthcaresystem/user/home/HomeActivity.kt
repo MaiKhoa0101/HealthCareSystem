@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.healthcaresystem.admin.UserListScreen
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 class HomeActivity : ComponentActivity() {
@@ -34,18 +35,17 @@ class HomeActivity : ComponentActivity() {
 
     @Composable
     fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences) {
-        Box(modifier = Modifier.padding(top = 45.dp)) {
-            Column(
-                Modifier.fillMaxSize(),
-                Arrangement.Center,
-                Alignment.CenterHorizontally
-            ) {
-                Headbar(sharedPreferences)
-                HealthMateHomeScreen()
+        Scaffold(
+            topBar = { Headbar(sharedPreferences) },
+
+            bottomBar = { FootBar() },
+            content = { paddingValues ->
+                HealthMateHomeScreen(
+                    modifier = Modifier.padding(paddingValues), // Apply paddingValues here
+                    sharedPreferences = sharedPreferences
+                )
             }
-            SidebarMenu()
-            FootBar()
-        }
+        )
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.healthcaresystem.user.home
 
+import android.content.SharedPreferences
 import com.example.healthcaresystem.user.home.model.Service
 import com.example.healthcaresystem.user.home.model.Specialty
 import com.example.healthcaresystem.user.home.model.Doctor
@@ -78,7 +79,10 @@ val remoteServices = listOf(
 //}
 
 @Composable
-fun HealthMateHomeScreen() {
+fun HealthMateHomeScreen(
+    modifier: Modifier = Modifier,
+    sharedPreferences: SharedPreferences
+) {
 
     val context = LocalContext.current
 
