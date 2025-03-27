@@ -5,63 +5,82 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HealthCareSystem"
         tools:targetApi="31">
         <activity
-            android:name=".Admin.AdminRoot"
+            android:name=".admin.AdminLichHen"
+            android:exported="false"
+            android:label="@string/title_activity_admin_lich_hen"
+            android:theme="@style/Theme.HealthCareSystem" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" /> <!-- Launcher activity -->
+        <activity
+            android:name=".admin.AdminRoot"
             android:exported="true"
             android:label="@string/title_activity_admin_user"
-            android:theme="@style/Theme.HealthCareSystem" >
+            android:theme="@style/Theme.HealthCareSystem">
 
+             <intent-filter>
+             <action android:name="android.intent.action.MAIN" />
+
+
+             <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
         </activity>
         <activity
-            android:name=".User.home.HomeActivity"
+            android:name=".user.home.HomeActivity"
             android:exported="true"
             android:label="@string/title_activity_home"
             android:theme="@style/Theme.HealthCareSystem">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".User.home.startscreen.SignUpSuccess"
+            android:name=".user.home.startscreen.SignUpSuccess"
             android:exported="false" />
         <activity
-            android:name=".User.home.startscreen.StartScreen"
-            android:exported="true">
-        </activity>
+            android:name=".user.home.startscreen.StartScreen"
+            android:exported="true"></activity>
         <activity
-            android:name=".User.home.startscreen.Intro3"
+            android:name=".user.home.startscreen.Intro3"
             android:exported="false" />
         <activity
-            android:name=".User.home.startscreen.Intro2"
+            android:name=".user.home.startscreen.Intro2"
             android:exported="false" />
         <activity
-            android:name=".User.home.startscreen.Intro1"
+            android:name=".user.home.startscreen.Intro1"
             android:exported="true"
-            android:theme="@style/Theme.HealthCareSystem">
-
-        </activity>
+            android:theme="@style/Theme.HealthCareSystem"></activity>
         <activity
-            android:name=".User.home.startscreen.SignIn"
-            android:exported="true" >
+            android:name=".user.home.startscreen.SignIn"
+            android:exported="true"></activity>
+        <activity
+            android:name=".user.MainPage"
+            android:exported="true" />
+        <activity
+            android:name=".user.home.startscreen.SignUp"
+            android:exported="true" />
+
+        <service
+            android:name=".features.notification.MyFirebaseMessagingService"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".User.MainPage"
-            android:exported="true" />
-        <activity
-            android:name=".User.home.startscreen.SignUp"
-            android:exported="true" />
+        </service>
     </application>
 
 </manifest>

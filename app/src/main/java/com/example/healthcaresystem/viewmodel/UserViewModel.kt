@@ -10,9 +10,9 @@ import com.example.healthcaresystem.api.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.example.healthcaresystem.model.GetUser
+import com.example.healthcaresystem.model.response.GetUser
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.User.home.startscreen.SignIn
+import com.example.healthcaresystem.user.home.startscreen.SignIn
 import com.example.healthcaresystem.model.UpdateUser
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
