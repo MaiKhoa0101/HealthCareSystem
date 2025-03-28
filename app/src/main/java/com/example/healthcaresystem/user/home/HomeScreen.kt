@@ -2,10 +2,10 @@ package com.example.healthcaresystem.user.home
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.healthcaresystem.user.home.model.Service
+import com.example.healthcaresystem.user.home.model.MedicalOption
 import com.example.healthcaresystem.user.home.model.Specialty
 import com.example.healthcaresystem.user.home.model.Doctor
-import com.example.healthcaresystem.user.home.model.RemoteService
+import com.example.healthcaresystem.user.home.model.RemoteMedicalOption
 import com.example.healthcaresystem.user.home.model.FAQItem
 
 import android.widget.Toast
@@ -52,10 +52,10 @@ val faqs = listOf(
 
 // Danh sách dữ liệu mẫu
 val services = listOf(
-    Service("Khám Chuyên khoa", R.drawable.doctor),
-    Service("Chuẩn đoán bệnh", R.drawable.doctor),
-    Service("Y tế gần bạn", R.drawable.doctor),
-    Service("Đánh giá nơi khám", R.drawable.doctor)
+    MedicalOption("Khám Chuyên khoa", R.drawable.doctor),
+    MedicalOption("Chuẩn đoán bệnh", R.drawable.doctor),
+    MedicalOption("Y tế gần bạn", R.drawable.doctor),
+    MedicalOption("Đánh giá nơi khám", R.drawable.doctor)
 )
 
 val specialties = listOf(
@@ -69,9 +69,9 @@ val specialties = listOf(
 //    Doctor("Phó Giáo sư, Tiến sĩ Nguyễn Thanh Bình", "Thần kinh", R.drawable.doctor)
 //)
 val remoteServices = listOf(
-    RemoteService("Tư vấn, trị liệu tâm lý từ xa", R.drawable.doctor),
-    RemoteService("Sức khỏe tâm thần từ xa", R.drawable.doctor),
-    RemoteService("Bác sĩ da liễu từ xa", R.drawable.doctor)
+    RemoteMedicalOption("Tư vấn, trị liệu tâm lý từ xa", R.drawable.doctor),
+    RemoteMedicalOption("Sức khỏe tâm thần từ xa", R.drawable.doctor),
+    RemoteMedicalOption("Bác sĩ da liễu từ xa", R.drawable.doctor)
 )
 
 //@Composable
@@ -180,7 +180,7 @@ fun HealthMateHomeScreen(
                 modifier = Modifier.padding(start = 16.dp)
             ) {
                 items(remoteServices) { service ->
-                    RemoteService(service) {
+                    RemoteMedicalOption(service) {
                         showToast(context, "Clicked: ${service.title}")
                     }
                 }
@@ -323,7 +323,7 @@ fun FAQRow(
 
 
 @Composable
-fun GridServiceList(items: List<Service>, onClick: (Service) -> Unit) {
+fun GridServiceList(items: List<MedicalOption>, onClick: (MedicalOption) -> Unit) {
     Column (modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -420,7 +420,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
 }
 
 @Composable
-fun RemoteService(service: RemoteService, onClick: () -> Unit) {
+fun RemoteMedicalOption(service: RemoteMedicalOption, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)

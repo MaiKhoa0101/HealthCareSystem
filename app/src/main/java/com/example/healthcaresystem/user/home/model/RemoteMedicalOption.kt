@@ -1,6 +1,7 @@
 package com.example.healthcaresystem.user.home.model
 
-data class Service(
+// Dữ liệu dịch vụ khám từ xa
+data class RemoteMedicalOption(
     val title: String,
     val icon: Int
 )
