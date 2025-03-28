@@ -12,7 +12,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import com.example.healthcaresystem.api.RetrofitInstance
-import com.example.healthcaresystem.model.LoginRequest
+import com.example.healthcaresystem.model.request.LoginRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +21,6 @@ import com.auth0.android.jwt.JWT
 import com.example.healthcaresystem.admin.AdminRoot
 import com.example.healthcaresystem.R
 import com.example.healthcaresystem.user.MainPage
-import com.example.healthcaresystem.user.home.startscreen.SignUp
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

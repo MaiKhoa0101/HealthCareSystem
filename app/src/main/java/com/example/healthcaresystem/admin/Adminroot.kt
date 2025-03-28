@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,6 +17,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.healthcaresystem.admin.LichKhamScreen
+//import com.example.healthcaresystem.Admin.pages.LichKhamScreen
 import com.example.healthcaresystem.R
 import com.example.healthcaresystem.user.home.FootBar
 import com.example.healthcaresystem.user.home.Headbar
@@ -41,10 +47,13 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
 
         bottomBar = { FootBar() },
         content = { paddingValues ->
-            UserListScreen(
-                modifier = Modifier.padding(paddingValues), // Apply paddingValues here
-                sharedPreferences = sharedPreferences
-            )
+            Column(modifier = Modifier.padding(paddingValues)) {
+                Spacer(modifier = Modifier.height(10.dp)) // Tạo khoảng cách giữa TopBar và nội dung
+                LichKhamScreen(
+                    viewModel = viewModel(),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
         }
     )
 }

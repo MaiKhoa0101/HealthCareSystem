@@ -1,11 +1,10 @@
 package com.example.healthcaresystem.api
 
 
-import com.example.healthcaresystem.model.LoginRequest
-import com.example.healthcaresystem.model.LoginResponse
-import com.example.healthcaresystem.model.SignUpRequest
-import com.example.healthcaresystem.model.SignUpResponse
-import retrofit2.Call
+import com.example.healthcaresystem.model.request.LoginRequest
+import com.example.healthcaresystem.model.response.LoginResponse
+import com.example.healthcaresystem.model.request.SignUpRequest
+import com.example.healthcaresystem.model.response.SignUpResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

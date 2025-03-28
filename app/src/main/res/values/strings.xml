@@ -44,4 +44,5 @@
     </string>
     <string name="title_activity_home">Home</string>
     <string name="title_activity_admin_user">Admin_user</string>
+    <string name="title_activity_admin_lich_hen">AdminLichHen</string>
 </resources>

@@ -1,7 +1,7 @@
 package com.example.healthcaresystem.api
 
-import com.example.healthcaresystem.model.GetUser
-import com.example.healthcaresystem.model.GetUserID
+import com.example.healthcaresystem.model.response.GetUser
+import com.example.healthcaresystem.model.request.GetUserID
 import com.example.healthcaresystem.model.UpdateUser
 import retrofit2.Response
 import retrofit2.http.Body

@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.model
+package com.example.healthcaresystem.model.request
 
 data class SignUpRequest (
     val name: String,
