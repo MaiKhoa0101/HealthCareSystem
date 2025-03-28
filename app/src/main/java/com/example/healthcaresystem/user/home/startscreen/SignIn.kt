@@ -11,8 +11,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import com.example.healthcaresystem.api.RetrofitInstance
-import com.example.healthcaresystem.model.request.LoginRequest
+import com.example.healthcaresystem.retrofit.RetrofitInstance
+import com.example.healthcaresystem.requestmodel.LoginRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

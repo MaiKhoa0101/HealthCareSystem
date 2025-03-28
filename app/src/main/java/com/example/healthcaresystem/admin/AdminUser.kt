@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.example.healthcaresystem.viewmodel.UserViewModel
-import com.example.healthcaresystem.model.response.GetUser
+import com.example.healthcaresystem.responsemodel.GetUser
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import android.content.Context
@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.model.UpdateUser
+import com.example.healthcaresystem.requestmodel.UpdateUser
 
 //class AdminUser : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {

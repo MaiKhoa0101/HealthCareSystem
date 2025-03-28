@@ -15,8 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.healthcaresystem.R
-import com.example.healthcaresystem.api.RetrofitInstance
-import com.example.healthcaresystem.model.request.SignUpRequest
+import com.example.healthcaresystem.retrofit.RetrofitInstance
+import com.example.healthcaresystem.requestmodel.SignUpRequest
 //import com.example.healthcaresystem.user.SignIn
 //import com.example.healthcaresystem.user.SignUpSuccess
 import kotlinx.coroutines.CoroutineScope

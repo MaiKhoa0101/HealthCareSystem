@@ -1,14 +1,14 @@
 package com.example.healthcaresystem.viewmodel
 
-import com.example.healthcaresystem.model.response.AppointmentResponse
+import com.example.healthcaresystem.responsemodel.AppointmentResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.healthcaresystem.api.RetrofitInstance
+import com.example.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
-class LichHenViewModel: ViewModel() {
+class AppointmentViewModel: ViewModel() {
     private val _appointments = MutableStateFlow<List<AppointmentResponse>>(emptyList())
     val appoinments: StateFlow<List<AppointmentResponse>> get() = _appointments
 

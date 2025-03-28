@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.model.response
+package com.example.healthcaresystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
 
@@ -12,7 +12,7 @@ data class AppointmentResponse(
     val reason: String,
     val notes: String?,
 
-) {
+    ) {
     data class Doctor(
         @SerializedName("_id") val id: String,
         val name: String,

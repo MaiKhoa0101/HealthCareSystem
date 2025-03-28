@@ -1,5 +1,6 @@
 package com.example.healthcaresystem.user.home
 
+import android.content.Context
 import android.content.SharedPreferences
 import com.example.healthcaresystem.user.home.model.Service
 import com.example.healthcaresystem.user.home.model.Specialty
@@ -33,7 +34,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.admin.EmptyUserList
+import com.example.healthcaresystem.admin.UserList
+import com.example.healthcaresystem.responsemodel.GetDoctorResponse
+import com.example.healthcaresystem.responsemodel.GetUser
+import com.example.healthcaresystem.viewmodel.DoctorViewModel
+import com.example.healthcaresystem.viewmodel.UserViewModel
 
 val faqs = listOf(
     FAQItem("Cách đăng ký khám trực tiếp tại bệnh viện Tai mũi Họng Trung Ương"),
@@ -53,11 +63,11 @@ val specialties = listOf(
     Specialty("Thần kinh", R.drawable.doctor),
     Specialty("Tiêu hóa", R.drawable.doctor),
 )
-val doctors = listOf(
-    Doctor("Thạc sĩ, Bác sĩ Lê Tấn Lợi", "Thần kinh", R.drawable.doctor),
-    Doctor("Giáo sư, Tiến sĩ Hà Văn Quyết", "Tiêu hóa, Bệnh viêm gan", R.drawable.doctor),
-    Doctor("Phó Giáo sư, Tiến sĩ Nguyễn Thanh Bình", "Thần kinh", R.drawable.doctor)
-)
+//val doctors = listOf(
+//    Doctor("Thạc sĩ, Bác sĩ Lê Tấn Lợi", "Thần kinh", R.drawable.doctor),
+//    Doctor("Giáo sư, Tiến sĩ Hà Văn Quyết", "Tiêu hóa, Bệnh viêm gan", R.drawable.doctor),
+//    Doctor("Phó Giáo sư, Tiến sĩ Nguyễn Thanh Bình", "Thần kinh", R.drawable.doctor)
+//)
 val remoteServices = listOf(
     RemoteService("Tư vấn, trị liệu tâm lý từ xa", R.drawable.doctor),
     RemoteService("Sức khỏe tâm thần từ xa", R.drawable.doctor),
@@ -85,6 +95,19 @@ fun HealthMateHomeScreen(
 ) {
 
     val context = LocalContext.current
+    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+        initializer { DoctorViewModel(sharedPreferences) }
+    })
+
+    val doctors by viewModel.doctors.collectAsState()
+//    var userName by remember { mutableStateOf("Người dùng") }
+//    var role by remember { mutableStateOf("Người dùng") }
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchUsers()
+//        userName = viewModel.getUserNameFromToken()
+//        role = viewModel.getUserRole()
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -141,16 +164,11 @@ fun HealthMateHomeScreen(
         // Bác sĩ nổi bật
         item {
             SectionHeader(title = "Bác sĩ nổi bật")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .background(Color(0xFF73E3E7))
-            ) {
-                items(doctors) { doctor ->
-                    DoctorItem(doctor) {
-                        showToast(context, "Clicked: ${doctor.name}")
-                    }
-                }
+
+            if (doctors.isEmpty()) {
+                EmptyDoctorList()
+            } else {
+                DoctorList(context,doctors = doctors)
             }
         }
 
@@ -189,6 +207,20 @@ fun SectionHeader(title: String) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(8.dp)
     )
+}
+
+@Composable
+fun EmptyDoctorList() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Không có bác sĩ",
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
 }
 
 @Composable
@@ -348,7 +380,23 @@ fun SpecialtyItem(specialty: Specialty, onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorItem(doctor: Doctor, onClick: () -> Unit) {
+fun DoctorList(context: Context, doctors: List<GetDoctorResponse>) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .background(Color(0xFF73E3E7))
+            .fillMaxWidth()
+    ) {
+        items(doctors) { doctor ->
+            DoctorItem(doctor) {
+                showToast(context, "Clicked: ${doctor.name}")
+            }
+        }
+    }
+}
+
+@Composable
+fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .width(150.dp)
@@ -357,7 +405,7 @@ fun DoctorItem(doctor: Doctor, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = doctor.icon),
+            painter = painterResource(id = R.drawable.doctor),
             contentDescription = doctor.name,
             modifier = Modifier
                 .size(80.dp)

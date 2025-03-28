@@ -1,8 +1,5 @@
 package com.example.healthcaresystem.admin
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,11 +12,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
-import com.example.healthcaresystem.model.response.AppointmentResponse
-import com.example.healthcaresystem.viewmodel.LichHenViewModel
+import com.example.healthcaresystem.responsemodel.AppointmentResponse
+import com.example.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
-fun LichKhamScreen(viewModel: LichHenViewModel, modifier: Modifier = Modifier) {
+fun LichKhamScreen(viewModel: AppointmentViewModel, modifier: Modifier = Modifier) {
     val appointments by viewModel.appoinments.collectAsState()
 
     LaunchedEffect(Unit) {

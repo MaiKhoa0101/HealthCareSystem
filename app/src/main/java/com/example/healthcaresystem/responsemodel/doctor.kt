@@ -2,7 +2,7 @@ package com.example.healthcaresystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
 
-data class GetDoctorsResponse (
+data class GetDoctorResponse (
     @SerializedName("_id") val id: String, // Đổi thành `id` để dễ đọc hơn
     @SerializedName("role") val role: String,
     @SerializedName("email") val email: String,

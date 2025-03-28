@@ -1,6 +1,6 @@
 package com.example.healthcaresystem.api
 
-import com.example.healthcaresystem.model.response.AppointmentResponse
+import com.example.healthcaresystem.responsemodel.AppointmentResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Headers

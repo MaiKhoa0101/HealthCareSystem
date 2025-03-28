@@ -1,6 +1,4 @@
-package com.example.healthcaresystem.model
-
-import com.google.gson.annotations.SerializedName
+package com.example.healthcaresystem.requestmodel
 
 data class UpdateUser(
     val name: String,
