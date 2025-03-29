@@ -1,6 +1,6 @@
 package com.example.healthcaresystem.user.home.model
 
 data class MedicalOption(
-    val title: String,
+    val name: String,
     val icon: Int
 )

@@ -142,7 +142,7 @@ fun HealthMateHomeScreen(
         item {
             SectionHeader(title = "Dịch vụ toàn diện")
             GridServiceList(services) { service ->
-                showToast(context, "Clicked: ${service.title}")
+                showToast(context, "Clicked: ${service.name}")
             }
         }
 
@@ -181,7 +181,7 @@ fun HealthMateHomeScreen(
             ) {
                 items(remoteServices) { service ->
                     RemoteMedicalOption(service) {
-                        showToast(context, "Clicked: ${service.title}")
+                        showToast(context, "Clicked: ${service.name}")
                     }
                 }
             }
@@ -339,12 +339,12 @@ fun GridServiceList(items: List<MedicalOption>, onClick: (MedicalOption) -> Unit
                         Row(verticalAlignment =  Alignment.CenterVertically) {
                             Image(
                                 painter = painterResource(id =item.icon),
-                                contentDescription = item.title,
+                                contentDescription = item.name,
                                 modifier = Modifier.size(40.dp),
                                 contentScale = ContentScale.Fit
                             )
                             Spacer(modifier = Modifier.width(3.dp))
-                            Text(text = item.title, color = Color.Black)
+                            Text(text = item.name, color = Color.Black)
                         }
                     }
                 }
@@ -369,12 +369,12 @@ fun SpecialtyItem(specialty: Specialty, onClick: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id=specialty.icon),
-                contentDescription = specialty.title,
+                contentDescription = specialty.name,
                 modifier = Modifier.size(50.dp),
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = specialty.title, color = Color.Black)
+            Text(text = specialty.name, color = Color.Black)
         }
     }
 }
@@ -437,12 +437,12 @@ fun RemoteMedicalOption(service: RemoteMedicalOption, onClick: () -> Unit) {
         ) {
             Image(
                 painter = painterResource(id = service.icon),
-                contentDescription = service.title,
+                contentDescription = service.name,
                 modifier = Modifier.size(60.dp),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = service.title, fontSize = 14.sp, color = Color.Black, textAlign = TextAlign.Center)
+            Text(text = service.name, fontSize = 14.sp, color = Color.Black, textAlign = TextAlign.Center)
         }
     }
 }
