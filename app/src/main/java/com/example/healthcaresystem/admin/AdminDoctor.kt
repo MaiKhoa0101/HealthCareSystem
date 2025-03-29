@@ -30,7 +30,7 @@ import com.example.healthcaresystem.R
 import com.example.healthcaresystem.requestmodel.UpdateUser
 
 @Composable
-fun UserListScreen(
+fun DoctorListScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences
 ) {
@@ -57,7 +57,7 @@ fun UserListScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Danh sách người dùng",
+            text = "Danh sách người dùng doctor",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -72,7 +72,7 @@ fun UserListScreen(
 
 
 @Composable
-fun EmptyUserList() {
+fun EmptyDoctorList() {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -86,21 +86,21 @@ fun EmptyUserList() {
 }
 
 @Composable
-fun UserList(users: List<GetUser>, viewModel: UserViewModel) {
+fun DoctorList(users: List<GetUser>, viewModel: UserViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 10.dp)
     ) {
         items(users) { user ->
-            UserItem(user = user, viewModel = viewModel)
+            DoctorItem(user = user, viewModel = viewModel)
         }
     }
 }
 
 
 @Composable
-fun UserItem(user: GetUser, viewModel: UserViewModel) {
+fun DoctorItem(user: GetUser, viewModel: UserViewModel) {
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
@@ -226,7 +226,7 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
 
 
     if (isEditing) {
-        EditUserDialog(
+        EditDoctorDialog(
             user = user,
             name = name,
             email = email,
@@ -257,7 +257,7 @@ fun UserItem(user: GetUser, viewModel: UserViewModel) {
 }
 
 @Composable
-fun EditUserDialog(
+fun EditDoctorDialog(
     user: GetUser,
     name: String,
     email: String,
@@ -324,10 +324,10 @@ fun EditUserDialog(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewUserListScreen() {
+fun PreviewDoctorListScreen() {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     HealthCareSystemTheme {
-        UserListScreen(sharedPreferences = sharedPreferences)
+        DoctorListScreen(sharedPreferences = sharedPreferences)
     }
 }
