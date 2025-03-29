@@ -2,6 +2,7 @@ package com.example.healthcaresystem.admin
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateDpAsState
@@ -10,6 +11,8 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,17 +64,15 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DrawerContent(
-    sidebarItem: List<SidebarItem>, // List of sidebar items
+    sidebarItem: List<SidebarItem>,
     navController: NavController,
     modifier: Modifier = Modifier,
-    closedrawer: ()-> Unit
+    closedrawer: () -> Unit
 ) {
-    // Track the currently selected item
     val currentDestination = navController.currentDestination?.route
 
     Column(
-        modifier = modifier
-            .padding(16.dp)
+        modifier = modifier.padding(16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -86,44 +87,51 @@ fun DrawerContent(
                 Icon(
                     painter = painterResource(id = R.drawable.menu_icon),
                     contentDescription = "Menu Icon",
-                    tint = Color.Cyan // Keeps the original icon color
+                    tint = Color.Cyan
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            // Optional Header
             Text(
                 text = "Menu",
                 fontSize = 20.sp
             )
         }
-        // Dynamically create NavigationDrawerItem for each SidebarItem
-        sidebarItem.forEach { item ->
-            NavigationDrawerItem(
-                icon = {
-                    Icon(
-                        painter = painterResource(id = item.iconField),
-                        contentDescription = item.nameField,
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                label = {
-                    Text(text = item.nameField)
-                },
-                selected = currentDestination == item.navigationField,
-                onClick = {
-                    navController.navigate(item.navigationField) {
-                        // Avoid multiple copies of the same destination in the back stack
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                        closedrawer()
-                    }
-                },
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+
+        sidebarItem.forEachIndexed { index, item ->
+            AnimatedVisibility(
+                visible = true, // Hiển thị các mục với animation
+                enter = fadeIn(animationSpec = tween(150, index * 100)) +
+                        slideInHorizontally(initialOffsetX = { -50 }),
+                exit = fadeOut(animationSpec = tween(150)) +
+                        slideOutHorizontally(targetOffsetX = { -50 })
+            ) {
+                NavigationDrawerItem(
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = item.iconField),
+                            contentDescription = item.nameField,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    },
+                    label = {
+                        Text(text = item.nameField)
+                    },
+                    selected = currentDestination == item.navigationField,
+                    onClick = {
+                        navController.navigate(item.navigationField) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                            closedrawer()
+                        }
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun DrawerMenuItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {

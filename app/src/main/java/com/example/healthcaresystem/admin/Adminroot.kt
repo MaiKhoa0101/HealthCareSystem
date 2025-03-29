@@ -98,9 +98,9 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
+    ModalNavigationDrawer(//
+        drawerState = drawerState,//lưu trạng thái sidebar
+        drawerContent = { //nội dung trong sidebar
             ModalDrawerSheet(
                 modifier = Modifier
                     .width(300.dp)

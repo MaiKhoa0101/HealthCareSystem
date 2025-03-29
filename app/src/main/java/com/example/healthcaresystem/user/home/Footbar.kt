@@ -47,6 +47,7 @@ fun FootBar() {
         // Bottom bar with icons
         Row(
             modifier = Modifier
+
                 .fillMaxWidth()
                 .height(110.dp)
                 .background(Color.Cyan)
