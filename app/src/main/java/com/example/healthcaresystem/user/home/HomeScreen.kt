@@ -41,45 +41,18 @@ import com.example.healthcaresystem.R
 import com.example.healthcaresystem.admin.EmptyUserList
 import com.example.healthcaresystem.admin.UserList
 import com.example.healthcaresystem.responsemodel.GetDoctorResponse
+import com.example.healthcaresystem.responsemodel.GetFAQItemResponse
 import com.example.healthcaresystem.responsemodel.GetMedicalOptionResponse
 import com.example.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
 import com.example.healthcaresystem.responsemodel.GetSpecialtyResponse
 import com.example.healthcaresystem.responsemodel.GetUser
 
 import com.example.healthcaresystem.viewmodel.DoctorViewModel
+import com.example.healthcaresystem.viewmodel.FAQItemViewModel
 import com.example.healthcaresystem.viewmodel.MedicalOptionViewModel
 import com.example.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.example.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.example.healthcaresystem.viewmodel.UserViewModel
-
-val faqs = listOf(
-    FAQItem("Cách đăng ký khám trực tiếp tại bệnh viện Tai mũi Họng Trung Ương"),
-    FAQItem("Khám bảo hiểm tại Bệnh viện Bệnh Nhiệt đới Trung ương cần chuẩn bị giấy tờ gì?")
-)
-
-// Danh sách dữ liệu mẫu
-val services = listOf(
-    MedicalOption("Khám Chuyên khoa", R.drawable.doctor),
-    MedicalOption("Chuẩn đoán bệnh", R.drawable.doctor),
-    MedicalOption("Y tế gần bạn", R.drawable.doctor),
-    MedicalOption("Đánh giá nơi khám", R.drawable.doctor)
-)
-
-val specialties = listOf(
-    Specialty("Cơ xương khớp", R.drawable.doctor),
-    Specialty("Thần kinh", R.drawable.doctor),
-    Specialty("Tiêu hóa", R.drawable.doctor),
-)
-//val doctors = listOf(
-//    Doctor("Thạc sĩ, Bác sĩ Lê Tấn Lợi", "Thần kinh", R.drawable.doctor),
-//    Doctor("Giáo sư, Tiến sĩ Hà Văn Quyết", "Tiêu hóa, Bệnh viêm gan", R.drawable.doctor),
-//    Doctor("Phó Giáo sư, Tiến sĩ Nguyễn Thanh Bình", "Thần kinh", R.drawable.doctor)
-//)
-val remoteServices = listOf(
-    RemoteMedicalOption("Tư vấn, trị liệu tâm lý từ xa", R.drawable.doctor),
-    RemoteMedicalOption("Sức khỏe tâm thần từ xa", R.drawable.doctor),
-    RemoteMedicalOption("Bác sĩ da liễu từ xa", R.drawable.doctor)
-)
 
 //@Composable
 //fun Index(modifier: Modifier =Modifier) {
@@ -102,6 +75,11 @@ fun HealthMateHomeScreen(
 ) {
 
     val context = LocalContext.current
+
+    val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
+        initializer { FAQItemViewModel(sharedPreferences) }
+    })
+    val faqItems by faqItemViewModel.faqItems.collectAsState()
 
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
@@ -127,6 +105,10 @@ fun HealthMateHomeScreen(
     LaunchedEffect(Unit) {
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
+        medicalOptionViewModel.fetchMedicalOptions()
+        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
+        faqItemViewModel.fetchFAQItems()
+
 //        userName = viewModel.getUserNameFromToken()
 //        role = viewModel.getUserRole()
     }
@@ -151,10 +133,10 @@ fun HealthMateHomeScreen(
                     }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                faqs.forEach { faq ->
-                    FAQRow(faq) {
-                        showToast(context, "Clicked: ${faq.question}")
-                    }
+                if (faqItems.isEmpty()) {
+                    EmptyList("tin mới")
+                } else {
+                    FAQItemList(context,faqItems = faqItems)
                 }
 
             }
@@ -163,8 +145,12 @@ fun HealthMateHomeScreen(
         // Dịch vụ toàn diện
         item {
             SectionHeader(title = "Dịch vụ toàn diện")
-            GridServiceList(medicalOptions) { medicalOption ->
-                showToast(context, "Clicked: ${medicalOption.name}")
+            if (medicalOptions.isEmpty()) {
+                EmptyList("dịch vụ hệ thống")
+            } else {
+                GridServiceList(medicalOptions) { medicalOption ->
+                    showToast(context, "Clicked: ${medicalOption.name}")
+                }
             }
         }
 
@@ -194,10 +180,10 @@ fun HealthMateHomeScreen(
         item {
             SectionHeader(title = "Khám từ xa")
 
-            if (doctors.isEmpty()) {
+            if (remoteMedicalOptions.isEmpty()) {
                 EmptyList("dịch vụ khám từ xa")
             } else {
-                DoctorList(context,doctors = doctors)
+                RemoteMedicalOptionList(context,remoteMedicalOptions = remoteMedicalOptions)
             }
         }
 
@@ -304,8 +290,17 @@ fun AssistantQueryRow(
 }
 
 @Composable
-fun FAQRow(
-    faq: FAQItem,
+fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {
+    faqItems.forEach { faqItem ->
+        FAQItem(faqItem) {
+            showToast(context, "Clicked: ${faqItem.question}")
+        }
+    }
+}
+
+@Composable
+fun FAQItem(
+    faq: GetFAQItemResponse,
     onSelectQuestion: () -> Unit
 ) {
     Column(
@@ -387,7 +382,7 @@ fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
-            .height(100.dp)
+            .height(150.dp)
             .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clickable { onClick() }
@@ -402,7 +397,7 @@ fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit) {
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = specialty.name, color = Color.Black)
+            Text(text = specialty.name, color = Color.Black, textAlign = TextAlign.Center)
         }
     }
 }
@@ -414,6 +409,7 @@ fun DoctorList(context: Context, doctors: List<GetDoctorResponse>) {
         modifier = Modifier
             .background(Color(0xFF73E3E7))
             .fillMaxWidth()
+            .height(200.dp)
     ) {
         items(doctors) { doctor ->
             DoctorItem(doctor) {
@@ -466,7 +462,7 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
     Box(
         modifier = Modifier
             .width(150.dp)
-            .height(100.dp)
+            .height(150.dp)
             .background(Color(0xFFFBE9E7), shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clickable { onClick() }

@@ -13,7 +13,7 @@ class FAQItemViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     private val _faqItems = MutableStateFlow<List<GetFAQItemResponse>>(emptyList())
     val faqItems: StateFlow<List<GetFAQItemResponse>> get() = _faqItems
 
-    fun fetchRemoteMedicalOptions() {
+    fun fetchFAQItems() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.faqItemService.getFAQItems()

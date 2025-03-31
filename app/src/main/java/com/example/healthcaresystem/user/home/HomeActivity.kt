@@ -28,18 +28,18 @@ class HomeActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-//            HealthCareSystemTheme {
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
-//                }
-//            }
+            HealthCareSystemTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
+                }
+            }
 
             //tam thoi dung de chay admin
-            HealthCareSystemTheme {
-                AdminScreen(
-                    sharedPreferences = sharedPreferences
-                )
-            }
+//            HealthCareSystemTheme {
+//                AdminScreen(
+//                    sharedPreferences = sharedPreferences
+//                )
+//            }
             //
         }
     }
@@ -48,15 +48,19 @@ class HomeActivity : ComponentActivity() {
     fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences) {
         Scaffold(
             topBar = { Headbar(sharedPreferences) },
-
             bottomBar = { FootBar() },
-            content = { paddingValues ->
+        ) { paddingValues -> // paddingValues được truyền vào content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues) // Áp dụng paddingValues để tránh bị che
+            ) {
                 HealthMateHomeScreen(
-                    modifier = Modifier.padding(paddingValues), // Apply paddingValues here
+                    modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences
                 )
             }
-        )
+        }
     }
 }
 
