@@ -41,8 +41,15 @@ import com.example.healthcaresystem.R
 import com.example.healthcaresystem.admin.EmptyUserList
 import com.example.healthcaresystem.admin.UserList
 import com.example.healthcaresystem.responsemodel.GetDoctorResponse
+import com.example.healthcaresystem.responsemodel.GetMedicalOptionResponse
+import com.example.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
+import com.example.healthcaresystem.responsemodel.GetSpecialtyResponse
 import com.example.healthcaresystem.responsemodel.GetUser
+
 import com.example.healthcaresystem.viewmodel.DoctorViewModel
+import com.example.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.example.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
+import com.example.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.example.healthcaresystem.viewmodel.UserViewModel
 
 val faqs = listOf(
@@ -95,16 +102,31 @@ fun HealthMateHomeScreen(
 ) {
 
     val context = LocalContext.current
-    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+
+    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
+    val doctors by doctorViewModel.doctors.collectAsState()
 
-    val doctors by viewModel.doctors.collectAsState()
-//    var userName by remember { mutableStateOf("Người dùng") }
-//    var role by remember { mutableStateOf("Người dùng") }
+    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
+        initializer { SpecialtyViewModel(sharedPreferences) }
+    })
+    val specialties by specialtyViewModel.specialties.collectAsState()
+
+    val medicalOptionViewModel: MedicalOptionViewModel = viewModel(factory = viewModelFactory {
+        initializer { MedicalOptionViewModel(sharedPreferences) }
+    })
+    val medicalOptions by medicalOptionViewModel.medicalOptions.collectAsState()
+
+    val remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel = viewModel(factory = viewModelFactory {
+        initializer { RemoteMedicalOptionViewModel(sharedPreferences) }
+    })
+    val remoteMedicalOptions by remoteMedicalOptionViewModel.remoteMedicalOptions.collectAsState()
+
 
     LaunchedEffect(Unit) {
-        viewModel.fetchUsers()
+        doctorViewModel.fetchDoctors()
+        specialtyViewModel.fetchSpecialties()
 //        userName = viewModel.getUserNameFromToken()
 //        role = viewModel.getUserRole()
     }
@@ -141,23 +163,19 @@ fun HealthMateHomeScreen(
         // Dịch vụ toàn diện
         item {
             SectionHeader(title = "Dịch vụ toàn diện")
-            GridServiceList(services) { service ->
-                showToast(context, "Clicked: ${service.name}")
+            GridServiceList(medicalOptions) { medicalOption ->
+                showToast(context, "Clicked: ${medicalOption.name}")
             }
         }
 
         // Chuyên khoa
         item {
             SectionHeader(title = "Chuyên khoa")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(start = 16.dp)
-            ) {
-                items(specialties) { specialty ->
-                    SpecialtyItem(specialty) {
-                        showToast(context, "Clicked: $specialty")
-                    }
-                }
+
+            if (specialties.isEmpty()) {
+                EmptyList("chuyên khoa")
+            } else {
+                SpecialtyList(context,specialties = specialties)
             }
         }
 
@@ -166,7 +184,7 @@ fun HealthMateHomeScreen(
             SectionHeader(title = "Bác sĩ nổi bật")
 
             if (doctors.isEmpty()) {
-                EmptyDoctorList()
+                EmptyList("bác sĩ")
             } else {
                 DoctorList(context,doctors = doctors)
             }
@@ -175,15 +193,11 @@ fun HealthMateHomeScreen(
         // Khám từ xa
         item {
             SectionHeader(title = "Khám từ xa")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(start = 16.dp)
-            ) {
-                items(remoteServices) { service ->
-                    RemoteMedicalOption(service) {
-                        showToast(context, "Clicked: ${service.name}")
-                    }
-                }
+
+            if (doctors.isEmpty()) {
+                EmptyList("dịch vụ khám từ xa")
+            } else {
+                DoctorList(context,doctors = doctors)
             }
         }
 
@@ -210,14 +224,14 @@ fun SectionHeader(title: String) {
 }
 
 @Composable
-fun EmptyDoctorList() {
+fun EmptyList(name: String) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Không có bác sĩ",
+            text = "Không có $name",
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -323,7 +337,7 @@ fun FAQRow(
 
 
 @Composable
-fun GridServiceList(items: List<MedicalOption>, onClick: (MedicalOption) -> Unit) {
+fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
     Column (modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -338,7 +352,7 @@ fun GridServiceList(items: List<MedicalOption>, onClick: (MedicalOption) -> Unit
                     ) {
                         Row(verticalAlignment =  Alignment.CenterVertically) {
                             Image(
-                                painter = painterResource(id =item.icon),
+                                painter = painterResource(id = R.drawable.doctor),
                                 contentDescription = item.name,
                                 modifier = Modifier.size(40.dp),
                                 contentScale = ContentScale.Fit
@@ -355,7 +369,21 @@ fun GridServiceList(items: List<MedicalOption>, onClick: (MedicalOption) -> Unit
 }
 
 @Composable
-fun SpecialtyItem(specialty: Specialty, onClick: () -> Unit) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(start = 16.dp)
+    ) {
+        items(specialties) { specialty ->
+            SpecialtyItem(specialty) {
+                showToast(context, "Clicked: ${specialty.name}")
+            }
+        }
+    }
+}
+
+@Composable
+fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
@@ -368,7 +396,7 @@ fun SpecialtyItem(specialty: Specialty, onClick: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id=specialty.icon),
+                painter = painterResource(id = R.drawable.doctor),
                 contentDescription = specialty.name,
                 modifier = Modifier.size(50.dp),
                 contentScale = ContentScale.Fit
@@ -420,7 +448,21 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
 }
 
 @Composable
-fun RemoteMedicalOption(service: RemoteMedicalOption, onClick: () -> Unit) {
+fun RemoteMedicalOptionList(context: Context, remoteMedicalOptions: List<GetRemoteMedicalOptionResponse>) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(start = 16.dp)
+    ) {
+        items(remoteMedicalOptions) { remoteMedicalOption ->
+            RemoteMedicalOption(remoteMedicalOption) {
+                showToast(context, "Clicked: ${remoteMedicalOption.name}")
+            }
+        }
+    }
+}
+
+@Composable
+fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
@@ -436,7 +478,7 @@ fun RemoteMedicalOption(service: RemoteMedicalOption, onClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = service.icon),
+                painter = painterResource(id = R.drawable.doctor),
                 contentDescription = service.name,
                 modifier = Modifier.size(60.dp),
                 contentScale = ContentScale.Crop

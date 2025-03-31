@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.healthcaresystem.admin.AdminScreen
 import com.example.healthcaresystem.admin.UserListScreen
 import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
 
@@ -25,11 +28,19 @@ class HomeActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+//            HealthCareSystemTheme {
+//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
+//                }
+//            }
+
+            //tam thoi dung de chay admin
             HealthCareSystemTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
-                }
+                AdminScreen(
+                    sharedPreferences = sharedPreferences
+                )
             }
+            //
         }
     }
 
@@ -47,6 +58,5 @@ class HomeActivity : ComponentActivity() {
             }
         )
     }
-
 }
 

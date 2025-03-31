@@ -3,22 +3,22 @@ package com.example.healthcaresystem.viewmodel
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthcaresystem.responsemodel.GetFAQItemResponse
 import com.example.healthcaresystem.retrofit.RetrofitInstance
-import com.example.healthcaresystem.responsemodel.GetDoctorResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    private val _doctors = MutableStateFlow<List<GetDoctorResponse>>(emptyList())
-    val doctors: StateFlow<List<GetDoctorResponse>> get() = _doctors
+class FAQItemViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+    private val _faqItems = MutableStateFlow<List<GetFAQItemResponse>>(emptyList())
+    val faqItems: StateFlow<List<GetFAQItemResponse>> get() = _faqItems
 
-    fun fetchDoctors() {
+    fun fetchRemoteMedicalOptions() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.getDoctors()
+                val response = RetrofitInstance.faqItemService.getFAQItems()
                 if (response.isSuccessful) {
-                    _doctors.value = response.body() ?: emptyList()
+                    _faqItems.value = response.body() ?: emptyList()
                     println("OK 1" + response.body())
                 } else {
                     println("Lỗi API: ${response.errorBody()?.string()}")
