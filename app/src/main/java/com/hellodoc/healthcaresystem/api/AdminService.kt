@@ -1,8 +1,8 @@
-package com.example.healthcaresystem.api
+package com.hellodoc.healthcaresystem.api
 
-import com.example.healthcaresystem.responsemodel.GetUser
-import com.example.healthcaresystem.requestmodel.GetUserID
-import com.example.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.GetUser
+import com.hellodoc.healthcaresystem.requestmodel.GetUserID
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

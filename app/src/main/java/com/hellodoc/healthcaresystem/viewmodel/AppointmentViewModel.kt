@@ -1,11 +1,11 @@
-package com.example.healthcaresystem.viewmodel
+package com.hellodoc.healthcaresystem.viewmodel
 
-import com.example.healthcaresystem.responsemodel.AppointmentResponse
+import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
 class AppointmentViewModel: ViewModel() {

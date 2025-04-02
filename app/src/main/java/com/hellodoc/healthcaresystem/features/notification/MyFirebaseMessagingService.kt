@@ -1,17 +1,15 @@
-package com.example.healthcaresystem.features.notification
+package com.hellodoc.healthcaresystem.features.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.test.core.app.ApplicationProvider
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 

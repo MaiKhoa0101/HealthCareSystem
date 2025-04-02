@@ -1,10 +1,10 @@
-package com.example.healthcaresystem.api
+package com.hellodoc.healthcaresystem.api
 
 
-import com.example.healthcaresystem.requestmodel.LoginRequest
-import com.example.healthcaresystem.responsemodel.LoginResponse
-import com.example.healthcaresystem.requestmodel.SignUpRequest
-import com.example.healthcaresystem.responsemodel.SignUpResponse
+import com.hellodoc.healthcaresystem.requestmodel.LoginRequest
+import com.hellodoc.healthcaresystem.responsemodel.LoginResponse
+import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
+import com.hellodoc.healthcaresystem.responsemodel.SignUpResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

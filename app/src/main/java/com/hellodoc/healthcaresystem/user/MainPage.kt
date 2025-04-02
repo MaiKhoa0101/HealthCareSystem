@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user
+package com.hellodoc.healthcaresystem.user
 
 import android.content.Context
 import android.content.Intent
@@ -11,10 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.user.home.startscreen.SignIn
+import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 
-class MainPage : AppCompatActivity() {
+class MainPage : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

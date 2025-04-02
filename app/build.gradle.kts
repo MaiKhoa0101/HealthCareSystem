@@ -7,11 +7,11 @@ plugins {
     id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.example.healthcaresystem"
+    namespace = "com.hellodoc.healthcaresystem"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.healthcaresystem"
+        applicationId = "com.hellodoc.healthcaresystem"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

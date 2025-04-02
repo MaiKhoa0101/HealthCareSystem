@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home.model
+package com.hellodoc.healthcaresystem.user.home.model
 
 // Dữ liệu bác sĩ
 data class Doctor(

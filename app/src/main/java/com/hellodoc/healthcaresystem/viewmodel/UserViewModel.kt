@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.viewmodel
+package com.hellodoc.healthcaresystem.viewmodel
 
 import android.content.Context
 import android.content.Intent
@@ -6,14 +6,14 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.example.healthcaresystem.responsemodel.GetUser
+import com.hellodoc.healthcaresystem.responsemodel.GetUser
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.user.home.startscreen.SignIn
-import com.example.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _users = MutableStateFlow<List<GetUser>>(emptyList())

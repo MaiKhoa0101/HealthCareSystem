@@ -1,7 +1,4 @@
-package com.example.healthcaresystem.user.home.model
-
-import android.graphics.drawable.Icon
-import androidx.compose.ui.graphics.vector.ImageVector
+package com.hellodoc.healthcaresystem.user.home.model
 
 data class SidebarItem(
     val nameField: String,

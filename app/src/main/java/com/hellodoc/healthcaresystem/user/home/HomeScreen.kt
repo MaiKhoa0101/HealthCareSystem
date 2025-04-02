@@ -1,12 +1,7 @@
-package com.example.healthcaresystem.user.home
+package com.hellodoc.healthcaresystem.user.home
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.healthcaresystem.user.home.model.MedicalOption
-import com.example.healthcaresystem.user.home.model.Specialty
-import com.example.healthcaresystem.user.home.model.Doctor
-import com.example.healthcaresystem.user.home.model.RemoteMedicalOption
-import com.example.healthcaresystem.user.home.model.FAQItem
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -37,22 +32,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.admin.EmptyUserList
-import com.example.healthcaresystem.admin.UserList
-import com.example.healthcaresystem.responsemodel.GetDoctorResponse
-import com.example.healthcaresystem.responsemodel.GetFAQItemResponse
-import com.example.healthcaresystem.responsemodel.GetMedicalOptionResponse
-import com.example.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
-import com.example.healthcaresystem.responsemodel.GetSpecialtyResponse
-import com.example.healthcaresystem.responsemodel.GetUser
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetMedicalOptionResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 
-import com.example.healthcaresystem.viewmodel.DoctorViewModel
-import com.example.healthcaresystem.viewmodel.FAQItemViewModel
-import com.example.healthcaresystem.viewmodel.MedicalOptionViewModel
-import com.example.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
-import com.example.healthcaresystem.viewmodel.SpecialtyViewModel
-import com.example.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
+import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
+import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 //@Composable
 //fun Index(modifier: Modifier =Modifier) {

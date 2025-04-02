@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.requestmodel
+package com.hellodoc.healthcaresystem.requestmodel
 
 data class UpdateUser(
     val name: String,

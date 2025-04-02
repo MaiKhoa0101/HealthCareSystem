@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home
+package com.hellodoc.healthcaresystem.user.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

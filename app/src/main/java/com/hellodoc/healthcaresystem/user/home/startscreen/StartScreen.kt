@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home.startscreen
+package com.hellodoc.healthcaresystem.user.home.startscreen
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.healthcaresystem.R
+import com.hellodoc.healthcaresystem.R
 //import com.example.healthcaresystem.user.home.startscreen.Intro3
 //import com.example.healthcaresystem.user.SignIn
 

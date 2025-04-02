@@ -1,10 +1,10 @@
-package com.example.healthcaresystem.user.home.startscreen
+package com.hellodoc.healthcaresystem.user.home.startscreen
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.content.SharedPreferences
-import com.example.healthcaresystem.R
+import com.hellodoc.healthcaresystem.R
 
 class Intro1 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

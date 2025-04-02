@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.admin
+package com.hellodoc.healthcaresystem.admin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -8,8 +8,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
-import com.example.healthcaresystem.responsemodel.AppointmentResponse
-import com.example.healthcaresystem.viewmodel.AppointmentViewModel
+import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
+import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
 fun LichKhamScreen(viewModel: AppointmentViewModel, modifier: Modifier = Modifier) {

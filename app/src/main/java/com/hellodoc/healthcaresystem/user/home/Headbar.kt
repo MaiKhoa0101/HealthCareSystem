@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home
+package com.hellodoc.healthcaresystem.user.home
 
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun Headbar(

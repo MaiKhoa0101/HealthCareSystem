@@ -1,6 +1,6 @@
-package com.example.healthcaresystem.api
+package com.hellodoc.healthcaresystem.api
 
-import com.example.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Headers

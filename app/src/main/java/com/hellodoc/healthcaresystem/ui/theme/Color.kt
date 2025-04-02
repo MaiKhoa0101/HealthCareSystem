@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.ui.theme
+package com.hellodoc.healthcaresystem.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home
+package com.hellodoc.healthcaresystem.user.home
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,23 +6,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.healthcaresystem.admin.AdminScreen
-import com.example.healthcaresystem.admin.UserListScreen
-import com.example.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 
-class HomeActivity : ComponentActivity() {
+class HomeActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

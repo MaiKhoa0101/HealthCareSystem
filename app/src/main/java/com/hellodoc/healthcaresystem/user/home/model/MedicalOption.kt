@@ -1,5 +1,5 @@
 
-package com.example.healthcaresystem.user.home.model
+package com.hellodoc.healthcaresystem.user.home.model
 
 data class MedicalOption(
     val name: String,

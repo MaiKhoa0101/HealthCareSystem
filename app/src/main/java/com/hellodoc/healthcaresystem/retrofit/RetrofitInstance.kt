@@ -1,13 +1,13 @@
-package com.example.healthcaresystem.retrofit
+package com.hellodoc.healthcaresystem.retrofit
 
-import com.example.healthcaresystem.api.AdminService
-import com.example.healthcaresystem.api.AppointmentService
-import com.example.healthcaresystem.api.AuthService
-import com.example.healthcaresystem.api.DoctorService
-import com.example.healthcaresystem.api.FAQItemService
-import com.example.healthcaresystem.api.MedicalOptionService
-import com.example.healthcaresystem.api.RemoteMedicalOptionService
-import com.example.healthcaresystem.api.SpecialtyService
+import com.hellodoc.healthcaresystem.api.AdminService
+import com.hellodoc.healthcaresystem.api.AppointmentService
+import com.hellodoc.healthcaresystem.api.AuthService
+import com.hellodoc.healthcaresystem.api.DoctorService
+import com.hellodoc.healthcaresystem.api.FAQItemService
+import com.hellodoc.healthcaresystem.api.MedicalOptionService
+import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
+import com.hellodoc.healthcaresystem.api.SpecialtyService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

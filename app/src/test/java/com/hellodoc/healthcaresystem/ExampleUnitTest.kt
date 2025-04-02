@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.hellodoc.healthcaresystem
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.example.healthcaresystem.user.home.startscreen
+package com.hellodoc.healthcaresystem.user.home.startscreen
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -11,16 +11,16 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import com.example.healthcaresystem.retrofit.RetrofitInstance
-import com.example.healthcaresystem.requestmodel.LoginRequest
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.requestmodel.LoginRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
-import com.example.healthcaresystem.admin.AdminRoot
-import com.example.healthcaresystem.R
-import com.example.healthcaresystem.user.MainPage
+import com.hellodoc.healthcaresystem.admin.AdminRoot
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.user.MainPage
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,10 +1,10 @@
-package com.example.healthcaresystem.viewmodel
+package com.hellodoc.healthcaresystem.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.healthcaresystem.retrofit.RetrofitInstance
-import com.example.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

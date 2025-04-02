@@ -1,4 +1,4 @@
-    package com.example.healthcaresystem.user.home
+    package com.hellodoc.healthcaresystem.user.home
 
     import android.content.SharedPreferences
     import androidx.compose.foundation.Image
@@ -7,15 +7,12 @@
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
     import androidx.compose.foundation.layout.Row
-    import androidx.compose.foundation.layout.Spacer
     import androidx.compose.foundation.layout.fillMaxWidth
     import androidx.compose.foundation.layout.height
     import androidx.compose.foundation.layout.padding
     import androidx.compose.foundation.layout.size
-    import androidx.compose.foundation.layout.width
     import androidx.compose.material3.Icon
     import androidx.compose.material3.IconButton
-    import androidx.compose.material3.Surface
     import androidx.compose.material3.Text
     import androidx.compose.runtime.Composable
     import androidx.compose.runtime.LaunchedEffect
@@ -29,14 +26,13 @@
     import androidx.compose.ui.graphics.Color
     import androidx.compose.ui.platform.LocalContext
     import androidx.compose.ui.res.painterResource
-    import androidx.compose.ui.text.style.TextAlign
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
     import androidx.lifecycle.viewmodel.compose.viewModel
     import androidx.lifecycle.viewmodel.initializer
     import androidx.lifecycle.viewmodel.viewModelFactory
-    import com.example.healthcaresystem.R
-    import com.example.healthcaresystem.viewmodel.UserViewModel
+    import com.hellodoc.healthcaresystem.R
+    import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
     @Composable
     fun HeadbarPara(

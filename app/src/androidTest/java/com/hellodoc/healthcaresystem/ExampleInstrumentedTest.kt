@@ -1,4 +1,4 @@
-package com.example.healthcaresystem
+package com.hellodoc.healthcaresystem
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
