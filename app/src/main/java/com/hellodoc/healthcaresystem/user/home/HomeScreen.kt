@@ -27,11 +27,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.hellodoc.core.common.utils.PhoneCallUtils
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
@@ -131,6 +133,34 @@ fun HealthMateHomeScreen(
                 }
 
             }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+            ) {
+                Text(
+                    text = "Thuê hòm liên hệ số:",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                )
+                val phoneNumber = "0902426225"
+                val context = LocalContext.current
+                Text(
+                    text = phoneNumber,
+                    color = Color.Blue,
+                    fontSize = 16.sp,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .clickable {
+                            PhoneCallUtils.startCall(context, phoneNumber)
+                        }
+                )
+            }
+
         }
 
         // Dịch vụ toàn diện
@@ -244,22 +274,22 @@ fun AssistantQueryRow(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onSelectHospital() }
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_hospital),
-                    contentDescription = "submit question for AI",
-                    modifier = Modifier
-                        .size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = "Chọn Bệnh viện - phòng khám",
-                    color = Color.Gray,
-                )
-            }
+//            Row (
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.clickable { onSelectHospital() }
+//            ) {
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_hospital),
+//                    contentDescription = "submit question for AI",
+//                    modifier = Modifier
+//                        .size(20.dp)
+//                )
+//                Spacer(modifier = Modifier.width(5.dp))
+//                Text(
+//                    text = "Chọn Bệnh viện - phòng khám",
+//                    color = Color.Gray,
+//                )
+//            }
         }
 
         Spacer(modifier = Modifier.width(8.dp))

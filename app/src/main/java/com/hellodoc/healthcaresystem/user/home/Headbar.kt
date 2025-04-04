@@ -58,7 +58,7 @@ fun Headbar(
         modifier = Modifier
             .height(100.dp)
             .fillMaxWidth()
-            .background(color = Color.Yellow).padding(vertical = 5.dp),
+            .background(color = Color(0xFFE0E0E0)).padding(vertical = 5.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         // Hình bác sĩ ở giữa
@@ -90,7 +90,8 @@ fun Headbar(
                     text = "Xin chào \n$userName",
                     fontSize = 15.sp,
                     textAlign = TextAlign.Left,
-                    lineHeight = 20.sp
+                    lineHeight = 20.sp,
+                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
