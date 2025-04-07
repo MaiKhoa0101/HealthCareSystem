@@ -78,4 +78,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    // Accompanist Permissions
+    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    // Coil Compose
+    implementation ("io.coil-kt:coil-compose:2.4.0")
+
 }
