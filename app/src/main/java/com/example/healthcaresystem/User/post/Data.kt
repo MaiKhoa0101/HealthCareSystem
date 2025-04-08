@@ -11,11 +11,14 @@ data class HeaderItem(
 data class ContainerPost(
     val name: String,
     @DrawableRes val image: Int,
-    @DrawableRes val image2: Int,
     val lable: String
 )
 
 data class FooterItem(
     val name: String,
     @DrawableRes val image: Int
+)
+
+data class ContentPost(
+    val content: String
 )

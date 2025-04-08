@@ -4,20 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -37,8 +33,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.example.healthcaresystem.R
+import com.example.healthcaresystem.User.post.ContainerPost
+import com.example.healthcaresystem.User.post.ContentPost
+import com.example.healthcaresystem.User.post.FooterItem
+import com.example.healthcaresystem.User.post.ViewBanner
+import com.example.healthcaresystem.User.post.ViewPost
 import com.example.healthcaresystem.User.profile.ui.theme.HealthCareSystemTheme
 
 class ProfileActivity : ComponentActivity() {
@@ -60,233 +60,245 @@ class ProfileActivity : ComponentActivity() {
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier) {
-    Column(modifier = Modifier.padding(top = 45.dp)) {
-        UserInfo(
-            icon =R.drawable.img,
-            name = "Khoa xinh gái",
-            email = "@mavel_killer",
-            followerValue= 69,
-            followerString= "followers",
-            followingValue= 3,
-            followingString= "following",
-            likeValue= 70,
-            likeString= "likes",
-            buttonProf = "Chỉnh sửa hồ sơ",
-            buttonActivity = "Lịch sử hoạt động",
-            buttonSchedule = "Lịch khám"
-        )
+    LazyColumn() {
+        item {
+            UserInfo(
+//            icon =R.drawable.img,
+//            name = "Khoa xinh gái",
+//            email = "@mavel_killer",
+//            followerValue= 69,
+//            followerString= "followers",
+//            followingValue= 3,
+//            followingString= "following",
+//            likeValue= 70,
+//            likeString= "likes",
+//            buttonProf = "Chỉnh sửa hồ sơ",
+//            buttonSchedule = "Lịch khám"
+                profileUser = ProfileUser(
+                    image = R.drawable.img,
+                    name = "Khoa xinh gái",
+                    title = "Đẹp gái lâu năm mà giấu",
+                    butProf = "Chỉnh sửa hồ sơ",
+                    butSchedule = "Quản lý phòng khám",
+                    nExper = 69,
+                    exper = "Kinh nghiệm",
+                    nPatient = 3,
+                    patient = "Bệnh nhân",
+                    nRate = 70,
+                    rate = "Đánh giá",
+                    role = "0"
+                )
+            )
+        }
+
+        item {
+            ViewBanner()
+        }
+        item {
+            ViewPost(
+                containerPost = ContainerPost(
+                    image = R.drawable.img,
+                    name = "Khoa xinh gái",
+                    lable = "bla bla  "
+                ),
+                contentPost = ContentPost(
+                    content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
+                ),
+                footerItem = FooterItem(
+                    name = "null",
+                    image = R.drawable.avarta
+                )
+            )
+        }
+
     }
 }
 
 @Composable
 fun UserInfo(
-    @DrawableRes icon: Int,
-    name: String,
-    email: String,
-    followerValue: Int,
-    followerString: String,
-    followingValue: Int,
-    followingString: String,
-    likeValue: Int,
-    likeString: String,
-    buttonProf: String,
-    buttonActivity: String,
-    buttonSchedule: String,
+    profileUser: ProfileUser,
     modifier: Modifier = Modifier
-){
+) {
     val backgroundColor = Color.Cyan
     ConstraintLayout(
-        modifier=modifier
+        modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
-            .height(380.dp)
+            .height(350.dp)
             .fillMaxWidth()
     ) {
         val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
         val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
         val horizontalGuideLine50 = createGuidelineFromTop(0.5f)
-        val horizontalGuideLine40Bot = createGuidelineFromBottom(0.4f)
+
         val imgIcon = createRef()
         Image(
-            painterResource(id = icon),
+            painter = painterResource(id = profileUser.image),
             contentDescription = null,
-            modifier =Modifier
+            modifier = Modifier
                 .clip(shape = CircleShape)
                 .size(110.dp)
-                .constrainAs(imgIcon){
-                top.linkTo(parent.top)
-                start.linkTo(parent.start) //phải định nghĩa ít nhất 2 cái
-                end.linkTo(parent.end)
-                bottom.linkTo(horizontalGuideLine50)
-//                height = Dimension.fillToConstraints //keo anh dai het height
-            },
+                .constrainAs(imgIcon) {
+                    top.linkTo(parent.top, margin = 45.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(horizontalGuideLine50)
+                },
             contentScale = ContentScale.Crop
         )
-        val (tvEmail, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
-        val nameTextColor = Color.Black
-        val emailTextColor = Color.Gray
+
+        val (tvName, tvEmail) = createRefs()
         Text(
-            name,
+            profileUser.name,
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 26.sp,
-                color = nameTextColor
+                color = Color.Black
             ),
-            modifier = Modifier.constrainAs(tvName){
-                top.linkTo(imgIcon.bottom, margin = 10.dp)
+            modifier = Modifier.constrainAs(tvName) {
+                top.linkTo(imgIcon.bottom, margin = 15.dp)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }
         )
         Text(
-            email,
+            profileUser.title,
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
-                color = emailTextColor
+                fontSize = 18.sp,
+                color = Color.Gray
             ),
-            modifier = Modifier.constrainAs(tvEmail){
-                top.linkTo(tvName.bottom)
+            modifier = Modifier.constrainAs(tvEmail) {
+                top.linkTo(tvName.bottom, margin = 10.dp)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }
         )
 
+        if (profileUser.role == "1") {
+            ButtonProfile(profileUser = profileUser)
+        } else {
+            ShowInfo(profileUser = profileUser)
+        }
+    }
+}
+
+@Composable
+fun ShowInfo(profileUser: ProfileUser) {
+    ConstraintLayout(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
+        val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
+        val horizontalGuideLine40Bot = createGuidelineFromBottom(0.4f)
+        val horizontalGuideLine30Bot = createGuidelineFromBottom(0.3f)
+
+        val (tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
         val numberTextColor = Color.Blue
+        val textColor = Color.Black
+
         Text(
-            followerValue.toString(),
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 26.sp,
-                color = numberTextColor
-            ),
-            modifier = Modifier.constrainAs(tvNFollower){
-                top.linkTo(horizontalGuideLine40Bot)
-                end.linkTo(verticalGuideLine30Start, margin = 10.dp)
-            }
-        )
-        Text(
-            followerString,
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = nameTextColor
-            ),
-            modifier = Modifier.constrainAs(tvFollowers){
-                top.linkTo(horizontalGuideLine40Bot, margin = 30.dp)
+            profileUser.nExper.toString()+" năm",
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = numberTextColor),
+            modifier = Modifier.constrainAs(tvNFollower) {
+                top.linkTo(horizontalGuideLine30Bot, margin = 20.dp)
                 end.linkTo(verticalGuideLine30Start)
             }
         )
         Text(
-            followingValue.toString(),
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 26.sp,
-                color = numberTextColor
-            ),
-            modifier = Modifier.constrainAs(tvNFollowing){
-                top.linkTo(horizontalGuideLine40Bot)
+            profileUser.exper,
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = textColor),
+            modifier = Modifier.constrainAs(tvFollowers) {
+                top.linkTo(tvNFollower.bottom, margin = 5.dp)
+                end.linkTo(verticalGuideLine30Start)
+            }
+        )
+        Text(
+            profileUser.nPatient.toString(),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = numberTextColor),
+            modifier = Modifier.constrainAs(tvNFollowing) {
+                top.linkTo(horizontalGuideLine30Bot, margin = 20.dp)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }
         )
         Text(
-            followingString,
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = nameTextColor
-            ),
-            modifier = Modifier.constrainAs(tvFollowing){
+            profileUser.patient,
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = textColor),
+            modifier = Modifier.constrainAs(tvFollowing) {
+                top.linkTo(tvNFollowing.bottom, margin = 5.dp)
                 start.linkTo(parent.start)
-                top.linkTo(horizontalGuideLine40Bot, margin = 30.dp)
                 end.linkTo(parent.end)
             }
         )
         Text(
-            likeValue.toString(),
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 26.sp,
-                color = numberTextColor
-            ),
-            modifier = Modifier.constrainAs(tvNLike){
-                top.linkTo(horizontalGuideLine40Bot)
-                start.linkTo(verticalGuideLine30End, margin = 10.dp)
+            profileUser.nRate.toString(),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = numberTextColor),
+            modifier = Modifier.constrainAs(tvNLike) {
+                top.linkTo(horizontalGuideLine30Bot, margin = 20.dp)
+                start.linkTo(verticalGuideLine30End, margin = 20.dp)
             }
         )
         Text(
-            likeString,
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = nameTextColor
-            ),
-            modifier = Modifier.constrainAs(tvLikes){
-                top.linkTo(horizontalGuideLine40Bot, margin = 30.dp)
+            profileUser.rate,
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = textColor),
+            modifier = Modifier.constrainAs(tvLikes) {
+                top.linkTo(tvNLike.bottom, margin = 5.dp)
                 start.linkTo(verticalGuideLine30End, margin = 10.dp)
             }
         )
-        val (btProf, btAct, btSchel) = createRefs()
-        Button(onClick = {},
+    }
+}
+
+
+@Composable
+fun ButtonProfile(profileUser: ProfileUser) {
+    ConstraintLayout(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        val horizontalGuideLine30Bot = createGuidelineFromBottom(0.3f)
+        val (btProf, btSchel) = createRefs()
+        Button(
+            onClick = {},
             shape = RoundedCornerShape(8.dp),
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier
-                .width(110.dp)
-                .constrainAs(btProf){
-                bottom.linkTo(parent.bottom, margin = 30.dp)
-                start.linkTo(parent.start, margin = 20.dp)
-            }) {
-            Text(buttonProf,
-                modifier=Modifier.padding(0.dp).fillMaxWidth(),
+                .width(130.dp)
+                .constrainAs(btProf) {
+                    top.linkTo(horizontalGuideLine30Bot, margin = 30.dp)
+                    start.linkTo(parent.start, margin = 30.dp)
+                }
+        ) {
+            Text(
+                profileUser.butProf,
+                modifier = Modifier.padding(0.dp).fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
                 maxLines = 1,
             )
         }
-        Button(onClick = {},
+
+        Button(
+            onClick = {},
             shape = RoundedCornerShape(8.dp),
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier
-                .width(110.dp)
-                .constrainAs(btAct){
-                    bottom.linkTo(parent.bottom, margin = 30.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }) {
-            Text(buttonActivity,
-                modifier=Modifier.padding(0.dp).fillMaxWidth(),
+                .width(130.dp)
+                .constrainAs(btSchel) {
+                    top.linkTo(horizontalGuideLine30Bot, margin = 30.dp)
+                    end.linkTo(parent.end, margin = 30.dp)
+                }
+        ) {
+            Text(
+                profileUser.butSchedule,
+                modifier = Modifier.padding(0.dp).fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                maxLines = 1,
-            )
-        }
-        Button(onClick = {},
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier
-                .width(110.dp)
-                .constrainAs(btSchel){
-                    bottom.linkTo(parent.bottom, margin = 30.dp)
-                    end.linkTo(parent.end, margin = 20.dp)
-                }) {
-            Text(buttonSchedule,
-                modifier=Modifier.padding(0.dp).fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
                 maxLines = 1,
             )
         }
     }
 }
+
 
 @Preview(showBackground = true,showSystemUi = true)
 @Composable

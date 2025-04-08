@@ -74,7 +74,6 @@ fun PostScreen(modifier: Modifier = Modifier){
         PostBody(
             containerPost = ContainerPost(
                 image = R.drawable.img,
-                image2 = R.drawable.ic_more,
                 name = "Khoa xinh gái",
                 lable = "Hãy nói gì đó pbvm"
             )
@@ -94,17 +93,6 @@ fun PostScreen(modifier: Modifier = Modifier){
             }
         )
 
-    }
-}
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@Composable
-fun ShowFileUploadArea(
-    show: Boolean,
-    onDismiss: () -> Unit = {}
-) {
-    if (show) {
-        // Bạn có thể bọc bằng Dialog, Box, Scaffold nếu muốn
-        FileUpload()
     }
 }
 
@@ -182,7 +170,7 @@ fun PostBody(
             .fillMaxWidth()
     ) {
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
-        val (iconImage, tvName, textField, iconImage2) = createRefs()
+        val (iconImage, tvName, textField) = createRefs()
         Image(
             painterResource(id = containerPost.image),
             contentDescription = null,
@@ -207,16 +195,6 @@ fun PostBody(
                 top.linkTo(horizontalGuideLine50, margin = 5.dp)
                 start.linkTo(iconImage.end, margin = 10.dp)
             }
-        )
-        Image(
-            painterResource(id = containerPost.image2),
-            contentDescription = null,
-            modifier =Modifier
-                .size(20.dp)
-                .constrainAs(iconImage2){
-                    end.linkTo(parent.end, margin = 20.dp)
-                    top.linkTo(horizontalGuideLine50, margin = 10.dp)
-                },
         )
         OutlineTextField(
             containerPost = containerPost,
@@ -353,6 +331,7 @@ fun OutlineTextField(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
+        maxLines = 10,
         colors = TextFieldDefaults.outlinedTextFieldColors(
             unfocusedPlaceholderColor = Color.Gray,
             errorPlaceholderColor = Color.Gray,
@@ -366,13 +345,14 @@ fun OutlineTextField(
     )
 }
 
-@Preview(showBackground = true,showSystemUi = true)
-@Composable
-fun GreetingPreview() {
-    HealthCareSystemTheme {
-        PostScreen()
-    }
-}
+//@Preview(showBackground = true,showSystemUi = true)
+//@Composable
+//fun GreetingPreview() {
+//    HealthCareSystemTheme {
+//        PostScreen()
+//    }
+//}
+
 //@Preview(showBackground = true,showSystemUi = true)
 //@Composable
 //fun HeaderPreView() {
