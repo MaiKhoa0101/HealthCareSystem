@@ -64,7 +64,8 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
+    sharedPreferences: SharedPreferences,
+    onNavigateToDoctorList: (String) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -182,7 +183,7 @@ fun HealthMateHomeScreen(
             if (specialties.isEmpty()) {
                 EmptyList("chuyên khoa")
             } else {
-                SpecialtyList(context,specialties = specialties)
+                SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
             }
         }
 
@@ -385,28 +386,35 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
     ) {
         items(specialties) { specialty ->
-            SpecialtyItem(specialty) {
-                showToast(context, "Clicked: ${specialty.name}")
-            }
+            SpecialtyItem(
+                specialty = specialty,
+                onClick = {
+                    showToast(context, "Đã chọn: ${specialty.name}")
+                },
+                onNavigateToDoctorList = onNavigateToDoctorList
+            )
         }
     }
 }
 
 @Composable
-fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit) {
+fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNavigateToDoctorList: (String) -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
             .height(150.dp)
             .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
+            .clickable {
+                onClick()
+                onNavigateToDoctorList(specialty.name) // Chuyển ID chuyên khoa qua màn hình doctorlist
+            }
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -505,4 +513,3 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
         }
     }
 }
-

@@ -54,7 +54,7 @@ val sidebarItems = listOf(
         navigationField = "UserManager"
     ),
     SidebarItem(
-        nameField = "Quản lý Doctor",
+        nameField = "Quản lý com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor",
         iconField = R.drawable.doctormanage,
         navigationField = "DoctorManager"
     ),
