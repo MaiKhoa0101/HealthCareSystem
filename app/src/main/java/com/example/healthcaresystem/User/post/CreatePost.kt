@@ -56,48 +56,199 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.launch
+
+//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//@Composable
+//fun PostScreen(modifier: Modifier = Modifier){
+//    Column{
+//        Header(
+//            headerItem = HeaderItem(
+//                title = "Tạo bài viết",
+//                image = R.drawable.arrow_back,
+//                button = "Đăng"
+//            )
+//        )
+//        PostBody(
+//            containerPost = ContainerPost(
+//                image = R.drawable.img,
+//                name = "Khoa xinh gái",
+//                lable = "Hãy nói gì đó pbvm"
+//            )
+//        )
+//
+//        var showFileUpload by remember { mutableStateOf(false) }
+//        if (showFileUpload) {
+//            MultiFileUpload()
+//        }
+//        Footer(
+//            footerItem = FooterItem(
+//                name = "Thêm hình ảnh",
+//                image = R.drawable.folder_plus
+//            ),
+//            onImageClick = {
+//                showFileUpload = true
+//            }
+//        )
+//
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostScreen(modifier: Modifier = Modifier){
-    Column{
-        Header(
-            headerItem = HeaderItem(
-                title = "Tạo bài viết",
-                image = R.drawable.arrow_back,
-                button = "Đăng"
-            )
-        )
-        PostBody(
-            containerPost = ContainerPost(
-                image = R.drawable.img,
-                name = "Khoa xinh gái",
-                lable = "Hãy nói gì đó pbvm"
-            )
-        )
+fun PostScreen(modifier: Modifier = Modifier) {
+    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
-        var showFileUpload by remember { mutableStateOf(false) }
-        if (showFileUpload) {
-            MultiFileUpload()
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
+    ) { uris ->
+        selectedImageUri = uris
+    }
+
+    LazyColumn {
+        item {
+            Header(
+                headerItem = HeaderItem(
+                    title = "Tạo bài viết",
+                    image = R.drawable.arrow_back,
+                    button = "Đăng"
+                )
+            )
         }
-        Footer(
-            footerItem = FooterItem(
-                name = "Thêm hình ảnh",
-                image = R.drawable.folder_plus
-            ),
-            onImageClick = {
-                showFileUpload = true
+        item {
+            PostBody(
+                containerPost = ContainerPost(
+                    image = R.drawable.img,
+                    name = "Khoa xinh gái",
+                    lable = "Hãy nói gì đó ..."
+                )
+            )
+        }
+        item {
+            if (selectedImageUri.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(selectedImageUri) { uri ->
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
-        )
 
+            Footer(
+                footerItem = FooterItem(
+                    name = "Thêm hình ảnh",
+                    image = R.drawable.folder_plus
+                ),
+                onImageClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
+            )
+        }
     }
 }
+
+//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//@Composable
+//fun PostScreen(modifier: Modifier = Modifier) {
+//    val context = LocalContext.current
+//    val scope = rememberCoroutineScope()
+//
+//    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
+//
+//    LaunchedEffect(Unit) {
+//        ImageUriStore.getImageUris(context).collect { uris ->
+//            selectedImageUri = uris
+//        }
+//    }
+//
+//    val photoPickerLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
+//    ) { uris ->
+//        if (uris.isNotEmpty()) {
+//            selectedImageUri = uris
+//
+//            scope.launch {
+//                ImageUriStore.saveImageUris(context, uris)
+//            }
+//        }
+//    }
+//
+//    Column {
+//        Header(
+//            headerItem = HeaderItem(
+//                title = "Tạo bài viết",
+//                image = R.drawable.arrow_back,
+//                button = "Đăng"
+//            )
+//        )
+//
+//        PostBody(
+//            containerPost = ContainerPost(
+//                image = R.drawable.img,
+//                name = "Khoa xinh gái",
+//                lable = "Hãy nói gì đó ..."
+//            )
+//        )
+//
+//        if (selectedImageUri.isNotEmpty()) {
+//            LazyRow(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(vertical = 8.dp),
+//                horizontalArrangement = Arrangement.spacedBy(8.dp),
+//                contentPadding = PaddingValues(horizontal = 16.dp)
+//            ) {
+//                items(selectedImageUri) { uri ->
+//                    Image(
+//                        painter = rememberAsyncImagePainter(uri),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .size(200.dp)
+//                            .clip(RoundedCornerShape(8.dp)),
+//                        contentScale = ContentScale.Crop
+//                    )
+//                }
+//            }
+//        }
+//
+//        Footer(
+//            footerItem = FooterItem(
+//                name = "Thêm hình ảnh",
+//                image = R.drawable.folder_plus
+//            ),
+//            onImageClick = {
+//                photoPickerLauncher.launch(
+//                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                )
+//            }
+//        )
+//    }
+//}
+
 
 @Composable
 fun Header(

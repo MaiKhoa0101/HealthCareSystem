@@ -66,6 +66,7 @@ dependencies {
     }
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.datastore.preferences.core.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -84,5 +85,7 @@ dependencies {
 
     // Coil Compose
     implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
 
 }
