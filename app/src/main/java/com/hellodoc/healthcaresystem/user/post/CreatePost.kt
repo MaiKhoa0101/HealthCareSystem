@@ -1,7 +1,9 @@
 package com.hellodoc.healthcaresystem.user.post
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.widget.VideoView
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -25,15 +27,21 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -63,6 +73,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.user.post.model.HeaderItem
+import kotlinx.coroutines.launch
 
 //@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 //@Composable
@@ -109,7 +120,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
     ) { uris ->
-        selectedImageUri = uris
+        selectedImageUri += uris
     }
 
     LazyColumn {
@@ -142,14 +153,54 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     items(selectedImageUri) { uri ->
-                        Image(
-                            painter = rememberAsyncImagePainter(uri),
-                            contentDescription = null,
+                        Box(
                             modifier = Modifier
                                 .size(200.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
+                        ) {
+//                            if (isVideoUri(uri)) {
+//                                AndroidView(
+//                                    factory = { ctx ->
+//                                        val videoView = VideoView(ctx)
+//                                        videoView.setVideoURI(uri)
+//                                        videoView.setOnPreparedListener { mediaPlayer ->
+//                                            mediaPlayer.isLooping = true
+//                                            videoView.start()
+//                                        }
+//                                        videoView
+//                                    },
+//                                    modifier = Modifier.fillMaxSize()
+//                                )
+//                            }
+                                Image(
+                                    painter = rememberAsyncImagePainter(uri),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+
+
+                            IconButton(
+                                onClick = {
+                                    selectedImageUri = selectedImageUri.toMutableList().apply {
+                                        remove(uri)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(21.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), shape = CircleShape),
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Xóa ảnh",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(30.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -161,7 +212,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
                 ),
                 onImageClick = {
                     photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
                     )
                 }
             )
@@ -169,9 +220,17 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
     }
 }
 
+//@Composable
+//fun isVideoUri(uri: Uri): Boolean {
+//    val context = LocalContext.current
+//    val type = context.contentResolver.getType(uri)
+//    return type?.startsWith("video") == true
+//}
+
+
 //@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 //@Composable
-//fun PostScreen(modifier: Modifier = Modifier) {
+//fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier) {
 //    val context = LocalContext.current
 //    val scope = rememberCoroutineScope()
 //
@@ -187,16 +246,20 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
 //        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
 //    ) { uris ->
 //        if (uris.isNotEmpty()) {
-//            selectedImageUri = uris
+//            val combinedUris = (selectedImageUri + uris).distinct()
+//
+//            selectedImageUri = combinedUris
 //
 //            scope.launch {
-//                ImageUriStore.saveImageUris(context, uris)
+//                ImageUriStore.saveImageUris(context, combinedUris)
 //            }
 //        }
 //    }
 //
-//    Column {
+//    LazyColumn {
+//        item {
 //        Header(
+//            navController = navController,
 //            headerItem = HeaderItem(
 //                title = "Tạo bài viết",
 //                image = R.drawable.arrow_back,
@@ -216,9 +279,10 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
 //            LazyRow(
 //                modifier = Modifier
 //                    .fillMaxWidth()
+//                    .background(color = Color.White)
 //                    .padding(vertical = 8.dp),
 //                horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                contentPadding = PaddingValues(horizontal = 16.dp)
+//                contentPadding = PaddingValues(horizontal = 16.dp),
 //            ) {
 //                items(selectedImageUri) { uri ->
 //                    Image(
@@ -244,6 +308,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
 //                )
 //            }
 //        )
+//            }
 //    }
 //}
 
