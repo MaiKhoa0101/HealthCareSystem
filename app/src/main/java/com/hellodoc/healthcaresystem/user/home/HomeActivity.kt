@@ -13,8 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
 
 class HomeActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,9 +28,11 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val navController = rememberNavController()
+
             HealthCareSystemTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences )
+                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences,navController )
                 }
             }
 
@@ -39,22 +47,37 @@ class HomeActivity : BaseActivity() {
     }
 
     @Composable
-    fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences) {
+    fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences,navController: NavHostController) {
         Scaffold(
             topBar = { Headbar(sharedPreferences) },
-            bottomBar = { FootBar() },
+            bottomBar = {  FootBar(navController = navController) },
         ) { paddingValues -> // paddingValues được truyền vào content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues) // Áp dụng paddingValues để tránh bị che
+                    .padding(paddingValues)
             ) {
-                HealthMateHomeScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    sharedPreferences = sharedPreferences
-                )
+                NavHost(navController = navController, startDestination = "home") {
+                    composable("home") {
+                        HealthMateHomeScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            sharedPreferences = sharedPreferences,
+                            navController
+                        )
+                    }
+                    composable("appointment") {
+                        AppointmentListScreen()
+                    }
+                    composable("notification") {
+                        NotificationPage(navController)
+                    }
+                    composable("personal") {
+                        ProfileUserPage()
+                    }
+                }
             }
         }
     }
 }
+
 

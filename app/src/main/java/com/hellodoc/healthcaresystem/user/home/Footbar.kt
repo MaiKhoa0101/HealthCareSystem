@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,15 +29,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.R
 
-@Preview
 @Composable
-fun FootBar() {
+fun FootBar(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,11 +59,11 @@ fun FootBar() {
             verticalAlignment = Alignment.Top,
 
         ) {
-            BoxItem(text = "Trang chủ", icon = Icons.Default.Home)
-            BoxItem(text = "Tìm kiếm", icon = Icons.Default.Search)
+            BoxItem(text = "Trang chủ", icon = R.drawable.home, nameDirection = "home", navController)
+            BoxItem(text = "Lịch", icon = R.drawable.appointment,"appointment",navController)
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(text = "Thông báo", icon = Icons.Default.MailOutline)
-            BoxItem(text = "Cá nhân", icon = Icons.Default.Person)
+            BoxItem(text = "Thông báo", icon = R.drawable.notification,"notification",navController)
+            BoxItem(text = "Cá nhân", icon = R.drawable.personal,"personal",navController)
         }
 
         // Floating button in the center
@@ -101,14 +105,23 @@ fun CircleButton(
 @Composable
 fun BoxItem(
     text: String,
-    icon: ImageVector,
+    icon: Int,
+    nameDirection:String,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.clickable { },
+        modifier = modifier
+            .size(60.dp)
+            .clickable {
+            println(nameDirection)
+            if (nameDirection.isNotEmpty()) {
+                navController.navigate(nameDirection)
+            }
+        },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
+        Image(painter = painterResource(icon), contentDescription = "", modifier = Modifier.height(20.dp))
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = text,
