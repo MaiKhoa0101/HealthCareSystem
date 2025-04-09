@@ -49,12 +49,15 @@ import android.os.Build
 import android.widget.Button
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Alignment
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.isGranted
@@ -81,7 +84,7 @@ fun PostScreen(modifier: Modifier = Modifier){
 
         var showFileUpload by remember { mutableStateOf(false) }
         if (showFileUpload) {
-            FileUpload()
+            MultiFileUpload()
         }
         Footer(
             footerItem = FooterItem(
@@ -262,6 +265,37 @@ fun Footer(
     }
 }
 
+@Composable
+fun MultiFileUpload(){
+    var selectedImageUri: List<Uri> by remember {
+        mutableStateOf<List<Uri>>(emptyList())
+    }
+    var MultiplePhotoPickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)) {
+        uri ->
+        selectedImageUri = uri
+    }
+    Column(modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+        LazyRow {
+            items(selectedImageUri){uri ->
+                Image(painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .padding(4.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } }
+        Button(
+            onClick ={ MultiplePhotoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))}
+        ) {
+            Text("Chọn Ảnh")
+        }
+    }
+
+}
+
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -278,7 +312,7 @@ fun FileUpload(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        selectImageUri?.let { 
+        selectImageUri?.let {
             uri ->
             Image(
                 painter = rememberAsyncImagePainter(uri),
@@ -345,13 +379,13 @@ fun OutlineTextField(
     )
 }
 
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    HealthCareSystemTheme {
-//        PostScreen()
-//    }
-//}
+@Preview(showBackground = true,showSystemUi = true)
+@Composable
+fun GreetingPreview() {
+    HealthCareSystemTheme {
+        PostScreen()
+    }
+}
 
 //@Preview(showBackground = true,showSystemUi = true)
 //@Composable

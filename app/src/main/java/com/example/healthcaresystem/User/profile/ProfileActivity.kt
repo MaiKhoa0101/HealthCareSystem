@@ -86,7 +86,7 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                     patient = "Bệnh nhân",
                     nRate = 70,
                     rate = "Đánh giá",
-                    role = "0"
+                    role = "1"
                 )
             )
         }
