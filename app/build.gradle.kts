@@ -3,13 +3,15 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlinCompose)
     alias(libs.plugins.kotlin.serialization)
+//    id("com.android.application")
+    id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.example.healthcaresystem"
+    namespace = "com.hellodoc.healthcaresystem"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.healthcaresystem"
+        applicationId = "com.hellodoc.healthcaresystem"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -59,6 +61,8 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("com.google.accompanist:accompanist-flowlayout:0.26.5-rc")
     implementation("io.coil-kt:coil-compose:2.2.0")//them
+    implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
+    implementation("com.google.firebase:firebase-analytics")
     dependencies {
         val nav_version = "2.8.9"
 
@@ -66,7 +70,8 @@ dependencies {
     }
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.datastore.preferences.core.android)
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
