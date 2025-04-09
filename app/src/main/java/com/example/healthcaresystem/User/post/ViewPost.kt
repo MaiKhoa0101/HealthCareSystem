@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -84,8 +85,8 @@ fun ViewPost(
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
-            .height(500.dp)
             .fillMaxWidth()
+            .wrapContentHeight()
     ) {
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
         val (iconImage, tvName, textField, readMore, sImage) = createRefs()
