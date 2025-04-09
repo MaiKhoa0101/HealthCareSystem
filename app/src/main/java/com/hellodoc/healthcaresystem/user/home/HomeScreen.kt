@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import com.hellodoc.core.common.utils.PhoneCallUtils
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
@@ -67,7 +68,8 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
+    sharedPreferences: SharedPreferences,
+    navHostController: NavHostController
 ) {
 
     val context = LocalContext.current
