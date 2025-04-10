@@ -5,6 +5,7 @@ import com.hellodoc.healthcaresystem.api.AppointmentService
 import com.hellodoc.healthcaresystem.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
+import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
 import com.hellodoc.healthcaresystem.api.SpecialtyService
@@ -36,4 +37,12 @@ object RetrofitInstance {
     val medicalOptionService: MedicalOptionService by lazy { retrofit.create(MedicalOptionService::class.java) }
     val remoteMedicalOptionService: RemoteMedicalOptionService by lazy { retrofit.create(RemoteMedicalOptionService::class.java) }
     val faqItemService: FAQItemService by lazy { retrofit.create(FAQItemService::class.java) }
+
+    val geminiService: GeminiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://generativelanguage.googleapis.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(GeminiService::class.java)
+    }
 }

@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import com.hellodoc.core.common.utils.PhoneCallUtils
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
@@ -43,6 +46,7 @@ import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
+import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
@@ -65,7 +69,8 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
-    onNavigateToDoctorList: (String, String) -> Unit
+    onNavigateToDoctorList: (String, String) -> Unit,
+    navHostController: NavHostController
 ) {
 
     val context = LocalContext.current
@@ -95,6 +100,12 @@ fun HealthMateHomeScreen(
     })
     val remoteMedicalOptions by remoteMedicalOptionViewModel.remoteMedicalOptions.collectAsState()
 
+    val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
+        initializer { GeminiViewModel(sharedPreferences) }
+    })
+    val question by geminiViewModel.question.collectAsState()
+    val answer by geminiViewModel.answer.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         doctorViewModel.fetchDoctors()
@@ -106,79 +117,77 @@ fun HealthMateHomeScreen(
 //        userName = viewModel.getUserNameFromToken()
 //        role = viewModel.getUserRole()
     }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        item {
-            Column(
-                modifier = Modifier
-                    .background(Color(0xFF00C5CB))
-                    .padding(16.dp)
-            ) {
-                AssistantQueryRow(
-                    onSubmit = { query ->
-                        showToast(context, "Đã gửi câu hỏi: $query")
-                    },
-                    onSelectHospital = {
-                        showToast(context, "Mở danh sách bệnh viện")
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                if (faqItems.isEmpty()) {
-                    EmptyList("tin mới")
-                } else {
-                    FAQItemList(context,faqItems = faqItems)
-                }
-
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-            ) {
-                Text(
-                    text = "Thuê hòm liên hệ số:",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                )
-                val phoneNumber = "0902426225"
-                val context = LocalContext.current
-                Text(
-                    text = phoneNumber,
-                    color = Color.Blue,
-                    fontSize = 16.sp,
-                    textDecoration = TextDecoration.Underline,
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            item {
+                Column(
                     modifier = Modifier
-                        .clickable {
-                            PhoneCallUtils.startCall(context, phoneNumber)
+                        .background(Color(0xFF00C5CB))
+                        .padding(16.dp)
+                ) {
+                    AssistantQueryRow(
+                        onSubmit = { query ->
+                            geminiViewModel.askGemini(query)
+                            showDialog = true
                         }
-                )
-            }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (faqItems.isEmpty()) {
+                        EmptyList("tin mới")
+                    } else {
+                        FAQItemList(context, faqItems = faqItems)
+                    }
 
-        }
-
-        // Dịch vụ toàn diện
-        item {
-            SectionHeader(title = "Dịch vụ toàn diện")
-            if (medicalOptions.isEmpty()) {
-                EmptyList("dịch vụ hệ thống")
-            } else {
-                GridServiceList(medicalOptions) { medicalOption ->
-                    showToast(context, "Clicked: ${medicalOption.name}")
                 }
             }
-        }
 
-        // Chuyên khoa
-        item {
-            SectionHeader(title = "Chuyên khoa")
+            item {
+                Row(
+                    modifier = Modifier
+                        .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                ) {
+                    Text(
+                        text = "Thuê hòm liên hệ số:",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    val phoneNumber = "0902426225"
+                    val context = LocalContext.current
+                    Text(
+                        text = phoneNumber,
+                        color = Color.Blue,
+                        fontSize = 16.sp,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier
+                            .clickable {
+                                PhoneCallUtils.startCall(context, phoneNumber)
+                            }
+                    )
+                }
+
+            }
+
+            // Dịch vụ toàn diện
+            item {
+                SectionHeader(title = "Dịch vụ toàn diện")
+                if (medicalOptions.isEmpty()) {
+                    EmptyList("dịch vụ hệ thống")
+                } else {
+                    GridServiceList(medicalOptions) { medicalOption ->
+                        showToast(context, "Clicked: ${medicalOption.name}")
+                    }
+                }
+            }
+
+            // Chuyên khoa
+            item {
+                SectionHeader(title = "Chuyên khoa")
 
             if (specialties.isEmpty()) {
                 EmptyList("chuyên khoa")
@@ -187,30 +196,39 @@ fun HealthMateHomeScreen(
             }
         }
 
-        // Bác sĩ nổi bật
-        item {
-            SectionHeader(title = "Bác sĩ nổi bật")
+            // Bác sĩ nổi bật
+            item {
+                SectionHeader(title = "Bác sĩ nổi bật")
 
-            if (doctors.isEmpty()) {
-                EmptyList("bác sĩ")
-            } else {
-                DoctorList(context,doctors = doctors)
+                if (doctors.isEmpty()) {
+                    EmptyList("bác sĩ")
+                } else {
+                    DoctorList(context, doctors = doctors)
+                }
+            }
+
+            // Khám từ xa
+            item {
+                SectionHeader(title = "Khám từ xa")
+
+                if (remoteMedicalOptions.isEmpty()) {
+                    EmptyList("dịch vụ khám từ xa")
+                } else {
+                    RemoteMedicalOptionList(context, remoteMedicalOptions = remoteMedicalOptions)
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
 
-        // Khám từ xa
-        item {
-            SectionHeader(title = "Khám từ xa")
-
-            if (remoteMedicalOptions.isEmpty()) {
-                EmptyList("dịch vụ khám từ xa")
-            } else {
-                RemoteMedicalOptionList(context,remoteMedicalOptions = remoteMedicalOptions)
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(100.dp))
+        if (showDialog) {
+            AssistantAnswerDialog(
+                question = question,
+                answer = answer,
+                onDismiss = { showDialog = false }
+            )
         }
     }
 }
@@ -246,9 +264,39 @@ fun EmptyList(name: String) {
 }
 
 @Composable
+fun AssistantAnswerDialog(
+    question: String,
+    answer: String,
+    onDismiss: () -> Unit
+) {
+    val displayAnswer = if (answer.isBlank()) "Đang xử lý..." else answer
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Trợ lý AI", fontWeight = FontWeight.Bold) },
+        text = {
+            LazyColumn(
+                modifier = Modifier.heightIn(min = 100.dp, max = 300.dp)
+            ) {
+                item {
+                    Text("Q: $question", fontWeight = FontWeight.SemiBold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("A: $displayAnswer")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Đóng")
+            }
+        }
+    )
+}
+
+
+@Composable
 fun AssistantQueryRow(
-    onSubmit: (String) -> Unit,
-    onSelectHospital: () -> Unit
+    onSubmit: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
 
@@ -274,28 +322,10 @@ fun AssistantQueryRow(
             )
 
             Spacer(modifier = Modifier.height(4.dp))
-
-//            Row (
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier.clickable { onSelectHospital() }
-//            ) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_hospital),
-//                    contentDescription = "submit question for AI",
-//                    modifier = Modifier
-//                        .size(20.dp)
-//                )
-//                Spacer(modifier = Modifier.width(5.dp))
-//                Text(
-//                    text = "Chọn Bệnh viện - phòng khám",
-//                    color = Color.Gray,
-//                )
-//            }
         }
 
         Spacer(modifier = Modifier.width(8.dp))
 
-//        Icon(Icons.Default.ArrowForward, contentDescription = "Search")
         Image(
             painter = painterResource(id = R.drawable.submit_arrow),
             contentDescription = "submit question for AI",
