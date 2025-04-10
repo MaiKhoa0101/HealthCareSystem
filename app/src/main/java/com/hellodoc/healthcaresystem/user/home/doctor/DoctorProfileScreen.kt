@@ -47,6 +47,7 @@ class DoctorProfileScreen : ComponentActivity() {
     }
 }
 
+@Preview(showBackground =  true)
 @Composable
 fun ProfileScreen() {
     LazyColumn(

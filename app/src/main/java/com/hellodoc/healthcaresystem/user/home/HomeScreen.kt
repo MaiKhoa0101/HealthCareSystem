@@ -65,7 +65,7 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
-    onNavigateToDoctorList: (String) -> Unit
+    onNavigateToDoctorList: (String, String) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -386,7 +386,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String) -> Unit) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
@@ -404,7 +404,7 @@ fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onN
 }
 
 @Composable
-fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNavigateToDoctorList: (String) -> Unit) {
+fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNavigateToDoctorList: (String, String) -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
@@ -413,7 +413,7 @@ fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNaviga
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
-                onNavigateToDoctorList(specialty.name) // Chuyển ID chuyên khoa qua màn hình doctorlist
+                onNavigateToDoctorList(specialty.id, specialty.name) // Chuyển ID chuyên khoa qua màn hình doctorlist
             }
             .padding(8.dp),
         contentAlignment = Alignment.Center

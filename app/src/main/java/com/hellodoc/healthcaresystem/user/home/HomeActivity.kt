@@ -19,7 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
-import com.hellodoc.healthcaresystem.user.home.doctor.Doctor
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 
 class HomeActivity : BaseActivity() {
@@ -79,47 +78,32 @@ class HomeActivity : BaseActivity() {
                         HealthMateHomeScreen(
                             modifier = Modifier.fillMaxSize(),
                             sharedPreferences = sharedPreferences,
-                            onNavigateToDoctorList = { specialtyId ->
-                                navController.navigate("doctorList/$specialtyId")
+                            onNavigateToDoctorList = { specialtyId, specialtyName ->
+                                navController.navigate("doctorList/$specialtyId/$specialtyName")
                             }
                         )
                     }
                 }
             }
 
-            // Sample list of doctors
-            val doctors = listOf(
-                Doctor(
-                    name = "Thạc sĩ, Bác sĩ Lê Tấn Lợi",
-                    specialty = "Thần kinh",
-                    address = "23/2 đường Quang Trung, phường 12, quận Gò Vấp"
-                ),
-                Doctor(
-                    name = "Thạc sĩ, Bác sĩ Lê Tấn Lợi",
-                    specialty = "Nội khoa",
-                    address = "23/2 đường Quang Trung, phường 12, quận Gò Vấp"
-                ),
-                Doctor(
-                    name = "Thạc sĩ, Bác sĩ Lê Tấn Lợi",
-                    specialty = "Ngoại khoa",
-                    address = "23/2 đường Quang Trung, phường 12, quận Gò Vấp"
-                )
-            )
-
             // Pass specialtyId correctly
             composable(
-                "doctorList/{specialtyId}",
-                arguments = listOf(navArgument("specialtyId") { type = NavType.StringType })
+                "doctorList/{specialtyId}/{specialtyName}",
+                arguments = listOf(
+                    navArgument("specialtyId") { type = NavType.StringType },
+                    navArgument("specialtyName") { type = NavType.StringType }
+                    )
             ) { backStackEntry ->
                 val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
-                // Filter doctors by the selected specialtyId
-                val filteredDoctors = doctors.filter { it.specialty == specialtyId }
+                val specialtyName = backStackEntry.arguments?.getString("specialtyName") ?: ""
 
                 println(specialtyId)
+                print(specialtyName)
                 // Pass filtered doctors and specialtyId to the DoctorListScreen
                 DoctorListScreen(
                     sharedPreferences = sharedPreferences,
                     specialtyId = specialtyId,
+                    specialtyName = specialtyName,
                     onBack = {
                         navController.popBackStack()
                     }
