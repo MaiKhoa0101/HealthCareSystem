@@ -14,17 +14,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 
 class HomeActivity : BaseActivity() {
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,38 +39,45 @@ class HomeActivity : BaseActivity() {
 
             HealthCareSystemTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Index(modifier = Modifier.padding(innerPadding),sharedPreferences= sharedPreferences,navController )
+                    Index(
+                        modifier = Modifier.padding(innerPadding),
+                        sharedPreferences = sharedPreferences,
+                        navHostController = navController
+                    )
                 }
             }
-
-            //tam thoi dung de chay admin
-//            HealthCareSystemTheme {
-//                AdminScreen(
-//                    sharedPreferences = sharedPreferences
-//                )
-//            }
-            //
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
-    fun Index(modifier: Modifier = Modifier, sharedPreferences:SharedPreferences,navHostController: NavHostController) {
+    fun Index(
+        modifier: Modifier = Modifier,
+        sharedPreferences: SharedPreferences,
+        navHostController: NavHostController
+    ) {
         Scaffold(
             topBar = { Headbar(sharedPreferences) },
-            bottomBar = {  FootBar(navHostController = navHostController) },
-        ) { paddingValues -> // paddingValues được truyền vào content
+            bottomBar = { FootBar(navHostController = navHostController) }
+        ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                NavHost(navController = navHostController, startDestination = "home") {
+                NavHost(
+                    navController = navHostController,
+                    startDestination = "home"
+                ) {
                     composable("home") {
                         HealthMateHomeScreen(
                             modifier = Modifier.fillMaxSize(),
                             sharedPreferences = sharedPreferences,
-                            navHostController
+                            onNavigateToDoctorList = { specialtyId, specialtyName ->
+                                // Truyền cả id và name vào route
+                                navHostController.navigate("doctorList/$specialtyId/$specialtyName")
+                            },
+                            navHostController = navHostController
                         )
                     }
                     composable("appointment") {
@@ -81,10 +92,26 @@ class HomeActivity : BaseActivity() {
                     composable("create_post") {
                         PostScreen(navHostController)
                     }
+                    composable(
+                        route = "doctorList/{specialtyId}/{specialtyName}",
+                        arguments = listOf(
+                            navArgument("specialtyId") { type = NavType.StringType },
+                            navArgument("specialtyName") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
+                        val specialtyName =
+                            backStackEntry.arguments?.getString("specialtyName") ?: ""
+
+                        DoctorListScreen(
+                            sharedPreferences = sharedPreferences,
+                            specialtyId = specialtyId,
+                            specialtyName = specialtyName,
+                            onBack = { navHostController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-

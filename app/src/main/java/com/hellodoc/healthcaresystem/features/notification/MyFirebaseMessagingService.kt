@@ -72,7 +72,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         title: String,
         message: String
     ) {
-        // Pass the intent to switch to the MainActivity
+        // Pass the intent to switch to the com.hellodoc.healthcaresystem.user.home.doctor.MainActivity
         val intent = Intent(this, HomeActivity::class.java)
         // Assign channel ID
         val channelId = "notification channel"

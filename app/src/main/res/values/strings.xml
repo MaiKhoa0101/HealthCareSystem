@@ -45,4 +45,7 @@
     <string name="title_activity_home">Home</string>
     <string name="title_activity_admin_user">Admin_user</string>
     <string name="title_activity_admin_lich_hen">AdminLichHen</string>
+    <string name="title_activity_specialty_screen">SpecialtyScreen</string>
+    <string name="title_activity_doctor_list">DoctorList</string>
+    <string name="title_activity_doctor_profile_screen">DoctorProfileScreen</string>
 </resources>

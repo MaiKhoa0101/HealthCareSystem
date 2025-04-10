@@ -69,6 +69,7 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
+    onNavigateToDoctorList: (String, String) -> Unit,
     navHostController: NavHostController
 ) {
 
@@ -188,12 +189,12 @@ fun HealthMateHomeScreen(
             item {
                 SectionHeader(title = "Chuyên khoa")
 
-                if (specialties.isEmpty()) {
-                    EmptyList("chuyên khoa")
-                } else {
-                    SpecialtyList(context, specialties = specialties)
-                }
+            if (specialties.isEmpty()) {
+                EmptyList("chuyên khoa")
+            } else {
+                SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
             }
+        }
 
             // Bác sĩ nổi bật
             item {
@@ -415,28 +416,35 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
     ) {
         items(specialties) { specialty ->
-            SpecialtyItem(specialty) {
-                showToast(context, "Clicked: ${specialty.name}")
-            }
+            SpecialtyItem(
+                specialty = specialty,
+                onClick = {
+                    showToast(context, "Đã chọn: ${specialty.name}")
+                },
+                onNavigateToDoctorList = onNavigateToDoctorList
+            )
         }
     }
 }
 
 @Composable
-fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit) {
+fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNavigateToDoctorList: (String, String) -> Unit) {
     Box(
         modifier = Modifier
             .width(150.dp)
             .height(150.dp)
             .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
+            .clickable {
+                onClick()
+                onNavigateToDoctorList(specialty.id, specialty.name) // Chuyển ID chuyên khoa qua màn hình doctorlist
+            }
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -485,7 +493,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color.Cyan, shape = CircleShape),
+                .background(Color.Cyan,shape = CircleShape),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -535,4 +543,3 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
         }
     }
 }
-

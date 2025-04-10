@@ -60,10 +60,10 @@
                 .background(color = Color.Cyan).padding(vertical = 5.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            // Center Image (Doctor Icon)
+            // Center Image (com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon)
             Image(
                 painter = painterResource(id = R.drawable.doctor),
-                contentDescription = "Doctor Icon",
+                contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
                 modifier = Modifier
                     .size(50.dp)
             )
