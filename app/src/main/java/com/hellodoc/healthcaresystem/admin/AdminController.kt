@@ -1,119 +1,108 @@
 package com.hellodoc.healthcaresystem.admin
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import android.content.Context
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.R
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewControllerListScreen() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     ControllerManagerScreen()
 }
+
 @Composable
 fun ControllerManagerScreen() {
-    Column {
-        Spacer(modifier = Modifier.height(8.dp))
+    LazyColumn {
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            modifier = Modifier.padding(10.dp),
-            text = "Trang chủ / Bảng điều khiển",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
-            fontSize = 16.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                modifier = Modifier.padding(10.dp),
+                text = "Bảng điều khiển",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-        // Grid of Cards
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
-                .background(Color.LightGray),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            Spacer(modifier = Modifier.height(8.dp))
 
-            ) {
-            // Row 1
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp).padding(10.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
+                    .fillMaxSize()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                InfoCard(
-                    value = "150",
-                    title = "ca ghi nhan mac benh gay",
-                    backgroundColor = Color(0xFF00BCD4), // Cyan
-                    icon = R.drawable.submit_arrow, // Replace with your arrow icon
-                    modifier = Modifier.padding(2.dp)
-                )
-                InfoCard(
-                    value = "53%",
-                    title = "Thang ten Phuong la gay",
-                    backgroundColor = Color(0xFF4CAF50), // Cyan
-                    icon = R.drawable.submit_arrow, // Replace with your arrow icon
-                    modifier = Modifier.padding(2.dp)
-                )
-
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp).padding(10.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-            ) {
-                InfoCard(
-                    value = "44",
-                    title = "Thang 4 la loi noi xao cua em",
-                    backgroundColor = Color(0xFFFFCB2B), // Cyan
-                    icon = R.drawable.submit_arrow, // Replace with your arrow icon
-                    modifier = Modifier.padding(2.dp)
-                )
-                InfoCard(
-                    value = "53",
-                    title = "Hoang Sa va Truong Sa la cua Viet Nam",
-                    backgroundColor = Color(0xFFF44336), // Cyan
-                    icon = R.drawable.submit_arrow, // Replace with your arrow icon
-                    modifier = Modifier.padding(2.dp)
-                )
-
+                Column {
+                    Text(
+                        "Tài khoản đang hoạt động",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        InfoCard(
+                            value = "44",
+                            title = "Người dùng đang hoạt động",
+                            backgroundColor = Color(0xFF00BCD4),
+                            icon = R.drawable.submit_arrow
+                        )
+                        InfoCard(
+                            value = "53",
+                            title = "Bác sĩ đang hoạt động",
+                            backgroundColor = Color(0xFF4CAF50),
+                            icon = R.drawable.submit_arrow
+                        )
+                    }
+                }
+                RevenueReportScreen()
+                NotificationCard()
+                AppointmentRevenueCard()
             }
         }
     }
 }
+
 @Composable
 fun InfoCard(
     value: String,
     title: String,
     backgroundColor: Color,
-    icon: Int, // Resource ID for the arrow icon
-    modifier: Modifier = Modifier
+    icon: Int
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .width(150.dp)
             .height(200.dp)
-            .background(
-                backgroundColor,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .background(backgroundColor, shape = RoundedCornerShape(8.dp))
             .padding(4.dp)
     ) {
         Column(
@@ -121,7 +110,6 @@ fun InfoCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.height(100.dp)
         ) {
-            // Value text
             Text(
                 text = value,
                 fontSize = 25.sp,
@@ -129,23 +117,19 @@ fun InfoCard(
                 color = Color.White
             )
 
-            // Title text
             Text(
                 text = title,
                 fontSize = 12.sp,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold            )
+                fontWeight = FontWeight.Bold
+            )
 
-            // "More info" button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .background(
-                        Color.White.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(4.dp)
-                    )
+                    .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -168,65 +152,215 @@ fun InfoCard(
 }
 
 @Composable
-fun CardComponent(
-    value: String,
-    title: String,
-    backgroundColor: Color,
-    icon: Int, // Resource ID for the icon
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .aspectRatio(2f) // Ensures the card is rectangular
-            .background(backgroundColor, shape = RoundedCornerShape(8.dp))
+fun RevenueReportScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .height(30.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Top Section with Value and Icon
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = value,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+        var selectedFilter by remember { mutableStateOf("Tháng") }
 
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Báo cáo doanh thu", fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Lọc: ", color = Color.Gray)
+                FilterDropdown(
+                    options = listOf("Ngày", "Tuần", "Tháng", "Trước giờ"),
+                    selectedOption = selectedFilter,
+                    onOptionSelected = { selectedFilter = it }
                 )
             }
+        }
 
-            // Title
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                color = Color.White
-            )
+        Spacer(modifier = Modifier.height(20.dp))
 
-            // "More info" button
-            Text(
-                text = "More info ➡",
-                fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.8f),
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .background(
-                        Color.Black.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(horizontalAlignment = Alignment.Start) {
+                Text("Tháng này", color = Color.Gray)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "$12,582",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFDFF5E6), shape = RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("+15%", color = Color(0xFF27AE60), fontSize = 12.sp)
+                    }
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("Tháng trước", color = Color.Gray)
+                Text(
+                    text = "$98,741",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "25.2%↑",
+                color = Color(0xFF27AE60),
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("So với tháng trước", color = Color.Gray)
+        }
+    }
+}
+
+@Composable
+fun NotificationCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Thông báo",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            NotificationItem(R.drawable.doctor, "10 tài khoản mới", Color(0xFFB3E5FC), Color.Black)
+            NotificationItem(R.drawable.doctor, "5 lịch hẹn được tạo", Color(0xFFC8FACC), Color.DarkGray)
+            NotificationItem(R.drawable.doctor, "3 tài khoản cần xác thực", Color(0xFFB3E5FC), Color.Black)
+            NotificationItem(R.drawable.doctor, "4 khiếu nại mới", Color(0xFFC8FACC), Color.Black)
+        }
+    }
+}
+
+@Composable
+fun NotificationItem(iconRes: Int, text: String, backgroundColor: Color, iconColor: Color) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun AppointmentRevenueCard() {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .padding(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Doanh thu từ lịch hẹn", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Gray)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Monthly", fontSize = 12.sp, color = Color.Gray)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.Gray)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("$895.02", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+            Text("doanh thu tháng này", fontSize = 14.sp, color = Color.Gray)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val path = Path().apply {
+                        moveTo(0f, size.height * 0.7f)
+                        quadraticBezierTo(size.width * 0.2f, size.height * 0.4f, size.width * 0.4f, size.height * 0.7f)
+                        quadraticBezierTo(size.width * 0.6f, size.height * 0.4f, size.width * 0.8f, size.height * 0.7f)
+                        quadraticBezierTo(size.width * 0.9f, size.height * 0.9f, size.width, size.height * 0.7f)
+                    }
+                    drawPath(
+                        path = path,
+                        color = Color(0xFF42A5F5),
+                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FilterDropdown(
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFEDEDED))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .clickable { expanded = true }
+        ) {
+            Text(selectedOption, color = Color(0xFF5C6BC0))
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }

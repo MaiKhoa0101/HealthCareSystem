@@ -111,7 +111,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         EmployeeManagerScreen()
                     }
                     composable("AppointmentManager") {
-                        LichKhamScreen(
+                        AppointmentManagerScreen(
                             viewModel = viewModel(),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
