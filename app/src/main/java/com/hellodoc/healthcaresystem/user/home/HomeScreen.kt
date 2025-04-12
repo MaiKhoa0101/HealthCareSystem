@@ -498,7 +498,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = doctor.name, fontSize = 15.sp, color = Color.Black, textAlign = TextAlign.Center)
-        Text(text = doctor.specialty, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
+        Text(text = doctor.specialty.name, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
     }
 }
 

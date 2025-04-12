@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.api
 
-import com.hellodoc.healthcaresystem.responsemodel.GetDoctorBySpecialty
 import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 import retrofit2.Response
 import retrofit2.http.GET
