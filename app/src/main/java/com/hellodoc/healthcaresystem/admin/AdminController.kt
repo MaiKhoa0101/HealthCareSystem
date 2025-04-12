@@ -34,7 +34,9 @@ fun PreviewControllerListScreen() {
 
 @Composable
 fun ControllerManagerScreen() {
-    LazyColumn {
+    LazyColumn (
+        modifier = Modifier.background(Color(0xFFF7F8FA))
+    ){
         item {
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -56,10 +58,14 @@ fun ControllerManagerScreen() {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.background(Color.White)
+                )
+                {
                     Text(
                         "Tài khoản đang hoạt động",
-                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
                         color = Color.Gray
                     )
                     Row(
@@ -156,15 +162,21 @@ fun RevenueReportScreen() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-    ) {
+            .background(Color.White)
+            .padding(16.dp),
+        ) {
         var selectedFilter by remember { mutableStateOf("Tháng") }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Báo cáo doanh thu", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Báo cáo doanh thu",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Color.Gray
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Lọc: ", color = Color.Gray)
                 FilterDropdown(
@@ -228,8 +240,9 @@ fun NotificationCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-    ) {
+            .background(Color.White)
+            .padding(16.dp),
+        ) {
         Text(
             text = "Thông báo",
             fontWeight = FontWeight.SemiBold,
@@ -281,19 +294,29 @@ fun AppointmentRevenueCard() {
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+            .background(Color.White)
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(Color.Transparent)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column() {
+            var selectedFilter by remember { mutableStateOf("Tháng") }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Doanh thu từ lịch hẹn", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Gray)
+                Text(
+                    "Doanh thu từ lịch hẹn",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Color.Gray
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Monthly", fontSize = 12.sp, color = Color.Gray)
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.Gray)
+                    Text("Lọc: ", color = Color.Gray)
+                    FilterDropdown(
+                        options = listOf("Ngày", "Tuần", "Tháng", "Trước giờ"),
+                        selectedOption = selectedFilter,
+                        onOptionSelected = { selectedFilter = it }
+                    )
                 }
             }
 
