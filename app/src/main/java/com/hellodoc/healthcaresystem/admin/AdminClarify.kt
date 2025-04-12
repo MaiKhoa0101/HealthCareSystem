@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.admin
 
 import android.content.Context
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -24,13 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class Account(
-    val email: String,
-    val phone: String,
-    val citizenId: String,
-    val verified: Boolean
-)
+import com.hellodoc.healthcaresystem.user.home.model.Account
 
 @Preview(showBackground = true)
 @Composable
@@ -43,44 +38,52 @@ fun ClarifyManagerScreen() {
     val accountList = remember {
         mutableStateListOf(
             Account("phuong@gmail.com", "0783203982", "GP-123", false),
-            Account("phuong@gmail.com", "0783203982", "GP-123", false),
-            Account("phuong@gmail.com", "0783203982", "GP-123", false),
-            Account("phuong@gmail.com", "0783203982", "GP-123", false),
-            Account("phuong@gmail.com", "0783203982", "GP-123", false)
+            Account("anh@gmail.com", "0901234567", "GP-456", false),
+            Account("mai@gmail.com", "0912345678", "GP-789", false),
+            Account("nam@gmail.com", "0923456789", "GP-012", false),
+            Account("lan@gmail.com", "0934567890", "GP-345", false),
+            Account("hung@gmail.com", "0945678901", "GP-678", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("vu@gmail.com", "0967890123", "GP-234", false)
         )
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Xác thực tài khoản",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
+    // Tạo ScrollState chung để đồng bộ cuộn ngang
+    val tableScrollState = rememberScrollState()
 
-        Spacer(modifier = Modifier.height(8.dp))
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Tiêu đề
+        item {
+            Text(
+                text = "Xác thực tài khoản",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-        Text(
-            text = "${accountList.size} tài khoản",
-            color = Color.White,
-            modifier = Modifier
-                .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 4.dp)
-        )
+        // Số lượng tài khoản
+        item {
+            Text(
+                text = "${accountList.size} tài khoản",
+                color = Color.White,
+                modifier = Modifier
+                    .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        AccountTable(accountList)
-    }
-}
-
-@Composable
-fun AccountTable(accounts: List<Account>) {
-    // Cho phép cuộn ngang
-    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-        Column {
-            // Header
+        // Header của bảng với cuộn ngang
+        item {
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(tableScrollState)
                     .background(Color(0xFF2B544F))
                     .padding(vertical = 8.dp)
             ) {
@@ -90,30 +93,52 @@ fun AccountTable(accounts: List<Account>) {
                 TableCell("CCHN", isHeader = true, width = 120.dp)
                 TableCell("Chức năng", isHeader = true, width = 100.dp)
             }
+        }
 
-            // Content
-            LazyColumn {
-                itemsIndexed(accounts) { index, account ->
-                    AccountRow(index + 1, account)
+        // Nội dung bảng
+        if (accountList.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Không có tài khoản nào",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
                 }
+            }
+        } else {
+            itemsIndexed(accountList) { index, account ->
+                AccountRow(
+                    id = index + 1,
+                    account = account,
+                    scrollState = tableScrollState
+                )
             }
         }
     }
 }
 
 @Composable
-fun AccountRow(id: Int, account: Account) {
+fun AccountRow(id: Int, account: Account, scrollState: ScrollState) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState)
             .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
             .padding(vertical = 8.dp)
     ) {
         TableCell(id.toString(), width = 60.dp)
         TableCell(account.email, width = 200.dp)
         TableCell(account.phone, width = 150.dp)
-        TableCell(account.citizenId, width = 120.dp)
+        TableCell(account.licenseId, width = 120.dp)
         Box(
             modifier = Modifier
                 .width(100.dp),
@@ -128,13 +153,12 @@ fun AccountRow(id: Int, account: Account) {
                 modifier = Modifier
                     .border(1.dp, Color.LightGray, shape = RoundedCornerShape(8.dp))
                     .background(Color.White)
-
             ) {
                 DropdownMenuItem(
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Edit, // hoặc icon tuỳ chọn
+                                imageVector = Icons.Default.Edit,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -144,6 +168,7 @@ fun AccountRow(id: Int, account: Account) {
                     },
                     onClick = {
                         expanded = false
+                        // Thêm logic xử lý xác minh
                     }
                 )
                 DropdownMenuItem(
@@ -160,10 +185,10 @@ fun AccountRow(id: Int, account: Account) {
                     },
                     onClick = {
                         expanded = false
+                        // Thêm logic xử lý xóa
                     }
                 )
             }
-
         }
     }
 }
@@ -181,4 +206,3 @@ fun TableCell(text: String, isHeader: Boolean = false, width: Dp) {
         fontSize = 14.sp
     )
 }
-

@@ -1,333 +1,220 @@
 package com.hellodoc.healthcaresystem.admin
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
-import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-import com.hellodoc.healthcaresystem.responsemodel.GetUser
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.user.home.model.Account2
 
 @Composable
-fun UserListScreen(
-    modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
-) {
-    val context = LocalContext.current
-    val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-
-    val users by viewModel.users.collectAsState()
-    var userName by remember { mutableStateOf("Người dùng") }
-    var role by remember { mutableStateOf("Người dùng") }
-
-    LaunchedEffect(Unit) {
-        viewModel.fetchUsers()
-        userName = viewModel.getUserNameFromToken()
-        role = viewModel.getUserRole()
+fun UserListScreen() {
+    val accountList2 = remember {
+        mutableStateListOf(
+            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
+            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
+            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
+            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
+            )
     }
 
-    Column(
-        modifier = modifier
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(10.dp))
+    var searchText by remember { mutableStateOf("") }
+    var selectedRole by remember { mutableStateOf("User") }
 
+    Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "Danh sách người dùng",
+            text = "Quản lí tài khoản",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
 
-        if (users.isEmpty()) {
-            EmptyUserList()
-        } else {
-            UserList(users = users, viewModel = viewModel)
-        }
-    }
-}
+        Spacer(modifier = Modifier.height(8.dp))
 
-
-@Composable
-fun EmptyUserList() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
         Text(
-            text = "Không có người dùng",
-            style = MaterialTheme.typography.bodyLarge
+            text = "${accountList2.size} tài khoản",
+            color = Color.White,
+            modifier = Modifier
+                .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp)
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Tìm kiếm
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text("Tìm...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
+                )
+            }
+
+            // Lọc
+            Column(modifier = Modifier.width(100.dp)) {
+                DropdownMenuRoleSelector(selectedRole) {
+                    selectedRole = it
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AccountTable2(accountList2.filter {
+            it.email.contains(searchText, ignoreCase = true)
+        })
     }
 }
 
 @Composable
-fun UserList(users: List<GetUser>, viewModel: UserViewModel) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 10.dp)
-    ) {
-        items(users) { user ->
-            UserItem(user = user, viewModel = viewModel)
+fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Button(onClick = { expanded = true }) {
+            Text(text = selected)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            listOf("User", "Doctor", "Admin").forEach { role ->
+                DropdownMenuItem(
+                    text = { Text(role) },
+                    onClick = {
+                        onSelected(role)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }
 
-
 @Composable
-fun UserItem(user: GetUser, viewModel: UserViewModel) {
-    var isEditing by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf(user.name) }
-    var email by remember { mutableStateOf(user.email) }
-    var role by remember { mutableStateOf(user.role) }
-    var phone by remember { mutableStateOf(user.phone) }
-    var password by remember { mutableStateOf("") } // Empty to avoid security risks
-    val currentPassword = user.password ?: ""
+fun AccountTable2(accounts: List<Account2>) {
+    // Cho phép cuộn ngang
+    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Column {
+            // Header
+            Row(
+                modifier = Modifier
+                    .background(Color(0xFF2B544F))
+                    .padding(vertical = 8.dp)
+            ) {
+                TableCell("ID", isHeader = true, width = 60.dp)
+                TableCell("Name", isHeader = true, width = 100.dp)
+                TableCell("Email", isHeader = true, width = 200.dp)
+                TableCell("Số điện thoại", isHeader = true, width = 150.dp)
+                TableCell("Ngày tạo", isHeader = true, width = 120.dp)
+                TableCell("Chức năng", isHeader = true, width = 100.dp)
+            }
+
+            // Content
+            LazyColumn {
+                itemsIndexed(accounts) { index, account ->
+                    AccountRow2(index + 1, account)
+                }
+            }
+        }
+    }
+}
+@Composable
+fun AccountRow2(id: Int, account: Account2) {
+    var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp), // Space between the two cards
-        verticalAlignment = Alignment.CenterVertically
+            .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
+            .padding(vertical = 8.dp)
     ) {
-        // First Card: User Details
-        Card(
+        TableCell(id.toString(), width = 60.dp)
+        TableCell(account.name, width = 100.dp)
+        TableCell(account.email, width = 200.dp)
+        TableCell(account.phone, width = 150.dp)
+        TableCell(account.createdDate, width = 120.dp)
+        Box(
             modifier = Modifier
-                .weight(1f) // Occupy available space proportionally
-                .height(150.dp) // Set height for the card
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        bottomStart = 16.dp,
-                        topEnd = 0.dp, // Inner corner (near the gap) is sharp
-                        bottomEnd = 0.dp // Inner corner (near the gap) is sharp
-                    )
-                ),
-            elevation = CardDefaults.cardElevation(200.dp)
+                .width(100.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp) // Space between text items
-            ) {
-                Text(
-                    text = "ID: ${user.id}",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Tên: $name",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Email: $email",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Role: $role",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Số điện thoại: $phone",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            IconButton(onClick = { expanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
             }
-        }
-
-        // Second Card: Action Buttons
-        Card(
-            modifier = Modifier
-                .height(150.dp) // Match the height of the first card
-                .width(100.dp) // Fixed width for the buttons card
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 0.dp, // Inner corner (near the gap) is sharp
-                        bottomStart = 0.dp, // Inner corner (near the gap) is sharp
-                        topEnd = 16.dp,
-                        bottomEnd = 16.dp
-                    )
-                ),
-            elevation = CardDefaults.cardElevation(200.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Cyan // Set the background color of the card
-            )
-        ) {
-            Row(
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.Center, // Center the buttons
-                verticalAlignment = Alignment.CenterVertically
+                    .border(1.dp, Color.LightGray, shape = RoundedCornerShape(8.dp))
+                    .background(Color.White)
+
             ) {
-                IconButton(
-                    onClick = { isEditing = true },
-                    modifier = Modifier.size(40.dp) // Adjust button size
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.edit),
-                        contentDescription = "Edit",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-                IconButton(
-                    onClick = { /* Handle delete action */ },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.minus),
-                        contentDescription = "Remove",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Edit, // hoặc icon tuỳ chọn
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Edit account")
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Remove")
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                    }
+                )
             }
+
         }
     }
-
-
-    if (isEditing) {
-        EditUserDialog(
-            user = user,
-            name = name,
-            email = email,
-            role = role,
-            phone = phone,
-            password = password,
-            onNameChange = { name = it },
-            onEmailChange = { email = it },
-            onRoleChange = { role = it },
-            onPhoneChange = { phone = it },
-            onPasswordChange = { password = it },
-            onConfirm = {
-                val updatedUser = UpdateUser(
-                    name = name,
-                    email = email,
-                    phone = phone,
-                    password = if (password.isNotEmpty()) password else currentPassword,
-                    role = role
-                )
-                Log.d("UserItem", "User ID to update: ${user.id}")
-                Log.d("UserItem", "Data sent to API: $updatedUser")
-                viewModel.updateUser(user.id, updatedUser)
-                isEditing = false
-            },
-            onDismiss = { isEditing = false }
-        )
-    }
 }
 
-@Composable
-fun EditUserDialog(
-    user: GetUser,
-    name: String,
-    email: String,
-    role: String,
-    phone: String,
-    password: String,
-    onNameChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
-    onRoleChange: (String) -> Unit,
-    onPhoneChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text("Chỉnh sửa thông tin người dùng") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = onNameChange,
-                    label = { Text("Tên") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = onEmailChange,
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = onPhoneChange,
-                    label = { Text("Số điện thoại") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = onPasswordChange,
-                    label = { Text("Mật khẩu (để trống nếu không đổi)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = role,
-                    onValueChange = onRoleChange,
-                    label = { Text("Role") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Lưu")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Hủy")
-            }
-        }
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewUserListScreen() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    HealthCareSystemTheme {
-        UserListScreen(sharedPreferences = sharedPreferences)
-    }
-}
+
+
+
+
+
+
+

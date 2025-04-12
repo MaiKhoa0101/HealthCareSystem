@@ -49,12 +49,12 @@ val sidebarItems = listOf(
         navigationField = "Controller"
     ),
     SidebarItem(
-        nameField = "Quản lý tài khoản User",
+        nameField = "Quản lý tài khoản",
         iconField = R.drawable.usermanage,
         navigationField = "UserManager"
     ),
     SidebarItem(
-        nameField = "Quản lý com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor",
+        nameField = "Quản lý bác sĩ",
         iconField = R.drawable.doctormanage,
         navigationField = "DoctorManager"
     ),
@@ -69,9 +69,9 @@ val sidebarItems = listOf(
         navigationField = "ReportManager"
     ),
     SidebarItem(
-        nameField = "Quản lý nhân sự",
-        iconField = R.drawable.employeemanage,
-        navigationField = "EmployeeManager"
+        nameField = "Quản lý tin tức",
+        iconField = R.drawable.edit,
+        navigationField = "NewsManager"
     ),
     SidebarItem(
         nameField = "Lịch khám",
@@ -131,10 +131,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         ControllerManagerScreen()
                     }
                     composable("UserManager"){
-                        UserListScreen(
-                            modifier = Modifier.padding(),
-                            sharedPreferences = sharedPreferences
-                        )
+                        UserListScreen()
                     }
                     composable("DoctorManager"){
                         DoctorListScreen(sharedPreferences = sharedPreferences)
@@ -146,8 +143,8 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("ReportManager"){
                         ReportManagerScreen()
                     }
-                    composable("EmployeeManager"){
-                        EmployeeManagerScreen()
+                    composable("NewsManager"){
+                        NewsManagerScreen()
                     }
                     composable("AppointmentManager"){
                         LichKhamScreen(
