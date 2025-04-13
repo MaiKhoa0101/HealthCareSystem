@@ -51,47 +51,53 @@ fun ControllerManagerScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Column(
+            ActiveAccount()
+            RevenueReportScreen()
+            NotificationCard()
+            AppointmentRevenueCard()
+            }
+        }
+    }
+
+
+@Composable
+fun ActiveAccount() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Column(
+            modifier = Modifier.background(Color.White)
+        )
+        {
+            Text(
+                "Tài khoản đang hoạt động",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Color.Gray
+            )
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .height(120.dp)
                     .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.Start
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Column(
-                    modifier = Modifier.background(Color.White)
+                InfoCard(
+                    value = "44",
+                    title = "Người dùng đang hoạt động",
+                    backgroundColor = Color(0xFF00BCD4),
+                    icon = R.drawable.submit_arrow
                 )
-                {
-                    Text(
-                        "Tài khoản đang hoạt động",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = Color.Gray
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp)
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        InfoCard(
-                            value = "44",
-                            title = "Người dùng đang hoạt động",
-                            backgroundColor = Color(0xFF00BCD4),
-                            icon = R.drawable.submit_arrow
-                        )
-                        InfoCard(
-                            value = "53",
-                            title = "Bác sĩ đang hoạt động",
-                            backgroundColor = Color(0xFF4CAF50),
-                            icon = R.drawable.submit_arrow
-                        )
-                    }
-                }
-                RevenueReportScreen()
-                NotificationCard()
-                AppointmentRevenueCard()
+                InfoCard(
+                    value = "53",
+                    title = "Bác sĩ đang hoạt động",
+                    backgroundColor = Color(0xFF4CAF50),
+                    icon = R.drawable.submit_arrow
+                )
             }
         }
     }

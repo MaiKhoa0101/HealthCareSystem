@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
@@ -118,6 +119,9 @@ class HomeActivity : BaseActivity() {
             }
             composable("doctorRegister") {
                 RegisterClinic(navHostController)
+            }
+            composable("editClinic") {
+                EditClinicServiceScreen(navHostController)
             }
         }
     }
