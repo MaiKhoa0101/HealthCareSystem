@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -40,6 +41,7 @@ class HomeActivity : BaseActivity() {
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val navController = rememberNavController()
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
             HealthCareSystemTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -106,6 +108,9 @@ class HomeActivity : BaseActivity() {
                     }
                     composable("create_post") {
                         PostScreen(navHostController)
+                    }
+                    composable("gemini_help") {
+                        GeminiChatScreen(navHostController, sharedPreferences)
                     }
 //                    composable(
 //                        route = "doctorList/{specialtyId}/{specialtyName}",

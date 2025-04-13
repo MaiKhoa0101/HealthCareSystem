@@ -52,7 +52,7 @@ fun BookingCalendarScreen(
     )
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedTime by remember { mutableStateOf("10:00") }
+    var selectedTime by remember { mutableStateOf("") }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     val daysOfWeek = listOf("TH2", "TH3", "TH4", "TH5", "TH6", "TH7", "CN")
@@ -122,8 +122,8 @@ fun BookingCalendarScreen(
                         // Dates
                         val firstDay = currentMonth.atDay(1)
                         val daysInMonth = currentMonth.lengthOfMonth()
-                        val firstDayOfWeek = (firstDay.dayOfWeek.value % 7)
-                        val dates = List(firstDayOfWeek) { null } + (1..daysInMonth).map { currentMonth.atDay(it) }
+                        val firstDayOfWeek = (firstDay.dayOfWeek.value%7)
+                        val dates = List(firstDayOfWeek-1) { null } + (1..daysInMonth).map { currentMonth.atDay(it) }
 
                         val dateRows = dates.chunked(7)
 

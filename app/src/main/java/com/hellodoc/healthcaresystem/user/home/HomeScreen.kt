@@ -50,6 +50,7 @@ import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import java.time.format.DateTimeFormatter
 
 //@Composable
 //fun Index(modifier: Modifier =Modifier) {
@@ -130,6 +131,7 @@ fun HealthMateHomeScreen(
                         .padding(16.dp)
                 ) {
                     AssistantQueryRow(
+                        navHostController,
                         onSubmit = { query ->
                             geminiViewModel.askGemini(query)
                             showDialog = true
@@ -269,7 +271,7 @@ fun AssistantAnswerDialog(
     answer: String,
     onDismiss: () -> Unit
 ) {
-    val displayAnswer = if (answer.isBlank()) "Đang xử lý..." else answer
+    val displayAnswer = answer.ifBlank { "Đang xử lý..." }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -296,6 +298,7 @@ fun AssistantAnswerDialog(
 
 @Composable
 fun AssistantQueryRow(
+    navHostController: NavHostController,
     onSubmit: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
@@ -333,8 +336,10 @@ fun AssistantQueryRow(
                 .size(20.dp)
                 .clickable {
                     if (text.isNotBlank()) {
-                        onSubmit(text) // Gửi dữ liệu
+//                        onSubmit(text) // Gửi dữ liệu
+                        navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
                         text = "" // Xóa text sau khi gửi
+                        navHostController.navigate("gemini_help")
                     }
                 }
         )
