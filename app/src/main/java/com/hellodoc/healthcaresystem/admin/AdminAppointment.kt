@@ -196,6 +196,6 @@ val appointmentList = listOf(
     AppointmentRow("9", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
     AppointmentRow("10", "Phuong", "Fake doctor", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2023-08-28", "Xác Nhận"),
     AppointmentRow("11", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("12                                                             ", "Phuong", "Support for theme", "Khoa", "10 am", "Trực tuyến", "2023-08-28", "Chờ xác Nhận")
+    AppointmentRow("12", "Phuong", "Support for theme", "Khoa", "10 am", "Trực tuyến", "2023-08-28", "Chờ xác Nhận")
 
 )
