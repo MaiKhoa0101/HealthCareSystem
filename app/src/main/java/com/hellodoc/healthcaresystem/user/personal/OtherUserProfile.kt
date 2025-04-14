@@ -79,31 +79,65 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
 
     Scaffold(
         bottomBar = {
-            if (selectedTab == 1 && !showWriteReviewScreen) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            showWriteReviewScreen = true
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Black,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .align(Alignment.Center)
-                    ) {
-                        Text("Viết đánh giá", fontSize = 16.sp)
+            if (!showWriteReviewScreen) {
+                when (selectedTab) {
+                    0 -> {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                                .background(color = Color.Transparent)
+                        ) {
+                            Button(
+                                onClick = {},
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Cyan,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(55.dp)
+                                    .align(Alignment.Center)
+                            ) {
+                                Text(
+                                    text = "Đặt khám",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    1 -> {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    showWriteReviewScreen = true
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp)
+                                    .align(Alignment.Center)
+                            ) {
+                                Text("Viết đánh giá", fontSize = 16.sp)
+                            }
+                        }
                     }
                 }
             }
         }
+
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.padding(

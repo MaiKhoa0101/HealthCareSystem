@@ -64,11 +64,17 @@ fun ViewIntroduce(){
             service = "Dịch vụ & Giá cả",
         ),
         contents = Contents(
-            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. ",
+            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. ",
             certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
             certificate2 = "Chứng nhận Sản khoa",
             workplace = "Bệnh viện Đại học Y dược TP. HCM",
             services = listOf(
+                "Tư vấn sức khỏe sinh sản" to 1500000,
+                "Điều trị rối loạn sinh lý" to 1800000,
+                "Thăm khám định kỳ" to 1000000,
+                "Tư vấn sức khỏe sinh sản" to 1500000,
+                "Điều trị rối loạn sinh lý" to 1800000,
+                "Thăm khám định kỳ" to 1000000,
                 "Tư vấn sức khỏe sinh sản" to 1500000,
                 "Điều trị rối loạn sinh lý" to 1800000,
                 "Thăm khám định kỳ" to 1000000
@@ -97,12 +103,12 @@ fun Introduce(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(bottom = 80.dp)
         ) {
             ConstraintLayout(
                 modifier = modifier
                     .padding(top = 5.dp, end = 5.dp)
                     .background(color = backgroundColor, shape = RectangleShape)
-                    .height(600.dp)
                     .fillMaxWidth()
             ) {
                 val (iconImage1, iconImage2, tvIntroduce, tvCIntroduce, tvCertif, tvC1Certifi, tvC2Certifi, tvWorkplace, tvCWorkplace, tvService) = createRefs()
@@ -281,27 +287,27 @@ fun Introduce(
             }
 
         }
-        Button(
-            onClick = {},
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 20.dp, vertical = 30.dp),
-            colors =ButtonDefaults.buttonColors(
-                containerColor =Color.Cyan,
-                contentColor = Color.White
-            )
-        ) {
-            Text(
-                text = "Đặt khám",
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Medium
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
+//        Button(
+//            onClick = {},
+//            shape = RoundedCornerShape(20.dp),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .padding(horizontal = 20.dp, vertical = 30.dp),
+//            colors =ButtonDefaults.buttonColors(
+//                containerColor =Color.Cyan,
+//                contentColor = Color.White
+//            )
+//        ) {
+//            Text(
+//                text = "Đặt khám",
+//                style = TextStyle(
+//                    fontSize = 24.sp,
+//                    fontWeight = FontWeight.Medium
+//                ),
+//                modifier = Modifier.padding(vertical = 8.dp)
+//            )
+//        }
     }
 }
 
