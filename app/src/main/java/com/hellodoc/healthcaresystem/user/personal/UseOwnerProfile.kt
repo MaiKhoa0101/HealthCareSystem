@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,20 +41,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavHostController
+import androidx.navigation.Navigation
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.ContentPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.user.home.HealthMateHomeScreen
 
-@Preview (showBackground = true)
 @Composable
-fun ProfileUserPage(){
+fun ProfileUserPage(navHostController:NavHostController){
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally // ❌ dòng này không hợp lệ cho LazyColumn
     ) {
         item {
-            ProfileSection()
+            ProfileSection(navHostController)
         }
         item {
             PostUser()
@@ -63,7 +68,7 @@ fun ProfileUserPage(){
 
 
 @Composable
-fun ProfileSection(){
+fun ProfileSection(navHostController:NavHostController){
     Column(
         modifier = Modifier
         .background(Color.Cyan)
@@ -75,7 +80,7 @@ fun ProfileSection(){
         ) {
             UserIntroSection()
             Spacer(modifier = Modifier.height(26.dp))
-            UserProfileModifierSection()
+            UserProfileModifierSection(navHostController)
         }
     }
 }
@@ -140,7 +145,8 @@ fun UserIntroSection(){
 }
 
 @Composable
-fun UserProfileModifierSection() {
+fun UserProfileModifierSection(navHostController: NavHostController) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,7 +154,7 @@ fun UserProfileModifierSection() {
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         Button(
-            onClick = { },
+            onClick = { navHostController.navigate("editProfile") },
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
@@ -166,7 +172,7 @@ fun UserProfileModifierSection() {
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = {  },
+            onClick = {  navHostController.navigate("doctorRegister")},
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier

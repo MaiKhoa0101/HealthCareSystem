@@ -9,8 +9,9 @@ data class GetDoctorResponse (
     @SerializedName("name") val name: String,
     @SerializedName("phone") val phone: String,
     @SerializedName("password") val password: String,
-    @SerializedName("specialty") val specialty: String
+    @SerializedName("specialty") val specialty: Specialty
 )
-data class GetDoctorBySpecialty (
-    @SerializedName("_id") val id:String
+data class Specialty (
+    @SerializedName("_id") val id:String,
+    @SerializedName("name") val name: String
 )

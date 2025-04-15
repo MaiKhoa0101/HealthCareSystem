@@ -8,11 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -34,14 +30,13 @@ class AdminRoot : ComponentActivity() {
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             HealthCareSystemTheme {
-                AdminScreen(
-                    sharedPreferences = sharedPreferences
-                )
+                AdminScreen(sharedPreferences)
             }
         }
     }
 }
 
+// Sidebar item list
 val sidebarItems = listOf(
     SidebarItem(
         nameField = "Bảng điều khiển",
@@ -85,6 +80,7 @@ val sidebarItems = listOf(
         navigationField = "ClarifyManager"
     )
 )
+
 @Composable
 fun AdminScreen(sharedPreferences: SharedPreferences) {
     val navController = rememberNavController()
@@ -95,15 +91,14 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier
-                    .width(300.dp)
+                modifier = Modifier.width(300.dp)
             ) {
                 DrawerContent(
                     sidebarItem = sidebarItems,
                     navController = navController,
                     closedrawer = {
                         scope.launch {
-                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                            drawerState.close()
                         }
                     }
                 )
@@ -116,7 +111,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     sharedPreferences = sharedPreferences,
                     opendrawer = {
                         scope.launch {
-                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                            drawerState.open()
                         }
                     }
                 )
@@ -127,33 +122,31 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     startDestination = "Controller",
                     modifier = Modifier.padding(paddingValues)
                 ) {
-                    composable("Controller"){
+                    composable("Controller") {
                         ControllerManagerScreen()
                     }
                     composable("UserManager"){
                         UserListScreen()
                     }
-                    composable("DoctorManager"){
+                    composable("DoctorManager") {
                         DoctorListScreen(sharedPreferences = sharedPreferences)
-
                     }
-                    composable("MessageManager"){
+                    composable("MessageManager") {
                         MessageManagerScreen()
                     }
-                    composable("ReportManager"){
+                    composable("ReportManager") {
                         ReportManagerScreen()
                     }
                     composable("NewsManager"){
                         NewsManagerScreen()
                     }
-                    composable("AppointmentManager"){
-                        LichKhamScreen(
+                    composable("AppointmentManager") {
+                        AppointmentManagerScreen(
                             viewModel = viewModel(),
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
-                    composable("ClarifyManager"){
+                    composable("ClarifyManager") {
                         ClarifyManagerScreen()
                     }
                 }
@@ -161,5 +154,3 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
         )
     }
 }
-
-
