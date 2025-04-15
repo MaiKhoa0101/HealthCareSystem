@@ -11,3 +11,6 @@ data class GetDoctorResponse (
     @SerializedName("password") val password: String,
     @SerializedName("specialty") val specialty: String
 )
+data class GetDoctorBySpecialty (
+    @SerializedName("_id") val id:String
+)

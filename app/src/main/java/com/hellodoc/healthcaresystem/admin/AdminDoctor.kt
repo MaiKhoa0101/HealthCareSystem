@@ -72,7 +72,7 @@ fun DoctorListScreen(
 
 
 @Composable
-fun EmptyDoctorList() {
+fun EmptyUserList() {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -86,7 +86,7 @@ fun EmptyDoctorList() {
 }
 
 @Composable
-fun DoctorList(users: List<GetUser>, viewModel: UserViewModel) {
+fun UserList(users: List<GetUser>, viewModel: UserViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

@@ -4,5 +4,5 @@ package com.hellodoc.healthcaresystem.user.home.model
 data class Doctor(
     val name: String,
     val specialty: String,
-    val icon: Int
+    val address: String
 )

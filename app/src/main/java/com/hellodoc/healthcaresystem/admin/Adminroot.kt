@@ -38,14 +38,47 @@ class AdminRoot : ComponentActivity() {
 
 // Sidebar item list
 val sidebarItems = listOf(
-    SidebarItem("Bảng điều khiển", R.drawable.controller, "Controller"),
-    SidebarItem("Quản lý tài khoản User", R.drawable.usermanage, "UserManager"),
-    SidebarItem("Quản lý Doctor", R.drawable.doctormanage, "DoctorManager"),
-    SidebarItem("Quản lý tin nhắn", R.drawable.messagemanage, "MessageManager"),
-    SidebarItem("Quản lý khiếu nại", R.drawable.reportmanage, "ReportManager"),
-    SidebarItem("Quản lý nhân sự", R.drawable.employeemanage, "EmployeeManager"),
-    SidebarItem("Lịch khám", R.drawable.appointmentmanage, "AppointmentManager"),
-    SidebarItem("Xác thực tài khoản", R.drawable.clarifymanage, "ClarifyManager")
+    SidebarItem(
+        nameField = "Bảng điều khiển",
+        iconField = R.drawable.controller,
+        navigationField = "Controller"
+    ),
+    SidebarItem(
+        nameField = "Quản lý tài khoản",
+        iconField = R.drawable.usermanage,
+        navigationField = "UserManager"
+    ),
+    SidebarItem(
+        nameField = "Quản lý bác sĩ",
+        iconField = R.drawable.doctormanage,
+        navigationField = "DoctorManager"
+    ),
+    SidebarItem(
+        nameField = "Quản lý tin nhắn",
+        iconField = R.drawable.messagemanage,
+        navigationField = "MessageManager"
+    ),
+    SidebarItem(
+        nameField = "Quản lý khiếu nại",
+        iconField = R.drawable.reportmanage,
+        navigationField = "ReportManager"
+    ),
+    SidebarItem(
+        nameField = "Quản lý tin tức",
+        iconField = R.drawable.edit,
+        navigationField = "NewsManager"
+    ),
+    SidebarItem(
+        nameField = "Lịch khám",
+        iconField = R.drawable.appointmentmanage,
+        navigationField = "AppointmentManager"
+    ),
+
+    SidebarItem(
+        nameField = "Xác thực tài khoản",
+        iconField = R.drawable.clarifymanage,
+        navigationField = "ClarifyManager"
+    )
 )
 
 @Composable
@@ -92,11 +125,8 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("Controller") {
                         ControllerManagerScreen()
                     }
-                    composable("UserManager") {
-                        UserListScreen(
-                            modifier = Modifier,
-                            sharedPreferences = sharedPreferences
-                        )
+                    composable("UserManager"){
+                        UserListScreen()
                     }
                     composable("DoctorManager") {
                         DoctorListScreen(sharedPreferences = sharedPreferences)
@@ -107,8 +137,8 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("ReportManager") {
                         ReportManagerScreen()
                     }
-                    composable("EmployeeManager") {
-                        EmployeeManagerScreen()
+                    composable("NewsManager"){
+                        NewsManagerScreen()
                     }
                     composable("AppointmentManager") {
                         AppointmentManagerScreen(
