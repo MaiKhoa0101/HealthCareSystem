@@ -96,7 +96,7 @@ class DoctorListActivity : BaseActivity() {
                 AppointmentListScreen()
             }
             composable("personal") {
-                ProfileUserPage()
+                ProfileUserPage(navHostController)
             }
             composable(
                 route = "doctorList/{specialtyId}/{specialtyName}",
@@ -120,7 +120,6 @@ class DoctorListActivity : BaseActivity() {
                     navHostController = navHostController
                 )
             }
-
             composable("booking") {
                     Column(
                         modifier = Modifier

@@ -45,7 +45,7 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            val navController = rememberNavController()
+            val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
             HealthCareSystemTheme {
@@ -72,7 +72,6 @@ class HomeActivity : BaseActivity() {
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showBars = currentRoute in listOf("home", "appointment", "notification", "personal")
         
-        val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -96,8 +95,9 @@ class HomeActivity : BaseActivity() {
     fun NavigationHost(
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
     ) {
+        val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
             navController = navHostController,
             startDestination = defaultDestination,
