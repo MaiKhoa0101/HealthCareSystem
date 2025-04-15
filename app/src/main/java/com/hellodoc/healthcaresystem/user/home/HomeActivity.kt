@@ -35,6 +35,7 @@ import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.home.model.Doctor
+import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
 import java.io.Serializable
 
 class HomeActivity : BaseActivity() {
@@ -140,8 +141,11 @@ class HomeActivity : BaseActivity() {
                 EditClinicServiceScreen(navHostController)
             }
             composable("gemini_help") {
-                        GeminiChatScreen(navHostController, sharedPreferences)
-                }
+                GeminiChatScreen(navHostController, sharedPreferences)
+            }
+            composable("other_user_profile") {
+                ProfileScreen(navHostController)
+            }
         }
     }
 }
