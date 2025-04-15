@@ -1,5 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,6 +30,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,33 +50,47 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.room.util.copy
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
+import com.hellodoc.healthcaresystem.user.home.showToast
 import com.hellodoc.healthcaresystem.user.personal.model.ProfileUser
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewIntroduce
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewRating
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.WriteReviewScreen
 
-class ProfileActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            HealthCareSystemTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ProfileScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
-    }
-}
+//class ProfileActivity : BaseActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        val specialtyId = intent.getStringExtra("doctorId") ?: "Chưa rõ bác sĩ"
+//        enableEdgeToEdge()
+//        setContent {
+//            HealthCareSystemTheme {
+//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//                    ProfileScreen(
+//                        modifier = Modifier.padding(innerPadding),
+//                        onBack = {
+//                            val intent = Intent(this@ProfileActivity, HomeActivity::class.java)
+//                            startActivity(intent)
+//                        }
+//
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
+fun ProfileScreen(navHostController: NavHostController) {
     var selectedTab by remember { mutableStateOf(0) }
     var showWriteReviewScreen by remember { mutableStateOf(false) }
 
@@ -162,7 +179,8 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                         nRate = 70,
                         rate = "Đánh giá",
                         role = "0"
-                    )
+                    ),
+                    navHostController
                 )
             }
 
@@ -236,8 +254,18 @@ fun OtherUserListScreen(
 @Composable
 fun UserInfo(
     profileUser: ProfileUser,
+    navHostController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    var doctorId by remember { mutableStateOf("chưa có dữ liệu id") }
+
+    // Cập nhật giá trị nếu có trong savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        savedStateHandle?.get<String>("doctorId")?.let {
+            doctorId = it
+        }
+    }
     val backgroundColor = Color.Cyan
     ConstraintLayout(
         modifier = modifier
@@ -270,7 +298,9 @@ fun UserInfo(
             modifier = Modifier
                 .clip(shape = CircleShape)
                 .size(40.dp)
-                .clickable {  }
+                .clickable {
+                    navHostController.popBackStack()
+                }
                 .constrainAs(backIcon) {
                     top.linkTo(imgIcon.top)
                     start.linkTo(parent.start, margin = 15.dp)
@@ -292,7 +322,7 @@ fun UserInfo(
             }
         )
         Text(
-            profileUser.title,
+            doctorId,
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 26.sp,
@@ -433,7 +463,8 @@ fun ButtonProfile(profileUser: ProfileUser) {
 @Preview(showBackground = true,showSystemUi = true)
 @Composable
 fun GreetingPreview() {
+    val fakeNavController = rememberNavController()
     HealthCareSystemTheme {
-        ProfileScreen()
+        ProfileScreen(fakeNavController)
     }
 }

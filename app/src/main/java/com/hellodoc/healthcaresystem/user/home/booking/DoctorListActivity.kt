@@ -81,17 +81,21 @@ class DoctorListActivity : BaseActivity() {
             navController = navHostController,
             startDestination = "doctorList/$specialtyId/$specialtyName"
         ) {
-            composable("home") {
-                HealthMateHomeScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    sharedPreferences = sharedPreferences,
-                    onNavigateToDoctorList = { specialtyId, specialtyName ->
-                        // Truyền cả id và name vào route
-                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
-                    },
-                    navHostController = navHostController
-                )
-            }
+//            composable("home") {
+//                HealthMateHomeScreen(
+//                    modifier = Modifier.fillMaxSize(),
+//                    sharedPreferences = sharedPreferences,
+//                    onNavigateToDoctorList = { specialtyId, specialtyName ->
+//                        // Truyền cả id và name vào route
+//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
+//                    },
+//                    onNavigateToDoctorProfile = { doctorId ->
+//                        // Truyền cả id và name vào route
+//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
+//                    },
+//                    navHostController = navHostController
+//                )
+//            }
             composable("appointment") {
                 AppointmentListScreen()
             }
