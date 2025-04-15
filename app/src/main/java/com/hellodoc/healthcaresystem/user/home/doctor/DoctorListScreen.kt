@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
@@ -43,6 +44,7 @@ fun DoctorListScreen(
     specialtyId: String,
     specialtyName: String,
     onBack: () -> Unit,
+    navHostController: NavHostController
 ) {
 
     val viewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
@@ -78,7 +80,7 @@ fun DoctorListScreen(
                 }
             } else {
                 items(doctors) { doctor ->
-                    DoctorItem(doctor = doctor, specialtyName = specialtyName)
+                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -112,7 +114,7 @@ fun TopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorItem(doctor: Doctor, specialtyName: String) {
+fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,7 +181,7 @@ fun DoctorItem(doctor: Doctor, specialtyName: String) {
             horizontalArrangement = Arrangement.End
         ) {
             Button(
-                onClick = { /* TODO */ },
+                onClick = { navHostController.navigate("booking") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)

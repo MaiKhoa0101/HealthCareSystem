@@ -1,18 +1,22 @@
 package com.hellodoc.healthcaresystem.user.home
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,12 +28,14 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
-import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
+import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
+import com.hellodoc.healthcaresystem.user.home.model.Doctor
+import java.io.Serializable
 
 class HomeActivity : BaseActivity() {
 
@@ -39,7 +45,7 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            val navHostController = rememberNavController()
+            val navController = rememberNavController()
 
             HealthCareSystemTheme {
                 Index(
@@ -64,6 +70,8 @@ class HomeActivity : BaseActivity() {
 
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showBars = currentRoute in listOf("home", "appointment", "notification", "personal")
+        
+        val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -91,7 +99,7 @@ class HomeActivity : BaseActivity() {
     ) {
         NavHost(
             navController = navHostController,
-            startDestination = "home",
+            startDestination = defaultDestination,
             modifier = modifier
         ) {
             composable("home") {
@@ -99,8 +107,11 @@ class HomeActivity : BaseActivity() {
                     modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences,
                     onNavigateToDoctorList = { specialtyId, specialtyName ->
-                        // Truyền cả id và name vào route
-                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
+                        val intent = Intent(this@HomeActivity, DoctorListActivity::class.java).apply {
+                            putExtra("specialtyId", specialtyId)
+                            putExtra("specialtyName", specialtyName)
+                            }
+                        startActivity(intent)
                     },
                     navHostController = navHostController
 
@@ -127,6 +138,9 @@ class HomeActivity : BaseActivity() {
             composable("editClinic") {
                 EditClinicServiceScreen(navHostController)
             }
+            composable("gemini_help") {
+                        GeminiChatScreen(navHostController, sharedPreferences)
+                }
         }
     }
 }

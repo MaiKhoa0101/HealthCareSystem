@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
-import com.hellodoc.healthcaresystem.responsemodel.GetDoctorBySpecialty
 import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
