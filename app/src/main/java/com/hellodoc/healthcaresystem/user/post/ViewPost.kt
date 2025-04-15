@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 @Composable
 fun ViewBanner(modifier: Modifier = Modifier) {
@@ -161,23 +163,23 @@ fun ViewPost(
 
 
 
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    HealthCareSystemTheme {
-//        ViewPost(
-//            containerPost = ContainerPost(
-//                image = R.drawable.img,
-//                name = "Khoa xinh gái",
-//                lable = "bla bla"
-//            ),
-//            contentPost = ContentPost(
-//                content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla "
-//            ),
-//            footerItem = FooterItem(
-//                name = "null",
-//                image = R.drawable.avarta
-//            )
-//        )
-//    }
-//}
+@Preview(showBackground = true,showSystemUi = true)
+@Composable
+fun GreetingPreview() {
+    HealthCareSystemTheme {
+        ViewPost(
+            containerPost = ContainerPost(
+                image = R.drawable.img,
+                name = "Khoa xinh gái",
+                lable = "bla bla"
+            ),
+            contentPost = ContentPost(
+                content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla "
+            ),
+            footerItem = FooterItem(
+                name = "null",
+                image = R.drawable.avarta
+            )
+        )
+    }
+}
