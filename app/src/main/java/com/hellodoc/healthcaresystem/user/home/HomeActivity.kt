@@ -47,12 +47,7 @@ class HomeActivity : BaseActivity() {
                     sharedPreferences = sharedPreferences
                 )
             }
-            //tam thoi dung de chay admin
-//            HealthCareSystemTheme {
-//                AdminScreen(
-//                    sharedPreferences = sharedPreferences
-//                )
-//            }
+
         }
     }
 
@@ -103,7 +98,12 @@ class HomeActivity : BaseActivity() {
                 HealthMateHomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences,
+                    onNavigateToDoctorList = { specialtyId, specialtyName ->
+                        // Truyền cả id và name vào route
+                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
+                    },
                     navHostController = navHostController
+
                 )
             }
             composable("appointment") {
