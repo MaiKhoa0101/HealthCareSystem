@@ -39,44 +39,40 @@ fun PreviewReportListScreen() {
 @Composable
 fun ReportManagerScreen() {
     val backgroundColor = Color(0xFFF4F5F7)
-    val sampleComplaints = listOf(
-        ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
-        ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
-        ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
-        ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
-        ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
-        ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
-        ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-        ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
-    )
+    val sampleComplaints = remember {
+        mutableStateListOf(
+            ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
+            ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
+            ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
+            ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
+            ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
+            ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
+            ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+            ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
+        )
+    }
 
-    // Tạo ScrollState chung để đồng bộ cuộn ngang
-    val tableScrollState = rememberScrollState()
-
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
             .padding(16.dp)
     ) {
         // Tiêu đề
-        item {
             Text(
                 text = "Danh sách khiếu nại",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-        }
 
         // Phần thống kê
-        item {
+
             ComplaintStatsScreen()
             Spacer(modifier = Modifier.height(16.dp))
-        }
+
 
         // Tiêu đề bảng
-        item {
             Text(
                 text = "Quản lí khiếu nại",
                 style = MaterialTheme.typography.headlineSmall,
@@ -86,14 +82,21 @@ fun ReportManagerScreen() {
                     .background(Color.White)
                     .padding(16.dp)
             )
-        }
 
-        // Header của bảng với cuộn ngang
-        item {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ComplaintTable(sampleComplaints)
+    }
+}
+
+@Composable
+fun ComplaintTable(complaints: List<ComplaintData>) {
+    // Cho phép cuộn ngang
+    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Column {
+            // Header
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(tableScrollState)
                     .background(Color(0xFF2B544F))
                     .padding(vertical = 8.dp)
             ) {
@@ -105,31 +108,86 @@ fun ReportManagerScreen() {
                 TableCell(text = "Ngày tạo", isHeader = true, width = 100.dp)
                 TableCell(text = "Chức năng", isHeader = true, width = 80.dp)
             }
-        }
 
-        // Nội dung bảng
-        if (sampleComplaints.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Không có khiếu nại nào",
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    )
+            // Content
+            LazyColumn {
+                itemsIndexed(complaints) { index, complaint ->
+                    ComplaintRow(index + 1, complaint)
                 }
             }
-        } else {
-            itemsIndexed(sampleComplaints) { index, report ->
-                ReportRow(
-                    id = index + 1,
-                    report = report,
-                    scrollState = tableScrollState
+        }
+    }
+}
+
+@Composable
+fun ComplaintRow(id: Int, complaint: ComplaintData) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
+            .padding(vertical = 8.dp)
+    ) {
+        TableCell(id.toString(), width = 60.dp)
+        TableCell(complaint.user, width = 100.dp)
+        TableCell(complaint.content, width = 150.dp)
+        TableCell(complaint.targetType, width = 100.dp)
+        TableCell(complaint.status, width = 80.dp)
+        TableCell(complaint.createdDate, width = 100.dp)
+        Box(
+            modifier = Modifier
+                .width(80.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(onClick = { expanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Response")
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        // Thêm logic xử lý xác minh
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Close")
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        // Thêm logic xử lý xóa
+                    }
                 )
             }
         }
@@ -218,79 +276,4 @@ fun ComplaintCard(
     }
 }
 
-@Composable
-fun ReportRow(id: Int, report: ComplaintData, scrollState: ScrollState) {
-    var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState)
-            .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
-            .padding(vertical = 8.dp)
-    ) {
-        TableCell(id.toString(), width = 60.dp)
-        TableCell(report.user, width = 100.dp)
-        TableCell(report.content, width = 150.dp)
-        TableCell(report.targetType, width = 100.dp)
-        TableCell(report.status, width = 80.dp)
-        TableCell(report.createdDate, width = 100.dp)
-        Box(
-            modifier = Modifier
-                .width(80.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(onClick = { expanded = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-                    .background(Color.White)
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Xác minh tài khoản")
-                        }
-                    },
-                    onClick = {
-                        expanded = false
-                        // Thêm logic xử lý xác minh
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Xóa")
-                        }
-                    },
-                    onClick = {
-                        expanded = false
-                        // Thêm logic xử lý xóa
-                    }
-                )
-            }
-        }
-    }
-}

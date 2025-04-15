@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.user.home.model.Account
+import org.checkerframework.checker.units.qual.A
 
 @Preview(showBackground = true)
 @Composable
@@ -44,30 +45,40 @@ fun ClarifyManagerScreen() {
             Account("lan@gmail.com", "0934567890", "GP-345", false),
             Account("hung@gmail.com", "0945678901", "GP-678", false),
             Account("trang@gmail.com", "0956789012", "GP-901", false),
-            Account("vu@gmail.com", "0967890123", "GP-234", false)
+            Account("vu@gmail.com", "0967890123", "GP-234", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
+            Account("trang@gmail.com", "0956789012", "GP-901", false),
         )
     }
 
-    // Tạo ScrollState chung để đồng bộ cuộn ngang
-    val tableScrollState = rememberScrollState()
-
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         // Tiêu đề
-        item {
+
             Text(
                 text = "Xác thực tài khoản",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
-        }
+
 
         // Số lượng tài khoản
-        item {
+
             Text(
                 text = "${accountList.size} tài khoản",
                 color = Color.White,
@@ -76,14 +87,18 @@ fun ClarifyManagerScreen() {
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        // Header của bảng với cuộn ngang
-        item {
+            ClarifyTable(accountList)
+
+    }
+}
+
+@Composable
+fun ClarifyTable(clarifies: List<Account>) {
+    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Column {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(tableScrollState)
                     .background(Color(0xFF2B544F))
                     .padding(vertical = 8.dp)
             ) {
@@ -93,45 +108,22 @@ fun ClarifyManagerScreen() {
                 TableCell("CCHN", isHeader = true, width = 120.dp)
                 TableCell("Chức năng", isHeader = true, width = 100.dp)
             }
-        }
 
-        // Nội dung bảng
-        if (accountList.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Không có tài khoản nào",
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    )
+            LazyColumn {
+                itemsIndexed(clarifies) { index, clarify ->
+                    ClarifyRow(index + 1, clarify)
                 }
-            }
-        } else {
-            itemsIndexed(accountList) { index, account ->
-                AccountRow(
-                    id = index + 1,
-                    account = account,
-                    scrollState = tableScrollState
-                )
             }
         }
     }
 }
 
 @Composable
-fun AccountRow(id: Int, account: Account, scrollState: ScrollState) {
-    var expanded by remember { mutableStateOf(false) }
+fun ClarifyRow(id: Int, account: Account) {
+    var expanded by remember { mutableStateOf(false)}
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState)
             .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
             .padding(vertical = 8.dp)
     ) {
@@ -190,10 +182,10 @@ fun AccountRow(id: Int, account: Account, scrollState: ScrollState) {
                 )
             }
         }
+
     }
 }
 
-// Cell có độ rộng cố định
 @Composable
 fun TableCell(text: String, isHeader: Boolean = false, width: Dp) {
     Text(

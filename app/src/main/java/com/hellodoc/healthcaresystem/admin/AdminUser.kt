@@ -29,7 +29,7 @@ fun UserListScreen() {
             Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
             Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
             Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
-            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
+            Account2("phuong","minh@gmail.com", "0783203982", "2025-01-19"),
             )
     }
 
