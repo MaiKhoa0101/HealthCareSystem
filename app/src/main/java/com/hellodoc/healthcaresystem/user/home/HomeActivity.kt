@@ -46,6 +46,7 @@ class HomeActivity : BaseActivity() {
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val navController = rememberNavController()
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
             HealthCareSystemTheme {
                 Index(
