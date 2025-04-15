@@ -55,10 +55,7 @@ fun ReportManagerScreen() {
                     fontWeight = FontWeight.Bold
                 )
 
-
-
                 ComplaintStatsScreen()
-
 
                 Text(
                     text = "Quản lí khiếu nại",
@@ -110,81 +107,83 @@ fun TableReport(){
                 sampleComplaints.forEachIndexed { index, complaint ->
                     val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
                     var expanded by remember { mutableStateOf(false) }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(bgColor)
-                            .padding(vertical = 10.dp),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        TableCell(complaint.id, width = 60.dp)
-                        TableCell(complaint.user, width = 100.dp)
-                        TableCell(complaint.content, width = 150.dp)
-                        TableCell(complaint.targetType, width = 140.dp)
-                        TableCell(complaint.status, width = 120.dp)
-                        TableCell(complaint.createdDate, width = 100.dp)
-                        Box(
-                            modifier = Modifier
-                                .width(100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            IconButton(onClick = { expanded = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-                            }
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false },
+                    Column {
+                            Row(
                                 modifier = Modifier
-                                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-                                    .background(Color.White)
+                                    .fillMaxWidth()
+                                    .background(bgColor)
+                                    .padding(vertical = 10.dp),
+                                horizontalArrangement = Arrangement.Start
                             ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(vertical = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Edit,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text("Response")
-                                        }
-                                    },
-                                    onClick = {
-                                        expanded = false
-                                        // Thêm logic xử lý xác minh
+                                TableCell(complaint.id, width = 60.dp)
+                                TableCell(complaint.user, width = 100.dp)
+                                TableCell(complaint.content, width = 150.dp)
+                                TableCell(complaint.targetType, width = 140.dp)
+                                TableCell(complaint.status, width = 120.dp)
+                                TableCell(complaint.createdDate, width = 100.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .width(100.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                                     }
-                                )
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(vertical = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text("Close")
-                                        }
-                                    },
-                                    onClick = {
-                                        expanded = false
-                                        // Thêm logic xử lý xóa
-                                    }
-                                )
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier
+                                            .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                                            .background(Color.White)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Response")
+                                                }
+                                            },
+                                            onClick = {
+                                                expanded = false
+                                                // Thêm logic xử lý xác minh
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Delete,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Close")
+                                                }
+                                            },
+                                            onClick = {
+                                                expanded = false
+                                                // Thêm logic xử lý xóa
+                                            }
+                                        )
+
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
     }
 }
 

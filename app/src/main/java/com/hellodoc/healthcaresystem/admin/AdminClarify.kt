@@ -109,7 +109,6 @@ fun ClarifyTable(clarifies: List<Account>) {
                 TableCell("CCHN", isHeader = true, width = 120.dp)
                 TableCell("Chức năng", isHeader = true, width = 100.dp)
             }
-
             LazyColumn {
                 itemsIndexed(clarifies) { index, clarify ->
                     ClarifyRow(index + 1, clarify)
