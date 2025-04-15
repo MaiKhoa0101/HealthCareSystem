@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.doctor
 
-import android.media.audiofx.AudioEffect.Descriptor
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,30 +34,38 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.personal.ChangeAvatar
 import com.hellodoc.healthcaresystem.user.personal.InputEditField
 
 @Composable
 fun RegisterClinic(navHostController: NavHostController){
     Scaffold(
-        topBar = { HeadbarResClinic(navHostController) },
+        topBar = { HeadbarResClinic(navHostController) }
     ) { paddingValues -> // paddingValues được truyền vào content
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(10.dp)
+                .padding(horizontal = 10.dp)
         ) {
             item {
                 ContentEditResDoctor()
+                RequestRegisterButton()
             }
         }
+    }
+}
+
+@Composable
+fun RequestRegisterButton(){
+    Button (
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {}
+    ){
+        Text("Yêu cầu xét duyệt hồ sơ")
     }
 }
 
@@ -152,7 +160,7 @@ fun ContentEditResDoctor(){
         InputEditField(
             "Mã giấy phép hành nghề do bộ y tế cấp",
             GPHNText,
-            { CCCDText = it },
+            { GPHNText = it },
             "Nguyễn Văn A"
         )
 

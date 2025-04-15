@@ -29,15 +29,27 @@ fun EditUserProfile(navHostController: NavHostController) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues).padding(horizontal = 10.dp)
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
             item { ChangeAvatar() }
             item { Spacer(modifier = Modifier.height(10.dp)) }
             item { ContentEditUser() }
+            item { AcceptEditButton() }
         }
     }
 }
+
+@Composable
+fun AcceptEditButton(){
+    Button (
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {}
+    ){
+        Text("Lưu thay đổi")
+    }
+}
+
 
 @Composable
 fun HeadbarEditUserProfile(navHostController: NavHostController) {
