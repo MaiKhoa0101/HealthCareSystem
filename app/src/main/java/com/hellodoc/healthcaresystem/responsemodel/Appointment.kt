@@ -25,3 +25,21 @@ data class AppointmentResponse(
         val email: String
     )
 }
+
+data class CreateAppointmentResponse(
+    @SerializedName("message") val message: String,
+    val appointment: Appointment
+) {
+    data class Appointment(
+        val id: String,
+        val doctor: String,
+        val patient: String,
+        val date: String,
+        val time: String,
+        val status: String,
+        val examinationMethod: String,
+        val reason: String,
+        val notes: String?,
+        val totalCost: Double
+    )
+}

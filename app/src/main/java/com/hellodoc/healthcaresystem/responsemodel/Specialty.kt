@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 data class GetSpecialtyResponse(
     @SerializedName("_id") val id: String,

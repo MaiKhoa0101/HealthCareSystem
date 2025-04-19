@@ -21,6 +21,7 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.MainPage
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
 
 class SignIn : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,7 +88,7 @@ class SignIn : AppCompatActivity() {
                             // Chuyển đến trang phù hợp
                             val intent = when (role) {
                                 "admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                "user" -> Intent(this@SignIn, MainPage::class.java)
+                                "user" -> Intent(this@SignIn, HomeActivity::class.java)
                                 else -> {
                                     Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
                                     return@withContext
