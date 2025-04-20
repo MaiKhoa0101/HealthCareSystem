@@ -109,7 +109,7 @@ fun AppointmentListScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentCard(appointment: AppointmentResponse) {
-    val formattedDate = ZonedDateTime.parse(appointment.date)
+    val formattedDate = ZonedDateTime.parse(appointment.day)
         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
     Card(

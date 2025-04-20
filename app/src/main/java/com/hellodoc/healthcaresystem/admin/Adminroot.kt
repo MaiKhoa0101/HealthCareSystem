@@ -141,10 +141,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         NewsManagerScreen()
                     }
                     composable("AppointmentManager") {
-                        AppointmentManagerScreen(
-                            viewModel = viewModel(),
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+                        AppointmentManagerScreen(sharedPreferences)
                     }
                     composable("ClarifyManager") {
                         ClarifyManagerScreen()
