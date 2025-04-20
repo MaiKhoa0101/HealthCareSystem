@@ -37,19 +37,33 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 var doctorId: String = ""
 var doctorName: String = ""
 var specialtyName: String = ""
 var patientID: String = ""
+var patientName: String = ""
+var patientPhone: String = ""
 var date: String = "" // Ví dụ: "20/04/2025"
 var time: String = "" // Ví dụ: "14:30"
 var status: String = "pending" // pending/confirmed/cancelled
-var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
+//var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
 var totalCost: String = "0"
 
 @Composable
-fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostController, sharedPreferences: SharedPreferences) {
+fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        patientName = userViewModel.getUserAttributeString("name")
+        patientPhone = userViewModel.getUserAttributeString("phone")
+        patientID = userViewModel.getUserAttributeString("userId")
+    }
+
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     LaunchedEffect(savedStateHandle) {
         savedStateHandle?.get<String>("doctorId")?.let {
@@ -65,6 +79,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
     Column(modifier = Modifier
         .fillMaxSize()
     ) {
+        val examinationMethod = remember { mutableStateOf("") }
         var notes by remember { mutableStateOf("") }
         TopBar(title="Chi tiết lịch hẹn khám",onClick = { navHostController.popBackStack() })
         LazyColumn(
@@ -83,7 +98,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
             }
 
             item {
-                VisitMethodSection()
+                VisitMethodSection(examinationMethod)
             }
 
             item {
@@ -99,7 +114,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
             }
 
             item {
-                BookButton(navHostController, sharedPreferences, notes)
+                BookButton(navHostController, sharedPreferences, examinationMethod, notes)
             }
         }
     }
@@ -232,19 +247,17 @@ fun PatientInfoSection() {
             ) {
                 Text("Đặt lịch khám này cho:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow("Họ và tên:", "Nguyễn Văn Tèo")
+                InfoRow("Họ và tên:", patientName)
                 InfoRow("Giới tính:", "Nam")
                 InfoRow("Ngày sinh:", "11/12/2000")
-                InfoRow("Điện thoại:", "0909124567")
+                InfoRow("Điện thoại:", patientPhone)
             }
         }
     }
 }
 
 @Composable
-fun VisitMethodSection() {
-//    val selectedMethod = remember { mutableStateOf("") }
-
+fun VisitMethodSection(examinationMethod:  MutableState<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -261,10 +274,10 @@ fun VisitMethodSection() {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (examinationMethod == "clinic") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                    if (examinationMethod.value == "at_clinic") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
                 )
                 .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-                .clickable { examinationMethod = "clinic" }
+                .clickable { examinationMethod.value = "at_clinic" }
                 .padding(12.dp)
                 .height(70.dp),
             verticalArrangement = Arrangement.Center
@@ -284,10 +297,10 @@ fun VisitMethodSection() {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (examinationMethod == "home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                    if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
                 )
                 .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-                .clickable { examinationMethod = "home" }
+                .clickable { examinationMethod.value = "at_home" }
                 .height(100.dp)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -401,7 +414,7 @@ fun FeeSummarySection() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, notes: String) {
+fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
 //    val appointmentViewModel: AppointmentViewModel = viewModel(
 //        factory = viewModelFactory {
 //            initializer {
@@ -433,7 +446,7 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
     Button(
         onClick = {
             when {
-                examinationMethod.isBlank() -> {
+                examinationMethod.value.isBlank() -> {
                     dialogMessage = "Vui lòng chọn hình thức khám"
                     showDialog = true
                 }
@@ -444,6 +457,7 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
                 else -> {
 
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("examinationMethod", examinationMethod.value)
                         set("notes", notes)
                     }
                     navHostController.navigate("booking-confirm")
@@ -494,11 +508,10 @@ fun InfoRow(label: String, value: String, valueColor: Color = Color.Black, fontW
 @Composable
 fun PreviewAppointmentDetailScreen() {
     val context = LocalContext.current
-    val sharedPref = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     val fakeNavController = rememberNavController()
     AppointmentDetailScreen(
+        context = context,
         onBack = {},
         navHostController = fakeNavController,
-        sharedPreferences = sharedPref
     )
 }

@@ -6,6 +6,7 @@ import com.hellodoc.healthcaresystem.responsemodel.CreateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
@@ -16,5 +17,8 @@ interface AppointmentService {
 
     @Headers("Content-Type: application/json")
     @POST("appointments/book")
-    suspend fun createAppointment(@Body request: CreateAppointmentRequest): Response<CreateAppointmentResponse>
+    suspend fun createAppointment(
+        @Header("accessToken") accessToken: String,
+        @Body request: CreateAppointmentRequest
+    ): Response<CreateAppointmentResponse>
 }

@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.doctor
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,13 +41,13 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun DoctorListScreen(
-    sharedPreferences: SharedPreferences,
+    context: Context,
     specialtyId: String,
     specialtyName: String,
     onBack: () -> Unit,
     navHostController: NavHostController
 ) {
-
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val viewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
         initializer { SpecialtyViewModel(sharedPreferences) }
     })

@@ -7,9 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 
-class SignUpSuccess : AppCompatActivity() {
+class SignUpSuccess : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

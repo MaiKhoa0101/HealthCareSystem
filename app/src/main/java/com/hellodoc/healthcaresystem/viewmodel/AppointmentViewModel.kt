@@ -32,18 +32,23 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
     }
 
     fun createAppointment(createAppointmentRequest: CreateAppointmentRequest) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.appointment.createAppointment(createAppointmentRequest)
-                if (response.isSuccessful) {
-                    val result = response.body()
-                    Log.d("Book", "Thành công: ${result?.message}")
-                } else {
-                    Log.e("Book", "Lỗi từ server: ${response.errorBody()?.string()}")
+        val token = sharedPreferences.getString("access_token", null)
+        if (token != null) {
+            viewModelScope.launch {
+                try {
+                    val response = RetrofitInstance.appointment.createAppointment(token, createAppointmentRequest)
+                    if (response.isSuccessful) {
+                        val result = response.body()
+                        Log.d("Book", "Thành công: ${result?.message}")
+                    } else {
+                        Log.e("Book", "Lỗi từ server: ${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
                 }
-            } catch (e: Exception) {
-                Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
             }
+        } else {
+            Log.e("Book", "Token null - người dùng chưa đăng nhập?")
         }
     }
 

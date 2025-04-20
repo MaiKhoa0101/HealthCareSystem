@@ -18,12 +18,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.MainPage
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 
-class SignIn : AppCompatActivity() {
+class SignIn : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -39,7 +39,7 @@ import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
-    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val appointmentViewModel: AppointmentViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -47,12 +47,17 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
             }
         }
     )
-    var notes by mutableStateOf("")
+    var notes by remember { mutableStateOf("") }
+    var examinationMethod by remember { mutableStateOf("") }
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     LaunchedEffect(savedStateHandle) {
         savedStateHandle?.get<String>("notes")?.let {
             notes = it
         }
+        savedStateHandle?.get<String>("examinationMethod")?.let {
+            examinationMethod = it
+        }
+
     }
 
     var showDialog by remember { mutableStateOf(false) }

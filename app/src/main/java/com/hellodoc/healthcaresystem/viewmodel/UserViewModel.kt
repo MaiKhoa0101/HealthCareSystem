@@ -59,6 +59,16 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun getUserAttributeString(attribute: String): String {
+        val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
+        return try {
+            val jwt = JWT(token)
+            jwt.getClaim(attribute).asString() ?: "unknown"
+        } catch (e: Exception) {
+            "unknown"
+        }
+    }
+
     fun clearToken() {
         sharedPreferences.edit().remove("access_token").apply()
     }

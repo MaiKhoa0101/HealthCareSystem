@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -41,13 +42,15 @@ class DoctorListActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             HealthCareSystemTheme {
-                val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                val context = LocalContext.current
+                val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 val navController = rememberNavController()
 
                 com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         Index(
                             modifier = Modifier.padding(innerPadding),
+                            context = context,
                             sharedPreferences = sharedPreferences,
                             navHostController = navController,
                             specialtyId = specialtyId,
@@ -63,6 +66,7 @@ class DoctorListActivity : BaseActivity() {
     @Composable
     fun Index(
         modifier: Modifier = Modifier,
+        context: Context,
         sharedPreferences: SharedPreferences,
         navHostController: NavHostController,
         specialtyId: String,
@@ -110,7 +114,7 @@ class DoctorListActivity : BaseActivity() {
                     backStackEntry.arguments?.getString("specialtyName") ?: ""
 
                 DoctorListScreen(
-                    sharedPreferences = sharedPreferences,
+                    context = context,
                     specialtyId = specialtyId,
                     specialtyName = specialtyName,
                     onBack = {
@@ -127,9 +131,9 @@ class DoctorListActivity : BaseActivity() {
                             .fillMaxSize()
                     ) {
                         AppointmentDetailScreen(
+                            context = context,
                             onBack = { navHostController.popBackStack()},
-                            navHostController = navHostController,
-                            sharedPreferences = sharedPreferences
+                            navHostController = navHostController
                         )
                     }
             }
@@ -146,7 +150,7 @@ class DoctorListActivity : BaseActivity() {
             }
             composable("booking-confirm") {
                 ConfirmBookingScreen(
-                    context = this@DoctorListActivity,
+                    context = context,
                     navHostController = navHostController
                 )
             }
