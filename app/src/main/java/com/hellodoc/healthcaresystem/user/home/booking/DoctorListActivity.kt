@@ -97,7 +97,7 @@ class DoctorListActivity : BaseActivity() {
 //                )
 //            }
             composable("appointment") {
-                AppointmentListScreen()
+                AppointmentListScreen(sharedPreferences)
             }
             composable("personal") {
                 ProfileUserPage(navHostController)

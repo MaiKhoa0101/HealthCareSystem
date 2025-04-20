@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
+import android.content.SharedPreferences
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,9 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
-class AppointmentViewModel: ViewModel() {
+class AppointmentViewModel(private val sharedPreferences: SharedPreferences): ViewModel() {
     private val _appointments = MutableStateFlow<List<AppointmentResponse>>(emptyList())
-    val appoinments: StateFlow<List<AppointmentResponse>> get() = _appointments
+    val appointments: StateFlow<List<AppointmentResponse>> get() = _appointments
 
     fun fetchAppointments(){
         viewModelScope.launch{

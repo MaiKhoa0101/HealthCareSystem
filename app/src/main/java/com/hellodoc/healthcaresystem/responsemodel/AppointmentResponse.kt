@@ -16,12 +16,18 @@ data class AppointmentResponse(
     data class Doctor(
         @SerializedName("_id") val id: String,
         val name: String,
-        val email: String
+        val email: String,
+        val specialty: Specialty,
+        val hospital: String
     )
 
     data class Patient(
         @SerializedName("_id") val id: String,
         val name: String,
         val email: String
+    )
+
+    data class Specialty(
+        val name: String
     )
 }

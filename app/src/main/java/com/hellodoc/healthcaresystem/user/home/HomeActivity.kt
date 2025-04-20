@@ -120,7 +120,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("appointment") {
-                AppointmentListScreen()
+                AppointmentListScreen(sharedPreferences)
             }
             composable("notification") {
                 NotificationPage(navHostController)
