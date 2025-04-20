@@ -131,7 +131,8 @@ class DoctorListActivity : BaseActivity() {
                     ) {
                         AppointmentDetailScreen(
                             onBack = { navHostController.popBackStack()},
-                            navHostController = navHostController
+                            navHostController = navHostController,
+                            sharedPreferences = sharedPreferences
                         )
                     }
             }
