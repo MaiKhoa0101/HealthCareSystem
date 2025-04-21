@@ -7,7 +7,7 @@ data class AppointmentResponse(
     val id: String,
     val doctor: Doctor,
     val patient: Patient,
-    val day: String,
+    val date: String,
     val time: String,
     val method: String,
     val location: String,

@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.home.startscreen
+package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.SharedPreferences
 import android.os.Build
@@ -109,7 +109,7 @@ fun AppointmentListScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentCard(appointment: AppointmentResponse) {
-    val formattedDate = ZonedDateTime.parse(appointment.day)
+    val formattedDate = ZonedDateTime.parse(appointment.date)
         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
     Card(

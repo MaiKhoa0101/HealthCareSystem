@@ -29,15 +29,6 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
-import com.hellodoc.healthcaresystem.user.home.model.TopBar
-import com.hellodoc.healthcaresystem.user.home.model.consultationMethod
-import com.hellodoc.healthcaresystem.user.home.model.date
-import com.hellodoc.healthcaresystem.user.home.model.doctorId
-import com.hellodoc.healthcaresystem.user.home.model.doctorName
-import com.hellodoc.healthcaresystem.user.home.model.patientID
-import com.hellodoc.healthcaresystem.user.home.model.reason
-import com.hellodoc.healthcaresystem.user.home.model.time
-import com.hellodoc.healthcaresystem.user.home.model.totalCost
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @SuppressLint("UnrememberedMutableState")

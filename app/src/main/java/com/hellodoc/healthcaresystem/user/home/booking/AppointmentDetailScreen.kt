@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.home.model
+package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.Context
 import android.content.SharedPreferences

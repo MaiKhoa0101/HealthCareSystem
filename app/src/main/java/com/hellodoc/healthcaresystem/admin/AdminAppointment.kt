@@ -120,6 +120,7 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
 
                 appointmentList.value.forEachIndexed { index, row ->
                     val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
+                    println(row)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -135,7 +136,7 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                         TableCell(row.doctor.specialty.name ?: "trống", 120)
                         TableCell(row.note ?: "trống", 150)
                         TableCell(row.time ?: "trống", 80)
-                        TableCell(row.day ?: "trống", 100)
+                        TableCell(row.date ?: "trống", 100)
                         TableCell(row.location ?: "trống", 200)
                         TableCell(row.createdAt ?: "trống", 120)
                         TableCell(

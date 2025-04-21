@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.rememberNavController
-import com.hellodoc.healthcaresystem.user.home.model.TopBar
 import java.time.format.DateTimeFormatter
 
 
