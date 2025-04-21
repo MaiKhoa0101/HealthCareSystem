@@ -29,16 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
-import com.hellodoc.healthcaresystem.user.home.model.TopBar
-import com.hellodoc.healthcaresystem.user.home.model.consultationMethod
-import com.hellodoc.healthcaresystem.user.home.model.date
-import com.hellodoc.healthcaresystem.user.home.model.doctorId
-import com.hellodoc.healthcaresystem.user.home.model.doctorName
-import com.hellodoc.healthcaresystem.user.home.model.patientID
-import com.hellodoc.healthcaresystem.user.home.model.reason
-import com.hellodoc.healthcaresystem.user.home.model.time
-import com.hellodoc.healthcaresystem.user.home.model.totalCost
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -131,19 +124,26 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+                val date = LocalDate.parse(date, inputFormatter)
+                val formattedDate = date.format(outputFormatter)
+
                 Button(
                     onClick = {
                         appointmentViewModel.createAppointment(
                             CreateAppointmentRequest(
                                 doctorID = doctorId,
                                 patientID = patientID,
-                                date = date,
+                                date = formattedDate,
                                 time = time,
-                                //status = status,
-                                consultationMethod = consultationMethod,
+//                                status = status,
+                                examinationMethod = examinationMethod,
                                 notes = notes,
-                                reason = reason
-                                //totalCost = totalCost
+                                reason = reason,
+                                totalCost = totalCost,
+                                location = location
                             )
                         )
                         showDialog = true },
