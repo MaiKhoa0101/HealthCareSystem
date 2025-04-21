@@ -8,7 +8,6 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-import com.hellodoc.healthcaresystem.responsemodel.GetUser
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import android.content.Context
@@ -28,6 +27,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.User
 
 @Composable
 fun DoctorListScreen(
@@ -86,7 +86,7 @@ fun EmptyUserList() {
 }
 
 @Composable
-fun UserList(users: List<GetUser>, viewModel: UserViewModel) {
+fun UserList(users: List<User>, viewModel: UserViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -100,7 +100,7 @@ fun UserList(users: List<GetUser>, viewModel: UserViewModel) {
 
 
 @Composable
-fun DoctorItem(user: GetUser, viewModel: UserViewModel) {
+fun DoctorItem(user: User, viewModel: UserViewModel) {
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
@@ -258,7 +258,7 @@ fun DoctorItem(user: GetUser, viewModel: UserViewModel) {
 
 @Composable
 fun EditDoctorDialog(
-    user: GetUser,
+    user: User,
     name: String,
     email: String,
     role: String,

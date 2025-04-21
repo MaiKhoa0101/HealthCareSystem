@@ -65,16 +65,17 @@ class HomeActivity : BaseActivity() {
         val currentRoute = navBackStackEntry?.destination?.route
 
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
-        val showBars = currentRoute in listOf("home", "appointment", "notification", "personal")
+        val showTopBars = currentRoute in listOf("home")
+        val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
         
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showBars) Headbar(sharedPreferences)
+                if (showTopBars) Headbar(sharedPreferences)
             },
             bottomBar = {
-                if (showBars) FootBar(navHostController)
+                if (showFootBars) FootBar(navHostController)
             }
         ) { paddingValues ->
             NavigationHost(
@@ -120,7 +121,7 @@ class HomeActivity : BaseActivity() {
                 NotificationPage(navHostController)
             }
             composable("personal") {
-                ProfileUserPage(navHostController)
+                ProfileUserPage(sharedPreferences,navHostController)
             }
             composable("create_post") {
                 PostScreen(navHostController)

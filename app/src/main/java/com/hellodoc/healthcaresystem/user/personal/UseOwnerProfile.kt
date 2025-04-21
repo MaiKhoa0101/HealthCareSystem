@@ -1,4 +1,5 @@
 package com.hellodoc.healthcaresystem.user.personal
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +21,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,29 +38,52 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import androidx.navigation.Navigation
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.ContentPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.home.HealthMateHomeScreen
+import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
-fun ProfileUserPage(navHostController:NavHostController){
+fun ProfileUserPage(
+    sharedPreferences: SharedPreferences,
+    navHostController: NavHostController
+) {
+    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    // Lấy dữ liệu user từ StateFlow
+    val user by userViewModel.user.collectAsState()
+
+    // Gọi API để fetch user từ server
+    LaunchedEffect(Unit) {
+        userViewModel.getUser("680355efaee44ce022490181")
+    }
+
+    // Nếu chưa có user (null) thì không hiển thị giao diện
+    if (user == null) {
+        println("user == null")
+        return
+    }
+
+    // Nếu có user rồi thì hiển thị UI
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
     ) {
         item {
-            ProfileSection(navHostController)
+            ProfileSection(navHostController, user!!)
         }
         item {
             PostUser()
@@ -66,58 +91,54 @@ fun ProfileUserPage(navHostController:NavHostController){
     }
 }
 
-
 @Composable
-fun ProfileSection(navHostController:NavHostController){
+fun ProfileSection(navHostController: NavHostController, user: User) {
     Column(
-        modifier = Modifier
-        .background(Color.Cyan)
+        modifier = Modifier.background(Color.Cyan)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)
         ) {
-            UserIntroSection()
+            UserIntroSection(user)
             Spacer(modifier = Modifier.height(26.dp))
-            UserProfileModifierSection(navHostController)
+            UserProfileModifierSection(navHostController, user)
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
 
+
 @Composable
-fun PostUser(){
-    Column (
-        modifier = Modifier
-            .fillMaxWidth(),
+fun PostUser() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        Column (
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(
-                    1.dp,
-                    color = Color.Gray,
-                    ),
+                .border(1.dp, color = Color.Gray),
             horizontalAlignment = Alignment.CenterHorizontally
-            )
-        {
+        ) {
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 "Bài viết đã đăng",
                 fontWeight = FontWeight.Bold,
-                fontSize = 25.sp,
+                fontSize = 25.sp
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
+
         ViewPostOwner(
             containerPost = ContainerPost(
                 image = R.drawable.doctor,
                 name = "Khoa xinh gái",
-                lable = "bla bla  "
+                lable = "bla bla"
             ),
             contentPost = ContentPost(
-                content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
+                content = "bla bla bla bla bla bla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla..."
             ),
             footerItem = FooterItem(
                 name = "null",
@@ -128,25 +149,33 @@ fun PostUser(){
 }
 
 
-
 @Composable
-fun UserIntroSection(){
-    Column (
+fun UserIntroSection(user: User) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp),
+            .height(200.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround
-    ){
-        Image(painter = painterResource(R.drawable.doctor), contentDescription = "avt user")
-        Text("Mai Nguyễn Đăng Khoa", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text("@mndk2015")
+    ) {
+        // Hiển thị ảnh đại diện
+        AsyncImage(
+            model = user.userImage,
+            contentDescription = "Avatar",
+            modifier = Modifier
+                .height(140.dp)
+                .padding(10.dp)
+                .clip(CircleShape)
+        )
+
+        // Tên và email người dùng
+        Text(user.name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text(user.email)
     }
 }
 
 @Composable
-fun UserProfileModifierSection(navHostController: NavHostController) {
-
+fun UserProfileModifierSection(navHostController: NavHostController, user: User?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,14 +194,14 @@ fun UserProfileModifierSection(navHostController: NavHostController) {
                 text = "Chỉnh sửa hồ sơ",
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = {  navHostController.navigate("doctorRegister")},
+            onClick = { navHostController.navigate("doctorRegister") },
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
@@ -184,13 +213,11 @@ fun UserProfileModifierSection(navHostController: NavHostController) {
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.sp,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
     }
 }
-
-
 
 @Composable
 fun ViewPostOwner(
@@ -204,7 +231,7 @@ fun ViewPostOwner(
 
     ConstraintLayout(
         modifier = modifier
-            .background(color = backgroundColor, shape = RectangleShape)
+            .background(backgroundColor, RectangleShape)
             .fillMaxWidth()
             .wrapContentHeight()
     ) {
@@ -215,7 +242,7 @@ fun ViewPostOwner(
             painter = painterResource(id = containerPost.image),
             contentDescription = null,
             modifier = Modifier
-                .clip(shape = CircleShape)
+                .clip(CircleShape)
                 .size(45.dp)
                 .constrainAs(iconImage) {
                     start.linkTo(parent.start, margin = 20.dp)
@@ -281,4 +308,5 @@ fun ViewPostOwner(
         )
     }
 }
+
 
