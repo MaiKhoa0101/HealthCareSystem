@@ -4,9 +4,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.content.SharedPreferences
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 
-class Intro1 : AppCompatActivity() {
+class Intro1 : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sharedPref: SharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE)
