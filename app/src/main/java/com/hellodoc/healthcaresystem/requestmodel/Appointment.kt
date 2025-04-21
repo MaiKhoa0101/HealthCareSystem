@@ -5,8 +5,9 @@ data class CreateAppointmentRequest(
     val patientID: String,
     val date: String, // Ví dụ: "2025-04-20"
     val time: String, // Ví dụ: "14:30"
-    val status: String, // optional
-    val examinationMethod: String, // "in_person" hoặc "online"
+    //val status: String, // optional
+    val consultationMethod: String, // "in_person" hoặc "online"
     val notes: String,
-    val totalCost: String
+    val reason: String
+    //val totalCost: String
 )

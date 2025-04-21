@@ -30,7 +30,9 @@
         <activity
             android:name=".admin.AdminRoot"
             android:exported="true"
-            android:theme="@style/Theme.HealthCareSystem" />
+            android:theme="@style/Theme.HealthCareSystem" >
+
+        </activity>
         <activity
             android:name=".user.home.HomeActivity"
             android:exported="true"

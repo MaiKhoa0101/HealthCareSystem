@@ -1,8 +1,7 @@
-package com.hellodoc.healthcaresystem.user.home.booking
+package com.hellodoc.healthcaresystem.user.home.model
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,9 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
@@ -39,7 +35,7 @@ import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-var doctorId: String = ""
+var doctorId: String = "6801d65463ce9bae94579cfe"
 var doctorName: String = ""
 var specialtyName: String = ""
 var patientID: String = ""
@@ -50,6 +46,7 @@ var time: String = "" // Ví dụ: "14:30"
 var status: String = "pending" // pending/confirmed/cancelled
 //var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
 var totalCost: String = "0"
+var reason: String = "hello"
 
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {

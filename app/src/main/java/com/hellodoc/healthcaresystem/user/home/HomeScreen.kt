@@ -205,7 +205,7 @@ fun HealthMateHomeScreen(
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
-                    DoctorList(context, doctors = doctors)
+                    DoctorList(navHostController = navHostController, doctors = doctors)
                 }
             }
 
@@ -467,7 +467,7 @@ fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNaviga
 }
 
 @Composable
-fun DoctorList(context: Context, doctors: List<GetDoctorResponse>) {
+fun DoctorList(navHostController: NavHostController, doctors: List<GetDoctorResponse>) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
@@ -477,7 +477,11 @@ fun DoctorList(context: Context, doctors: List<GetDoctorResponse>) {
     ) {
         items(doctors) { doctor ->
             DoctorItem(doctor) {
-                showToast(context, "Clicked: ${doctor.name}")
+                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                    set("doctorId",doctor.id)
+                }
+                navHostController.navigate("other_user_profile")
+//                showToast(context, "Clicked: ${doctor.name}")
             }
         }
     }

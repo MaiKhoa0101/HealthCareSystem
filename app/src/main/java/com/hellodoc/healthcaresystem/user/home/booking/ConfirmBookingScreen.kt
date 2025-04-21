@@ -1,23 +1,17 @@
 package com.hellodoc.healthcaresystem.user.home.booking
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,8 +29,18 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.user.home.model.TopBar
+import com.hellodoc.healthcaresystem.user.home.model.consultationMethod
+import com.hellodoc.healthcaresystem.user.home.model.date
+import com.hellodoc.healthcaresystem.user.home.model.doctorId
+import com.hellodoc.healthcaresystem.user.home.model.doctorName
+import com.hellodoc.healthcaresystem.user.home.model.patientID
+import com.hellodoc.healthcaresystem.user.home.model.reason
+import com.hellodoc.healthcaresystem.user.home.model.time
+import com.hellodoc.healthcaresystem.user.home.model.totalCost
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -135,10 +139,11 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                                 patientID = patientID,
                                 date = date,
                                 time = time,
-                                status = status,
-                                examinationMethod = examinationMethod,
+                                //status = status,
+                                consultationMethod = consultationMethod,
                                 notes = notes,
-                                totalCost = totalCost
+                                reason = reason
+                                //totalCost = totalCost
                             )
                         )
                         showDialog = true },
