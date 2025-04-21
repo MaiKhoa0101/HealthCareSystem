@@ -26,6 +26,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.home.booking.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
+import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 
 class DoctorListActivity : BaseActivity() {

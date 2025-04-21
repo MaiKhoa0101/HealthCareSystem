@@ -27,12 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
-import com.hellodoc.healthcaresystem.responsemodel.Doctor
-import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 var doctorId: String = "6801d65463ce9bae94579cfe"
@@ -43,10 +43,11 @@ var patientName: String = ""
 var patientPhone: String = ""
 var date: String = "" // Ví dụ: "20/04/2025"
 var time: String = "" // Ví dụ: "14:30"
-var status: String = "pending" // pending/confirmed/cancelled
+//var status: String = "pending" // pending/confirmed/cancelled
 //var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
 var totalCost: String = "0"
 var reason: String = "hello"
+var location: String = ""
 
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
