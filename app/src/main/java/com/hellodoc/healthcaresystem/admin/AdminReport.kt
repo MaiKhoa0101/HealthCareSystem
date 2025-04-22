@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hellodoc.healthcaresystem.user.home.model.ComplaintData
+import com.hellodoc.healthcaresystem.responsemodel.ComplaintData
 
 @Preview(showBackground = true)
 @Composable
@@ -39,160 +41,171 @@ fun PreviewReportListScreen() {
 @Composable
 fun ReportManagerScreen() {
     val backgroundColor = Color(0xFFF4F5F7)
-    val sampleComplaints = remember {
-        mutableStateListOf(
-            ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
-            ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
-            ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
-            ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
-            ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
-            ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
-            ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-            ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
-        )
-    }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
             .padding(16.dp)
     ) {
-        // Tiêu đề
-            Text(
-                text = "Danh sách khiếu nại",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+        LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            item {
+                Text(
+                    text = "Danh sách khiếu nại",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
 
-        // Phần thống kê
+                ComplaintStatsScreen()
 
-            ComplaintStatsScreen()
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-        // Tiêu đề bảng
-            Text(
-                text = "Quản lí khiếu nại",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp)
-            )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ComplaintTable(sampleComplaints)
+                Text(
+                    text = "Quản lí khiếu nại",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(16.dp)
+                )
+                TableReport()
+            }
+        }
     }
 }
 
+val sampleComplaints = listOf(
+    ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
+    ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
+    ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
+    ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
+    ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
+    ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
+    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
+)
 @Composable
-fun ComplaintTable(complaints: List<ComplaintData>) {
-    // Cho phép cuộn ngang
-    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-        Column {
-            // Header
-            Row(
-                modifier = Modifier
-                    .background(Color(0xFF2B544F))
-                    .padding(vertical = 8.dp)
-            ) {
-                TableCell(text = "ID", isHeader = true, width = 60.dp)
-                TableCell(text = "Người dùng", isHeader = true, width = 100.dp)
-                TableCell(text = "Nội dung", isHeader = true, width = 150.dp)
-                TableCell(text = "Bác sĩ/Ứng dụng", isHeader = true, width = 100.dp)
-                TableCell(text = "Trạng thái", isHeader = true, width = 80.dp)
-                TableCell(text = "Ngày tạo", isHeader = true, width = 100.dp)
-                TableCell(text = "Chức năng", isHeader = true, width = 80.dp)
-            }
+fun TableReport(){
 
-            // Content
-            LazyColumn {
-                itemsIndexed(complaints) { index, complaint ->
-                    ComplaintRow(index + 1, complaint)
+    LazyRow {
+        item {
+            Column {
+                // Header
+                Row(
+                    Modifier
+                        .background(Color(0xFF2B544F))
+                        .padding(vertical = 8.dp)
+                ) {
+                    ComplaintTableHeader()
+                }
+
+                // Rows
+                sampleComplaints.forEachIndexed { index, complaint ->
+                    val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
+                    var expanded by remember { mutableStateOf(false) }
+                    Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(bgColor)
+                                    .padding(vertical = 10.dp),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                TableCell(complaint.id, width = 60.dp)
+                                TableCell(complaint.user, width = 100.dp)
+                                TableCell(complaint.content, width = 150.dp)
+                                TableCell(complaint.targetType, width = 140.dp)
+                                TableCell(complaint.status, width = 120.dp)
+                                TableCell(complaint.createdDate, width = 100.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .width(100.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                                    }
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier
+                                            .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                                            .background(Color.White)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Response")
+                                                }
+                                            },
+                                            onClick = {
+                                                expanded = false
+                                                // Thêm logic xử lý xác minh
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Delete,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Close")
+                                                }
+                                            },
+                                            onClick = {
+                                                expanded = false
+                                                // Thêm logic xử lý xóa
+                                            }
+                                        )
+
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-fun ComplaintRow(id: Int, complaint: ComplaintData) {
-    var expanded by remember { mutableStateOf(false) }
 
+@Composable
+fun ComplaintTableHeader() {
     Row(
         modifier = Modifier
-            .background(if (id % 2 == 0) Color(0xFFF0F0F0) else Color.White)
+            .fillMaxWidth()
+            .background(Color(0xFF2B544F))
             .padding(vertical = 8.dp)
     ) {
-        TableCell(id.toString(), width = 60.dp)
-        TableCell(complaint.user, width = 100.dp)
-        TableCell(complaint.content, width = 150.dp)
-        TableCell(complaint.targetType, width = 100.dp)
-        TableCell(complaint.status, width = 80.dp)
-        TableCell(complaint.createdDate, width = 100.dp)
-        Box(
-            modifier = Modifier
-                .width(80.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(onClick = { expanded = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-                    .background(Color.White)
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Response")
-                        }
-                    },
-                    onClick = {
-                        expanded = false
-                        // Thêm logic xử lý xác minh
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Close")
-                        }
-                    },
-                    onClick = {
-                        expanded = false
-                        // Thêm logic xử lý xóa
-                    }
-                )
-            }
-        }
+        TableCell(text = "ID", isHeader = true, width = 60.dp)
+        TableCell(text = "Người dùng", isHeader = true, width = 100.dp)
+        TableCell(text = "Nội dung", isHeader = true, width = 150.dp)
+        TableCell(text = "Bác sĩ/Ứng dụng", isHeader = true, width = 140.dp)
+        TableCell(text = "Trạng thái", isHeader = true, width = 120.dp)
+        TableCell(text = "Ngày tạo", isHeader = true, width = 100.dp)
+        TableCell(text = "Chức năng", isHeader = true, width = 100.dp)
     }
 }
+
 
 @Composable
 fun ComplaintStatsScreen() {
@@ -275,5 +288,3 @@ fun ComplaintCard(
         }
     }
 }
-
-

@@ -1,10 +1,14 @@
 package com.hellodoc.healthcaresystem.admin
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,23 +20,35 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.appointment.model.AppointmentRow
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
-@Composable
-fun AppointmentManagerScreen(viewModel: AppointmentViewModel, modifier: Modifier = Modifier) {
-    AppointmentManagerScreen(appointmentList)
-}
 
-@Preview(showBackground = true)
-@Composable
-fun AppointmentManagerScreenPreview() {
-    AppointmentManagerScreen(appointmentList)
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun AppointmentManagerScreenPreview() {
+//    AppointmentManagerScreen()
+//}
 
 @Composable
-fun AppointmentManagerScreen(appointments: List<AppointmentRow>) {
+fun AppointmentManagerScreen(
+    sharedPreferences: SharedPreferences
+) {
+    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
+        initializer { AppointmentViewModel(sharedPreferences) }
+    })
+
+    val appointments by appointViewModel.appointments.collectAsState()
+
+    LaunchedEffect(Unit) {
+        appointViewModel.fetchAppointments()
+    }
+
     LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
         item {
             Text("Danh sách lịch hẹn", style = MaterialTheme.typography.titleLarge)
@@ -49,7 +65,7 @@ fun AppointmentManagerScreen(appointments: List<AppointmentRow>) {
             SearchBar()
             Spacer(Modifier.height(16.dp))
 
-            TableDesign(appointments)
+            TableDesign(sharedPreferences)
         }
     }
 }
@@ -71,8 +87,14 @@ fun SearchBar() {
     )
 }
 
+
 @Composable
-fun TableDesign(appointmentList: List<AppointmentRow>) {
+fun TableDesign(sharedPreferences: SharedPreferences) {
+    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
+        initializer { AppointmentViewModel(sharedPreferences) }
+    })
+
+    val appointmentList = appointViewModel.appointments.collectAsState()
     LazyRow {
         item {
             Column {
@@ -83,18 +105,22 @@ fun TableDesign(appointmentList: List<AppointmentRow>) {
                         .padding(vertical = 8.dp)
                 ) {
                     TableHeaderCell("ID", 60)
-                    TableHeaderCell("Bệnh nhân", 120)
-                    TableHeaderCell("Chẩn đoán", 150)
-                    TableHeaderCell("Bác sĩ", 100)
-                    TableHeaderCell("Thời gian", 100)
+                    TableHeaderCell("Mã BS", 80)
+                    TableHeaderCell("Tên BS", 100)
+                    TableHeaderCell("Mã BN", 80)
+                    TableHeaderCell("Tên BN", 100)
+                    TableHeaderCell("Chuyên khoa", 120)
+                    TableHeaderCell("Ghi chú", 150)
+                    TableHeaderCell("Giờ", 80)
+                    TableHeaderCell("Ngày", 100)
                     TableHeaderCell("Nơi khám", 200)
                     TableHeaderCell("Ngày tạo", 120)
                     TableHeaderCell("Trạng thái", 120)
                 }
 
-                // Rows
-                appointmentList.forEachIndexed { index, row ->
+                appointmentList.value.forEachIndexed { index, row ->
                     val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
+                    println(row)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -102,17 +128,22 @@ fun TableDesign(appointmentList: List<AppointmentRow>) {
                             .padding(vertical = 10.dp),
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        TableCell(row.id, 60)
-                        TableCell(row.patientName, 120)
-                        TableCell(row.diagnosis, 150)
-                        TableCell(row.doctor, 100)
-                        TableCell(row.time, 100)
-                        TableCell(row.location, 200)
-                        TableCell(row.createdAt, 120)
+                        TableCell(row.id ?: "trống", 60)
+                        TableCell(row.doctor.id ?: "trống", 80)
+                        TableCell(row.doctor.name ?: "trống", 100)
+                        TableCell(row.patient ?: "trống", 80)
+                        TableCell(row.time ?: "trống", 80)
+                        TableCell(row.date ?: "trống", 100)
+                        TableCell(row.location ?: "trống", 200)
+                        TableCell(row.createdAt ?: "trống", 120)
                         TableCell(
-                            text = row.status,
+                            text = row.status ?: "trống",
                             width = 120,
-                            color = if (row.status == "Xác Nhận") Color(0xFF27AE60) else Color.Gray
+                            color = when (row.status) {
+                                "Xác Nhận", "Done" -> Color(0xFF27AE60)
+                                "Hủy", "Canceled" -> Color.Red
+                                else -> Color.Gray
+                            }
                         )
                     }
                 }
@@ -120,6 +151,7 @@ fun TableDesign(appointmentList: List<AppointmentRow>) {
         }
     }
 }
+
 
 @Composable
 fun TableCell(text: String, width: Int, color: Color = Color.Black) {
@@ -183,19 +215,15 @@ fun CardAppointment(icon: Int, number: Int, description: String) {
     }
 }
 
-// Giả lập dữ liệu
 val appointmentList = listOf(
-    AppointmentRow("1", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("2", "Phuong", "Fake doctor", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2023-08-28", "Xác Nhận"),
-    AppointmentRow("3", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("4", "Phuong", "Support for theme", "Khoa", "10 am", "Trực tuyến", "2023-08-28", "Chờ xác Nhận"),
-    AppointmentRow("5", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("6", "Phuong", "Fake doctor", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2023-08-28", "Xác Nhận"),
-    AppointmentRow("7", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("8", "Phuong", "Support for theme", "Khoa", "10 am", "Trực tuyến", "2023-08-28", "Chờ xác Nhận"),
-    AppointmentRow("9", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("10", "Phuong", "Fake doctor", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2023-08-28", "Xác Nhận"),
-    AppointmentRow("11", "Phuong", "Support for theme", "Khoa", "10 am", "Số 1, Đường Tô Ký, Q12", "2025-01-19", "Xác Nhận"),
-    AppointmentRow("12", "Phuong", "Support for theme", "Khoa", "10 am", "Trực tuyến", "2023-08-28", "Chờ xác Nhận")
-
+    AppointmentRow("1", "doc01", "Dr. Khoa", "pat01", "Phuong", "Nội tổng quát", "Khó thở, ho", "10:00 AM", "2025-04-20", "Số 1, Đường Tô Ký, Q12", "2025-04-18", "Xác Nhận"),
+    AppointmentRow("2", "doc02", "Dr. An", "pat02", "Linh", "Da liễu", "Nổi mẩn ngứa", "9:00 AM", "2025-04-22", "Phòng khám online", "2025-04-18", "Chờ xác Nhận"),
+    AppointmentRow("3", "doc01", "Dr. Khoa", "pat03", "Tuấn", "Tim mạch", "Đau ngực nhẹ", "2:00 PM", "2025-04-23", "Bệnh viện Quận 12", "2025-04-18", "Xác Nhận"),
+    AppointmentRow("4", "doc03", "Dr. Hà", "pat04", "Hạnh", "Tai mũi họng", "Viêm họng, sốt", "4:00 PM", "2025-04-21", "Số 5, Trần Hưng Đạo, Q5", "2025-04-19", "Chờ xác Nhận"),
+    AppointmentRow("5", "doc02", "Dr. An", "pat01", "Phuong", "Da liễu", "Kiểm tra định kỳ", "8:30 AM", "2025-04-25", "Khám trực tuyến", "2025-04-19", "Xác Nhận"),
+    AppointmentRow("6", "doc04", "Dr. Minh", "pat05", "Nam", "Nội tiết", "Tiểu đường kiểm tra", "3:00 PM", "2025-04-24", "Bệnh viện Bình Thạnh", "2025-04-20", "Hủy"),
+    AppointmentRow("7", "doc05", "Dr. Hoa", "pat06", "Huyền", "Sản phụ khoa", "Khám thai lần 1", "11:00 AM", "2025-04-22", "Phòng khám Hoa Mai", "2025-04-19", "Xác Nhận"),
+    AppointmentRow("8", "doc01", "Dr. Khoa", "pat07", "Dũng", "Nội tổng quát", "Đau dạ dày", "5:00 PM", "2025-04-21", "Khám trực tuyến", "2025-04-19", "Chờ xác Nhận"),
+    AppointmentRow("9", "doc03", "Dr. Hà", "pat08", "Trang", "Tai mũi họng", "Tái khám viêm xoang", "1:00 PM", "2025-04-26", "Số 5, Trần Hưng Đạo, Q5", "2025-04-20", "Xác Nhận"),
+    AppointmentRow("10", "doc04", "Dr. Minh", "pat09", "Bình", "Nội tiết", "Rối loạn tuyến giáp", "10:30 AM", "2025-04-23", "Bệnh viện Bình Thạnh", "2025-04-20", "Chờ xác Nhận")
 )

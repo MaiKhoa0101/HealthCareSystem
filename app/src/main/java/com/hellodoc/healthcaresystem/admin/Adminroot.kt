@@ -13,14 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.HeadbarPara
-import com.hellodoc.healthcaresystem.user.home.model.SidebarItem
+import com.hellodoc.healthcaresystem.responsemodel.SidebarItem
 import kotlinx.coroutines.launch
 
 class AdminRoot : ComponentActivity() {
@@ -141,10 +140,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         NewsManagerScreen()
                     }
                     composable("AppointmentManager") {
-                        AppointmentManagerScreen(
-                            viewModel = viewModel(),
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+                        AppointmentManagerScreen(sharedPreferences)
                     }
                     composable("ClarifyManager") {
                         ClarifyManagerScreen()

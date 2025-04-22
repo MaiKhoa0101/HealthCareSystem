@@ -2,11 +2,21 @@ package com.hellodoc.healthcaresystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
 
-data class GetUser(
-    @SerializedName("_id") val id: String, // Đổi thành `id` để dễ đọc hơn
-    @SerializedName("role") val role: String,
-    @SerializedName("email") val email: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("phone") val phone: String,
-    @SerializedName("password") val password: String
-)
+
+data class User(
+    @SerializedName("_id") val id: String,
+    val name: String,
+    val email: String,
+    val phone: String,
+    val password: String,
+    val role: String,
+    val isDoctor: Boolean,
+    val verified: Boolean,
+    val insurance: List<String>,
+    val workingHours: List<String>,
+    val createdAt: String,
+    val updatedAt: String,
+    @SerializedName("__v") val timeChange: Int,
+    val userImage: String
+
+    )

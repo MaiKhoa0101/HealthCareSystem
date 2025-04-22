@@ -62,9 +62,7 @@
         <activity
             android:name=".user.home.startscreen.SignIn"
             android:exported="true" />
-        <activity
-            android:name=".user.MainPage"
-            android:exported="true" />
+
         <activity
             android:name=".user.home.startscreen.SignUp"
             android:exported="true" />

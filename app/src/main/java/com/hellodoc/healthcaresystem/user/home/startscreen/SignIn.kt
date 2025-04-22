@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.startscreen
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -18,11 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.auth0.android.jwt.JWT
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.MainPage
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import androidx.core.content.edit
 
-class SignIn : AppCompatActivity() {
+class SignIn : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -41,7 +44,7 @@ class SignIn : AppCompatActivity() {
 
         val nutdangnhap = findViewById<Button>(R.id.button)
         nutdangnhap.setOnClickListener {
-            val intent = Intent(this, MainPage::class.java)
+            val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent) // Chuyển đến SecondActivity
         }
         val returnButton = findViewById<ImageButton>(R.id.returnButton)
@@ -75,48 +78,98 @@ class SignIn : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
-                        val token = loginResponse?.accessToken // Lấy token từ phản hồi API
+                        val token = loginResponse?.accessToken
 
-                        if (token != null) {
-                            saveToken(token) // Lưu token vào SharedPreferences
+                        if (!token.isNullOrEmpty()) {
+                            saveToken(token)
 
-                            // Giải mã token để lấy thông tin role
-                            val jwt = JWT(token)
-                            val role = jwt.getClaim("role").asString() // Lấy giá trị role từ claim
+                            try {
+                                val jwt = JWT(token)
+                                val role = jwt.getClaim("role").asString()
 
-                            // Chuyển đến trang phù hợp
-                            val intent = when (role) {
-                                "admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                "user" -> Intent(this@SignIn, MainPage::class.java)
-                                else -> {
-                                    Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
-                                    return@withContext
+
+                                val intent = when (role) {
+                                    "admin" -> Intent(this@SignIn, AdminRoot::class.java)
+                                    "user" -> Intent(this@SignIn, HomeActivity::class.java)
+                                    else -> {
+                                        Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
+                                        return@withContext
+                                    }
                                 }
-                            }
 
-                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                            startActivity(intent)
+                                Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                                startActivity(intent)
+                                finish()
+                            } catch (e: Exception) {
+                                Toast.makeText(this@SignIn, "Không thể đọc thông tin người dùng từ token", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(this@SignIn, "Token không hợp lệ!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@SignIn, "Lỗi: $errorBody", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SignIn, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
-                    println("Lỗi API: $e")
+                    Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
+
+
     private fun saveToken(token: String) {
         val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("access_token", token)
-        editor.apply()
+        sharedPreferences.edit()
+            .putString("access_token", token)
+            .apply()
     }
+}
 
 
+fun userLoginExp(context: Context, email: String, password: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.login(LoginRequest(email, password))
+
+            withContext(Dispatchers.Main) {
+                if (response.isSuccessful) {
+                    val loginResponse = response.body()
+                    val token = loginResponse?.accessToken
+
+                    if (!token.isNullOrEmpty()) {
+                        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                            .edit() {
+                                putString("access_token", token)
+                            }
+
+                        val role = JWT(token).getClaim("role").asString()
+                        val intent = when (role) {
+                            "admin" -> Intent(context, AdminRoot::class.java)
+                            "user","doctor" -> Intent(context, HomeActivity::class.java)
+                            else -> {
+                                Toast.makeText(context, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
+                                return@withContext
+                            }
+                        }
+
+                        Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "Token không hợp lệ!", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Toast.makeText(context, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }

@@ -2,9 +2,7 @@ package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,21 +21,64 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.home.doctor.TopBar
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+
+var doctorId: String = "6801d65463ce9bae94579cfe"
+var doctorName: String = ""
+var specialtyName: String = ""
+var patientID: String = ""
+var patientName: String = ""
+var patientPhone: String = ""
+var date: String = "" // Ví dụ: "20/04/2025"
+var time: String = "" // Ví dụ: "14:30"
+//var status: String = "pending" // pending/confirmed/cancelled
+//var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
+var totalCost: String = "0"
+var reason: String = "hello"
+var location: String = ""
 
 @Composable
-fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostController) {
+fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        patientName = userViewModel.getUserAttributeString("name")
+        patientPhone = userViewModel.getUserAttributeString("phone")
+        patientID = userViewModel.getUserAttributeString("userId")
+    }
+
+    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        savedStateHandle?.get<String>("doctorId")?.let {
+            doctorId = it
+        }
+        savedStateHandle?.get<String>("doctorName")?.let {
+            doctorName = it
+        }
+        savedStateHandle?.get<String>("specialtyName")?.let {
+            specialtyName = it
+        }
+    }
     Column(modifier = Modifier
         .fillMaxSize()
     ) {
+        val examinationMethod = remember { mutableStateOf("") }
+        var notes by remember { mutableStateOf("") }
         TopBar(title="Chi tiết lịch hẹn khám",onClick = { navHostController.popBackStack() })
         LazyColumn(
             modifier = Modifier
@@ -55,7 +96,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
             }
 
             item {
-                VisitMethodSection()
+                VisitMethodSection(examinationMethod)
             }
 
             item {
@@ -63,7 +104,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
             }
 
             item {
-                NoteToDoctorSection()
+                NoteToDoctorSection(notes, onNoteChange = { notes = it })
             }
 
             item {
@@ -71,7 +112,7 @@ fun AppointmentDetailScreen(onBack: () -> Unit, navHostController: NavHostContro
             }
 
             item {
-                BookButton(navHostController)
+                BookButton(navHostController, sharedPreferences, examinationMethod, notes)
             }
         }
     }
@@ -129,16 +170,15 @@ fun DoctorInfoSection() {
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text("Bác sĩ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Dương Văn Lực", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-
+                Text("Bác sĩ", fontWeight = FontWeight.Medium, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
+                Text(doctorName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(specialtyName, color = Color.Gray)
 
-                Text("Sức khỏe sinh sản", color = Color.Gray)
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text("0 đ / giờ")
+//                Spacer(modifier = Modifier.height(20.dp))
+//
+//                Text("0 đ / giờ")
             }
         }
     }
@@ -205,19 +245,17 @@ fun PatientInfoSection() {
             ) {
                 Text("Đặt lịch khám này cho:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow("Họ và tên:", "Nguyễn Văn Tèo")
+                InfoRow("Họ và tên:", patientName)
                 InfoRow("Giới tính:", "Nam")
                 InfoRow("Ngày sinh:", "11/12/2000")
-                InfoRow("Điện thoại:", "0909124567")
+                InfoRow("Điện thoại:", patientPhone)
             }
         }
     }
 }
 
 @Composable
-fun VisitMethodSection() {
-    val selectedMethod = remember { mutableStateOf("") }
-
+fun VisitMethodSection(examinationMethod:  MutableState<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,10 +272,10 @@ fun VisitMethodSection() {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (selectedMethod.value == "clinic") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                    if (examinationMethod.value == "at_clinic") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
                 )
                 .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-                .clickable { selectedMethod.value = "clinic" }
+                .clickable { examinationMethod.value = "at_clinic" }
                 .padding(12.dp)
                 .height(70.dp),
             verticalArrangement = Arrangement.Center
@@ -257,10 +295,10 @@ fun VisitMethodSection() {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (selectedMethod.value == "home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                    if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
                 )
                 .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-                .clickable { selectedMethod.value = "home" }
+                .clickable { examinationMethod.value = "at_home" }
                 .height(100.dp)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -283,16 +321,16 @@ fun VisitMethodSection() {
 @Composable
 fun AppointmentDateSection(navHostController : NavHostController) {
     val savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle
-    var selectedDate by remember { mutableStateOf("31/3/2025") }
-    var selectedTime by remember { mutableStateOf("20:00") }
+//    var selectedDate by remember { mutableStateOf("31/3/2025") }
+//    var selectedTime by remember { mutableStateOf("20:00") }
 
     // Cập nhật giá trị nếu có trong savedStateHandle
     LaunchedEffect(savedStateHandle) {
         savedStateHandle?.get<String>("selected_date")?.let {
-            selectedDate = it
+            date = it
         }
         savedStateHandle?.get<String>("selected_time")?.let {
-            selectedTime = it
+            time = it
         }
     }
 
@@ -317,9 +355,9 @@ fun AppointmentDateSection(navHostController : NavHostController) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(selectedTime)
+                Text(time)
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(selectedDate)
+                Text(date)
             }
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
@@ -333,8 +371,7 @@ fun AppointmentDateSection(navHostController : NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteToDoctorSection() {
-    var note by remember { mutableStateOf("") }
+fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -346,8 +383,8 @@ fun NoteToDoctorSection() {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = note,
-            onValueChange = { note = it },
+            value = notes,
+            onValueChange = { onNoteChange(it) },
             placeholder = { Text("Nhập lời nhắn...") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -373,10 +410,58 @@ fun FeeSummarySection() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookButton(navHostController: NavHostController) {
+fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
+//    val appointmentViewModel: AppointmentViewModel = viewModel(
+//        factory = viewModelFactory {
+//            initializer {
+//                AppointmentViewModel(sharedPreferences)
+//            }
+//        }
+//    )
+
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Thiếu thông tin") },
+            text = { Text(dialogMessage) }
+        )
+    }
+
+
+
+//    FeeSummarySection()
+
     Button(
-        onClick = { navHostController.navigate("booking-confirm") },
+        onClick = {
+            when {
+                examinationMethod.value.isBlank() -> {
+                    dialogMessage = "Vui lòng chọn hình thức khám"
+                    showDialog = true
+                }
+                date.isBlank() || time.isBlank() -> {
+                    dialogMessage = "Vui lòng chọn ngày giờ khám"
+                    showDialog = true
+                }
+                else -> {
+
+                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("examinationMethod", examinationMethod.value)
+                        set("notes", notes)
+                    }
+                    navHostController.navigate("booking-confirm")
+                }
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
@@ -420,9 +505,11 @@ fun InfoRow(label: String, value: String, valueColor: Color = Color.Black, fontW
 @Preview(name = "Light Mode")
 @Composable
 fun PreviewAppointmentDetailScreen() {
+    val context = LocalContext.current
     val fakeNavController = rememberNavController()
     AppointmentDetailScreen(
+        context = context,
         onBack = {},
-        navHostController = fakeNavController
+        navHostController = fakeNavController,
     )
 }

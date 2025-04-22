@@ -1,23 +1,17 @@
 package com.hellodoc.healthcaresystem.user.home.booking
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,13 +21,42 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val appointmentViewModel: AppointmentViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                AppointmentViewModel(sharedPreferences)
+            }
+        }
+    )
+    var notes by remember { mutableStateOf("") }
+    var examinationMethod by remember { mutableStateOf("") }
+    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        savedStateHandle?.get<String>("notes")?.let {
+            notes = it
+        }
+        savedStateHandle?.get<String>("examinationMethod")?.let {
+            examinationMethod = it
+        }
+
+    }
+
     var showDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
@@ -56,11 +79,11 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
             Column(modifier = Modifier.padding(start = 8.dp)) {
                 InfoText(label = "Họ và tên Bệnh nhân:", value = "Nguyễn Văn Tèo")
                 Spacer(modifier = Modifier.height(24.dp))
-                InfoText(label = "Bác sĩ đặt khám:", value = "Dương Văn Lực")
+                InfoText(label = "Bác sĩ đặt khám:", value = doctorName)
                 Spacer(modifier = Modifier.height(24.dp))
-                InfoText(label = "Ngày đặt khám:", value = "31/03/2025")
+                InfoText(label = "Ngày đặt khám:", value = date)
                 Spacer(modifier = Modifier.height(24.dp))
-                InfoText(label = "Giờ đặt khám:", value = "08:00")
+                InfoText(label = "Giờ đặt khám:", value = time)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Địa chỉ khám:", value = "Khám tại phòng khám")
                 Spacer(modifier = Modifier.height(24.dp))
@@ -79,7 +102,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
             ) {
                 Text("Tổng phí phải trả:", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.weight(1f))
-                Text("0đ", fontWeight = FontWeight.Bold)
+                Text("$totalCost đ", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -101,8 +124,29 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+                val date = LocalDate.parse(date, inputFormatter)
+                val formattedDate = date.format(outputFormatter)
+
                 Button(
-                    onClick = { showDialog = true },
+                    onClick = {
+                        appointmentViewModel.createAppointment(
+                            CreateAppointmentRequest(
+                                doctorID = doctorId,
+                                patientID = patientID,
+                                date = formattedDate,
+                                time = time,
+//                                status = status,
+                                examinationMethod = examinationMethod,
+                                notes = notes,
+                                reason = reason,
+                                totalCost = totalCost,
+                                location = location
+                            )
+                        )
+                        showDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                     modifier = Modifier
                         .weight(1f)
@@ -195,8 +239,8 @@ fun InfoText(label: String, value: String) {
 @Preview(showBackground = true)
 @Composable
 fun ConfirmBookingScreenPreview() {
-    val fakeNavController = rememberNavController()
     val context = LocalContext.current
+    val fakeNavController = rememberNavController()
     ConfirmBookingScreen(context, fakeNavController)
 }
 

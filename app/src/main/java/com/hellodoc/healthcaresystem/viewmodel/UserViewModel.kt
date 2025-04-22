@@ -4,20 +4,27 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.hellodoc.healthcaresystem.responsemodel.GetUser
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.User
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    private val _users = MutableStateFlow<List<GetUser>>(emptyList())
-    val users: StateFlow<List<GetUser>> get() = _users
+    //Bien lay nhieu user
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    val users: StateFlow<List<User>> get() = _users
+
+    //Bien lay 1 user
+    private val _user = MutableStateFlow<User?>(null)
+    val user: StateFlow<User?> get() = _user
 
     fun fetchUsers() {
         viewModelScope.launch {
@@ -25,7 +32,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val response = RetrofitInstance.admin.getUsers()
                 if (response.isSuccessful) {
                     _users.value = response.body() ?: emptyList()
-                    println("OK 1"+response.body())
+                    println("OK fetch user"+response.body())
                 } else {
                     println("Lỗi API: ${response.errorBody()?.string()}")
                 }
@@ -34,6 +41,20 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
+
+    fun getUser(id: String) {
+        viewModelScope.launch {
+            try {
+                val result = RetrofitInstance.userService.getUser(id)
+                _user.value = result
+                println("OK fetch user: $result")
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
+            }
+        }
+    }
+
+
 
     fun getUserNameFromToken(): String {
         val token = sharedPreferences.getString("access_token", null) ?: return "Người dùng"
@@ -54,6 +75,16 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         return try {
             val jwt = JWT(token)
             jwt.getClaim("role").asString() ?: "unknown"
+        } catch (e: Exception) {
+            "unknown"
+        }
+    }
+
+    fun getUserAttributeString(attribute: String): String {
+        val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
+        return try {
+            val jwt = JWT(token)
+            jwt.getClaim(attribute).asString() ?: "unknown"
         } catch (e: Exception) {
             "unknown"
         }

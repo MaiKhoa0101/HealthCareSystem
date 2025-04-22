@@ -1,7 +1,5 @@
 package com.hellodoc.healthcaresystem.admin
 
-import android.content.Context
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -19,14 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.hellodoc.healthcaresystem.user.home.model.Account
-import org.checkerframework.checker.units.qual.A
+import com.hellodoc.healthcaresystem.responsemodel.Account
 
 @Preview(showBackground = true)
 @Composable
@@ -108,7 +104,6 @@ fun ClarifyTable(clarifies: List<Account>) {
                 TableCell("CCHN", isHeader = true, width = 120.dp)
                 TableCell("Chức năng", isHeader = true, width = 100.dp)
             }
-
             LazyColumn {
                 itemsIndexed(clarifies) { index, clarify ->
                     ClarifyRow(index + 1, clarify)
@@ -188,13 +183,16 @@ fun ClarifyRow(id: Int, account: Account) {
 
 @Composable
 fun TableCell(text: String, isHeader: Boolean = false, width: Dp) {
-    Text(
-        text = text,
-        color = if (isHeader) Color.White else Color.Black,
+    Box(
         modifier = Modifier
             .width(width)
-            .padding(horizontal = 8.dp),
-        fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
-        fontSize = 14.sp
-    )
+            .padding(horizontal = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
+    }
 }

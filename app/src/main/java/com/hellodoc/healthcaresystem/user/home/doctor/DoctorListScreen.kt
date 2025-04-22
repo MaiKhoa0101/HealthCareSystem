@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.doctor
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,13 +41,13 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun DoctorListScreen(
-    sharedPreferences: SharedPreferences,
+    context: Context,
     specialtyId: String,
     specialtyName: String,
     onBack: () -> Unit,
     navHostController: NavHostController
 ) {
-
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val viewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
         initializer { SpecialtyViewModel(sharedPreferences) }
     })
@@ -181,7 +182,13 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             horizontalArrangement = Arrangement.End
         ) {
             Button(
-                onClick = { navHostController.navigate("booking") },
+                onClick = {
+                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("doctorId", doctor.id)
+                        set("doctorName", doctor.name)
+                        set("specialtyName", specialtyName)
+                    }
+                    navHostController.navigate("booking") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)

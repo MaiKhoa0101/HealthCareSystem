@@ -1,11 +1,5 @@
 package com.hellodoc.healthcaresystem.user.personal
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,18 +44,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.room.util.copy
-import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
-import com.hellodoc.healthcaresystem.user.home.HomeActivity
-import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
-import com.hellodoc.healthcaresystem.user.home.showToast
-import com.hellodoc.healthcaresystem.user.personal.model.ProfileUser
+import com.hellodoc.healthcaresystem.responsemodel.modeluser.ProfileUser
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewIntroduce
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewRating

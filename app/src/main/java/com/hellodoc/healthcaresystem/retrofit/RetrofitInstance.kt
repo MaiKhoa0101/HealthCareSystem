@@ -10,6 +10,7 @@ import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.PostService
 import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
 import com.hellodoc.healthcaresystem.api.SpecialtyService
+import com.hellodoc.healthcaresystem.api.UserService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -41,6 +42,7 @@ object RetrofitInstance {
     val postService: PostService by lazy { retrofit.create(PostService::class.java) }
 
 
+    val userService: UserService by lazy { retrofit.create(UserService::class.java) }
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()
             .baseUrl("https://generativelanguage.googleapis.com/")
