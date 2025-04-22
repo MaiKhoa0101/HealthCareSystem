@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,21 +35,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavHostController
-import androidx.navigation.Navigation
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.ContentPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.home.HealthMateHomeScreen
 
 @Composable
 fun ProfileUserPage(navHostController:NavHostController){
@@ -112,16 +106,14 @@ fun PostUser(){
         }
         ViewPostOwner(
             containerPost = ContainerPost(
-                image = R.drawable.doctor,
-                name = "Khoa xinh gái",
-                lable = "bla bla  "
+                imageUrl = R.drawable.doctor.toString(),
+                name = "Khoa xinh gái"
             ),
             contentPost = ContentPost(
                 content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
             ),
             footerItem = FooterItem(
-                name = "null",
-                image = R.drawable.doctor
+                imageUrl = R.drawable.doctor.toString()
             )
         )
     }
@@ -212,7 +204,7 @@ fun ViewPostOwner(
         val (iconImage, tvName, textField, readMore, sImage) = createRefs()
 
         Image(
-            painter = painterResource(id = containerPost.image),
+            painter = rememberAsyncImagePainter(containerPost.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .clip(shape = CircleShape)
@@ -268,7 +260,7 @@ fun ViewPostOwner(
         )
 
         Image(
-            painter = painterResource(id = footerItem.image),
+            painter = rememberAsyncImagePainter(footerItem.imageUrl),
             contentDescription = "Post Image",
             modifier = Modifier
                 .height(360.dp)

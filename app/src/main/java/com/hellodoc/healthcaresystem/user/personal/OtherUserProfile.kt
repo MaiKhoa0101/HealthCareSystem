@@ -67,27 +67,6 @@ import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewIntroduce
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewRating
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.WriteReviewScreen
 
-//class ProfileActivity : BaseActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        val specialtyId = intent.getStringExtra("doctorId") ?: "Chưa rõ bác sĩ"
-//        enableEdgeToEdge()
-//        setContent {
-//            HealthCareSystemTheme {
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    ProfileScreen(
-//                        modifier = Modifier.padding(innerPadding),
-//                        onBack = {
-//                            val intent = Intent(this@ProfileActivity, HomeActivity::class.java)
-//                            startActivity(intent)
-//                        }
-//
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun ProfileScreen(navHostController: NavHostController) {

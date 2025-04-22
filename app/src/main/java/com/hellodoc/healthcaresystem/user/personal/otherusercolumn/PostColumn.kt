@@ -1,28 +1,37 @@
 package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import com.hellodoc.healthcaresystem.R
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.ContentPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.user.post.model.ViewBanner
 import com.hellodoc.healthcaresystem.user.post.model.ViewPost
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.api.PostResponse
 
 @Composable
-fun PostColumn(){
-    ViewBanner()
-    ViewPost(
-        containerPost = ContainerPost(
-            image = R.drawable.img,
-            name = "Khoa xinh gái",
-            lable = "bla bla  "
-        ),
-        contentPost = ContentPost(
-            content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
-        ),
-        footerItem = FooterItem(
-            name = "null",
-            image = R.drawable.avarta
-        )
-    )
+fun PostColumn(postViewModel: PostViewModel = viewModel()) {
+    val posts: List<PostResponse> by postViewModel.posts
+
+    Column {
+        ViewBanner()
+
+        posts.forEach { post ->
+            ViewPost(
+                containerPost = ContainerPost(
+                    name = post.user.name,
+                    imageUrl = post.user.imageUrl ?: ""
+                ),
+                contentPost = ContentPost(content = post.content),
+                footerItem = FooterItem(
+                    name = "",
+                    imageUrl = post.media.firstOrNull() ?: ""
+                )
+            )
+        }
+    }
 }
