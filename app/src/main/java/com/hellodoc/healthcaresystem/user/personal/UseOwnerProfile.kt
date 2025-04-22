@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
@@ -141,8 +142,7 @@ fun PostUser() {
         ViewPostOwner(
             containerPost = ContainerPost(
                 imageUrl = R.drawable.doctor.toString(),
-                name = "Khoa xinh gái",
-                lable = "bla bla"
+                name = "Khoa xinh gái"
             ),
             contentPost = ContentPost(
                 content = "bla bla bla bla bla bla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla..."

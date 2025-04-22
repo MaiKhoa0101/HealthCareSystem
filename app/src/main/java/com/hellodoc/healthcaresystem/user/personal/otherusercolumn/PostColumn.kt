@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
