@@ -12,7 +12,7 @@ data class AppointmentResponse(
     val time: String,
     val status: String,
     val examinationMethod: String,
-    val reason: String,
+    //val reason: String,
     val notes: String,
     val totalCost: String,
     val location: String,
