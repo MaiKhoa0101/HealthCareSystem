@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.post.model
+package com.hellodoc.healthcaresystem.responsemodel
 
 import androidx.annotation.DrawableRes
 

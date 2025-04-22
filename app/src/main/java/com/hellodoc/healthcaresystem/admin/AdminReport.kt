@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hellodoc.healthcaresystem.user.home.model.ComplaintData
+import com.hellodoc.healthcaresystem.responsemodel.ComplaintData
 
 @Preview(showBackground = true)
 @Composable

@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.home.startscreen
+package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.SharedPreferences
 import android.os.Build
@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -43,10 +45,34 @@ fun AppointmentListScreen(
 
     val appointments by appointViewModel.appointments.collectAsState()
 
+    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    // Lấy dữ liệu user từ StateFlow
+    val user by userViewModel.user.collectAsState()
+
+    val token = sharedPreferences.getString("access_token", null)
+    val jwt = JWT(token.toString())
+
+    val userId = jwt.getClaim("userId").asString()
+    println("ID của user lấy đựơc là:"+userId.toString())
+    // Gọi API để fetch user từ server
     LaunchedEffect(Unit) {
-        appointViewModel.fetchAppointments()
+        userViewModel.getUser(userId.toString())
     }
 
+    // Nếu chưa có user (null) thì không hiển thị giao diện
+    if (user == null) {
+        println("user == null")
+        return
+    }
+
+    LaunchedEffect(Unit) {
+        appointViewModel.getAppointment(userId.toString())
+    }
+    println ("đã lấy được appointment" + appointments.toString())
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
 
@@ -150,7 +176,7 @@ fun AppointmentCard(appointment: AppointmentResponse) {
 
                 Column {
                     Text(appointment.doctor.name, fontWeight = FontWeight.Bold)
-                    Text(appointment.doctor.specialty.name)
+                    Text(appointment.notes)
                     Row {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -158,7 +184,7 @@ fun AppointmentCard(appointment: AppointmentResponse) {
                             modifier = Modifier.padding(end = 4.dp)
                         )
                         Text(
-                            text = appointment.doctor.hospital,
+                            text = appointment.location,
                             fontSize = 12.sp
                         )
                     }

@@ -31,6 +31,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.ContentPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 @Composable

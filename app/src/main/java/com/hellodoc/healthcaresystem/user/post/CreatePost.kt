@@ -61,9 +61,45 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
-import com.hellodoc.healthcaresystem.user.post.model.FooterItem
-import com.hellodoc.healthcaresystem.user.post.model.HeaderItem
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
+import com.hellodoc.healthcaresystem.responsemodel.HeaderItem
+
+//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//@Composable
+//fun PostScreen(modifier: Modifier = Modifier){
+//    Column{
+//        Header(
+//            headerItem = HeaderItem(
+//                title = "Tạo bài viết",
+//                image = R.drawable.arrow_back,
+//                button = "Đăng"
+//            )
+//        )
+//        PostBody(
+//            containerPost = ContainerPost(
+//                image = R.drawable.img,
+//                name = "Khoa xinh gái",
+//                lable = "Hãy nói gì đó pbvm"
+//            )
+//        )
+//
+//        var showFileUpload by remember { mutableStateOf(false) }
+//        if (showFileUpload) {
+//            MultiFileUpload()
+//        }
+//        Footer(
+//            footerItem = FooterItem(
+//                name = "Thêm hình ảnh",
+//                image = R.drawable.folder_plus
+//            ),
+//            onImageClick = {
+//                showFileUpload = true
+//            }
+//        )
+//
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable

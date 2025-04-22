@@ -26,7 +26,6 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.home.booking.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
-import com.hellodoc.healthcaresystem.user.home.startscreen.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 
 class DoctorListActivity : BaseActivity() {
@@ -35,6 +34,8 @@ class DoctorListActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         val specialtyId = intent.getStringExtra("specialtyId") ?: "Chưa rõ chuyên khoa"
         val specialtyName = intent.getStringExtra("specialtyName") ?: "Chưa rõ chuyên khoa"
+        val userID = intent.getStringExtra("userID") ?: "chua co id ng dung"
+
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         enableEdgeToEdge()
@@ -70,39 +71,15 @@ class DoctorListActivity : BaseActivity() {
         specialtyId: String,
         specialtyName: String
     ) {
-//    Scaffold(
-//        topBar = { Headbar(sharedPreferences) },
-//        bottomBar = { FootBar(navHostController = navHostController) }
-//    ) { paddingValues ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValues)
-//        ) {
         NavHost(
             navController = navHostController,
             startDestination = "doctorList/$specialtyId/$specialtyName"
         ) {
-//            composable("home") {
-//                HealthMateHomeScreen(
-//                    modifier = Modifier.fillMaxSize(),
-//                    sharedPreferences = sharedPreferences,
-//                    onNavigateToDoctorList = { specialtyId, specialtyName ->
-//                        // Truyền cả id và name vào route
-//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
-//                    },
-//                    onNavigateToDoctorProfile = { doctorId ->
-//                        // Truyền cả id và name vào route
-//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
-//                    },
-//                    navHostController = navHostController
-//                )
-//            }
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences)
             }
             composable("personal") {
-                ProfileUserPage(navHostController)
+                ProfileUserPage(sharedPreferences,navHostController)
             }
             composable(
                 route = "doctorList/{specialtyId}/{specialtyName}",

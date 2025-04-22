@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.home.model
+package com.hellodoc.healthcaresystem.responsemodel
 
 //dữ liệu quản lí tài khoản
 data class Account2(

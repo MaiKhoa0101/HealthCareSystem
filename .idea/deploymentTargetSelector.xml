@@ -4,10 +4,21 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-04-12T05:10:33.445732600Z">
+        <DropdownSelection timestamp="2025-04-21T16:31:40.698152100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=5210d1535107c369" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Hi\.android\avd\Medium_Phone.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="AdminRoot">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-04-21T16:27:29.647107600Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Hi\.android\avd\Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>
