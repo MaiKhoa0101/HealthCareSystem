@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +30,9 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.ContentPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 
 @Composable

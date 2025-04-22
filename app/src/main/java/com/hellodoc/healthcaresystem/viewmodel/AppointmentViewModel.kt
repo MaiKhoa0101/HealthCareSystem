@@ -31,6 +31,24 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
         }
     }
 
+    fun getAppointment(id: String) {
+        viewModelScope.launch {
+            try {
+                val result = RetrofitInstance.appointment.getAppointmentUser(id)
+                if(result.isSuccessful){
+                    _appointments.value = result.body() ?: emptyList()
+                    println("OK fetch appointment: $result")
+                } else {
+                    println("Lỗi API: ${result.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                println("Lỗi ở getappointment")
+                Log.e("Appointment", "Lỗi khi lấy appointment: ${e.message}")
+            }
+        }
+    }
+
     fun createAppointment(createAppointmentRequest: CreateAppointmentRequest) {
         val token = sharedPreferences.getString("access_token", null)
         if (token != null) {

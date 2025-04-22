@@ -1,9 +1,7 @@
 package com.hellodoc.healthcaresystem.user.post
 
-import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.widget.VideoView
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -37,11 +35,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,31 +45,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
-import com.hellodoc.healthcaresystem.user.post.model.FooterItem
-import com.hellodoc.healthcaresystem.user.post.model.HeaderItem
-import kotlinx.coroutines.launch
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
+import com.hellodoc.healthcaresystem.responsemodel.HeaderItem
 
 //@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 //@Composable

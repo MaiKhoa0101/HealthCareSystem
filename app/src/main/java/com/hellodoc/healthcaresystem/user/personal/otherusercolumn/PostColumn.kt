@@ -2,9 +2,9 @@ package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
 import androidx.compose.runtime.Composable
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
-import com.hellodoc.healthcaresystem.user.post.model.ContentPost
-import com.hellodoc.healthcaresystem.user.post.model.FooterItem
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.ContentPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import com.hellodoc.healthcaresystem.user.post.model.ViewBanner
 import com.hellodoc.healthcaresystem.user.post.model.ViewPost
 

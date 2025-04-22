@@ -34,6 +34,8 @@ class DoctorListActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         val specialtyId = intent.getStringExtra("specialtyId") ?: "Chưa rõ chuyên khoa"
         val specialtyName = intent.getStringExtra("specialtyName") ?: "Chưa rõ chuyên khoa"
+        val userID = intent.getStringExtra("userID") ?: "chua co id ng dung"
+
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         enableEdgeToEdge()
@@ -69,34 +71,10 @@ class DoctorListActivity : BaseActivity() {
         specialtyId: String,
         specialtyName: String
     ) {
-//    Scaffold(
-//        topBar = { Headbar(sharedPreferences) },
-//        bottomBar = { FootBar(navHostController = navHostController) }
-//    ) { paddingValues ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValues)
-//        ) {
         NavHost(
             navController = navHostController,
             startDestination = "doctorList/$specialtyId/$specialtyName"
         ) {
-//            composable("home") {
-//                HealthMateHomeScreen(
-//                    modifier = Modifier.fillMaxSize(),
-//                    sharedPreferences = sharedPreferences,
-//                    onNavigateToDoctorList = { specialtyId, specialtyName ->
-//                        // Truyền cả id và name vào route
-//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
-//                    },
-//                    onNavigateToDoctorProfile = { doctorId ->
-//                        // Truyền cả id và name vào route
-//                        navHostController.navigate("doctorList/$specialtyId/$specialtyName")
-//                    },
-//                    navHostController = navHostController
-//                )
-//            }
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences)
             }

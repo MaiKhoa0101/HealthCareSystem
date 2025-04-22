@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hellodoc.healthcaresystem.user.home.model.Account2
+import com.hellodoc.healthcaresystem.responsemodel.Account2
 
 @Composable
 fun UserListScreen() {

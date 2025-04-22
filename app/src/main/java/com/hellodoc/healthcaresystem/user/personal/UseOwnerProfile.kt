@@ -47,9 +47,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
-import com.hellodoc.healthcaresystem.user.post.model.ContentPost
-import com.hellodoc.healthcaresystem.user.post.model.FooterItem
+import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.responsemodel.ContentPost
+import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -67,9 +68,14 @@ fun ProfileUserPage(
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
 
+    val token = sharedPreferences.getString("access_token", null)
+    val jwt = JWT(token.toString())
+
+    val userId = jwt.getClaim("userId").asString()
+    println("ID của user lấy đựơc là:"+userId.toString())
     // Gọi API để fetch user từ server
     LaunchedEffect(Unit) {
-        userViewModel.getUser("680355efaee44ce022490181")
+        userViewModel.getUser(userId.toString())
     }
 
     // Nếu chưa có user (null) thì không hiển thị giao diện

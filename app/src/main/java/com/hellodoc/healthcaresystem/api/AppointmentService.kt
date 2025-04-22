@@ -9,11 +9,15 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface AppointmentService {
     @Headers("Content-Type: application/json")
     @GET("appointments/getAll")
     suspend fun getAllAppointments(): Response<List<AppointmentResponse>>
+
+    @GET("appointments/patient/{id}")
+    suspend fun getAppointmentUser(@Path("id") id: String): Response<List<AppointmentResponse>>
 
     @Headers("Content-Type: application/json")
     @POST("appointments/book")

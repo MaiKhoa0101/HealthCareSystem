@@ -7,7 +7,7 @@ import com.hellodoc.healthcaresystem.requestmodel.Content
 import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
 import com.hellodoc.healthcaresystem.requestmodel.Part
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.home.model.ChatMessage
+import com.hellodoc.healthcaresystem.responsemodel.ChatMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

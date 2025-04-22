@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.home.model.SidebarItem
+import com.hellodoc.healthcaresystem.responsemodel.SidebarItem
 
 @Composable
 fun DrawerContent(

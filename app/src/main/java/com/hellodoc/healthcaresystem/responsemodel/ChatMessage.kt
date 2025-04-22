@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.home.model
+package com.hellodoc.healthcaresystem.responsemodel
 
 data class ChatMessage(
     val message: String,
