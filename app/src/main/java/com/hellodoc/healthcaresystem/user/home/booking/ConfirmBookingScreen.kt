@@ -85,7 +85,12 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Giờ đặt khám:", value = time)
                 Spacer(modifier = Modifier.height(24.dp))
-                InfoText(label = "Địa chỉ khám:", value = "Khám tại phòng khám")
+                val address = if (examinationMethod == "at_clinic") {
+                    "Khám tại phòng khám"
+                } else {
+                    "Khám tại nhà"
+                }
+                InfoText(label = "Địa chỉ khám:", value = address)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Mã dịch vụ:", value = "342h59wrt7")
             }
