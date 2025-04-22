@@ -1,9 +1,7 @@
 package com.hellodoc.healthcaresystem.user.post
 
-import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.widget.VideoView
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -37,11 +35,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,21 +45,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
@@ -73,43 +64,6 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
 import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.user.post.model.HeaderItem
-import kotlinx.coroutines.launch
-
-//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//@Composable
-//fun PostScreen(modifier: Modifier = Modifier){
-//    Column{
-//        Header(
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//        PostBody(
-//            containerPost = ContainerPost(
-//                image = R.drawable.img,
-//                name = "Khoa xinh gái",
-//                lable = "Hãy nói gì đó pbvm"
-//            )
-//        )
-//
-//        var showFileUpload by remember { mutableStateOf(false) }
-//        if (showFileUpload) {
-//            MultiFileUpload()
-//        }
-//        Footer(
-//            footerItem = FooterItem(
-//                name = "Thêm hình ảnh",
-//                image = R.drawable.folder_plus
-//            ),
-//            onImageClick = {
-//                showFileUpload = true
-//            }
-//        )
-//
-//    }
-//}
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -137,7 +91,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
         item {
             PostBody(
                 containerPost = ContainerPost(
-                    image = R.drawable.img,
+                    imageUrl = R.drawable.img.toString(),
                     name = "Khoa xinh gái",
                     lable = "Hãy nói gì đó ..."
                 )
@@ -208,7 +162,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
             Footer(
                 footerItem = FooterItem(
                     name = "Thêm hình ảnh",
-                    image = R.drawable.folder_plus
+                    imageUrl = R.drawable.folder_plus.toString()
                 ),
                 onImageClick = {
                     photoPickerLauncher.launch(
@@ -220,97 +174,6 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
     }
 }
 
-//@Composable
-//fun isVideoUri(uri: Uri): Boolean {
-//    val context = LocalContext.current
-//    val type = context.contentResolver.getType(uri)
-//    return type?.startsWith("video") == true
-//}
-
-
-//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//@Composable
-//fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-//    val context = LocalContext.current
-//    val scope = rememberCoroutineScope()
-//
-//    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
-//
-//    LaunchedEffect(Unit) {
-//        ImageUriStore.getImageUris(context).collect { uris ->
-//            selectedImageUri = uris
-//        }
-//    }
-//
-//    val photoPickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
-//    ) { uris ->
-//        if (uris.isNotEmpty()) {
-//            val combinedUris = (selectedImageUri + uris).distinct()
-//
-//            selectedImageUri = combinedUris
-//
-//            scope.launch {
-//                ImageUriStore.saveImageUris(context, combinedUris)
-//            }
-//        }
-//    }
-//
-//    LazyColumn {
-//        item {
-//        Header(
-//            navController = navController,
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//
-//        PostBody(
-//            containerPost = ContainerPost(
-//                image = R.drawable.img,
-//                name = "Khoa xinh gái",
-//                lable = "Hãy nói gì đó ..."
-//            )
-//        )
-//
-//        if (selectedImageUri.isNotEmpty()) {
-//            LazyRow(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .background(color = Color.White)
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                contentPadding = PaddingValues(horizontal = 16.dp),
-//            ) {
-//                items(selectedImageUri) { uri ->
-//                    Image(
-//                        painter = rememberAsyncImagePainter(uri),
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .size(200.dp)
-//                            .clip(RoundedCornerShape(8.dp)),
-//                        contentScale = ContentScale.Crop
-//                    )
-//                }
-//            }
-//        }
-//
-//        Footer(
-//            footerItem = FooterItem(
-//                name = "Thêm hình ảnh",
-//                image = R.drawable.folder_plus
-//            ),
-//            onImageClick = {
-//                photoPickerLauncher.launch(
-//                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                )
-//            }
-//        )
-//            }
-//    }
-//}
 
 
 @Composable
@@ -391,7 +254,7 @@ fun PostBody(
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
         val (iconImage, tvName, textField) = createRefs()
         Image(
-            painterResource(id = containerPost.image),
+            painter = rememberAsyncImagePainter(containerPost.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .clip(shape = CircleShape)
@@ -453,7 +316,7 @@ fun Footer(
                 }
         )
         Image(
-            painterResource(id = footerItem.image),
+            painter = rememberAsyncImagePainter(footerItem.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .size(70.dp)
@@ -598,24 +461,3 @@ fun OutlineTextField(
     )
 }
 
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    HealthCareSystemTheme {
-//        PostScreen()
-//    }
-//}
-
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun HeaderPreView() {
-//    HealthCareSystemTheme {
-//        Header(
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//    }
-//}

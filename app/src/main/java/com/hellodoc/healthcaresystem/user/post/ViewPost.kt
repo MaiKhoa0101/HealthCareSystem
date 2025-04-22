@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 
@@ -91,7 +91,7 @@ fun ViewPost(
         val (iconImage, tvName, textField, readMore, sImage) = createRefs()
 
         Image(
-            painter = painterResource(id = containerPost.image),
+            painter = rememberAsyncImagePainter(containerPost.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .clip(shape = CircleShape)
@@ -147,7 +147,7 @@ fun ViewPost(
         )
 
         Image(
-            painter = painterResource(id = footerItem.image),
+            painter = rememberAsyncImagePainter(footerItem.imageUrl),
             contentDescription = "Post Image",
             modifier = Modifier
                 .height(360.dp)
@@ -169,16 +169,14 @@ fun GreetingPreview() {
     HealthCareSystemTheme {
         ViewPost(
             containerPost = ContainerPost(
-                image = R.drawable.img,
+                imageUrl = R.drawable.img.toString(),
                 name = "Khoa xinh gái",
-                lable = "bla bla"
             ),
             contentPost = ContentPost(
                 content = "bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla "
             ),
             footerItem = FooterItem(
-                name = "null",
-                image = R.drawable.avarta
+                imageUrl = R.drawable.avarta.toString()
             )
         )
     }
