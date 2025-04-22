@@ -127,7 +127,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
         item {
             PostBody(
                 containerPost = ContainerPost(
-                    image = R.drawable.img,
+                    imageUrl = R.drawable.img.toString(),
                     name = "Khoa xinh gái",
                     lable = "Hãy nói gì đó ..."
                 )
@@ -198,7 +198,7 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
             Footer(
                 footerItem = FooterItem(
                     name = "Thêm hình ảnh",
-                    image = R.drawable.folder_plus
+                    imageUrl = R.drawable.folder_plus.toString()
                 ),
                 onImageClick = {
                     photoPickerLauncher.launch(
@@ -210,97 +210,6 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
     }
 }
 
-//@Composable
-//fun isVideoUri(uri: Uri): Boolean {
-//    val context = LocalContext.current
-//    val type = context.contentResolver.getType(uri)
-//    return type?.startsWith("video") == true
-//}
-
-
-//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//@Composable
-//fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-//    val context = LocalContext.current
-//    val scope = rememberCoroutineScope()
-//
-//    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
-//
-//    LaunchedEffect(Unit) {
-//        ImageUriStore.getImageUris(context).collect { uris ->
-//            selectedImageUri = uris
-//        }
-//    }
-//
-//    val photoPickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
-//    ) { uris ->
-//        if (uris.isNotEmpty()) {
-//            val combinedUris = (selectedImageUri + uris).distinct()
-//
-//            selectedImageUri = combinedUris
-//
-//            scope.launch {
-//                ImageUriStore.saveImageUris(context, combinedUris)
-//            }
-//        }
-//    }
-//
-//    LazyColumn {
-//        item {
-//        Header(
-//            navController = navController,
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//
-//        PostBody(
-//            containerPost = ContainerPost(
-//                image = R.drawable.img,
-//                name = "Khoa xinh gái",
-//                lable = "Hãy nói gì đó ..."
-//            )
-//        )
-//
-//        if (selectedImageUri.isNotEmpty()) {
-//            LazyRow(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .background(color = Color.White)
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                contentPadding = PaddingValues(horizontal = 16.dp),
-//            ) {
-//                items(selectedImageUri) { uri ->
-//                    Image(
-//                        painter = rememberAsyncImagePainter(uri),
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .size(200.dp)
-//                            .clip(RoundedCornerShape(8.dp)),
-//                        contentScale = ContentScale.Crop
-//                    )
-//                }
-//            }
-//        }
-//
-//        Footer(
-//            footerItem = FooterItem(
-//                name = "Thêm hình ảnh",
-//                image = R.drawable.folder_plus
-//            ),
-//            onImageClick = {
-//                photoPickerLauncher.launch(
-//                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                )
-//            }
-//        )
-//            }
-//    }
-//}
 
 
 @Composable
@@ -381,7 +290,7 @@ fun PostBody(
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
         val (iconImage, tvName, textField) = createRefs()
         Image(
-            painterResource(id = containerPost.image),
+            painter = rememberAsyncImagePainter(containerPost.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .clip(shape = CircleShape)
@@ -443,7 +352,7 @@ fun Footer(
                 }
         )
         Image(
-            painterResource(id = footerItem.image),
+            painter = rememberAsyncImagePainter(footerItem.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .size(70.dp)
@@ -588,24 +497,3 @@ fun OutlineTextField(
     )
 }
 
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    HealthCareSystemTheme {
-//        PostScreen()
-//    }
-//}
-
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun HeaderPreView() {
-//    HealthCareSystemTheme {
-//        Header(
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//    }
-//}

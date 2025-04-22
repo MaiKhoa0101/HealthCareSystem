@@ -51,6 +51,7 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -139,7 +140,7 @@ fun PostUser() {
 
         ViewPostOwner(
             containerPost = ContainerPost(
-                image = R.drawable.doctor,
+                imageUrl = R.drawable.doctor.toString(),
                 name = "Khoa xinh gái",
                 lable = "bla bla"
             ),
@@ -147,8 +148,7 @@ fun PostUser() {
                 content = "bla bla bla bla bla bla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla..."
             ),
             footerItem = FooterItem(
-                name = "null",
-                image = R.drawable.doctor
+                imageUrl = R.drawable.doctor.toString()
             )
         )
     }
@@ -245,7 +245,7 @@ fun ViewPostOwner(
         val (iconImage, tvName, textField, readMore, sImage) = createRefs()
 
         Image(
-            painter = painterResource(id = containerPost.image),
+            painter = rememberAsyncImagePainter(containerPost.imageUrl),
             contentDescription = null,
             modifier = Modifier
                 .clip(CircleShape)
@@ -301,7 +301,7 @@ fun ViewPostOwner(
         )
 
         Image(
-            painter = painterResource(id = footerItem.image),
+            painter = rememberAsyncImagePainter(footerItem.imageUrl),
             contentDescription = "Post Image",
             modifier = Modifier
                 .height(360.dp)

@@ -10,13 +10,13 @@ data class HeaderItem(
 
 data class ContainerPost(
     val name: String,
-    @DrawableRes val image: Int,
-    val lable: String
+    val imageUrl: String,
+    val lable: String = ""
 )
 
 data class FooterItem(
-    val name: String,
-    @DrawableRes val image: Int
+    val name: String = "",
+    val imageUrl: String
 )
 
 data class ContentPost(
