@@ -52,6 +52,7 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
