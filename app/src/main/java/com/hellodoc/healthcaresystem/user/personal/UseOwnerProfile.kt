@@ -52,9 +52,6 @@ import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
-import com.hellodoc.healthcaresystem.user.post.model.ContainerPost
-import com.hellodoc.healthcaresystem.user.post.model.ContentPost
-import com.hellodoc.healthcaresystem.user.post.model.FooterItem
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -143,7 +140,7 @@ fun PostUser() {
 
         ViewPostOwner(
             containerPost = ContainerPost(
-                image = R.drawable.doctor,
+                imageUrl = R.drawable.doctor.toString(),
                 name = "Khoa xinh gái",
                 lable = "bla bla"
             ),
