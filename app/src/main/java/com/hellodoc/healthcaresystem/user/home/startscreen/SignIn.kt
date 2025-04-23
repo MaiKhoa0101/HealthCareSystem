@@ -91,6 +91,7 @@ class SignIn : BaseActivity() {
                                 val intent = when (role) {
                                     "admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                     "user" -> Intent(this@SignIn, HomeActivity::class.java)
+                                    "doctor" -> Intent(this@SignIn, HomeActivity::class.java)
                                     else -> {
                                         Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
                                         return@withContext

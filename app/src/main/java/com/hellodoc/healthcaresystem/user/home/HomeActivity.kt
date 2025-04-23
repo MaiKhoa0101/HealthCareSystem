@@ -13,35 +13,35 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+
+
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+
+
+
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.auth0.android.jwt.JWT
+
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.requestmodel.GetUserID
-import com.hellodoc.healthcaresystem.responsemodel.User
+
+
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
-import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
-import com.hellodoc.healthcaresystem.user.home.startscreen.userLoginExp
+
+
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
-import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+
 
 class HomeActivity : BaseActivity() {
 
@@ -53,79 +53,11 @@ class HomeActivity : BaseActivity() {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
-
-            //Phải xoá phần này khi deploy//////////////////////////////////////////////////////
-            // Dữ liệu đăng nhập mong muốn
-            val newEmail = "usertest@gmail.com"
-            val newPassword = "123456"
-
-            // Lấy dữ liệu đã lưu (nếu có)
-            val savedEmail = sharedPreferences.getString("email", null)
-            val savedPassword = sharedPreferences.getString("password", null)
-            val token = sharedPreferences.getString("access_token", null)
-
-            // Kiểm tra: nếu chưa có token hoặc email/password thay đổi => đăng nhập lại
-            if (token == null || savedEmail != newEmail || savedPassword != newPassword) {
-                userLoginExp(this, newEmail, newPassword)
-
-                // Lưu lại email, password mới
-                with(sharedPreferences.edit()) {
-                    putString("email", newEmail)
-                    putString("password", newPassword)
-                    apply()
-                }
-            }
-
-            println("SharedPrefs: $sharedPreferences")
-            println("Access Token: $token")
-            // Phải xoá phần này khi deploy////////////////////////////////////////////////////////////
-
-            // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
-            val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-                initializer { UserViewModel(sharedPreferences) }
-            })
-
-            // Lấy dữ liệu user từ StateFlow
-            val user by userViewModel.user.collectAsState()
-
-            val jwt = try {
-                JWT(token ?: throw IllegalArgumentException("Token is null"))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-
-
-            jwt?.let {
-                val userId = it.getClaim("userId").asString()
-                println("ID của user lấy được là: $userId")
-                LaunchedEffect(Unit) {
-                    userViewModel.getUser(userId.toString())
-                }
-            } ?: run {
-                println("Token không hợp lệ, không thể parse JWT.")
-            }
-
-
-
             HealthCareSystemTheme {
-                if (jwt != null) {
-                    val userId = jwt.getClaim("userId").asString()
-                    if (!userId.isNullOrEmpty()) {
-                        Index(
-                            userId,
-                            navHostController = navHostController,
-                            sharedPreferences = sharedPreferences
-                        )
-                    } else {
-                        // Có thể điều hướng về màn hình đăng nhập hoặc show thông báo lỗi
-                        println("User ID không hợp lệ từ token.")
-                    }
-                } else {
-                    // Có thể điều hướng về màn hình đăng nhập hoặc show thông báo lỗi
-                    println("Token không hợp lệ hoặc chưa được khởi tạo.")
-                }
+                Index(
+                    navHostController = navHostController,
+                    sharedPreferences = sharedPreferences
+                )
             }
 
         }
@@ -134,7 +66,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun Index(
-        userID: String,
+
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
         sharedPreferences: SharedPreferences
@@ -146,7 +78,7 @@ class HomeActivity : BaseActivity() {
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
-        
+
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -158,7 +90,7 @@ class HomeActivity : BaseActivity() {
             }
         ) { paddingValues ->
             NavigationHost(
-                userID = userID,
+
                 navHostController = navHostController,
                 sharedPreferences = sharedPreferences,
                 modifier = Modifier.padding(paddingValues)
@@ -169,7 +101,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun NavigationHost(
-        userID: String,
+
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         modifier: Modifier = Modifier,
@@ -187,9 +119,9 @@ class HomeActivity : BaseActivity() {
                     onNavigateToDoctorList = { specialtyId, specialtyName ->
                         val intent = Intent(this@HomeActivity, DoctorListActivity::class.java).apply {
                             putExtra("specialtyId", specialtyId)
-                            putExtra("userID", userID)
+
                             putExtra("specialtyName", specialtyName)
-                            }
+                        }
                         startActivity(intent)
                     },
                     navHostController = navHostController

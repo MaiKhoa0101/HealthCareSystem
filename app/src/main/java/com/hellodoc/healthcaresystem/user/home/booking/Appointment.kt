@@ -180,17 +180,15 @@ fun AppointmentCard(appointment: AppointmentResponse) {
 
                 Column {
                     Text(appointment.doctor.name, fontWeight = FontWeight.Bold)
-                    Text(appointment.notes)
+                    Text(appointment.notes ?: "Không có ghi chú")
+
                     Row {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "Hospital Location",
                             modifier = Modifier.padding(end = 4.dp)
                         )
-                        Text(
-                            text = appointment.location,
-                            fontSize = 12.sp
-                        )
+                        Text(appointment.location ?: "Địa điểm không xác định" )
                     }
                 }
             }
