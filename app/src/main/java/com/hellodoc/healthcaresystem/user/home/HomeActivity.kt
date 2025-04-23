@@ -81,7 +81,6 @@ class HomeActivity : BaseActivity() {
             println("Access Token: $token")
             // Phải xoá phần này khi deploy////////////////////////////////////////////////////////////
 
-
             // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
             val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
                 initializer { UserViewModel(sharedPreferences) }
@@ -90,23 +89,45 @@ class HomeActivity : BaseActivity() {
             // Lấy dữ liệu user từ StateFlow
             val user by userViewModel.user.collectAsState()
 
-            val jwt = JWT(token.toString())
-
-            val userId = jwt.getClaim("userId").asString()
-            println("ID của user lấy đựơc là:"+userId.toString())
-            // Gọi API để fetch user từ server
-            LaunchedEffect(Unit) {
-                userViewModel.getUser(userId.toString())
+            val jwt = try {
+                JWT(token ?: throw IllegalArgumentException("Token is null"))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
+
+
+            jwt?.let {
+                val userId = it.getClaim("userId").asString()
+                println("ID của user lấy được là: $userId")
+                LaunchedEffect(Unit) {
+                    userViewModel.getUser(userId.toString())
+                }
+            } ?: run {
+                println("Token không hợp lệ, không thể parse JWT.")
+            }
+
 
 
             HealthCareSystemTheme {
-                Index(
-                    userId!!,
-                    navHostController = navHostController,
-                    sharedPreferences = sharedPreferences
-                )
+                if (jwt != null) {
+                    val userId = jwt.getClaim("userId").asString()
+                    if (!userId.isNullOrEmpty()) {
+                        Index(
+                            userId,
+                            navHostController = navHostController,
+                            sharedPreferences = sharedPreferences
+                        )
+                    } else {
+                        // Có thể điều hướng về màn hình đăng nhập hoặc show thông báo lỗi
+                        println("User ID không hợp lệ từ token.")
+                    }
+                } else {
+                    // Có thể điều hướng về màn hình đăng nhập hoặc show thông báo lỗi
+                    println("Token không hợp lệ hoặc chưa được khởi tạo.")
+                }
             }
+
         }
     }
 

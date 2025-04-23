@@ -36,43 +36,47 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(
-    sharedPreferences: SharedPreferences
-) {
+fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
-
-    val appointments by appointViewModel.appointments.collectAsState()
-
-    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
-    // Lấy dữ liệu user từ StateFlow
+    val appointments by appointViewModel.appointments.collectAsState()
     val user by userViewModel.user.collectAsState()
-
     val token = sharedPreferences.getString("access_token", null)
-    val jwt = JWT(token.toString())
 
-    val userId = jwt.getClaim("userId").asString()
-    println("ID của user lấy đựơc là:"+userId.toString())
-    // Gọi API để fetch user từ server
-    LaunchedEffect(Unit) {
-        userViewModel.getUser(userId.toString())
+    val jwt = remember(token) {
+        try {
+            JWT(token ?: throw IllegalArgumentException("Token is null"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user == null) {
-        println("user == null")
+    val userId = jwt?.getClaim("userId")?.asString()
+
+    LaunchedEffect(userId) {
+        userId?.let {
+            userViewModel.getUser(it)
+            appointViewModel.getAppointment(it)
+        }
+    }
+
+    if (userId == null) {
+        Text("Token không hợp lệ hoặc userId không tồn tại.")
         return
     }
 
-    LaunchedEffect(Unit) {
-        appointViewModel.getAppointment(userId.toString())
-    }
-    println ("đã lấy được appointment" + appointments.toString())
+    AppointmentScreenUI(appointments)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun AppointmentScreenUI(appointments: List<AppointmentResponse>) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
 
@@ -131,6 +135,7 @@ fun AppointmentListScreen(
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
