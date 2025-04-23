@@ -136,7 +136,6 @@ fun AppointmentScreenUI(appointments: List<AppointmentResponse>) {
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentCard(appointment: AppointmentResponse) {

@@ -7,7 +7,7 @@ data class AppointmentResponse(
     val id: String,
     val doctor: Doctor,
     val patientModel: String,
-    val patient: String, // ✅ chỉ là String, không phải object
+    val patient: Patient,
     val date: String,
     val time: String,
     val status: String,
@@ -18,16 +18,26 @@ data class AppointmentResponse(
     val location: String,
     val createdAt: String,
     val updatedAt: String,
-    @SerializedName("__v")
-    val version: Int
+    val note: String
     ){
     data class Doctor(
+        @SerializedName("_id")
+        val id: String,
+        val name: String,
+        val specialty: Specialty
+    )
+
+    data class Patient(
+        @SerializedName("_id")
+        val id: String,
+        val name: String
+    )
+    data class Specialty(
         @SerializedName("_id")
         val id: String,
         val name: String
     )
 }
-
 
 data class CreateAppointmentResponse(
     @SerializedName("message") val message: String,

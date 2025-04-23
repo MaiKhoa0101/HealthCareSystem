@@ -43,8 +43,6 @@ fun AppointmentManagerScreen(
         initializer { AppointmentViewModel(sharedPreferences) }
     })
 
-    val appointments by appointViewModel.appointments.collectAsState()
-
     LaunchedEffect(Unit) {
         appointViewModel.fetchAppointments()
     }
@@ -118,33 +116,49 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                     TableHeaderCell("Trạng thái", 120)
                 }
 
-                appointmentList.value.forEachIndexed { index, row ->
-                    val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
-                    println(row)
+                // Check if list is empty
+                if (appointmentList.value.isEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(bgColor)
+                            .background(Color.White)
                             .padding(vertical = 10.dp),
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        TableCell(row.id ?: "trống", 60)
-                        TableCell(row.doctor.id ?: "trống", 80)
-                        TableCell(row.doctor.name ?: "trống", 100)
-                        TableCell(row.patient ?: "trống", 80)
-                        TableCell(row.time ?: "trống", 80)
-                        TableCell(row.date ?: "trống", 100)
-                        TableCell(row.location ?: "trống", 200)
-                        TableCell(row.createdAt ?: "trống", 120)
-                        TableCell(
-                            text = row.status ?: "trống",
-                            width = 120,
-                            color = when (row.status) {
-                                "Xác Nhận", "Done" -> Color(0xFF27AE60)
-                                "Hủy", "Canceled" -> Color.Red
-                                else -> Color.Gray
-                            }
-                        )
+                        Text("Không có dữ liệu", color = Color.Gray)
+                    }
+                } else {
+                    appointmentList.value.forEachIndexed { index, row ->
+                        val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(bgColor)
+                                .padding(vertical = 10.dp),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            // Đảm bảo các trường này khớp với cấu trúc AppointmentRow
+                            TableCell(row.id ?: "trống", 60)
+                            TableCell(row.doctor?.id ?: "trống", 80)
+                            TableCell(row.doctor?.name ?: "trống", 100)
+                            TableCell(row.patient?.id ?: "trống", 80)
+                            TableCell(row.patient?.name ?: "trống", 100)
+                            TableCell(row.doctor?.specialty?.name ?: "trống", 120)
+                            TableCell(row.notes ?: "trống", 150)
+                            TableCell(row.time ?: "trống", 80)
+                            TableCell(row.date ?: "trống", 100)
+                            TableCell(row.location ?: "trống", 200)
+                            TableCell(row.createdAt ?: "trống", 120)
+                            TableCell(
+                                text = row.status ?: "trống",
+                                width = 120,
+                                color = when (row.status) {
+                                    "Xác Nhận", "Done" -> Color(0xFF27AE60)
+                                    "Hủy", "Canceled" -> Color.Red
+                                    else -> Color.Gray
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -214,16 +228,3 @@ fun CardAppointment(icon: Int, number: Int, description: String) {
         }
     }
 }
-
-val appointmentList = listOf(
-    AppointmentRow("1", "doc01", "Dr. Khoa", "pat01", "Phuong", "Nội tổng quát", "Khó thở, ho", "10:00 AM", "2025-04-20", "Số 1, Đường Tô Ký, Q12", "2025-04-18", "Xác Nhận"),
-    AppointmentRow("2", "doc02", "Dr. An", "pat02", "Linh", "Da liễu", "Nổi mẩn ngứa", "9:00 AM", "2025-04-22", "Phòng khám online", "2025-04-18", "Chờ xác Nhận"),
-    AppointmentRow("3", "doc01", "Dr. Khoa", "pat03", "Tuấn", "Tim mạch", "Đau ngực nhẹ", "2:00 PM", "2025-04-23", "Bệnh viện Quận 12", "2025-04-18", "Xác Nhận"),
-    AppointmentRow("4", "doc03", "Dr. Hà", "pat04", "Hạnh", "Tai mũi họng", "Viêm họng, sốt", "4:00 PM", "2025-04-21", "Số 5, Trần Hưng Đạo, Q5", "2025-04-19", "Chờ xác Nhận"),
-    AppointmentRow("5", "doc02", "Dr. An", "pat01", "Phuong", "Da liễu", "Kiểm tra định kỳ", "8:30 AM", "2025-04-25", "Khám trực tuyến", "2025-04-19", "Xác Nhận"),
-    AppointmentRow("6", "doc04", "Dr. Minh", "pat05", "Nam", "Nội tiết", "Tiểu đường kiểm tra", "3:00 PM", "2025-04-24", "Bệnh viện Bình Thạnh", "2025-04-20", "Hủy"),
-    AppointmentRow("7", "doc05", "Dr. Hoa", "pat06", "Huyền", "Sản phụ khoa", "Khám thai lần 1", "11:00 AM", "2025-04-22", "Phòng khám Hoa Mai", "2025-04-19", "Xác Nhận"),
-    AppointmentRow("8", "doc01", "Dr. Khoa", "pat07", "Dũng", "Nội tổng quát", "Đau dạ dày", "5:00 PM", "2025-04-21", "Khám trực tuyến", "2025-04-19", "Chờ xác Nhận"),
-    AppointmentRow("9", "doc03", "Dr. Hà", "pat08", "Trang", "Tai mũi họng", "Tái khám viêm xoang", "1:00 PM", "2025-04-26", "Số 5, Trần Hưng Đạo, Q5", "2025-04-20", "Xác Nhận"),
-    AppointmentRow("10", "doc04", "Dr. Minh", "pat09", "Bình", "Nội tiết", "Rối loạn tuyến giáp", "10:30 AM", "2025-04-23", "Bệnh viện Bình Thạnh", "2025-04-20", "Chờ xác Nhận")
-)
