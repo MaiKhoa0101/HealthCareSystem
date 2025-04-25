@@ -67,18 +67,30 @@ fun ProfileUserPage(
         initializer { UserViewModel(sharedPreferences) }
     })
 
+    val token = sharedPreferences.getString("access_token", null)
+
+    val jwt = remember(token) {
+        try {
+            JWT(token ?: throw IllegalArgumentException("Token is null"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    val userId = jwt?.getClaim("userId")?.asString()
+
+    println("ID của user lấy đựơc là:"+userId.toString())
+
+    // Gọi API để fetch user từ server
+    LaunchedEffect(userId) {
+        userId?.let {
+            userViewModel.getUser(it)
+        }
+
+    }
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
-
-    val token = sharedPreferences.getString("access_token", null)
-    val jwt = JWT(token.toString())
-
-    val userId = jwt.getClaim("userId").asString()
-    println("ID của user lấy đựơc là:"+userId.toString())
-    // Gọi API để fetch user từ server
-    LaunchedEffect(Unit) {
-        userViewModel.getUser(userId.toString())
-    }
 
     // Nếu chưa có user (null) thì không hiển thị giao diện
     if (user == null) {
