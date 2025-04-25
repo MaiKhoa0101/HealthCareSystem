@@ -61,9 +61,9 @@ class HomeActivity : BaseActivity() {
             val newPassword = "123456"
 
             // Lấy dữ liệu đã lưu (nếu có)
-            val savedEmail = sharedPreferences.getString("email", null)
-            val savedPassword = sharedPreferences.getString("password", null)
-            val token = sharedPreferences.getString("access_token", null)
+            val savedEmail = sharedPreferences.getString("email", "cu999@gmail.com")
+            val savedPassword = sharedPreferences.getString("password", "123456")
+            val token = sharedPreferences.getString("access_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODA3ZDkxNmIwNDZiMjU2MDJmZmYzZTEiLCJlbWFpbCI6ImN1OTk5QGdtYWlsLmNvbSIsIm5hbWUiOiJjdTY5IiwicGhvbmUiOiIwMTAxMDEwMTAxOSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzQ1MzQ0ODQ3LCJleHAiOjE3NDU0MzEyNDd9.Q8_wMVyFNki8i2VyPXjL4jiNXvPvsbD04kAM-AZNwOI")
 
             // Kiểm tra: nếu chưa có token hoặc email/password thay đổi => đăng nhập lại
             if (token == null || savedEmail != newEmail || savedPassword != newPassword) {
