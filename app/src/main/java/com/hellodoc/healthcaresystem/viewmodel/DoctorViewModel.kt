@@ -13,6 +13,12 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _doctors = MutableStateFlow<List<GetDoctorResponse>>(emptyList())
     val doctors: StateFlow<List<GetDoctorResponse>> get() = _doctors
 
+    private val _doctor = MutableStateFlow<GetDoctorResponse?>(null)
+    val doctor: StateFlow<GetDoctorResponse?> get() = _doctor
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     fun fetchDoctors() {
         viewModelScope.launch {
             try {
@@ -25,6 +31,23 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+    fun fetchDoctorById(doctorId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val response = RetrofitInstance.doctor.getDoctorById(doctorId)
+                if (response.isSuccessful) {
+                    _doctor.value = response.body()
+                } else {
+                    println("Lỗi lấy doctor theo id: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
             }
         }
     }

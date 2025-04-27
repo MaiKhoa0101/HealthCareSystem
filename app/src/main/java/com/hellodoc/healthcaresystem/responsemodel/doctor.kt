@@ -9,9 +9,25 @@ data class GetDoctorResponse (
     @SerializedName("name") val name: String,
     @SerializedName("phone") val phone: String,
     @SerializedName("password") val password: String,
-    @SerializedName("specialty") val specialty: Specialty
+    @SerializedName("specialty") val specialty: Specialty,
+    @SerializedName("experience") val experience: Int?,
+    @SerializedName("description") val description: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("hospital") val hospital: String?,
+    @SerializedName("certificates")
+    val certificates: List<String>?,
+    @SerializedName("services")
+    val services: List<ServiceResponse>?,
+    @SerializedName("patientsCount")
+    val patientsCount: Int?,
+    @SerializedName("ratingsCount")
+    val ratingsCount: Int?
 )
 data class Specialty (
     @SerializedName("_id") val id:String,
     @SerializedName("name") val name: String
+)
+data class ServiceResponse(
+    val name: String?,
+    val price: Int?
 )
