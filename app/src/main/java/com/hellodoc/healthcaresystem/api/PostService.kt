@@ -1,21 +1,17 @@
 package com.hellodoc.healthcaresystem.api
 
+import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import retrofit2.http.GET
-import retrofit2.Call
+import retrofit2.Response
+import retrofit2.http.Headers
+import retrofit2.http.Path
 
-data class PostResponse(
-    val _id: String,
-    val content: String,
-    val media: List<String>,
-    val user: UserResponse
-)
-
-data class UserResponse(
-    val name: String,
-    val imageUrl: String?
-)
 
 interface PostService {
+    @Headers("Content-Type: application/json")
     @GET("/post")
-    fun getPosts(): Call<List<PostResponse>>
+    suspend fun getAllPosts(): Response<List<PostResponse>>
+
+    @GET("post/getById/{id}")
+    suspend fun getPostById(@Path("id") id: String): Response<List<PostResponse>>
 }
