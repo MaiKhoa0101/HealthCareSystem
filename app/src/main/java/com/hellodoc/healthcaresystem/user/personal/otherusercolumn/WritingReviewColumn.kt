@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,15 +38,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.hellodoc.healthcaresystem.requestmodel.ReviewRequest
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WriteReviewScreen(
+    doctorId: String,
+    userId: String,
     onBackClick: () -> Unit = {},
     onSubmitClick: (Int, String) -> Unit = { _, _ -> }
 ) {
     var selectedStar by remember { mutableStateOf(5) }
     var commentText by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -152,7 +159,29 @@ fun WriteReviewScreen(
             )
 
             Button(
-                onClick = { onSubmitClick(selectedStar, commentText) },
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            val reviewRequest = ReviewRequest(
+                                userId = userId,
+                                doctorId = doctorId,
+                                rating = selectedStar,
+                                comment = commentText
+                            )
+                            println("Request gửi: userId=$userId, doctorId=$doctorId, rating=$selectedStar, comment=$commentText")
+
+                            val response = RetrofitInstance.reviewService.createReview(reviewRequest)
+
+                            if (response.isSuccessful && response.body() != null) {
+                                onSubmitClick(selectedStar, commentText)
+                            } else {
+                                println("Đăng review thất bại: ${response.errorBody()?.string()}")
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
@@ -172,8 +201,8 @@ fun WriteReviewScreen(
         }
     }
 }
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun WriteReviewPreview() {
-    WriteReviewScreen()
-}
+//@Preview(showSystemUi = true, showBackground = true)
+//@Composable
+//fun WriteReviewPreview() {
+//    WriteReviewScreen()
+//}

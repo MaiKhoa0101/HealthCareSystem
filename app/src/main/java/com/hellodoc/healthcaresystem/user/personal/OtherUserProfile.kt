@@ -11,11 +11,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -296,6 +298,10 @@ fun OtherUserListScreen(
     onDismissWriteReview: () -> Unit = {}
 ) {
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val currentUserId = sharedPreferences.getString("userId", null) ?: ""
+    var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
 
     Column {
         Column(
@@ -327,11 +333,16 @@ fun OtherUserListScreen(
                 1 -> {
                     if (showWriteReviewScreen) {
                         WriteReviewScreen(
+                            doctorId = doctor?.id ?: "",
+                            userId = currentUserId, // lấy từ sharedPreferences hoặc navController
                             onBackClick = onDismissWriteReview,
-                            onSubmitClick = { _, _ -> onDismissWriteReview() }
+                            onSubmitClick = { _, _ ->
+                                refreshReviewsTrigger = !refreshReviewsTrigger
+                                onDismissWriteReview()
+                            }
                         )
                     } else {
-                        ViewRating()
+                        ViewRating(doctorId = doctor?.id ?: "", refreshTrigger = refreshReviewsTrigger)
                     }
                 }
                 2 -> PostColumn()
