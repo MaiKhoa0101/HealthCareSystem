@@ -131,46 +131,4 @@ class SignIn : BaseActivity() {
 }
 
 
-fun userLoginExp(context: Context, email: String, password: String) {
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            val response = RetrofitInstance.api.login(LoginRequest(email, password))
 
-            withContext(Dispatchers.Main) {
-                if (response.isSuccessful) {
-                    val loginResponse = response.body()
-                    val token = loginResponse?.accessToken
-
-                    if (!token.isNullOrEmpty()) {
-                        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                            .edit() {
-                                putString("access_token", token)
-                            }
-
-                        val role = JWT(token).getClaim("role").asString()
-                        val intent = when (role) {
-                            "admin" -> Intent(context, AdminRoot::class.java)
-                            "user","doctor" -> Intent(context, HomeActivity::class.java)
-                            else -> {
-                                Toast.makeText(context, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
-                                return@withContext
-                            }
-                        }
-
-                        Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                        context.startActivity(intent)
-                    } else {
-                        Toast.makeText(context, "Token không hợp lệ!", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    Toast.makeText(context, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
-                }
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-}

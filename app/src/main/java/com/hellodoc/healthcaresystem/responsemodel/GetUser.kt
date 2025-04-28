@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
+import java.net.URL
 
 
 data class User(
@@ -10,13 +11,11 @@ data class User(
     val phone: String,
     val password: String,
     val role: String,
-    val isDoctor: Boolean,
     val verified: Boolean,
     val insurance: List<String>,
     val workingHours: List<String>,
     val createdAt: String,
     val updatedAt: String,
     @SerializedName("__v") val timeChange: Int,
-    val userImage: String
-
-    )
+    val avatarURL: String
+)

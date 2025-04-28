@@ -178,7 +178,7 @@ fun UserIntroSection(user: User) {
     ) {
         // Hiển thị ảnh đại diện
         AsyncImage(
-            model = user.userImage,
+            model = user.avatarURL,
             contentDescription = "Avatar",
             modifier = Modifier
                 .height(140.dp)
