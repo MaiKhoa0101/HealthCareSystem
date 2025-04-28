@@ -12,16 +12,18 @@ import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
 class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    private val _appointments = MutableStateFlow<List<AppointmentResponse>>(emptyList())
-    val appointments: StateFlow<List<AppointmentResponse>> get() = _appointments
+    private val _appointmentsUser = MutableStateFlow<List<AppointmentResponse>>(emptyList())
+    val appointmentsUser: StateFlow<List<AppointmentResponse>> get() = _appointmentsUser
+
+    private val _appointmentsDoctor= MutableStateFlow<List<AppointmentResponse>>(emptyList())
+    val appointmentsDoctor: StateFlow<List<AppointmentResponse>> get() = _appointmentsDoctor
 
     fun fetchAppointments(){
         viewModelScope.launch{
             try{
                 val response = RetrofitInstance.appointment.getAllAppointments()
                 if(response.isSuccessful){
-                    _appointments.value = response.body() ?: emptyList()
-                    println("OK 1"+ response.body())
+                    _appointmentsUser.value = response.body() ?: emptyList()
                 } else {
                     println("Lỗi API: ${response.errorBody()?.string()}")
                 }
@@ -31,24 +33,41 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
         }
     }
 
-    fun getAppointment(id: String) {
+    fun getAppointmentUser(id: String) {
         viewModelScope.launch {
             try {
+                println("ID nhan duoc để lấy appointment: "+id)
                 val result = RetrofitInstance.appointment.getAppointmentUser(id)
                 if(result.isSuccessful){
-                    _appointments.value = result.body() ?: emptyList()
-                    println("OK fetch appointment: $result")
+                    _appointmentsUser.value = result.body() ?: emptyList()
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
                 println("Lỗi ở getappointment")
-                Log.e("Appointment", "Lỗi khi lấy appointment: ${e.message}")
+                Log.e("Appointment", "Lỗi khi lấy appointmentUser: ${e.message}")
             }
         }
     }
 
+    fun getAppointmentDoctor(id: String) {
+        viewModelScope.launch {
+            try {
+                println("ID nhan duoc để lấy appointment: "+id)
+                val result = RetrofitInstance.appointment.getAppointmentDoctor(id)
+                if(result.isSuccessful){
+                    _appointmentsDoctor.value = result.body() ?: emptyList()
+                } else {
+                    println("Lỗi API: ${result.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                println("Lỗi ở getappointment")
+                Log.e("Appointment", "Lỗi khi lấy appointmentDoc: ${e.message}")
+            }
+        }
+    }
     fun createAppointment(createAppointmentRequest: CreateAppointmentRequest) {
         val token = sharedPreferences.getString("access_token", null)
         if (token != null) {

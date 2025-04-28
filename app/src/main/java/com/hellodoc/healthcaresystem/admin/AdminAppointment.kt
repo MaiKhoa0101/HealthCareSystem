@@ -92,7 +92,7 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
 
-    val appointmentList = appointViewModel.appointments.collectAsState()
+    val appointmentList = appointViewModel.appointmentsUser.collectAsState()
     LazyRow {
         item {
             Column {

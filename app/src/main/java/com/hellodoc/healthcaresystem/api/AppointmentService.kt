@@ -19,6 +19,9 @@ interface AppointmentService {
     @GET("appointments/patient/{id}")
     suspend fun getAppointmentUser(@Path("id") id: String): Response<List<AppointmentResponse>>
 
+    @GET("appointments/doctor/{id}")
+    suspend fun getAppointmentDoctor(@Path("id") id: String): Response<List<AppointmentResponse>>
+
     @Headers("Content-Type: application/json")
     @POST("appointments/book")
     suspend fun createAppointment(
