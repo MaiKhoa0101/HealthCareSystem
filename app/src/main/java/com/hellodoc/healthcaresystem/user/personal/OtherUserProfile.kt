@@ -40,6 +40,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.auth0.android.jwt.JWT
 
 @Composable
 fun UserInfoSkeleton() {
@@ -167,7 +168,7 @@ fun UserInfo(
     ) {
         val (imgIcon, backIcon, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
 
-        val imageUrl = doctor?.imageUrl ?: ""
+        val imageUrl = doctor?.avatarURL ?: ""
         val name = doctor?.name ?: "Tên bác sĩ"
         val experience = doctor?.experience?.toString() ?: "69"
         val patientsCount = doctor?.patientsCount?.toString() ?: "0"
@@ -300,7 +301,19 @@ fun OtherUserListScreen(
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val currentUserId = sharedPreferences.getString("userId", null) ?: ""
+    val token = sharedPreferences.getString("access_token", null)
+
+    val jwt = remember(token) {
+        try {
+            JWT(token ?: throw IllegalArgumentException("Token is null"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    val currentUserId = jwt?.getClaim("userId")?.asString() ?: ""
+    println("SharedPreferences lấy userId từ token: $currentUserId")
     var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
 
     Column {

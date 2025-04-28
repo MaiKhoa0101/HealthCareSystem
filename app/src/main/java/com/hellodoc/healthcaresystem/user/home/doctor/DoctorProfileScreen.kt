@@ -288,7 +288,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -305,7 +304,6 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun DoctorProfileScreen(navHostController: NavHostController) {
@@ -355,7 +353,7 @@ fun HeaderSection(doctor: GetDoctorResponse) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = rememberAsyncImagePainter(model = doctor.imageUrl ?: ""),
+            painter = rememberAsyncImagePainter(model = doctor.avatarURL ?: ""),
             contentDescription = "Doctor Image",
             modifier = Modifier
                 .size(100.dp)

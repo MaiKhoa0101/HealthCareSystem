@@ -12,7 +12,7 @@ data class GetDoctorResponse (
     @SerializedName("specialty") val specialty: Specialty,
     @SerializedName("experience") val experience: Int?,
     @SerializedName("description") val description: String?,
-    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("avatarURL") val avatarURL: String?,
     @SerializedName("hospital") val hospital: String?,
     @SerializedName("certificates")
     val certificates: List<String>?,
