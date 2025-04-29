@@ -143,13 +143,13 @@ class HomeActivity : BaseActivity() {
                 PostScreen(context, navHostController)
             }
             composable("editProfile") {
-                EditUserProfile(navHostController)
+                EditUserProfile(sharedPreferences,navHostController)
             }
             composable("doctorRegister") {
                 RegisterClinic(navHostController)
             }
             composable("editClinic") {
-                EditClinicServiceScreen(navHostController)
+                EditClinicServiceScreen(sharedPreferences, navHostController)
             }
             composable("gemini_help") {
                 GeminiChatScreen(navHostController, sharedPreferences)
