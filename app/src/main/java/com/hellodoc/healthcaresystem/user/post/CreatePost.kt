@@ -3,7 +3,6 @@ package com.hellodoc.healthcaresystem.user.post
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -108,6 +107,8 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
         item {
             Header(
                 navController = navController,
+                postText = postText,
+                selectedImageUri = selectedImageUri,
                 onPost = {
                     postViewModel.createPost(CreatePostRequest(userId, postText, selectedImageUri), context)
                     navController.navigate("personal")
@@ -203,10 +204,14 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
 @Composable
 fun Header(
     navController: NavHostController,
+    postText: String,
+    selectedImageUri: List<Uri>,
     onPost: () -> Unit,
     modifier: Modifier = Modifier
 ){
     val backgroundColor = Color.Cyan
+    val isPostEnabled = postText.isNotBlank() || selectedImageUri.isNotEmpty()
+
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
@@ -225,7 +230,6 @@ fun Header(
                 .constrainAs(iconImage){
                     start.linkTo(parent.start, margin = 10.dp)
                     top.linkTo(horizontalGuideLine10, margin = 10.dp)
-//                height = Dimension.fillToConstraints //keo anh dai het height
                 },
         )
         Text(
@@ -241,9 +245,9 @@ fun Header(
                 end.linkTo(parent.end)
             }
         )
-        Button(onClick = {
-            onPost()
-        },
+        Button(
+            onClick = onPost,
+            enabled = isPostEnabled,
             shape = RoundedCornerShape(12.dp),
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier

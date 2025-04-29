@@ -30,7 +30,7 @@ fun PostColumn(postViewModel: PostViewModel = viewModel()) {
                 contentPost = ContentPost(content = post.content),
                 footerItem = FooterItem(
                     name = "",
-                    imageUrl = post.imageUrls.firstOrNull() ?: ""
+                    imageUrl = post.media.firstOrNull() ?: ""
                 )
             )
         }
