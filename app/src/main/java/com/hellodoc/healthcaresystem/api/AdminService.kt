@@ -7,7 +7,9 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Multipart
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface AdminService {
@@ -23,4 +25,12 @@ interface AdminService {
         @Path("id") id: String,
         @Body user: UpdateUser
     ):  Response<User>
+
+    @Multipart
+    @PUT("admin/updateUser/{id}")
+    suspend fun updateUsersByID(
+        @Path("id") id: String,
+        @Part user: UpdateUser
+    ):  Response<User>
+
 }

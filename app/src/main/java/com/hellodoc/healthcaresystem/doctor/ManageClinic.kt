@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.doctor
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +27,7 @@ import com.hellodoc.healthcaresystem.R
 
 
 @Composable
-fun EditClinicServiceScreen(navHostController: NavHostController) {
+fun EditClinicServiceScreen(sharedPreferences: SharedPreferences,navHostController: NavHostController) {
     BodyEditClinicServiceScreen()
 
 }

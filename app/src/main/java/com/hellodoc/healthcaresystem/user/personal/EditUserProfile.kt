@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.personal
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,12 +18,60 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.api.UserResponse
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
-fun EditUserProfile(navHostController: NavHostController) {
+fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: NavHostController) {
+// Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+
+    val token = sharedPreferences.getString("access_token", null)
+
+    val jwt = remember(token) {
+        try {
+            JWT(token ?: throw IllegalArgumentException("Token is null"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    val userId = jwt?.getClaim("userId")?.asString()
+
+    // Gọi API để fetch user từ server
+    LaunchedEffect(userId) {
+        userId?.let {
+            userViewModel.getUser(it)
+        }
+
+    }
+    // Lấy dữ liệu user từ StateFlow
+    val user by userViewModel.user.collectAsState()
+    if (user == null) return
+
+    // 🔁 State lưu thông tin chỉnh sửa
+    var nameText by remember { mutableStateOf(user!!.name) }
+    var emailText by remember { mutableStateOf(user!!.email) }
+    var phoneText by remember { mutableStateOf(user!!.phone) }
+    var addressText by remember { mutableStateOf(user!!.address) }
+    var passwordText by remember { mutableStateOf("") }
+    var repasswordText by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = { HeadbarEditUserProfile(navHostController) },
     ) { paddingValues ->
@@ -32,23 +81,38 @@ fun EditUserProfile(navHostController: NavHostController) {
                 .padding(paddingValues).padding(horizontal = 10.dp)
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
-            item { ChangeAvatar() }
-            item { Spacer(modifier = Modifier.height(10.dp)) }
-            item { ContentEditUser() }
-            item { AcceptEditButton() }
+            item { ChangeAvatar(user!!) }
+            item {
+                ContentEditUser(
+                    nameText, { nameText = it },
+                    emailText, { emailText = it },
+                    phoneText, { phoneText = it },
+                    addressText, { addressText = it },
+                    passwordText, { passwordText = it },
+                    repasswordText, { repasswordText = it },
+                )
+            }
+            item {
+                AcceptEditButton(
+                    userId = user!!.id,
+                    nameText,
+                    emailText,
+                    phoneText,
+                    addressText,
+                    passwordText,
+                    repasswordText,
+                    avatarURL = user!!.avatarURL,
+                    role = user!!.role,
+                    viewModel = userViewModel,
+                    navHostController
+                )
+            }
         }
     }
 }
 
-@Composable
-fun AcceptEditButton(){
-    Button (
-        modifier = Modifier.fillMaxWidth(),
-        onClick = {}
-    ){
-        Text("Lưu thay đổi")
-    }
-}
+
+
 
 
 @Composable
@@ -78,7 +142,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
 }
 
 @Composable
-fun ChangeAvatar() {
+fun ChangeAvatar(user: User) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -91,8 +155,8 @@ fun ChangeAvatar() {
                 // TODO: Open image picker or dialog to change avatar
             }
         ) {
-            Image(
-                painter = painterResource(R.drawable.avarta),
+            AsyncImage(
+                model = user.avatarURL,
                 contentDescription = "Avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -115,26 +179,67 @@ fun ChangeAvatar() {
 }
 
 @Composable
-fun ContentEditUser() {
-    var nameText by remember { mutableStateOf("") }
-    var usernameText by remember { mutableStateOf("") }
-    var emailText by remember { mutableStateOf("") }
-    var phoneText by remember { mutableStateOf("") }
-    var passwordText by remember { mutableStateOf("") }
-    var repasswordText by remember { mutableStateOf("") }
-
+fun ContentEditUser(
+    nameText: String, onNameChange: (String) -> Unit,
+    emailText: String, onEmailChange: (String) -> Unit,
+    phoneText: String, onPhoneChange: (String) -> Unit,
+    addressText: String, onAddressChange: (String) -> Unit,
+    passwordText: String, onPasswordChange: (String) -> Unit,
+    repasswordText: String, onRepasswordChange: (String) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        InputEditField("Họ và tên", nameText, { nameText = it }, "Nguyễn Văn A")
-        InputEditField("Tên đăng nhập", usernameText, { usernameText = it }, "nguyenvana")
-        InputEditField("Email", emailText, { emailText = it }, "example@gmail.com")
-        InputEditField("Số điện thoại", phoneText, { phoneText = it }, "0123456789")
-        InputEditField("Mật khẩu", passwordText, { passwordText = it }, "Mật khẩu", isPassword = true)
-        InputEditField("Nhập lại mật khẩu", repasswordText, { repasswordText = it }, "Nhập lại mật khẩu", isPassword = true)
+        InputEditField("Họ và tên", nameText, onNameChange, "")
+        InputEditField("Email", emailText, onEmailChange, "")
+        InputEditField("Số điện thoại", phoneText, onPhoneChange, "")
+        InputEditField("Địa chỉ", addressText, onAddressChange, "")
+        InputEditField("Mật khẩu", passwordText, onPasswordChange, "", isPassword = true)
+        InputEditField("Nhập lại mật khẩu", repasswordText, onRepasswordChange, "", isPassword = true)
+    }
+}
+
+@Composable
+fun AcceptEditButton(
+    userId: String,
+    name: String,
+    email: String,
+    phone: String,
+    address: String,
+    password: String,
+    repassword: String,
+    avatarURL: String,
+    role: String,
+    viewModel: UserViewModel,
+    navHostController: NavHostController
+) {
+    Button(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            if (password != repassword) {
+                println("Mật khẩu không khớp")
+            }
+            else {
+
+                val updateUser = UpdateUser(
+                    name = name,
+                    email = email,
+                    phone = phone,
+                    address = address,
+                    avatarURL = avatarURL,
+                    role = role,
+                    password = if (password.isBlank()) null else password
+                )
+
+                viewModel.updateUser(userId, updateUser)
+                navHostController.navigate("personal")
+            }
+        }
+    ) {
+        Text("Lưu thay đổi")
     }
 }
 
@@ -166,11 +271,4 @@ fun InputEditField(
             modifier = Modifier.fillMaxWidth()
         )
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun EditUserProfilePreview() {
-    val navHostController = rememberNavController()
-    EditUserProfile(navHostController = navHostController)
 }
