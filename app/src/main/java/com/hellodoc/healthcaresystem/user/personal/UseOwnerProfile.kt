@@ -198,7 +198,7 @@ fun PostUser(posts: List<PostResponse>) {
                         content = postItem.content
                     ),
                     footerItem = FooterItem(
-                        imageUrl = postItem.media.firstOrNull() ?: "https://default.image.url/no-image.jpg"
+                        imageUrl = postItem.imageUrls.firstOrNull() ?: "https://default.image.url/no-image.jpg"
                     )
                 )
                 Spacer(modifier = Modifier.height(12.dp))

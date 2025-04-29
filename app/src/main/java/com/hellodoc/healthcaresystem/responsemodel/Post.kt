@@ -5,9 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class PostResponse(
     val user: User,
     val content: String,
-    val media: List<String>,
-    val createdAt: String,
-    val updatedAt: String,
+    val imageUrls: List<String>,
     val userModel: String
 ) {
     data class User(
