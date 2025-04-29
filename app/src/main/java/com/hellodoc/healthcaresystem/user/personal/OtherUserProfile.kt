@@ -98,7 +98,7 @@ fun ProfileScreen(navHostController: NavHostController) {
     })
 
     var selectedTab by remember { mutableStateOf(0) }
-    var showWriteReviewScreen by remember { mutableStateOf(false) }
+    val showWriteReviewScreen = remember { mutableStateOf(false) }
     var doctorId by remember { mutableStateOf<String?>(null) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
@@ -115,10 +115,10 @@ fun ProfileScreen(navHostController: NavHostController) {
 
     Scaffold(
         bottomBar = {
-            if (!showWriteReviewScreen) {
+            if (!showWriteReviewScreen.value) {
                 when (selectedTab) {
                     0 -> BookingButton()
-                    1 -> WriteReviewButton { showWriteReviewScreen = true }
+                    1 -> WriteReviewButton { showWriteReviewScreen.value = true }
                 }
             }
         }
@@ -146,8 +146,7 @@ fun ProfileScreen(navHostController: NavHostController) {
                     doctor = doctor,
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
-                    showWriteReviewScreen = showWriteReviewScreen,
-                    onDismissWriteReview = { showWriteReviewScreen = false }
+                    showWriteReviewScreen = showWriteReviewScreen
                 )
             }
         }
@@ -295,8 +294,7 @@ fun OtherUserListScreen(
     doctor: GetDoctorResponse?,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    showWriteReviewScreen: Boolean = false,
-    onDismissWriteReview: () -> Unit = {}
+    showWriteReviewScreen: MutableState<Boolean>
 ) {
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
@@ -315,6 +313,10 @@ fun OtherUserListScreen(
     val currentUserId = jwt?.getClaim("userId")?.asString() ?: ""
     println("SharedPreferences lấy userId từ token: $currentUserId")
     var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
+    var editingReviewId by remember { mutableStateOf<String?>(null) }
+    var editingRating by remember { mutableStateOf<Int?>(null) }
+    var editingComment by remember { mutableStateOf<String?>(null) }
+
 
     Column {
         Column(
@@ -344,18 +346,38 @@ fun OtherUserListScreen(
             when (selectedTab) {
                 0 -> ViewIntroduce(doctor = doctor)
                 1 -> {
-                    if (showWriteReviewScreen) {
+                    if (showWriteReviewScreen.value) {
                         WriteReviewScreen(
                             doctorId = doctor?.id ?: "",
-                            userId = currentUserId, // lấy từ sharedPreferences hoặc navController
-                            onBackClick = onDismissWriteReview,
+                            userId = currentUserId,
+                            initialRating = editingRating,
+                            initialComment = editingComment,
+                            reviewId = editingReviewId,
+                            onBackClick = {
+                                showWriteReviewScreen.value = false
+                                editingReviewId = null
+                                editingRating = null
+                                editingComment = null
+                            },
                             onSubmitClick = { _, _ ->
                                 refreshReviewsTrigger = !refreshReviewsTrigger
-                                onDismissWriteReview()
+                                showWriteReviewScreen.value = false
+                                editingReviewId = null
+                                editingRating = null
+                                editingComment = null
                             }
                         )
                     } else {
-                        ViewRating(doctorId = doctor?.id ?: "", refreshTrigger = refreshReviewsTrigger)
+                        ViewRating(
+                            doctorId = doctor?.id ?: "",
+                            refreshTrigger = refreshReviewsTrigger,
+                            onEditReview = { reviewId, rating, comment ->
+                                editingReviewId = reviewId
+                                editingRating = rating
+                                editingComment = comment
+                                showWriteReviewScreen.value = true
+                            }
+                        )
                     }
                 }
                 2 -> PostColumn()

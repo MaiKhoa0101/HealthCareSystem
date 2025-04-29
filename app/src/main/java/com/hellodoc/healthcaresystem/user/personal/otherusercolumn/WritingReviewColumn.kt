@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.hellodoc.healthcaresystem.requestmodel.ReviewRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdateReviewRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
@@ -47,11 +48,15 @@ import kotlinx.coroutines.launch
 fun WriteReviewScreen(
     doctorId: String,
     userId: String,
+    initialRating: Int? = null,
+    initialComment: String? = null,
+    reviewId: String? = null,
     onBackClick: () -> Unit = {},
     onSubmitClick: (Int, String) -> Unit = { _, _ -> }
 ) {
-    var selectedStar by remember { mutableStateOf(5) }
-    var commentText by remember { mutableStateOf("") }
+    var selectedStar by remember { mutableStateOf(initialRating ?: 5) }
+    var commentText by remember { mutableStateOf(initialComment ?: "") }
+
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -162,20 +167,28 @@ fun WriteReviewScreen(
                 onClick = {
                     coroutineScope.launch {
                         try {
-                            val reviewRequest = ReviewRequest(
-                                userId = userId,
-                                doctorId = doctorId,
-                                rating = selectedStar,
-                                comment = commentText
-                            )
-                            println("Request gửi: userId=$userId, doctorId=$doctorId, rating=$selectedStar, comment=$commentText")
-
-                            val response = RetrofitInstance.reviewService.createReview(reviewRequest)
-
-                            if (response.isSuccessful && response.body() != null) {
-                                onSubmitClick(selectedStar, commentText)
+                            if (reviewId == null) {
+                                // Tạo mới
+                                val reviewRequest = ReviewRequest(
+                                    userId = userId,
+                                    doctorId = doctorId,
+                                    rating = selectedStar,
+                                    comment = commentText
+                                )
+                                val response = RetrofitInstance.reviewService.createReview(reviewRequest)
+                                if (response.isSuccessful && response.body() != null) {
+                                    onSubmitClick(selectedStar, commentText)
+                                }
                             } else {
-                                println("Đăng review thất bại: ${response.errorBody()?.string()}")
+                                // Sửa review
+                                val updateRequest = UpdateReviewRequest(
+                                    rating = selectedStar,
+                                    comment = commentText
+                                )
+                                val response = RetrofitInstance.reviewService.updateReview(reviewId, updateRequest)
+                                if (response.isSuccessful) {
+                                    onSubmitClick(selectedStar, commentText)
+                                }
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
