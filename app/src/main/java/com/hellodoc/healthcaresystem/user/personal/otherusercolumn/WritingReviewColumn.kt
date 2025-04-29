@@ -178,6 +178,9 @@ fun WriteReviewScreen(
                                 val response = RetrofitInstance.reviewService.createReview(reviewRequest)
                                 if (response.isSuccessful && response.body() != null) {
                                     onSubmitClick(selectedStar, commentText)
+                                } else {
+                                    // Nếu lỗi vẫn phải đóng màn sửa
+                                    onSubmitClick(selectedStar, commentText)
                                 }
                             } else {
                                 // Sửa review
@@ -186,12 +189,16 @@ fun WriteReviewScreen(
                                     comment = commentText
                                 )
                                 val response = RetrofitInstance.reviewService.updateReview(reviewId, updateRequest)
-                                if (response.isSuccessful) {
+                                if (response.isSuccessful && response.body() != null) {
+                                    onSubmitClick(selectedStar, commentText)
+                                } else {
+                                    // Nếu lỗi vẫn phải đóng màn sửa
                                     onSubmitClick(selectedStar, commentText)
                                 }
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            onSubmitClick(selectedStar, commentText)
                         }
                     }
                 },

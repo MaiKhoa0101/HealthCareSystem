@@ -311,7 +311,6 @@ fun OtherUserListScreen(
     }
 
     val currentUserId = jwt?.getClaim("userId")?.asString() ?: ""
-    println("SharedPreferences lấy userId từ token: $currentUserId")
     var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
     var editingReviewId by remember { mutableStateOf<String?>(null) }
     var editingRating by remember { mutableStateOf<Int?>(null) }
