@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.api.PostResponse
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,33 +23,47 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class PostViewModel(sharedPreferences: SharedPreferences) : ViewModel() {
-    private val _posts = mutableStateOf<List<PostResponse>>(emptyList())
-    val posts: State<List<PostResponse>> = _posts
+class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+    private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
+    val posts: StateFlow<List<PostResponse>> get()= _posts
 
-    private val _createPostResponse = MutableLiveData<CreatePostResponse>()
-    val postResponse: LiveData<CreatePostResponse> get() = _createPostResponse
+    fun getAllPosts(){
+        viewModelScope.launch {
+            try {
+                val result = RetrofitInstance.postService.getAllPosts()
+                if (result.isSuccessful) {
+                    _posts.value = result.body() ?: emptyList()
+                } else {
+                    println("Lỗi API: ${result.errorBody()?.string()}")
+                }
 
-    init {
-        fetchPosts()
+            } catch (e: Exception) {
+                println("Lỗi ở getPostById")
+                Log.e("Post: ", "Lỗi khi lấy Post: ${e.message}")
+            }
+        }
     }
 
-    private fun fetchPosts() {
-        RetrofitInstance.postService.getPosts().enqueue(object : Callback<List<PostResponse>> {
-            override fun onResponse(
-                call: Call<List<PostResponse>>,
-                response: Response<List<PostResponse>>
-            ) {
-                if (response.isSuccessful) {
-                    _posts.value = response.body() ?: emptyList()
-                }
-            }
+    fun getUserById(id:String) {
+        viewModelScope.launch {
+            try {
+                println("ID nhận được để lấy post: " + id)
+                val result = RetrofitInstance.postService.getPostById(id)
 
-            override fun onFailure(call: Call<List<PostResponse>>, t: Throwable) {
-                Log.e("PostViewModel", "Failed to load posts", t)
-            }
-        })
+                if (result.isSuccessful) {
+                    _posts.value = result.body() ?: emptyList()
+                    println("Kets qua: "+_posts.value)
+                } else {
+                    println("Lỗi API: ${result.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                println("Lỗi ở getPostById")
+                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
+        }
     }
 
     fun createPost(request: CreatePostRequest, context: Context) {

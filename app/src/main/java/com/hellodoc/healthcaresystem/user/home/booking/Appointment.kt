@@ -37,15 +37,17 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
-    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
-    })
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
-    val appointments by appointViewModel.appointments.collectAsState()
-    val user by userViewModel.user.collectAsState()
+    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
+        initializer { AppointmentViewModel(sharedPreferences) }
+    })
+
+    val appointmentsUser by appointmentViewModel.appointmentsUser.collectAsState()
+    val appointmentsDoc by appointmentViewModel.appointmentsDoctor.collectAsState()
+
     val token = sharedPreferences.getString("access_token", null)
 
     val jwt = remember(token) {
@@ -62,22 +64,31 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
     LaunchedEffect(userId) {
         userId?.let {
             userViewModel.getUser(it)
-            appointViewModel.getAppointment(it)
+            appointmentViewModel.getAppointmentUser(it)
+            appointmentViewModel.getAppointmentDoctor(it)
         }
     }
+
 
     if (userId == null) {
         Text("Token không hợp lệ hoặc userId không tồn tại.")
         return
     }
 
-    AppointmentScreenUI(appointments)
+    AppointmentScreenUI(appointmentsUser,appointmentsDoc, userId)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentScreenUI(appointments: List<AppointmentResponse>) {
+fun AppointmentScreenUI(
+    appointmentsUser: List<AppointmentResponse>,
+    appointmentsDoc: List<AppointmentResponse>,
+    userID: String
+) {
+    var roleSelectedTab by remember { mutableStateOf(0) }
     var selectedTab by remember { mutableStateOf(0) }
+
+    val roles = listOf("Đã đặt", "Được đặt")
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
 
     Column(
@@ -100,6 +111,28 @@ fun AppointmentScreenUI(appointments: List<AppointmentResponse>) {
                 .fillMaxSize()
                 .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
         ) {
+            // Tabs chọn Vai trò
+            TabRow(
+                selectedTabIndex = roleSelectedTab,
+                containerColor = Color.Transparent,
+                contentColor = Color.Black,
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                roles.forEachIndexed { index, title ->
+                    Tab(
+                        selected = roleSelectedTab == index,
+                        onClick = { roleSelectedTab = index },
+                        text = {
+                            Text(
+                                text = title,
+                                fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    )
+                }
+            }
+
+            // Tabs chọn Trạng thái
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.Transparent,
@@ -120,13 +153,22 @@ fun AppointmentScreenUI(appointments: List<AppointmentResponse>) {
                 }
             }
 
-            val filteredAppointments = when (selectedTab) {
-                0 -> appointments.filter { it.status == "pending" }
-                1 -> appointments.filter { it.status == "done" }
-                2 -> appointments.filter { it.status == "cancelled" }
-                else -> appointments
+            // ✅ Chọn lịch theo VAI TRÒ
+            val appointmentsRole = when (roleSelectedTab) {
+                0 -> appointmentsUser // Vai trò "Đã đặt" (User đặt lịch)
+                1 -> appointmentsDoc  // Vai trò "Được đặt" (Doctor được đặt lịch)
+                else -> appointmentsUser
             }
 
+            // ✅ Lọc theo TRẠNG THÁI
+            val filteredAppointments = when (selectedTab) {
+                0 -> appointmentsRole.filter { it.status == "pending" }
+                1 -> appointmentsRole.filter { it.status == "done" }
+                2 -> appointmentsRole.filter { it.status == "cancelled" }
+                else -> appointmentsRole
+            }
+
+            // ✅ Hiển thị
             LazyColumn {
                 items(filteredAppointments) { appointment ->
                     AppointmentCard(appointment)
