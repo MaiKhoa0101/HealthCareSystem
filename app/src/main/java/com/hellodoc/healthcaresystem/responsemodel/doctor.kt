@@ -7,6 +7,7 @@ data class GetDoctorResponse (
     @SerializedName("role") val role: String,
     @SerializedName("email") val email: String,
     @SerializedName("name") val name: String,
+    val address: String,
     @SerializedName("phone") val phone: String,
     @SerializedName("password") val password: String,
     @SerializedName("specialty") val specialty: Specialty

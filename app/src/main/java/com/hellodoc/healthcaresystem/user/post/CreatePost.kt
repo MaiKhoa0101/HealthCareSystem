@@ -112,8 +112,6 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 onPost = {
                     postViewModel.createPost(CreatePostRequest(userId, postText, selectedImageUri), context)
                     navController.navigate("personal")
-//                    Log.d("PostScreen", "Selected content: $postText")
-//                    Log.d("PostScreen", "Selected Image URIs: $selectedImageUri")
                 }
             )
         }
@@ -142,25 +140,11 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                             modifier = Modifier
                                 .size(200.dp)
                         ) {
-//                            if (isVideoUri(uri)) {
-//                                AndroidView(
-//                                    factory = { ctx ->
-//                                        val videoView = VideoView(ctx)
-//                                        videoView.setVideoURI(uri)
-//                                        videoView.setOnPreparedListener { mediaPlayer ->
-//                                            mediaPlayer.isLooping = true
-//                                            videoView.start()
-//                                        }
-//                                        videoView
-//                                    },
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
-//                            }
-                                Image(
-                                    painter = rememberAsyncImagePainter(uri),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxSize()
+                            Image(
+                                painter = rememberAsyncImagePainter(uri),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
                                         .clip(RoundedCornerShape(8.dp)),
                                     contentScale = ContentScale.Crop
                                 )
