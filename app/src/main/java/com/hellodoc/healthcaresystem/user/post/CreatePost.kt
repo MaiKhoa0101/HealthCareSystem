@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.post
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -35,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +54,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
@@ -61,51 +66,32 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
-import com.hellodoc.healthcaresystem.responsemodel.FooterItem
-import com.hellodoc.healthcaresystem.responsemodel.HeaderItem
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//@Composable
-//fun PostScreen(modifier: Modifier = Modifier){
-//    Column{
-//        Header(
-//            headerItem = HeaderItem(
-//                title = "Tạo bài viết",
-//                image = R.drawable.arrow_back,
-//                button = "Đăng"
-//            )
-//        )
-//        PostBody(
-//            containerPost = ContainerPost(
-//                image = R.drawable.img,
-//                name = "Khoa xinh gái",
-//                lable = "Hãy nói gì đó pbvm"
-//            )
-//        )
-//
-//        var showFileUpload by remember { mutableStateOf(false) }
-//        if (showFileUpload) {
-//            MultiFileUpload()
-//        }
-//        Footer(
-//            footerItem = FooterItem(
-//                name = "Thêm hình ảnh",
-//                image = R.drawable.folder_plus
-//            ),
-//            onImageClick = {
-//                showFileUpload = true
-//            }
-//        )
-//
-//    }
-//}
+var userId: String = ""
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
+fun PostScreen(context: Context, navController: NavHostController, modifier: Modifier = Modifier
 ) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+    }
+
     var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var postText by remember { mutableStateOf("") }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
@@ -113,15 +99,22 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
         selectedImageUri += uris
     }
 
-    LazyColumn {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray) // Đổi màu background ở đây
+    ) {
         item {
             Header(
                 navController = navController,
-                headerItem = HeaderItem(
-                    title = "Tạo bài viết",
-                    image = R.drawable.arrow_back,
-                    button = "Đăng"
-                )
+                postText = postText,
+                selectedImageUri = selectedImageUri,
+                onPost = {
+                    postViewModel.createPost(CreatePostRequest(userId, postText, selectedImageUri), context)
+                    navController.navigate("personal")
+//                    Log.d("PostScreen", "Selected content: $postText")
+//                    Log.d("PostScreen", "Selected Image URIs: $selectedImageUri")
+                }
             )
         }
         item {
@@ -130,7 +123,9 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
                     imageUrl = R.drawable.img.toString(),
                     name = "Khoa xinh gái",
                     lable = "Hãy nói gì đó ..."
-                )
+                ),
+                text = postText,
+                onTextChange = { postText = it }
             )
         }
         item {
@@ -196,10 +191,6 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
             }
 
             Footer(
-                footerItem = FooterItem(
-                    name = "Thêm hình ảnh",
-                    imageUrl = R.drawable.folder_plus.toString()
-                ),
                 onImageClick = {
                     photoPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
@@ -210,63 +201,67 @@ fun PostScreen(navController: NavHostController, modifier: Modifier = Modifier
     }
 }
 
-
-
 @Composable
 fun Header(
-    headerItem: HeaderItem,
     navController: NavHostController,
+    postText: String,
+    selectedImageUri: List<Uri>,
+    onPost: () -> Unit,
     modifier: Modifier = Modifier
 ){
     val backgroundColor = Color.Cyan
+    val isPostEnabled = postText.isNotBlank() || selectedImageUri.isNotEmpty()
+
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
-            .height(110.dp)
+            .height(60.dp)
             .fillMaxWidth()
+            .padding(horizontal = 10.dp)
     ) {
-        val horizontalGuideLine50 = createGuidelineFromTop(0.5f)
+        val horizontalGuideLine10 = createGuidelineFromTop(0.1f)
         val (iconImage, tvTitle, tvButt) = createRefs()
         Image(
-            painterResource(id = headerItem.image),
+            painterResource(id = R.drawable.arrow_back),
             contentDescription = null,
             modifier = Modifier
-                .size(40.dp)
+                .size(20.dp)
                 .clickable { navController.navigate("home") }
                 .constrainAs(iconImage){
-                    start.linkTo(parent.start, margin = 20.dp)
-                    top.linkTo(horizontalGuideLine50)
-//                height = Dimension.fillToConstraints //keo anh dai het height
+                    start.linkTo(parent.start, margin = 10.dp)
+                    top.linkTo(horizontalGuideLine10, margin = 10.dp)
                 },
         )
         Text(
-            headerItem.title,
+            text = "Tạo bài viết",
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 26.sp,
+                fontSize = 20.sp,
                 color = Color.Black
             ),
             modifier = Modifier.constrainAs(tvTitle){
-                top.linkTo(horizontalGuideLine50, margin = 5.dp)
+                top.linkTo(horizontalGuideLine10, margin = 10.dp)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }
         )
-        Button(onClick = {},
+        Button(
+            onClick = onPost,
+            enabled = isPostEnabled,
             shape = RoundedCornerShape(12.dp),
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier
                 .width(80.dp).height(40.dp)
                 .constrainAs(tvButt){
-                    top.linkTo(horizontalGuideLine50)
-                    end.linkTo(parent.end, margin = 10.dp)
+                    top.linkTo(horizontalGuideLine10)
+                    end.linkTo(parent.end, margin = 3.dp)
                 }) {
             Text(
-                headerItem.button,
+                text = "Đăng",
                 modifier= Modifier.padding(0.dp).fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 style = TextStyle(
-                    fontSize = 18.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 ),
                 maxLines = 1,
@@ -278,6 +273,8 @@ fun Header(
 @Composable
 fun PostBody(
     containerPost: ContainerPost,
+    text: String,
+    onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ){
     val backgroundColor = Color.White
@@ -315,7 +312,8 @@ fun PostBody(
             }
         )
         OutlineTextField(
-            containerPost = containerPost,
+            text = text,
+            onTextChange = onTextChange,
             modifier = Modifier.constrainAs(textField) {
                 top.linkTo(iconImage.bottom)
                 start.linkTo(parent.start)
@@ -327,7 +325,6 @@ fun PostBody(
 
 @Composable
 fun Footer(
-    footerItem: FooterItem,
     modifier: Modifier = Modifier,
     onImageClick: () -> Unit
 ){
@@ -336,6 +333,7 @@ fun Footer(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
             .fillMaxSize()
+            .height(250.dp)
     ) {
         val horizontalGuideLine30 = createGuidelineFromTop(0.3f)
         val (iconImage, tvTitle, topLine) = createRefs()
@@ -352,7 +350,7 @@ fun Footer(
                 }
         )
         Image(
-            painter = rememberAsyncImagePainter(footerItem.imageUrl),
+            painter = painterResource(id = R.drawable.ic_attach_file),
             contentDescription = null,
             modifier = Modifier
                 .size(70.dp)
@@ -365,7 +363,7 @@ fun Footer(
                 },
         )
         Text(
-            footerItem.name,
+            text = "Thêm hình ảnh",
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
@@ -378,6 +376,41 @@ fun Footer(
             }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OutlineTextField(
+    text: String,
+    onTextChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+){
+    OutlinedTextField(
+        value = text,
+        onValueChange = { newValue ->
+            onTextChange(newValue)
+        },
+        placeholder = {
+            Text(
+                text = "Hãy nói gì đó ...",
+                color = Color.Gray
+            )
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+        maxLines = 10,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            unfocusedPlaceholderColor = Color.Gray,
+            errorPlaceholderColor = Color.Gray,
+            disabledPlaceholderColor = Color.Gray,
+            focusedPlaceholderColor = Color.Gray,
+            unfocusedBorderColor = Color.Transparent,
+            focusedBorderColor = Color.Transparent,
+            disabledBorderColor = Color.Transparent,
+            errorBorderColor = Color.Transparent
+        )
+    )
 }
 
 @Composable
@@ -465,35 +498,4 @@ fun FileUpload(){
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun OutlineTextField(
-    containerPost: ContainerPost,
-    modifier: Modifier = Modifier
-){
-    var text by remember {
-        mutableStateOf("")
-    }
-    OutlinedTextField(
-        value = text,
-        onValueChange = { newValue ->
-            text = newValue
-        },
-        placeholder = { Text(containerPost.lable) },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        maxLines = 10,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            unfocusedPlaceholderColor = Color.Gray,
-            errorPlaceholderColor = Color.Gray,
-            disabledPlaceholderColor = Color.Gray,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent,
-            errorBorderColor = Color.Transparent
-        )
-    )
-}
 

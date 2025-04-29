@@ -1,0 +1,10 @@
+package com.hellodoc.healthcaresystem.requestmodel
+
+import android.net.Uri
+
+data class CreatePostRequest(
+    val userId: String,
+    val content: String,
+    val images: List<Uri>? // List các ảnh, mỗi ảnh là một Uri
+)
+

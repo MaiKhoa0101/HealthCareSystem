@@ -3,8 +3,7 @@ package com.hellodoc.healthcaresystem.responsemodel
 import com.google.gson.annotations.SerializedName
 
 data class AppointmentResponse(
-    @SerializedName("_id")
-    val id: String,
+    @SerializedName("_id") val id: String,
     val doctor: Doctor,
     val patientModel: String,
     val patient: Patient,
@@ -12,9 +11,7 @@ data class AppointmentResponse(
     val time: String,
     val status: String,
     val examinationMethod: String,
-    //val reason: String,
     val notes: String,
-    val totalCost: String,
     val location: String,
     val createdAt: String,
     val updatedAt: String,

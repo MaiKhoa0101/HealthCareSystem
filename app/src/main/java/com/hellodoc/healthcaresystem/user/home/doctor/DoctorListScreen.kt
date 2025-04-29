@@ -186,6 +186,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
                         set("doctorName", doctor.name)
+                        set("doctorAddress", doctor.address)
                         set("specialtyName", specialtyName)
                     }
                     navHostController.navigate("booking") },

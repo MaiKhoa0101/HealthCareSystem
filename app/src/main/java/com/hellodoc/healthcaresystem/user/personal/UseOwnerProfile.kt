@@ -1,4 +1,5 @@
 package com.hellodoc.healthcaresystem.user.personal
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -33,11 +35,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -46,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
@@ -54,8 +59,27 @@ import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewProfileUserPage() {
+    // Fake SharedPreferences
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
+
+    // Fake NavController
+    val navController = rememberNavController()
+
+    ProfileUserPage(
+        sharedPreferences = sharedPreferences,
+        navHostController = navController
+    )
+}
+
 
 @Composable
 fun ProfileUserPage(
@@ -66,6 +90,11 @@ fun ProfileUserPage(
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
+
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
+    val post by postViewModel.posts.collectAsState()
 
     val token = sharedPreferences.getString("access_token", null)
 
@@ -80,18 +109,16 @@ fun ProfileUserPage(
 
     val userId = jwt?.getClaim("userId")?.asString()
 
-    println("ID của user lấy đựơc là:"+userId.toString())
-
     // Gọi API để fetch user từ server
     LaunchedEffect(userId) {
         userId?.let {
             userViewModel.getUser(it)
+            postViewModel.getUserById(it)
         }
 
     }
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
-
     // Nếu chưa có user (null) thì không hiển thị giao diện
     if (user == null) {
         println("user == null")
@@ -106,7 +133,7 @@ fun ProfileUserPage(
             ProfileSection(navHostController, user!!)
         }
         item {
-            PostUser()
+            PostUser(post)
         }
     }
 }
@@ -131,7 +158,7 @@ fun ProfileSection(navHostController: NavHostController, user: User) {
 
 
 @Composable
-fun PostUser() {
+fun PostUser(posts: List<PostResponse>) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -150,19 +177,33 @@ fun PostUser() {
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
+        println("San pham lay duoc post: "+posts)
 
-        ViewPostOwner(
-            containerPost = ContainerPost(
-                imageUrl = R.drawable.doctor.toString(),
-                name = "Khoa xinh gái"
-            ),
-            contentPost = ContentPost(
-                content = "bla bla bla bla bla bla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla bla bla bla bla blabla..."
-            ),
-            footerItem = FooterItem(
-                imageUrl = R.drawable.doctor.toString()
+        // Nếu không có bài viết thì hiển thị Empty
+        if (posts.isEmpty()) {
+            Text(
+                text = "Chưa có bài viết nào.",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 16.sp,
+                color = Color.Gray
             )
-        )
+        } else {
+            posts.forEach { postItem ->
+                ViewPostOwner(
+                    containerPost = ContainerPost(
+                        imageUrl = postItem.user.avatarURL ?: "https://default.avatar.url/no-avatar.jpg",
+                        name = postItem.user.name
+                    ),
+                    contentPost = ContentPost(
+                        content = postItem.content
+                    ),
+                    footerItem = FooterItem(
+                        imageUrl = postItem.media.firstOrNull() ?: "https://default.image.url/no-image.jpg"
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
     }
 }
 
@@ -246,42 +287,42 @@ fun ViewPostOwner(
 ) {
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
-
-    ConstraintLayout(
+    println ("footer item: "+footerItem)
+    Column(
         modifier = modifier
             .background(backgroundColor, RectangleShape)
             .fillMaxWidth()
             .wrapContentHeight()
+            .padding(10.dp)
     ) {
-        val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
-        val (iconImage, tvName, textField, readMore, sImage) = createRefs()
+        // Row for Avatar and Name
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar
+            AsyncImage(
+                model = containerPost.imageUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(CircleShape)
+            )
 
-        Image(
-            painter = rememberAsyncImagePainter(containerPost.imageUrl),
-            contentDescription = null,
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(45.dp)
-                .constrainAs(iconImage) {
-                    start.linkTo(parent.start, margin = 20.dp)
-                    top.linkTo(horizontalGuideLine50)
-                },
-            contentScale = ContentScale.Crop
-        )
+            // Name
+            Text(
+                text = containerPost.name,
+                style = TextStyle(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                ),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+            )
+        }
 
-        Text(
-            text = containerPost.name,
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Color.Black
-            ),
-            modifier = Modifier.constrainAs(tvName) {
-                top.linkTo(horizontalGuideLine50, margin = 5.dp)
-                start.linkTo(iconImage.end, margin = 10.dp)
-            }
-        )
-
+        // Content bài viết
         Text(
             text = contentPost.content,
             style = TextStyle(
@@ -289,42 +330,36 @@ fun ViewPostOwner(
                 fontSize = 16.sp,
                 color = Color.Black
             ),
-            modifier = Modifier.constrainAs(textField) {
-                top.linkTo(iconImage.bottom, margin = 20.dp)
-                start.linkTo(iconImage.start)
-                end.linkTo(parent.end, margin = 20.dp)
-                width = Dimension.fillToConstraints
-            },
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
             maxLines = if (expanded) Int.MAX_VALUE else 2,
             overflow = TextOverflow.Ellipsis
         )
 
+        // Nút "Xem thêm" / "Thu gọn"
         Text(
             text = if (expanded) "Thu gọn" else "Xem thêm",
             color = Color.Blue,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .constrainAs(readMore) {
-                    top.linkTo(textField.bottom, margin = 4.dp)
-                    start.linkTo(textField.start)
-                }
                 .clickable { expanded = !expanded }
+                .padding(top = 4.dp)
         )
 
-        Image(
-            painter = rememberAsyncImagePainter(footerItem.imageUrl),
+        AsyncImage(
+            model = footerItem.imageUrl,
             contentDescription = "Post Image",
             modifier = Modifier
-                .height(360.dp)
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
                 .background(Color.LightGray)
-                .constrainAs(sImage) {
-                    top.linkTo(readMore.bottom, margin = 20.dp)
-                    start.linkTo(parent.start)
-                }
         )
+
     }
 }
+
+
 
 
