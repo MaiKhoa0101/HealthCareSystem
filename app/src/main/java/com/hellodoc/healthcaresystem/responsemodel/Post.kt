@@ -17,3 +17,9 @@ data class PostResponse(
         val avatarURL: String?
     )
 }
+
+data class CreatePostResponse(
+    val user: String,
+    val content: String,
+    val imageUrls: List<String>
+)

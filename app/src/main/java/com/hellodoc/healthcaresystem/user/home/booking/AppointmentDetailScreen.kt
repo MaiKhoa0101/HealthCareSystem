@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,12 +36,14 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-var doctorId: String = "6801d65463ce9bae94579cfe"
+var doctorId: String = ""
 var doctorName: String = ""
+var doctorAddress: String = ""
 var specialtyName: String = ""
 var patientID: String = ""
 var patientName: String = ""
 var patientPhone: String = ""
+var patientAddress: String = ""
 var date: String = "" // Ví dụ: "20/04/2025"
 var time: String = "" // Ví dụ: "14:30"
 //var status: String = "pending" // pending/confirmed/cancelled
@@ -56,9 +59,13 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         initializer { UserViewModel(sharedPreferences) }
     })
 
+    // Biến trạng thái kiểm tra đã load xong data chưa
+    var isDataLoaded by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         patientName = userViewModel.getUserAttributeString("name")
         patientPhone = userViewModel.getUserAttributeString("phone")
+        patientAddress = userViewModel.getUserAttributeString("address")
         patientID = userViewModel.getUserAttributeString("userId")
     }
 
@@ -70,49 +77,58 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<String>("doctorName")?.let {
             doctorName = it
         }
+        savedStateHandle?.get<String>("doctorAddress")?.let {
+            doctorAddress = it
+        }
         savedStateHandle?.get<String>("specialtyName")?.let {
             specialtyName = it
         }
+
+        isDataLoaded = true
     }
-    Column(modifier = Modifier
-        .fillMaxSize()
-    ) {
-        val examinationMethod = remember { mutableStateOf("") }
-        var notes by remember { mutableStateOf("") }
-        TopBar(title="Chi tiết lịch hẹn khám",onClick = { navHostController.popBackStack() })
-        LazyColumn(
+
+    if (isDataLoaded && patientID.isNotBlank() && doctorId.isNotBlank()) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF4F5F7))
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                DoctorInfoSection()
-            }
+            val examinationMethod = remember { mutableStateOf("") }
+            var notes by remember { mutableStateOf("") }
+            TopBar(title = "Chi tiết lịch hẹn khám", onClick = { navHostController.popBackStack() })
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F5F7))
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    DoctorInfoSection()
+                }
 
-            item {
-                PatientInfoSection()
-            }
+                item {
+                    PatientInfoSection()
+                }
 
-            item {
-                VisitMethodSection(examinationMethod)
-            }
+                item {
+                    VisitMethodSection(examinationMethod)
+                }
 
-            item {
-                AppointmentDateSection(navHostController)
-            }
+                item {
+                    AppointmentDateSection(navHostController)
+                }
 
-            item {
-                NoteToDoctorSection(notes, onNoteChange = { notes = it })
-            }
+                item {
+                    NoteToDoctorSection(notes, onNoteChange = { notes = it })
+                }
 
-            item {
-                FeeSummarySection()
-            }
+                item {
+                    FeeSummarySection()
+                }
 
-            item {
-                BookButton(navHostController, sharedPreferences, examinationMethod, notes)
+                item {
+                    BookButton(navHostController, sharedPreferences, examinationMethod, notes)
+                }
             }
         }
     }
@@ -281,10 +297,17 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
             verticalArrangement = Arrangement.Center
         ) {
             Text("Khám tại phòng khám", fontWeight = FontWeight.Bold)
-            Text(
-                "Địa chỉ: Số 69, đường số 7, phường TCH, quận 13, tp HCM",
-                fontSize = 13.sp
-            )
+            Row {
+                Text(
+                    "Địa chỉ:",
+                    fontSize = 13.sp
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    doctorAddress,
+                    fontSize = 13.sp
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -307,10 +330,17 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
 
                 .weight(1f)) {
                 Text("Khám tại nhà", fontWeight = FontWeight.Bold)
-                Text(
-                    "Địa chỉ: Số 6, đường số 6, phường TCH, quận 12, tp HCM",
-                    fontSize = 13.sp,
-                )
+                Row {
+                    Text(
+                        "Địa chỉ:",
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(
+                        patientAddress,
+                        fontSize = 13.sp
+                    )
+                }
             }
             Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
         }
@@ -404,7 +434,7 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
 @Composable
 fun FeeSummarySection() {
     CardSection(title = "Chi phí khám tại phòng khám") {
-        InfoRow("Voucher dịch vụ", "-15.000đ", Color.Red)
+        InfoRow("Voucher dịch vụ", "0đ", Color.Red)
         InfoRow("Giá dịch vụ", "0đ")
         InfoRow("Tạm tính giá tiền", "0đ", fontWeight = FontWeight.Bold)
     }
@@ -492,13 +522,35 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun InfoRow(label: String, value: String, valueColor: Color = Color.Black, fontWeight: FontWeight = FontWeight.Normal) {
+fun InfoRow(
+    label: String,
+    value: String,
+    valueColor: Color = Color.Black,
+    fontWeight: FontWeight = FontWeight.Normal
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Text(label)
-        Text(value, color = valueColor, fontWeight = fontWeight)
+        Text(
+            text = label,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+        )
+        Text(
+            text = value,
+            color = valueColor,
+            fontWeight = fontWeight,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp),
+            softWrap = true
+        )
     }
 }
 

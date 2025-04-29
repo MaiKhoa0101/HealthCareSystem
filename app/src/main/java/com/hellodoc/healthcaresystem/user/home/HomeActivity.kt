@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-
+import androidx.compose.ui.platform.LocalContext
 
 
 import androidx.navigation.NavHostController
@@ -54,7 +54,9 @@ class HomeActivity : BaseActivity() {
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             HealthCareSystemTheme {
+                val context = LocalContext.current
                 Index(
+                    context = context,
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences
                 )
@@ -66,7 +68,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun Index(
-
+        context: Context,
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
         sharedPreferences: SharedPreferences
@@ -90,7 +92,7 @@ class HomeActivity : BaseActivity() {
             }
         ) { paddingValues ->
             NavigationHost(
-
+                context = context,
                 navHostController = navHostController,
                 sharedPreferences = sharedPreferences,
                 modifier = Modifier.padding(paddingValues)
@@ -101,7 +103,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun NavigationHost(
-
+        context: Context,
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         modifier: Modifier = Modifier,
@@ -138,7 +140,7 @@ class HomeActivity : BaseActivity() {
                 ProfileUserPage(sharedPreferences,navHostController)
             }
             composable("create_post") {
-                PostScreen(navHostController)
+                PostScreen(context, navHostController)
             }
             composable("editProfile") {
                 EditUserProfile(navHostController)

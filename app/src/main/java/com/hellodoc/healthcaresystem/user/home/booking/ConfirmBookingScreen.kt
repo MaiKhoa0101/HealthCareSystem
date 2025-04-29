@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,7 +78,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
             Spacer(modifier = Modifier.height(12.dp))
 
             Column(modifier = Modifier.padding(start = 8.dp)) {
-                InfoText(label = "Họ và tên Bệnh nhân:", value = "Nguyễn Văn Tèo")
+                InfoText(label = "Họ và tên Bệnh nhân:", value = patientName)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Bác sĩ đặt khám:", value = doctorName)
                 Spacer(modifier = Modifier.height(24.dp))
@@ -85,29 +86,21 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Giờ đặt khám:", value = time)
                 Spacer(modifier = Modifier.height(24.dp))
-                val address = if (examinationMethod == "at_clinic") {
-                    "Khám tại phòng khám"
+                var method = ""
+                if (examinationMethod == "at_clinic") {
+                    method = "Khám tại phòng khám"
+                    location = doctorAddress
                 } else {
-                    "Khám tại nhà"
+                    method = "Khám tại nhà"
+                    location = patientAddress
                 }
-                InfoText(label = "Địa chỉ khám:", value = address)
+                InfoText(label = "Phương thức khám:", value = method)
+                Spacer(modifier = Modifier.height(24.dp))
+                InfoText(label = "Địa chỉ khám:", value = location)
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Mã dịch vụ:", value = "342h59wrt7")
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Tổng phí
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF2F2F2), RoundedCornerShape(8.dp))
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Tổng phí phải trả:", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.weight(1f))
-                Text("$totalCost đ", fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(24.dp))
+                InfoText(label = "Tổng phí phải trả:", value = "$totalCost đ")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -233,11 +226,22 @@ private fun navigateToAppointment(context: Context) {
 fun InfoText(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically // Đảm bảo các phần tử căn chỉnh theo chiều dọc
     ) {
-        Text(text = label)
-//        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = value, fontWeight = FontWeight.Medium)
+        // Label sẽ ở sát bên trái
+        Text(text = label, modifier = Modifier.weight(1f))
+
+        // Value sẽ ở sát bên phải và có thể xuống dòng nếu cần
+        Text(
+            text = value,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .weight(1f) // Đảm bảo phần tử này chiếm không gian còn lại
+                .fillMaxWidth(), // Đảm bảo value sử dụng hết không gian có sẵn
+            maxLines = Int.MAX_VALUE, // Cho phép value xuống dòng khi dài
+            overflow = TextOverflow.Clip // Không dùng ba chấm mà chỉ cắt trực tiếp nếu không vừa
+        )
     }
 }
 
