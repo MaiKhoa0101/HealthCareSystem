@@ -649,11 +649,20 @@ fun ReviewItem(review: ReviewResponse) {
                 offset = DpOffset((-16).dp, 0.dp)
             ) {
                 DropdownMenuItem(
-                    text = { Text("Tố cáo") },
+                    text = {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("Xóa")
+                        }
+                    },
                     onClick = { showMenu = false }
                 )
+                Divider(thickness = 1.dp, color = Color.LightGray)
                 DropdownMenuItem(
-                    text = { Text("Ẩn bài viết") },
+                    text = {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("Sửa")
+                        }
+                    },
                     onClick = { showMenu = false }
                 )
             }
