@@ -10,7 +10,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hellodoc.healthcaresystem.api.PostResponse
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
@@ -29,6 +28,9 @@ import kotlinx.coroutines.flow.StateFlow
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> get()= _posts
+
+    private val _createPostResponse = MutableLiveData<CreatePostResponse>()
+    val postResponse: LiveData<CreatePostResponse> get() = _createPostResponse
 
     fun getAllPosts(){
         viewModelScope.launch {
