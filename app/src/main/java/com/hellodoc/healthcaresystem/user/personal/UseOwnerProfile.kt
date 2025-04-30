@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal
 import android.content.Context
 import android.content.SharedPreferences
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,8 +68,10 @@ import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.api.CommentItem
+import com.hellodoc.healthcaresystem.api.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -136,6 +139,9 @@ fun ProfileUserPage(
         return
     }
     var showReportDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier.fillMaxSize()) {
@@ -237,7 +243,28 @@ fun ProfileUserPage(
                         )
 
                         Button(onClick = {
-                            // TODO: Gửi báo cáo đến server
+                            coroutineScope.launch {
+                                try {
+                                    val model = if (user!!.role.lowercase() == "doctor") "Doctor" else "User"
+                                    val response = RetrofitInstance.reportService.sendReport(
+                                        ReportRequest(
+                                            reporter = user!!.id,
+                                            reporterModel = model,
+                                            content = reportContent,
+                                            type = selectedType
+                                        )
+                                    )
+
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(context, "Đã gửi báo cáo thành công", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Gửi báo cáo thất bại", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Lỗi kết nối đến server", Toast.LENGTH_SHORT).show()
+                                    e.printStackTrace()
+                                }
+                            }
                             showReportDialog = false
                         }) {
                             Text("Gửi báo cáo")
