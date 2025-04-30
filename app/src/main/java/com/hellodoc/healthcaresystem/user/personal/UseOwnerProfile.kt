@@ -214,7 +214,8 @@ fun PostUser(
                     contentPost = ContentPost(postItem.content),
                     footerItem = FooterItem(imageUrl = postItem.media.firstOrNull() ?: ""),
                     postViewModel = postViewModel,
-                    currentUserId = userId ?: ""
+                    currentUserId = userId ?: "",
+                    likedUserIds = postItem.likes
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -300,6 +301,7 @@ fun ViewPostOwner(
     footerItem: FooterItem,
     postViewModel: PostViewModel,
     currentUserId: String,
+    likedUserIds: List<String>,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
@@ -308,7 +310,9 @@ fun ViewPostOwner(
     var newComment by remember { mutableStateOf("") }
     val commentsState = remember { mutableStateOf<List<CommentItem>>(emptyList()) }
     var shouldFetchComments by remember { mutableStateOf(false) }
-    var isLiked by remember { mutableStateOf(false) }
+    var isLiked by remember(postId) {
+        mutableStateOf(currentUserId in likedUserIds)
+    }
 
     val coroutineScope = rememberCoroutineScope()
 

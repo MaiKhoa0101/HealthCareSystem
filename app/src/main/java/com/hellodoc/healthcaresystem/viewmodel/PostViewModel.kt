@@ -119,7 +119,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     postId, mapOf("userId" to userId)
                 )
                 if (response.isSuccessful) {
-                    getAllPosts() // refresh
+                    getUserById(userId) // chỉ refresh bài viết của đúng user đang xem
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Like Post Error", e)

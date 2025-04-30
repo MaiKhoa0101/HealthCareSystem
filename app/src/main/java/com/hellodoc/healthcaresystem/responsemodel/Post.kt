@@ -8,7 +8,8 @@ data class PostResponse(
     val user: User,
     val content: String,
     val media: List<String>,
-    val userModel: String
+    val userModel: String,
+    val likes: List<String> // danh sách userId đã like bài này
 ) {
     data class User(
         @SerializedName("_id")
