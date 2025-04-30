@@ -375,6 +375,9 @@ fun OtherUserListScreen(
                                 editingRating = rating
                                 editingComment = comment
                                 showWriteReviewScreen.value = true
+                            },
+                            onDeleteReview = {
+                                refreshReviewsTrigger = !refreshReviewsTrigger
                             }
                         )
                     }
