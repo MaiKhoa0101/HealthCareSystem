@@ -17,10 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.modeluser.ContentTitle
 import com.hellodoc.healthcaresystem.responsemodel.modeluser.Contents
 import com.hellodoc.healthcaresystem.responsemodel.modeluser.Images
@@ -32,7 +34,9 @@ fun formatPrice(price: Int): String {
     return formatter.format(price) + "đ"
 }
 @Composable
-fun ViewIntroduce(){
+fun ViewIntroduce(
+    doctor: GetDoctorResponse?
+){
     Introduce(
         contentTitle = ContentTitle(
             introduce = "Giới thiệu",
@@ -41,20 +45,14 @@ fun ViewIntroduce(){
             service = "Dịch vụ & Giá cả",
         ),
         contents = Contents(
-            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. ",
-            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
-            certificate2 = "Chứng nhận Sản khoa",
-            workplace = "Bệnh viện Đại học Y dược TP. HCM",
-            services = listOf(
-                "Tư vấn sức khỏe sinh sản" to 1500000,
-                "Điều trị rối loạn sinh lý" to 1800000,
-                "Thăm khám định kỳ" to 1000000,
-                "Tư vấn sức khỏe sinh sản" to 1500000,
-                "Điều trị rối loạn sinh lý" to 1800000,
-                "Thăm khám định kỳ" to 1000000,
-                "Tư vấn sức khỏe sinh sản" to 1500000,
-                "Điều trị rối loạn sinh lý" to 1800000,
-                "Thăm khám định kỳ" to 1000000
+            introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
+            certificate1 = doctor?.certificates?.getOrNull(0) ?: "Chưa cập nhật bằng cấp 1",
+            certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
+            workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
+            services = doctor?.services?.map {
+                (it.name ?: "Dịch vụ chưa đặt tên") to (it.price ?: 0)
+            } ?: listOf(
+                "Dịch vụ khám cơ bản" to 500000
             )
         ),
         images = Images(
@@ -262,61 +260,35 @@ fun Introduce(
                     )
                 }
             }
-
         }
-//        Button(
-//            onClick = {},
-//            shape = RoundedCornerShape(20.dp),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .align(Alignment.BottomCenter)
-//                .padding(horizontal = 20.dp, vertical = 30.dp),
-//            colors =ButtonDefaults.buttonColors(
-//                containerColor =Color.Cyan,
-//                contentColor = Color.White
-//            )
-//        ) {
-//            Text(
-//                text = "Đặt khám",
-//                style = TextStyle(
-//                    fontSize = 24.sp,
-//                    fontWeight = FontWeight.Medium
-//                ),
-//                modifier = Modifier.padding(vertical = 8.dp)
-//            )
-//        }
     }
 }
+@Preview(showBackground = true)
+@Composable
+fun IntroducePreview() {
+    Introduce(
+        contentTitle = ContentTitle(
+            introduce = "Giới thiệu",
+            certificate = "Bằng cấp & chứng chỉ",
+            workplace = "Nơi làm việc",
+            service = "Dịch vụ & Giá cả",
+        ),
+        contents = Contents(
+            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của bạn.",
+            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
+            certificate2 = "Chứng nhận Sản khoa",
+            workplace = "Bệnh viện Đại học Y dược TP. HCM",
+            services = listOf(
+                "Tư vấn sức khỏe sinh sản" to 1500000,
+                "Điều trị rối loạn sinh lý" to 1800000,
+                "Thăm khám định kỳ" to 1000000
+            )
+        ),
+        images = Images(
+            image1 = R.drawable.image_certif,
+            image2 = R.drawable.image_certif_2,
+            image3 = R.drawable.clarifymanage
+        )
+    )
+}
 
-
-
-//@Preview(showBackground = true,showSystemUi = true)
-//@Composable
-//fun GreetingPreview() {
-//    HealthCareSystemTheme {
-//        Introduce(
-//            contentTitle = ContentTitle(
-//                introduce = "Giới thiệu",
-//                certificate = "Bằng cấp & chứng chỉ",
-//                workplace = "Nơi làm việc",
-//                service = "Dịch vụ & Giá cả",
-//            ),
-//            contents = Contents(
-//                introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của  bạn. ",
-//                certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
-//                certificate2 = "Chứng nhận Sản khoa",
-//                workplace = "Bệnh viện Đại học Y dược TP. HCM",
-//                services = listOf(
-//                    "Tư vấn sức khỏe sinh sản" to 1500000,
-//                    "Điều trị rối loạn sinh lý" to 1800000,
-//                    "Thăm khám định kỳ" to 1000000
-//                )
-//            ),
-//            images = Images(
-//                image1 = R.drawable.image_certif,
-//                image2 = R.drawable.image_certif_2,
-//                image3 = R.drawable.clarifymanage
-//            )
-//        )
-//    }
-//}
