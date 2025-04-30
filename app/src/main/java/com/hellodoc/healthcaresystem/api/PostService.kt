@@ -23,9 +23,16 @@ data class PostResponse(
 
 data class UserResponse(
     val name: String,
-    val imageUrl: String?
+    val avatarURL: String?
 )
 
+data class LikeResponse(val liked: Boolean, val totalLikes: Int)
+data class CommentResponse(val message: String)
+data class CommentItem(
+    val user: UserResponse?,
+    val content: String,
+    val createdAt: String
+)
 
 
 interface PostService {
@@ -43,5 +50,21 @@ interface PostService {
         @Part content: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>?
     ): Response<CreatePostResponse>
-    
+    @POST("post/{id}/like")
+    suspend fun likePost(
+        @Path("id") postId: String,
+        @Body body: Map<String, String> // userId
+    ): Response<LikeResponse>
+
+    @POST("post/{id}/comment")
+    suspend fun commentPost(
+        @Path("id") postId: String,
+        @Body body: Map<String, String> // userId & content
+    ): Response<CommentResponse>
+
+    @GET("post/{id}/comments")
+    suspend fun getComments(
+        @Path("id") postId: String
+    ): Response<List<CommentItem>>
+
 }

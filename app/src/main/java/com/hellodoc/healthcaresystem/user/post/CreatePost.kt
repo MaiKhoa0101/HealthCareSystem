@@ -120,7 +120,7 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 containerPost = ContainerPost(
                     imageUrl = R.drawable.img.toString(),
                     name = "Khoa xinh gái",
-                    lable = "Hãy nói gì đó ..."
+                    label = "Hãy nói gì đó ..."
                 ),
                 text = postText,
                 onTextChange = { postText = it }
