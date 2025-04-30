@@ -6,9 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -132,26 +135,122 @@ fun ProfileUserPage(
         println("user == null")
         return
     }
+    var showReportDialog by remember { mutableStateOf(false) }
 
     // Nếu có user rồi thì hiển thị UI
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        item {
-            ProfileSection(navHostController, user!!)
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                ProfileSection(
+                    navHostController = navHostController,
+                    user = user!!,
+                    onClickShowReport = {
+                        showReportDialog = true
+                    }
+                )
+            }
+            item {
+                PostUser(
+                    posts = post,
+                    postViewModel = postViewModel,
+                    userId = userId ?: ""
+                )
+            }
         }
-        item {
-            PostUser(
-                posts = post,
-                postViewModel = postViewModel,
-                userId = userId ?: ""
-            )
+
+        if (showReportDialog && user != null) {
+            var selectedType by remember { mutableStateOf("Ứng dụng") }
+            var reportContent by remember { mutableStateOf("") }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable(enabled = true, onClick = {}),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(320.dp)
+                        .background(Color.White, shape = RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.Gray)
+                        .padding(16.dp)
+                ) {
+                    Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                    Text(user!!.name, color = Color.DarkGray)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable { selectedType = "Bác sĩ" }
+                                .padding(end = 20.dp)
+                        ) {
+                            RadioButton(
+                                selected = selectedType == "Bác sĩ",
+                                onClick = null  // <- để dùng chung onClick bên ngoài
+                            )
+                            Text("Bác sĩ", modifier = Modifier.padding(start = 6.dp))
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { selectedType = "Ứng dụng" }
+                        ) {
+                            RadioButton(
+                                selected = selectedType == "Ứng dụng",
+                                onClick = null
+                            )
+                            Text("Ứng dụng", modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                    TextField(
+                        value = reportContent,
+                        onValueChange = { reportContent = it },
+                        placeholder = { Text("Nhập nội dung...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Huỷ",
+                            color = Color.Red,
+                            modifier = Modifier
+                                .clickable { showReportDialog = false }
+                                .padding(8.dp),
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Button(onClick = {
+                            // TODO: Gửi báo cáo đến server
+                            showReportDialog = false
+                        }) {
+                            Text("Gửi báo cáo")
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun ProfileSection(navHostController: NavHostController, user: User) {
+fun ProfileSection(navHostController: NavHostController, user: User, onClickShowReport: () -> Unit) {
     Column(
         modifier = Modifier.background(Color.Cyan)
     ) {
@@ -160,7 +259,10 @@ fun ProfileSection(navHostController: NavHostController, user: User) {
                 .fillMaxWidth()
                 .padding(10.dp)
         ) {
-            UserIntroSection(user)
+            UserIntroSection(
+                user = user,
+                onClickShowReport = onClickShowReport
+            )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
             Spacer(modifier = Modifier.height(10.dp))
@@ -224,27 +326,66 @@ fun PostUser(
 }
 
 @Composable
-fun UserIntroSection(user: User) {
-    Column(
+fun UserIntroSection(
+    user: User,
+    onClickShowReport: () -> Unit
+) {
+    var showReportBox by remember { mutableStateOf(false) }
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+            .height(200.dp)
     ) {
-        // Hiển thị ảnh đại diện
-        AsyncImage(
-            model = user.avatarURL,
-            contentDescription = "Avatar",
-            modifier = Modifier
-                .height(140.dp)
-                .padding(10.dp)
-                .clip(CircleShape)
-        )
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround
+        ) {
+            AsyncImage(
+                model = user.avatarURL,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .height(140.dp)
+                    .padding(10.dp)
+                    .clip(CircleShape)
+            )
+            Text(user.name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(user.email)
+        }
 
-        // Tên và email người dùng
-        Text(user.name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(user.email)
+        // ICON ba chấm ở góc phải
+        IconButton(
+            onClick = { showReportBox = !showReportBox },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_more),
+                contentDescription = "Menu",
+                tint = Color.Black
+            )
+        }
+
+        // Khung báo cáo
+        if (showReportBox) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 50.dp, end = 8.dp)
+                    .background(Color.White, shape = RoundedCornerShape(6.dp))
+                    .border(5.dp, Color.LightGray)
+                    .clickable {
+                        showReportBox = false
+                        onClickShowReport()
+                    }
+                    .padding(12.dp)
+            ) {
+                Text("Tố cáo người dùng", fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Tố cáo người dùng vi phạm chính sách hệ thống", fontSize = 15.sp)
+            }
+        }
     }
 }
 
