@@ -1,14 +1,17 @@
 package com.hellodoc.healthcaresystem.user.personal
 import android.content.Context
 import android.content.SharedPreferences
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -64,10 +68,12 @@ import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -130,27 +136,159 @@ fun ProfileUserPage(
         println("user == null")
         return
     }
+    var showReportDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
 
     // Nếu có user rồi thì hiển thị UI
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        item {
-            ProfileSection(navHostController, user!!)
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                ProfileSection(
+                    navHostController = navHostController,
+                    user = user!!,
+                    onClickShowReport = {
+                        showReportDialog = true
+                    }
+                )
+            }
+            item {
+                PostUser(
+                    posts = post,
+                    postViewModel = postViewModel,
+                    userId = userId ?: ""
+                )
+            }
         }
-        item {
-            PostUser(
-                posts = post,
-//                comments = comments,
-                postViewModel = postViewModel,
-                userId = userId ?: ""
-            )
+
+        if (showReportDialog && user != null) {
+            var selectedType by remember { mutableStateOf("Ứng dụng") }
+            var reportContent by remember { mutableStateOf("") }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable(enabled = true, onClick = {}),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(320.dp)
+                        .background(Color.White, shape = RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.Gray)
+                        .padding(16.dp)
+                ) {
+                    Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                    Text(user!!.name, color = Color.DarkGray)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable { selectedType = "Bác sĩ" }
+                                .padding(end = 20.dp)
+                        ) {
+                            RadioButton(
+                                selected = selectedType == "Bác sĩ",
+                                onClick = null  // <- để dùng chung onClick bên ngoài
+                            )
+                            Text("Bác sĩ", modifier = Modifier.padding(start = 6.dp))
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { selectedType = "Ứng dụng" }
+                        ) {
+                            RadioButton(
+                                selected = selectedType == "Ứng dụng",
+                                onClick = null
+                            )
+                            Text("Ứng dụng", modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                    TextField(
+                        value = reportContent,
+                        onValueChange = { reportContent = it },
+                        placeholder = { Text("Nhập nội dung...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Huỷ",
+                            color = Color.Red,
+                            modifier = Modifier
+                                .clickable { showReportDialog = false }
+                                .padding(8.dp),
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Button(onClick = {
+                            coroutineScope.launch {
+                                try {
+                                    val model =
+                                        if (user!!.role.lowercase() == "doctor") "Doctor" else "User"
+                                    val response = RetrofitInstance.reportService.sendReport(
+                                        ReportRequest(
+                                            reporter = user!!.id,
+                                            reporterModel = model,
+                                            content = reportContent,
+                                            type = selectedType
+                                        )
+                                    )
+
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(
+                                            context,
+                                            "Đã gửi báo cáo thành công",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Gửi báo cáo thất bại",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Lỗi kết nối đến server",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    e.printStackTrace()
+                                }
+                            }
+                            showReportDialog = false
+                        }) {
+                            Text("Gửi báo cáo")
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun ProfileSection(navHostController: NavHostController, user: User) {
+fun ProfileSection(navHostController: NavHostController, user: User, onClickShowReport: () -> Unit) {
     Column(
         modifier = Modifier.background(Color.Cyan)
     ) {
@@ -159,7 +297,10 @@ fun ProfileSection(navHostController: NavHostController, user: User) {
                 .fillMaxWidth()
                 .padding(10.dp)
         ) {
-            UserIntroSection(user)
+            UserIntroSection(
+                user = user,
+                onClickShowReport = onClickShowReport
+            )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
             Spacer(modifier = Modifier.height(10.dp))
@@ -223,27 +364,66 @@ fun PostUser(
 }
 
 @Composable
-fun UserIntroSection(user: User) {
-    Column(
+fun UserIntroSection(
+    user: User,
+    onClickShowReport: () -> Unit
+) {
+    var showReportBox by remember { mutableStateOf(false) }
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+            .height(200.dp)
     ) {
-        // Hiển thị ảnh đại diện
-        AsyncImage(
-            model = user.avatarURL,
-            contentDescription = "Avatar",
-            modifier = Modifier
-                .height(140.dp)
-                .padding(10.dp)
-                .clip(CircleShape)
-        )
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround
+        ) {
+            AsyncImage(
+                model = user.avatarURL,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .height(140.dp)
+                    .padding(10.dp)
+                    .clip(CircleShape)
+            )
+            Text(user.name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(user.email)
+        }
 
-        // Tên và email người dùng
-        Text(user.name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(user.email)
+        // ICON ba chấm ở góc phải
+        IconButton(
+            onClick = { showReportBox = !showReportBox },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_more),
+                contentDescription = "Menu",
+                tint = Color.Black
+            )
+        }
+
+        // Khung báo cáo
+        if (showReportBox) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 50.dp, end = 8.dp)
+                    .background(Color.White, shape = RoundedCornerShape(6.dp))
+                    .border(5.dp, Color.LightGray)
+                    .clickable {
+                        showReportBox = false
+                        onClickShowReport()
+                    }
+                    .padding(12.dp)
+            ) {
+                Text("Tố cáo người dùng", fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Tố cáo người dùng vi phạm chính sách hệ thống", fontSize = 15.sp)
+            }
+        }
     }
 }
 
@@ -337,179 +517,178 @@ fun ViewPostOwner(
         }
     }
 
-    println ("footer item: "+footerItem)
-        Column(
-            modifier = modifier
-                .background(backgroundColor, RectangleShape)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(10.dp)
+    println("footer item: " + footerItem)
+    Column(
+        modifier = modifier
+            .background(backgroundColor, RectangleShape)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(10.dp)
+    ) {
+        // Row for Avatar and Name
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Row for Avatar and Name
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Avatar
-                AsyncImage(
-                    model = containerPost.imageUrl,
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(45.dp)
-                        .clip(CircleShape)
-                )
+            // Avatar
+            AsyncImage(
+                model = containerPost.imageUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(CircleShape)
+            )
 
-                // Name
-                Text(
-                    text = containerPost.name,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    ),
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                )
-            }
-
-            // Content bài viết
+            // Name
             Text(
-                text = contentPost.content,
+                text = containerPost.name,
                 style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
                     color = Color.Black
                 ),
                 modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis
+                    .padding(start = 10.dp)
             )
+        }
 
-            // Nút "Xem thêm" / "Thu gọn"
-            Text(
-                text = if (expanded) "Thu gọn" else "Xem thêm",
-                color = Color.Blue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { expanded = !expanded }
-                    .padding(top = 4.dp)
-            )
+        // Content bài viết
+        Text(
+            text = contentPost.content,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Color.Black
+            ),
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = TextOverflow.Ellipsis
+        )
 
-            AsyncImage(
-                model = footerItem.imageUrl,
-                contentDescription = "Post Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.LightGray)
-            )
+        // Nút "Xem thêm" / "Thu gọn"
+        Text(
+            text = if (expanded) "Thu gọn" else "Xem thêm",
+            color = Color.Blue,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .clickable { expanded = !expanded }
+                .padding(top = 4.dp)
+        )
 
-            // ICON like & comment
+        AsyncImage(
+            model = footerItem.imageUrl,
+            contentDescription = "Post Image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.LightGray)
+        )
+
+        // ICON like & comment
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // LIKE
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // LIKE
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        postViewModel.updateFavoriteForPost(
-                            postId = postId,
-                            userId = currentUserId,
-                            userModel = userModel
-                        )
+                modifier = Modifier.clickable {
+                    postViewModel.updateFavoriteForPost(
+                        postId = postId,
+                        userId = currentUserId,
+                        userModel = userModel
+                    )
 //                    isFavorited = !isFavorited
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
-                        contentDescription = "Like",
-                        tint = if (isFavorited) Color.Red else Color.Black,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("$totalFavorites Likes", fontSize = 18.sp)
                 }
-
-                // COMMENT
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        isCommenting = !isCommenting
-                        if (isCommenting) {
-                            shouldFetchComments = true
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.comment),
-                        contentDescription = "Comment",
-                        tint = Color.Black,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Comment", fontSize = 18.sp)
-                }
+            ) {
+                Icon(
+                    painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
+                    contentDescription = "Like",
+                    tint = if (isFavorited) Color.Red else Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("$totalFavorites Likes", fontSize = 18.sp)
             }
 
-            // UI COMMENT
-            if (isCommenting) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            // COMMENT
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    isCommenting = !isCommenting
+                    if (isCommenting) {
+                        shouldFetchComments = true
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.comment),
+                    contentDescription = "Comment",
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Comment", fontSize = 18.sp)
+            }
+        }
 
-                    if (comments.isNotEmpty()) {
-                        Column {
-                            comments.forEach { comment ->
-                                Row(
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    AsyncImage(
-                                        model = comment.user?.avatarURL ?: "",
-                                        contentDescription = "avatar",
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .clip(CircleShape)
+        // UI COMMENT
+        if (isCommenting) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+
+                if (comments.isNotEmpty()) {
+                    Column {
+                        comments.forEach { comment ->
+                            Row(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = comment.user?.avatarURL ?: "",
+                                    contentDescription = "avatar",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
+                                )
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Text(
+                                        comment.user?.name ?: "Ẩn danh",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
                                     )
-                                    Column(modifier = Modifier.padding(start = 8.dp)) {
-                                        Text(
-                                            comment.user?.name ?: "Ẩn danh",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
-                                        )
-                                        Text(comment.content, fontSize = 14.sp)
-                                    }
+                                    Text(comment.content, fontSize = 14.sp)
                                 }
                             }
                         }
-                    } else {
-                        Text("Chưa có bình luận nào.")
                     }
+                } else {
+                    Text("Chưa có bình luận nào.")
+                }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextField(
-                            value = newComment,
-                            onValueChange = { newComment = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Nhập bình luận...") }
-                        )
-                        Button(onClick = {
-                            postViewModel.sendComment(postId, currentUserId, userModel, newComment)
-                            newComment = ""
-                        }) {
-                            Text("Gửi")
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = newComment,
+                        onValueChange = { newComment = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Nhập bình luận...") }
+                    )
+                    Button(onClick = {
+                        postViewModel.sendComment(postId, currentUserId, userModel, newComment)
+                        newComment = ""
+                    }) {
+                        Text("Gửi")
                     }
                 }
             }
         }
-
+    }
 }
 
 
