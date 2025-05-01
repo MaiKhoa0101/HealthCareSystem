@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class GetSpecialtyResponse(
     @SerializedName("_id") val id: String,
     @SerializedName("name") val name: String,
+    @SerializedName("icon") val icon:String,
     @SerializedName("doctors") val doctors: List<Doctor> = emptyList()
 )
 

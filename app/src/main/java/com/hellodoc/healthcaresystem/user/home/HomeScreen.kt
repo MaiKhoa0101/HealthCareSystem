@@ -23,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -30,12 +31,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.hellodoc.core.common.utils.PhoneCallUtils
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
@@ -147,34 +150,6 @@ fun HealthMateHomeScreen(
                 }
             }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                        .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                ) {
-                    Text(
-                        text = "Thuê hòm liên hệ số:",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    val phoneNumber = "0902426225"
-                    val context = LocalContext.current
-                    Text(
-                        text = phoneNumber,
-                        color = Color.Blue,
-                        fontSize = 16.sp,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier
-                            .clickable {
-                                PhoneCallUtils.startCall(context, phoneNumber)
-                            }
-                    )
-                }
-
-            }
-
             // Dịch vụ toàn diện
             item {
                 SectionHeader(title = "Dịch vụ toàn diện")
@@ -200,8 +175,7 @@ fun HealthMateHomeScreen(
 
             // Bác sĩ nổi bật
             item {
-                SectionHeader(title = "Bác sĩ nổi bật")
-
+                Spacer(modifier = Modifier.height(8.dp))
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
@@ -439,49 +413,117 @@ fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onN
 }
 
 @Composable
-fun SpecialtyItem(specialty: GetSpecialtyResponse, onClick: () -> Unit, onNavigateToDoctorList: (String, String) -> Unit) {
+fun SpecialtyItem(
+    specialty: GetSpecialtyResponse,
+    onClick: () -> Unit,
+    onNavigateToDoctorList: (String, String) -> Unit
+) {
     Box(
         modifier = Modifier
-            .width(150.dp)
-            .height(150.dp)
-            .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+            .width(140.dp)
+            .height(140.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .border(
+                width = 1.dp,
+                color = Color(0xFFCCCCCC), // Màu viền xám nhẹ
+                shape = RoundedCornerShape(16.dp)
+            )
             .clickable {
                 onClick()
-                onNavigateToDoctorList(specialty.id, specialty.name) // Chuyển ID chuyên khoa qua màn hình doctorlist
+                onNavigateToDoctorList(specialty.id, specialty.name)
             }
-            .padding(8.dp),
+            .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(id = R.drawable.doctor),
-                contentDescription = specialty.name,
-                modifier = Modifier.size(50.dp),
-                contentScale = ContentScale.Fit
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (!specialty.icon.isNullOrBlank()) {
+                AsyncImage(
+                    model = specialty.icon,
+                    contentDescription = specialty.name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(80.dp)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.doctor),
+                    contentDescription = specialty.name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(80.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = specialty.name,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 2
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = specialty.name, color = Color.Black, textAlign = TextAlign.Center)
         }
     }
 }
 
 @Composable
-fun DoctorList(navHostController: NavHostController, doctors: List<GetDoctorResponse>) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+fun DoctorList(
+    navHostController: NavHostController,
+    doctors: List<GetDoctorResponse>,
+    onSeeMoreClick: () -> Unit = {} // callback cho "Xem thêm"
+) {
+    Column(
         modifier = Modifier
-            .background(Color(0xFF73E3E7))
             .fillMaxWidth()
-            .height(200.dp)
+            .background(Color.White)
+            .padding(vertical = 14.dp)
+            .background(Color(0xFF73E3E7))
     ) {
-        items(doctors) { doctor ->
-            DoctorItem(doctor) {
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("doctorId",doctor.id)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Bác sĩ nổi bật",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Text(
+                text = "Xem thêm",
+                fontSize = 14.sp,
+                color = Color(0xFF0085FF),
+                modifier = Modifier
+                    .clickable { onSeeMoreClick() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+        ) {
+            items(doctors) { doctor ->
+                DoctorItem(doctor) {
+                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("doctorId", doctor.id)
+                    }
+                    navHostController.navigate("other_user_profile")
                 }
-                navHostController.navigate("other_user_profile")
-//                showToast(context, "Clicked: ${doctor.name}")
             }
         }
     }
@@ -491,23 +533,53 @@ fun DoctorList(navHostController: NavHostController, doctors: List<GetDoctorResp
 fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
     Column(
         modifier = Modifier
-            .width(150.dp)
+            .width(120.dp)
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.doctor),
-            contentDescription = doctor.name,
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(Color.Cyan,shape = CircleShape),
-            contentScale = ContentScale.Crop
+        if (!doctor.avatarURL.isNullOrBlank()) {
+            AsyncImage(
+                model = doctor.avatarURL,
+                contentDescription = doctor.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, Color.LightGray, CircleShape)
+            )
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.doctor),
+                contentDescription = doctor.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, Color.LightGray, CircleShape)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = doctor.name,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = doctor.name, fontSize = 15.sp, color = Color.Black, textAlign = TextAlign.Center)
-        Text(text = doctor.specialty.name, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
+
+        Text(
+            text = doctor.specialty.name,
+            fontSize = 12.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

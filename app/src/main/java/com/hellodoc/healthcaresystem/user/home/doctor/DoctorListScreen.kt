@@ -81,7 +81,7 @@ fun DoctorListScreen(
                 }
             } else {
                 items(doctors) { doctor ->
-                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName)
+                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName, specialtyId = specialtyId)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -115,7 +115,9 @@ fun TopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String) {
+fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String) {
+
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
