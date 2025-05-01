@@ -35,6 +35,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.responsemodel.ComplaintData
 import com.hellodoc.healthcaresystem.responsemodel.ReportResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -53,6 +57,7 @@ fun ReportManagerScreen() {
     val reportList = remember { mutableStateListOf<ComplaintData>() }
     val coroutineScope = rememberCoroutineScope()
     var selectedComplaint by remember { mutableStateOf<ComplaintData?>(null) }
+    val navController = rememberNavController()
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -78,35 +83,54 @@ fun ReportManagerScreen() {
             }
         }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .padding(16.dp)
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            item {
-                Text(
-                    text = "Danh sách khiếu nại",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
+    NavHost(navController = navController, startDestination = "ReportMain") {
+        composable("ReportMain") {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(backgroundColor)
+                    .padding(16.dp)
+            ) {
+                LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    item {
+                        Text(
+                            text = "Danh sách khiếu nại",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                ComplaintStatsScreen()
+                        ComplaintStatsScreen()
 
-                Text(
-                    text = "Quản lí khiếu nại",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp)
+                        Text(
+                            text = "Quản lí khiếu nại",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White)
+                                .padding(16.dp)
+                        )
+                        TableReport(
+                            reportList = reportList,
+                            onDetailClick = { selectedComplaint = it },
+                            navController = navController
+                        )
+                    }
+                }
+            }
+        }
+        composable("RespondScreen/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            val complaint = reportList.find { it.id == id }
+            if (complaint != null) {
+                ReportResponseScreen(
+                    complaint = complaint,
+                    onBack = { navController.popBackStack() }
                 )
-                TableReport(reportList) { selectedComplaint = it }
             }
         }
     }
+
     if (selectedComplaint != null) {
         Box(
             modifier = Modifier
@@ -207,7 +231,8 @@ fun ReportManagerScreen() {
 @Composable
 fun TableReport(
     reportList: List<ComplaintData>,
-    onDetailClick: (ComplaintData) -> Unit
+    onDetailClick: (ComplaintData) -> Unit,
+    navController: NavController
 ){
 
     LazyRow {
@@ -292,7 +317,7 @@ fun TableReport(
                                             },
                                             onClick = {
                                                 expanded = false
-                                                // Thêm logic xử lý xác minh
+                                                navController.navigate("RespondScreen/${complaint.id}")
                                             }
                                         )
                                         DropdownMenuItem(
