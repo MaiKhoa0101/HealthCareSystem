@@ -1,8 +1,15 @@
 package com.hellodoc.healthcaresystem.api
 
+import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.GetFavoritePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
+import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
+import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import okhttp3.MultipartBody
 import retrofit2.http.GET
 import retrofit2.Call
@@ -13,47 +20,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Headers
 import retrofit2.http.Path
-
-data class PostResponse(
-    val id: String,
-    val content: String,
-    val media: List<String>,
-    val user: UserResponse
-)
-
-data class UserResponse(
-    val name: String,
-    val avatarURL: String?
-)
-
-data class GetFavoritePostResponse(
-    val favorited: Boolean, 
-    val totalLikes: Int
-)
-
-data class UpdateFavoritePostResponse(
-    val favorited: Boolean, 
-    val totalLikes: Int
-)
-
-data class CreateCommentPostRequest(
-    val userId: String
-    val content: String
-)
-
-data class CreateCommentPostResponse(
-    val user: UserResponse?,
-    val post: String
-    val content: String
-)
-
-data class GetCommentPostResponse(
-    val user: UserResponse?,
-    val post: String
-    val content: String,
-    val createdAt: String
-)
-
+import retrofit2.http.Query
 
 interface PostService {
     @Headers("Content-Type: application/json")
@@ -75,13 +42,13 @@ interface PostService {
     @POST("post/{postId}/favorite/update")
     suspend fun updateFavoriteByPostId(
         @Path("postId") postId: String,
-        @Body userId: String
+        @Body updateFavoritePostRequest: UpdateFavoritePostRequest
     ): Response<UpdateFavoritePostResponse>
 
     @GET("post/{postId}/favorite/get")
     suspend fun getFavoriteByPostId(
         @Path("postId") postId: String,
-        @Body userId: String
+        @Query("userId") userId: String
     ): Response<GetFavoritePostResponse>
 
 
