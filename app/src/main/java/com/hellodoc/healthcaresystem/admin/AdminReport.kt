@@ -31,6 +31,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.responsemodel.ComplaintData
+import com.hellodoc.healthcaresystem.responsemodel.ReportResponse
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.launch
+
 
 @Preview(showBackground = true)
 @Composable
@@ -41,6 +45,30 @@ fun PreviewReportListScreen() {
 @Composable
 fun ReportManagerScreen() {
     val backgroundColor = Color(0xFFF4F5F7)
+    val reportList = remember { mutableStateListOf<ComplaintData>() }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            try {
+                val response = RetrofitInstance.reportService.getAllReports()
+                reportList.clear()
+                response.reversed().forEachIndexed { index, report ->
+                    reportList.add(
+                        ComplaintData(
+                            id = (index + 1).toString(),
+                            user = report.reporter?.name ?: "Không rõ",
+                            content = report.content,
+                            targetType = report.type,
+                            status = report.status,
+                            createdDate = report.createdAt.substring(0, 10)
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -66,30 +94,30 @@ fun ReportManagerScreen() {
                         .background(Color.White)
                         .padding(16.dp)
                 )
-                TableReport()
+                TableReport(reportList)
             }
         }
     }
 }
-
-val sampleComplaints = listOf(
-    ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
-    ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
-    ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
-    ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
-    ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
-    ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
-    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
-)
+//
+//val sampleComplaints = listOf(
+//    ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
+//    ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
+//    ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
+//    ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
+//    ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
+//    ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
+//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
+//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
+//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
+//)
 @Composable
-fun TableReport(){
+fun TableReport(reportList: List<ComplaintData>){
 
     LazyRow {
         item {
@@ -104,7 +132,7 @@ fun TableReport(){
                 }
 
                 // Rows
-                sampleComplaints.forEachIndexed { index, complaint ->
+                reportList.forEachIndexed { index, complaint ->
                     val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
                     var expanded by remember { mutableStateOf(false) }
                     Column {
