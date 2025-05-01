@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -99,23 +100,7 @@ fun ReportManagerScreen() {
         }
     }
 }
-//
-//val sampleComplaints = listOf(
-//    ComplaintData("1", "Phuong", "Support for theme", "Ứng dụng", "Open", "2025-01-19"),
-//    ComplaintData("2", "Anh", "Payment issue", "Bác sĩ", "Closed", "2025-01-18"),
-//    ComplaintData("3", "Mai", "App crash", "Ứng dụng", "Open", "2025-01-17"),
-//    ComplaintData("4", "Nam", "Wrong diagnosis", "Bác sĩ", "Pending", "2025-01-16"),
-//    ComplaintData("5", "Lan", "Slow response", "Ứng dụng", "Open", "2025-01-15"),
-//    ComplaintData("6", "Hùng", "Billing error", "Bác sĩ", "Closed", "2025-01-14"),
-//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12"),
-//    ComplaintData("7", "Trang", "Feature request", "Ứng dụng", "Pending", "2025-01-13"),
-//    ComplaintData("8", "Vũ", "Login issue", "Ứng dụng", "Open", "2025-01-12")
-//)
+
 @Composable
 fun TableReport(reportList: List<ComplaintData>){
 
@@ -125,7 +110,7 @@ fun TableReport(reportList: List<ComplaintData>){
                 // Header
                 Row(
                     Modifier
-                        .background(Color(0xFF2B544F))
+                        .background(Color(0xFF2196F3))
                         .padding(vertical = 8.dp)
                 ) {
                     ComplaintTableHeader()
@@ -164,6 +149,26 @@ fun TableReport(reportList: List<ComplaintData>){
                                             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                                             .background(Color.White)
                                     ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Search,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Detail")
+                                                }
+                                            },
+                                            onClick = {
+                                                expanded = false
+                                                // Thêm logic xử lý xác minh
+                                            }
+                                        )
                                         DropdownMenuItem(
                                             text = {
                                                 Row(
@@ -221,7 +226,7 @@ fun ComplaintTableHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2B544F))
+            .background(Color(0xFF2196F3))
             .padding(vertical = 8.dp)
     ) {
         TableCell(text = "ID", isHeader = true, width = 60.dp)
