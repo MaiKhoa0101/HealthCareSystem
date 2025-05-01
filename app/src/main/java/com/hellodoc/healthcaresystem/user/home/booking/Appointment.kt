@@ -75,7 +75,7 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
         return
     }
 
-    AppointmentScreenUI(appointmentsUser,appointmentsDoc, userId)
+    AppointmentScreenUI(appointmentsUser = appointmentsUser, appointmentsDoc = appointmentsDoc, userId, sharedPreferences = sharedPreferences )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,7 +83,8 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
 fun AppointmentScreenUI(
     appointmentsUser: List<AppointmentResponse>,
     appointmentsDoc: List<AppointmentResponse>,
-    userID: String
+    userID: String,
+    sharedPreferences: SharedPreferences
 ) {
     var roleSelectedTab by remember { mutableStateOf(0) }
     var selectedTab by remember { mutableStateOf(0) }
@@ -171,7 +172,7 @@ fun AppointmentScreenUI(
             // ✅ Hiển thị
             LazyColumn {
                 items(filteredAppointments) { appointment ->
-                    AppointmentCard(appointment)
+                    AppointmentCard(appointment, userID, sharedPreferences = sharedPreferences )
                 }
             }
         }
@@ -180,7 +181,11 @@ fun AppointmentScreenUI(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentCard(appointment: AppointmentResponse) {
+fun AppointmentCard(appointment: AppointmentResponse, userID: String, sharedPreferences: SharedPreferences) {
+    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
+        initializer { AppointmentViewModel(sharedPreferences) }
+    })
+
     val formattedDate = ZonedDateTime.parse(appointment.date)
         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
@@ -242,7 +247,7 @@ fun AppointmentCard(appointment: AppointmentResponse) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedButton(
-                    onClick = { },
+                    onClick = {appointmentViewModel.cancelAppointment(appointment.id, userID)},
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
                 ) {
                     Text("Huỷ")

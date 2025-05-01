@@ -42,6 +42,7 @@ import coil.compose.AsyncImage
 import com.hellodoc.core.common.utils.PhoneCallUtils
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+//import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse2
 import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetMedicalOptionResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse

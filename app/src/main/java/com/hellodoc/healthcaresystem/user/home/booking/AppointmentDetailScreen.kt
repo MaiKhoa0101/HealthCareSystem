@@ -164,8 +164,6 @@ fun TopBar(title: String,onClick: () -> Unit) {
     }
 }
 
-
-
 @Composable
 fun DoctorInfoSection() {
     Column(

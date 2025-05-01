@@ -53,3 +53,7 @@ data class CreateAppointmentResponse(
         val totalCost: Double
     )
 }
+
+data class CancelAppointmentResponse(
+    val message: String
+)

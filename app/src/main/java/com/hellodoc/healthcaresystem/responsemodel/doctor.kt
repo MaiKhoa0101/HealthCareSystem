@@ -25,6 +25,17 @@ data class GetDoctorResponse (
     val ratingsCount: Int?
 )
 
+//data class GetDoctorResponse2 (
+//    @SerializedName("_id") val id: String, // Đổi thành `id` để dễ đọc hơn
+//    @SerializedName("role") val role: String,
+//    @SerializedName("email") val email: String,
+//    @SerializedName("avatarURL") val avatarURL: String,
+//    @SerializedName("name") val name: String,
+//    @SerializedName("phone") val phone: String,
+//    @SerializedName("password") val password: String,
+//    @SerializedName("specialty") val specialty: Specialty
+//)
+
 data class Specialty (
     @SerializedName("_id") val id:String,
     @SerializedName("name") val name: String

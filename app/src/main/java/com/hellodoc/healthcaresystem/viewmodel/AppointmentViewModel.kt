@@ -7,8 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.user.post.userId
 import kotlinx.coroutines.launch
 
 class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -89,5 +91,24 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
         }
     }
 
+    fun cancelAppointment(appointmentId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.appointment.cancelAppointment(appointmentId)
+                if(response.isSuccessful) {
+                    val result = response.body()
+                    Log.d("Cancel", "Thành công: ${result?.message}")
+
+                    //gọi lại api để load lại ds
+                    getAppointmentUser(userId)
+                    getAppointmentDoctor(userId)
+                } else {
+                    Log.e("Cancel", "Lỗi mạng/API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
+            }
+        }
+    }
 
 }

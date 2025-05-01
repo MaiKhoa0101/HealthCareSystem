@@ -2,12 +2,14 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
+import com.hellodoc.healthcaresystem.responsemodel.CancelAppointmentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -28,4 +30,7 @@ interface AppointmentService {
         @Header("accessToken") accessToken: String,
         @Body request: CreateAppointmentRequest
     ): Response<CreateAppointmentResponse>
+
+    @PATCH("appointments/cancel/{id}")
+    suspend fun cancelAppointment(@Path("id") id: String): Response<CancelAppointmentResponse>
 }
