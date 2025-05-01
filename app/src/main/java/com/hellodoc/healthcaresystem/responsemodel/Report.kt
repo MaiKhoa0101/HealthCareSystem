@@ -7,7 +7,8 @@ data class ComplaintData (
     val targetType: String,
     val status: String,
     val createdDate: String,
-    val reportedId: String
+    val reportedId: String,
+    val postId: String? = null
 )
 data class ReportResponse(
     val reporter: Reporter?,
@@ -15,7 +16,8 @@ data class ReportResponse(
     val type: String?,
     val status: String?,
     val createdAt: String?,
-    val reportedId: String?
+    val reportedId: String?,
+    val postId: String? = null
 )
 
 data class Reporter(

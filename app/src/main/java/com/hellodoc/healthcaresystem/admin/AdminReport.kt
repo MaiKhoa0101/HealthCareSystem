@@ -27,7 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -65,7 +68,8 @@ fun ReportManagerScreen() {
                             targetType = report.type ?: "Không xác định",
                             status = report.status ?: "pending",
                             createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
-                            reportedId = report.reportedId ?: "Không rõ"
+                            reportedId = report.reportedId ?: "Không rõ",
+                            postId = report.postId
                         )
                     )
                 }
@@ -132,11 +136,68 @@ fun ReportManagerScreen() {
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Người báo cáo: ${selectedComplaint!!.user}")
-                    Text("Nội dung: ${selectedComplaint!!.content}")
-                    Text("Loại: ${selectedComplaint!!.targetType}")
-                    Text("Ngày tạo: ${selectedComplaint!!.createdDate}")
-                    Text("ID người bị báo cáo: ${selectedComplaint?.reportedId ?: "Không rõ"}")
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Người báo cáo: ")
+                            }
+                            append(selectedComplaint!!.user)
+                        },
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Nội dung: ")
+                            }
+                            append(selectedComplaint!!.content)
+                        },
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Loại: ")
+                            }
+                            append(selectedComplaint!!.targetType)
+                        },
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Ngày tạo: ")
+                            }
+                            append(selectedComplaint!!.createdDate)
+                        },
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("ID người bị báo cáo: ")
+                            }
+                            append(selectedComplaint?.reportedId ?: "Không rõ")
+                        },
+                        fontSize = 18.sp
+                    )
+                    if (selectedComplaint?.targetType == "Bài viết") {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("ID bài viết: ")
+                                }
+                                append(selectedComplaint?.postId ?: "Không rõ")
+                            },
+                            fontSize = 18.sp
+                        )
+                    }
+
                 }
             }
         }
