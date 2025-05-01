@@ -12,3 +12,8 @@ data class CreateAppointmentRequest(
     val totalCost: String,
     val location: String
 )
+
+data class UpdateAppointmentRequest(
+    val time: String,
+    val date: String
+)

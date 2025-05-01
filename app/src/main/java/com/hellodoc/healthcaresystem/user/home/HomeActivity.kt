@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -21,10 +22,12 @@ import androidx.compose.ui.platform.LocalContext
 
 
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
@@ -32,8 +35,12 @@ import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 
 
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
 import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
+import com.hellodoc.healthcaresystem.user.home.booking.BookingCalendarScreen
+import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
+import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 
 
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
@@ -131,7 +138,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("appointment") {
-                AppointmentListScreen(sharedPreferences)
+                AppointmentListScreen(sharedPreferences, navHostController)
             }
             composable("notification") {
                 NotificationPage(navHostController)
@@ -156,6 +163,73 @@ class HomeActivity : BaseActivity() {
             }
             composable("other_user_profile") {
                 ProfileScreen(navHostController)
+            }
+
+            composable(
+                route = "appointment-detail",
+            ) {
+                AppointmentDetailScreen(
+                    context = context,
+                    onBack = { navHostController.popBackStack() },
+                    navHostController = navHostController
+                )
+            }
+            composable("appointment") {
+                AppointmentListScreen(sharedPreferences, navHostController)
+            }
+            composable("personal") {
+                ProfileUserPage(sharedPreferences,navHostController)
+            }
+            composable(
+                route = "doctorList/{specialtyId}/{specialtyName}",
+                arguments = listOf(
+                    navArgument("specialtyId") { type = NavType.StringType },
+                    navArgument("specialtyName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
+                val specialtyName =
+                    backStackEntry.arguments?.getString("specialtyName") ?: ""
+
+                DoctorListScreen(
+                    context = context,
+                    specialtyId = specialtyId,
+                    specialtyName = specialtyName,
+//                    onBack = {
+//                        val intent = Intent(this, HomeActivity::class.java)
+//                        startActivity(intent)
+//                    },
+                    navHostController = navHostController
+                )
+            }
+            composable("booking") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    AppointmentDetailScreen(
+                        context = context,
+                        onBack = { navHostController.popBackStack()},
+                        navHostController = navHostController
+                    )
+                }
+            }
+
+            composable("booking-calendar") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    BookingCalendarScreen(
+                        navHostController = navHostController
+                    )
+                }
+            }
+            composable("booking-confirm") {
+                ConfirmBookingScreen(
+                    context = context,
+                    navHostController = navHostController
+                )
             }
         }
     }

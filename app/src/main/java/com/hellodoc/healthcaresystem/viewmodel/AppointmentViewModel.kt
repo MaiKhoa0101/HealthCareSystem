@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.userId
 import kotlinx.coroutines.launch
@@ -107,6 +108,27 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                 }
             } catch (e: Exception) {
                 Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
+            }
+        }
+    }
+
+
+    fun updateAppointment(appointmentId: String, appointmentData: UpdateAppointmentRequest){
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.appointment.updateAppointment(appointmentId, appointmentData)
+                if(response.isSuccessful) {
+                    val result = response.body()
+                    Log.d("Update", "Thành công: ${result?.message}")
+
+                    //gọi lại api để load lại ds
+                    getAppointmentUser(userId)
+                    getAppointmentDoctor(userId)
+                } else {
+                    Log.e("Update", "Lỗi mạng/API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Update", "Lỗi mạng/API: ${e.localizedMessage}")
             }
         }
     }

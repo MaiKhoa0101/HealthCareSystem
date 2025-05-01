@@ -16,6 +16,8 @@ data class ReviewResponse(
 )
 
 data class ReviewUser(
+    @SerializedName("_id")
+    val id: String?,
     @SerializedName("name")
     val name: String?,
     @SerializedName("avatarURL")

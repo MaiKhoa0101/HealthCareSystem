@@ -9,3 +9,18 @@ data class CreatePostRequest(
     val images: List<Uri>? // List các ảnh, mỗi ảnh là một Uri
 )
 
+
+data class CreateCommentPostRequest(
+    val userId: String,
+    val userModel: String,
+    val content: String
+)
+
+data class UpdateFavoritePostRequest(
+    val userId: String,
+    val userModel: String
+)
+
+data class GetFavoritePostRequest(
+    val userId: String
+)

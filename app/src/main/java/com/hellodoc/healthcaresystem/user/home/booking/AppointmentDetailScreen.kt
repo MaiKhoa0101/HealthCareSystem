@@ -34,6 +34,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
+import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 var doctorId: String = ""
@@ -51,6 +53,7 @@ var time: String = "" // Ví dụ: "14:30"
 var totalCost: String = "0"
 var reason: String = "hello"
 var location: String = ""
+var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
 
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
@@ -61,8 +64,10 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
     // Biến trạng thái kiểm tra đã load xong data chưa
     var isDataLoaded by remember { mutableStateOf(false) }
+    // Biến kiểm tra xem đang ở chế độ chỉnh sửa hay tạo mới
+    var isEditing by remember { mutableStateOf(false)}
 
-    LaunchedEffect(Unit) {
+        LaunchedEffect(Unit) {
         patientName = userViewModel.getUserAttributeString("name")
         patientPhone = userViewModel.getUserAttributeString("phone")
         patientAddress = userViewModel.getUserAttributeString("address")
@@ -71,6 +76,17 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     LaunchedEffect(savedStateHandle) {
+        // Kiểm tra xem có đang ở chế độ chỉnh sửa không
+        savedStateHandle?.get<Boolean>("isEditing")?.let {
+            isEditing = it
+            if (isEditing) {
+                // Nếu đang chỉnh sửa, lấy ID của lịch hẹn
+                savedStateHandle.get<String>("appointmentId")?.let {
+                    appointmentId = it
+                }
+            }
+        }
+
         savedStateHandle?.get<String>("doctorId")?.let {
             doctorId = it
         }
@@ -83,6 +99,18 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<String>("specialtyName")?.let {
             specialtyName = it
         }
+        savedStateHandle?.get<String>("selected_date")?.let {
+            date = it
+        }
+        savedStateHandle?.get<String>("selected_time")?.let {
+            time = it
+        }
+        savedStateHandle?.get<String>("notes")?.let {
+            reason = it
+        }
+        savedStateHandle?.get<String>("location")?.let {
+            location = it
+        }
 
         isDataLoaded = true
     }
@@ -93,8 +121,13 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
                 .fillMaxSize()
         ) {
             val examinationMethod = remember { mutableStateOf("") }
-            var notes by remember { mutableStateOf("") }
-            TopBar(title = "Chi tiết lịch hẹn khám", onClick = { navHostController.popBackStack() })
+            var notes by remember {
+                mutableStateOf(savedStateHandle?.get<String>("notes") ?: "")
+            }
+
+            val title = if (isEditing) "Chỉnh sửa lịch hẹn khám" else "Chi tiết lịch hẹn khám"
+
+            TopBar(title = title, onClick = { navHostController.popBackStack() })
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -127,11 +160,75 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
                 }
 
                 item {
-                    BookButton(navHostController, sharedPreferences, examinationMethod, notes)
+                    if (isEditing) {
+                        UpdateButton(navHostController, sharedPreferences, examinationMethod, notes)
+                    } else {
+                        BookButton(navHostController, sharedPreferences, examinationMethod, notes)
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
+    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
+        initializer { AppointmentViewModel(sharedPreferences) }
+    })
+
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Thiếu thông tin") },
+            text = { Text(dialogMessage) }
+        )
+    }
+
+    Button(
+        onClick = {
+            when {
+                examinationMethod.value.isBlank() -> {
+                    dialogMessage = "Vui lòng chọn hình thức khám"
+                    showDialog = true
+                }
+                date.isBlank() || time.isBlank() -> {
+                    dialogMessage = "Vui lòng chọn ngày giờ khám"
+                    showDialog = true
+                }
+                else -> {
+                    val updateRequest = UpdateAppointmentRequest(
+                        date = date,
+                        time = time,
+                    )
+
+                    appointmentViewModel.updateAppointment(
+                        appointmentId = appointmentId,
+                        appointmentData = updateRequest
+                    )
+                }
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF00C5CB),
+            contentColor = Color.White
+        )
+    ) {
+        Text("Cập nhật lịch hẹn")
+    }
+    Spacer(modifier = Modifier.height(60.dp))
 }
 
 @Composable
@@ -345,22 +442,10 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
     }
 }
 
-
 @Composable
-fun AppointmentDateSection(navHostController : NavHostController) {
-    val savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle
-//    var selectedDate by remember { mutableStateOf("31/3/2025") }
-//    var selectedTime by remember { mutableStateOf("20:00") }
-
-    // Cập nhật giá trị nếu có trong savedStateHandle
-    LaunchedEffect(savedStateHandle) {
-        savedStateHandle?.get<String>("selected_date")?.let {
-            date = it
-        }
-        savedStateHandle?.get<String>("selected_time")?.let {
-            time = it
-        }
-    }
+fun AppointmentDateSection(navHostController: NavHostController) {
+    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    val isEditing = savedStateHandle?.get<Boolean>("isEditing") ?: false
 
     Column(
         modifier = Modifier
@@ -378,7 +463,24 @@ fun AppointmentDateSection(navHostController : NavHostController) {
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFFE0E0E0))
                 .padding(horizontal = 12.dp, vertical = 14.dp)
-                .clickable {navHostController.navigate("booking-calendar")},
+                .clickable {
+                    // Lưu trạng thái chỉnh sửa và các thông tin cần thiết
+                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("isEditing", isEditing)
+                        if (isEditing) {
+                            set("appointmentId", appointmentId)
+                        }
+                    }
+                    navHostController.navigate("booking-calendar") {
+                        // Save necessary data to previous back stack entry
+                        navHostController.previousBackStackEntry?.savedStateHandle?.apply {
+                            set("isEditing", isEditing)
+                            if (isEditing) {
+                                set("appointmentId", appointmentId)
+                            }
+                        }
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

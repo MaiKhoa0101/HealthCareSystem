@@ -57,3 +57,7 @@ data class CreateAppointmentResponse(
 data class CancelAppointmentResponse(
     val message: String
 )
+
+data class UpdateAppointmentResponse(
+    val message: String
+)

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
@@ -36,7 +37,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
+fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
@@ -75,7 +76,7 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences) {
         return
     }
 
-    AppointmentScreenUI(appointmentsUser = appointmentsUser, appointmentsDoc = appointmentsDoc, userId, sharedPreferences = sharedPreferences )
+    AppointmentScreenUI(appointmentsUser = appointmentsUser, appointmentsDoc = appointmentsDoc, userId, sharedPreferences = sharedPreferences, navHostController = navHostController )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -84,7 +85,8 @@ fun AppointmentScreenUI(
     appointmentsUser: List<AppointmentResponse>,
     appointmentsDoc: List<AppointmentResponse>,
     userID: String,
-    sharedPreferences: SharedPreferences
+    sharedPreferences: SharedPreferences,
+    navHostController: NavHostController
 ) {
     var roleSelectedTab by remember { mutableStateOf(0) }
     var selectedTab by remember { mutableStateOf(0) }
@@ -172,7 +174,7 @@ fun AppointmentScreenUI(
             // ✅ Hiển thị
             LazyColumn {
                 items(filteredAppointments) { appointment ->
-                    AppointmentCard(appointment, userID, sharedPreferences = sharedPreferences )
+                    AppointmentCard(appointment, userID, selectedTab = selectedTab, sharedPreferences = sharedPreferences, navHostController = navHostController  )
                 }
             }
         }
@@ -181,7 +183,13 @@ fun AppointmentScreenUI(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentCard(appointment: AppointmentResponse, userID: String, sharedPreferences: SharedPreferences) {
+fun AppointmentCard(
+    appointment: AppointmentResponse,
+    userID: String,
+    selectedTab: Int,
+    sharedPreferences: SharedPreferences,
+    navHostController: NavHostController
+    ) {
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -246,17 +254,48 @@ fun AppointmentCard(appointment: AppointmentResponse, userID: String, sharedPref
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OutlinedButton(
-                    onClick = {appointmentViewModel.cancelAppointment(appointment.id, userID)},
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                ) {
-                    Text("Huỷ")
-                }
-                Button(
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                ) {
-                    Text("Chỉnh sửa", color = Color.White)
+                if (selectedTab == 0) { // Chờ khám
+                    OutlinedButton(
+                        onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                    ) {
+                        Text("Huỷ")
+                    }
+                    Button(
+                        onClick = {
+                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("isEditing", true)
+                                set("appointmentId", appointment.id)
+                                set("doctorId", appointment.doctor.id)
+                                set("doctorName", appointment.doctor.name)
+                                set("specialtyName", appointment.doctor.specialty ?: "")
+                                set("selected_date", formattedDate)
+                                set("selected_time", appointment.time)
+                                set("notes", appointment.notes ?: "")
+                                set("location", appointment.location ?: "")
+                            }
+                            navHostController.navigate("appointment-detail")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    ) {
+                        Text("Chỉnh sửa", color = Color.White)
+                    }
+                } else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
+                    Button(
+                        onClick = {
+                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("isEditing", false)
+                                set("doctorId", appointment.doctor.id)
+                                set("doctorName", appointment.doctor.name)
+                                set("specialtyName", appointment.doctor.specialty ?: "")
+                                set("location", appointment.location ?: "")
+                            }
+                            navHostController.navigate("appointment-detail")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    ) {
+                        Text("Đặt lại", color = Color.White)
+                    }
                 }
             }
         }

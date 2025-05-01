@@ -44,7 +44,7 @@ fun DoctorListScreen(
     context: Context,
     specialtyId: String,
     specialtyName: String,
-    onBack: () -> Unit,
+    //onBack: () -> Unit,
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -61,7 +61,7 @@ fun DoctorListScreen(
     Column(modifier = Modifier
         .fillMaxSize()
     ) {
-        TopBar(onClick = onBack)
+        //TopBar(onClick = onBack)
 
         Spacer(modifier = Modifier.height(16.dp))
 
