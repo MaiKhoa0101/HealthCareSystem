@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.api.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
@@ -111,6 +112,64 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun updateCommentPost(postId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.updateCommentPost(
+                    postId, mapOf("userId" to userId)
+                )
+                if (response.isSuccessful) {
+                    getUserById(userId) // chỉ refresh bài viết của đúng user đang xem
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Like Post Error", e)
+            }
+        }
+    }
+
+    private val _comments = mutableStateOf<List<GetCommentPostResponse>>(emptyList())
+    val comments: State<List<GetCommentPostResponse>> get() = _comments
+
+    fun fetchComments(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getCommentByPostId(postId)
+                if (response.isSuccessful) {
+                    _comments.value = response.body() ?: emptyList()
+                } else {
+                    Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Comment Fetch Error", e)
+            }
+        }
+    }
+
+    fun sendComment(postId: String, userId: String, content: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.createCommentByPostId(
+                    postId,
+                    createCommentPostRequest(userId, content)
+                )
+                if (response.isSuccessful) {
+                    fetchComments(postId) // refresh
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Send Comment Error", e)
+            }
+        }
+    }
+    suspend fun fetchCommentsForPost(postId: String): List<GetCommentPostResponse> {
+        return try {
+            val response = RetrofitInstance.postService.getCommentByPostId(postId)
+            if (response.isSuccessful) response.body() ?: emptyList()
+            else emptyList()
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Lỗi khi fetch comments", e)
+            emptyList()
+        }
+    }
 
 
 }

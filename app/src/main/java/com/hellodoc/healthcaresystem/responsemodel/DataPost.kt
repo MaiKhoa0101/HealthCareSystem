@@ -11,7 +11,7 @@ data class HeaderItem(
 data class ContainerPost(
     val name: String,
     val imageUrl: String,
-    val lable: String = ""
+    val label: String = ""
 )
 
 data class FooterItem(

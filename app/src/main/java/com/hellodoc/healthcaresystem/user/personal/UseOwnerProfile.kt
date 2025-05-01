@@ -21,13 +21,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,10 +63,14 @@ import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.api.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -133,7 +141,11 @@ fun ProfileUserPage(
             ProfileSection(navHostController, user!!)
         }
         item {
-            PostUser(post)
+            PostUser(
+                posts = post,
+                postViewModel = postViewModel,
+                userId = userId ?: ""
+            )
         }
     }
 }
@@ -158,7 +170,11 @@ fun ProfileSection(navHostController: NavHostController, user: User) {
 
 
 @Composable
-fun PostUser(posts: List<PostResponse>) {
+fun PostUser(
+    posts: List<PostResponse>,
+    postViewModel: PostViewModel,
+    userId: String
+    ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -190,23 +206,22 @@ fun PostUser(posts: List<PostResponse>) {
         } else {
             posts.forEach { postItem ->
                 ViewPostOwner(
+                    postId = postItem.id,
                     containerPost = ContainerPost(
-                        imageUrl = postItem.user.avatarURL ?: "https://default.avatar.url/no-avatar.jpg",
-                        name = postItem.user.name
+                        name = postItem.user.name,
+                        imageUrl = postItem.user.avatarURL ?: ""
                     ),
-                    contentPost = ContentPost(
-                        content = postItem.content
-                    ),
-                    footerItem = FooterItem(
-                        imageUrl = postItem.media.firstOrNull() ?: "https://default.image.url/no-image.jpg"
-                    )
+                    contentPost = ContentPost(postItem.content),
+                    footerItem = FooterItem(imageUrl = postItem.media.firstOrNull() ?: ""),
+                    postViewModel = postViewModel,
+                    currentUserId = userId ?: "",
+                    likedUserIds = postItem.likes
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
 }
-
 
 @Composable
 fun UserIntroSection(user: User) {
@@ -280,13 +295,37 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
 
 @Composable
 fun ViewPostOwner(
+    postId: String,
     containerPost: ContainerPost,
     contentPost: ContentPost,
     footerItem: FooterItem,
+    postViewModel: PostViewModel,
+    currentUserId: String,
+    likedUserIds: List<String>,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
+    var isCommenting by remember { mutableStateOf(false) }
+    var newComment by remember { mutableStateOf("") }
+    val commentsState = remember { mutableStateOf<List<GetCommentPostResponse>>(emptyList()) }
+    var shouldFetchComments by remember { mutableStateOf(false) }
+    var isLiked by remember(postId) {
+        mutableStateOf(currentUserId in likedUserIds)
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(shouldFetchComments) {
+        if (shouldFetchComments) {
+            coroutineScope.launch {
+                val result = postViewModel.fetchCommentsForPost(postId)
+                commentsState.value = result
+                shouldFetchComments = false
+            }
+        }
+    }
+
     println ("footer item: "+footerItem)
     Column(
         modifier = modifier
@@ -357,6 +396,97 @@ fun ViewPostOwner(
                 .background(Color.LightGray)
         )
 
+        // ICON like & comment
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // LIKE
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    postViewModel.updateCommentPost(postId = postId, userId = currentUserId)
+                    isLiked = !isLiked
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = if (isLiked) R.drawable.liked else R.drawable.like),
+                    contentDescription = "Like",
+                    tint = if (isLiked) Color.Red else Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Like", fontSize = 18.sp)
+            }
+
+            // COMMENT
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    isCommenting = !isCommenting
+                    if (isCommenting) {
+                        shouldFetchComments = true
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.comment),
+                    contentDescription = "Comment",
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Comment", fontSize = 18.sp)
+            }
+        }
+
+        // UI COMMENT
+        if (isCommenting) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+
+                if (commentsState.value.isNotEmpty()) {
+                    Column {
+                        commentsState.value.forEach { comment ->
+                            Row(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = comment.user?.avatarURL ?: "",
+                                    contentDescription = "avatar",
+                                    modifier = Modifier.size(30.dp).clip(CircleShape)
+                                )
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Text(comment.user?.name ?: "Ẩn danh", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(comment.content, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Text("Chưa có bình luận nào.")
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = newComment,
+                        onValueChange = { newComment = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Nhập bình luận...") }
+                    )
+                    Button(onClick = {
+                        postViewModel.sendComment(postId, currentUserId, newComment)
+                        newComment = ""
+                    }) {
+                        Text("Gửi")
+                    }
+                }
+            }
+        }
     }
 }
 

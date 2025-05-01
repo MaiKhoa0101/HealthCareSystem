@@ -23,9 +23,36 @@ data class PostResponse(
 
 data class UserResponse(
     val name: String,
-    val imageUrl: String?
+    val avatarURL: String?
 )
 
+data class GetFavoritePostResponse(
+    val favorited: Boolean, 
+    val totalLikes: Int
+)
+
+data class UpdateFavoritePostResponse(
+    val favorited: Boolean, 
+    val totalLikes: Int
+)
+
+data class CreateCommentPostRequest(
+    val userId: String
+    val content: String
+)
+
+data class CreateCommentPostResponse(
+    val user: UserResponse?,
+    val post: String
+    val content: String
+)
+
+data class GetCommentPostResponse(
+    val user: UserResponse?,
+    val post: String
+    val content: String,
+    val createdAt: String
+)
 
 
 interface PostService {
@@ -43,5 +70,31 @@ interface PostService {
         @Part content: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>?
     ): Response<CreatePostResponse>
-    
+
+    // favorite
+    @POST("post/{postId}/favorite/update")
+    suspend fun updateFavoriteByPostId(
+        @Path("postId") postId: String,
+        @Body userId: String
+    ): Response<UpdateFavoritePostResponse>
+
+    @GET("post/{postId}/favorite/get")
+    suspend fun getFavoriteByPostId(
+        @Path("postId") postId: String,
+        @Body userId: String
+    ): Response<GetFavoritePostResponse>
+
+
+    // comment
+    @POST("post/{postId}/comment")
+    suspend fun createCommentByPostId(
+        @Path("postId") postId: String,
+        @Body createCommentPostRequest: CreateCommentPostRequest
+    ): Response<CreateCommentPostResponse>
+
+    @GET("post/{postId}/comments")
+    suspend fun getCommentByPostId(
+        @Path("postId") postId: String
+    ): Response<List<GetCommentPostResponse>>
+
 }
