@@ -68,6 +68,7 @@ fun ReportManagerScreen() {
                     reportList.add(
                         ComplaintData(
                             id = (index + 1).toString(),
+                            reportId = report._id,
                             user = report.reporter?.name ?: "Không rõ",
                             content = report.content ?: "Không có nội dung",
                             targetType = report.type ?: "Không xác định",
@@ -121,7 +122,7 @@ fun ReportManagerScreen() {
         }
         composable("RespondScreen/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id") ?: ""
-            val complaint = reportList.find { it.id == id }
+            val complaint = reportList.find { it.reportId == id }
             if (complaint != null) {
                 ReportResponseScreen(
                     complaint = complaint,
@@ -317,7 +318,7 @@ fun TableReport(
                                             },
                                             onClick = {
                                                 expanded = false
-                                                navController.navigate("RespondScreen/${complaint.id}")
+                                                navController.navigate("RespondScreen/${complaint.reportId}")
                                             }
                                         )
                                         DropdownMenuItem(

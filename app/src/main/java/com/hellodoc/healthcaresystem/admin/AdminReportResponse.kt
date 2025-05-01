@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.admin
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -28,11 +29,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import com.hellodoc.healthcaresystem.requestmodel.AdminResponseRequest
 import com.hellodoc.healthcaresystem.responsemodel.ComplaintData
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,6 +49,8 @@ fun ReportResponseScreen(
 ) {
     var responseContent by remember { mutableStateOf("") }
     val date = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -100,8 +107,26 @@ fun ReportResponseScreen(
 
         Button(
             onClick = {
-                // TODO: Gửi nội dung phản hồi
-                println("Gửi phản hồi: $responseContent")
+                coroutineScope.launch {
+                    if (responseContent.isBlank()) {
+                        Toast.makeText(context, "Vui lòng nhập nội dung phản hồi", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    val result = RetrofitInstance.reportService.sendAdminResponse(
+                        id = complaint.reportId, // ID report từ backend
+                        response = AdminResponseRequest(
+                            responseContent = responseContent,
+                            responseTime = date
+                        )
+                    )
+                    if (result.isSuccessful) {
+                        complaint.status = "closed"
+                        Toast.makeText(context, "Phản hồi đã được gửi", Toast.LENGTH_SHORT).show()
+                        onBack()
+                    } else {
+                        Toast.makeText(context, "Gửi phản hồi thất bại", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
