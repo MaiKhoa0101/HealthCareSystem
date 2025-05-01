@@ -9,6 +9,7 @@ data class HeaderItem(
 )
 
 data class ContainerPost(
+    val id: String? = null,
     val name: String,
     val imageUrl: String,
     val label: String = ""

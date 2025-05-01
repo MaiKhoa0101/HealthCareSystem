@@ -5,5 +5,6 @@ data class ReportRequest(
     val reporterModel: String,
     val content: String,
     val type: String,
-    val reportedId: String
+    val reportedId: String,
+    val postId: String? = null
 )
