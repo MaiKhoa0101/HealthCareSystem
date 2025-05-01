@@ -113,18 +113,18 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     }
 
     fun updateCommentPost(postId: String, userId: String) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.postService.updateCommentPost(
-                    postId, mapOf("userId" to userId)
-                )
-                if (response.isSuccessful) {
-                    getUserById(userId) // chỉ refresh bài viết của đúng user đang xem
-                }
-            } catch (e: Exception) {
-                Log.e("PostViewModel", "Like Post Error", e)
-            }
-        }
+//        viewModelScope.launch {
+//            try {
+//                val response = RetrofitInstance.postService.updateCommentPost(
+//                    postId, mapOf("userId" to userId)
+//                )
+//                if (response.isSuccessful) {
+//                    getUserById(userId) // chỉ refresh bài viết của đúng user đang xem
+//                }
+//            } catch (e: Exception) {
+//                Log.e("PostViewModel", "Like Post Error", e)
+//            }
+//        }
     }
 
     private val _comments = mutableStateOf<List<GetCommentPostResponse>>(emptyList())

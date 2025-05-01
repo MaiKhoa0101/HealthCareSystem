@@ -86,13 +86,13 @@ interface PostService {
 
 
     // comment
-    @POST("post/{postId}/comment")
+    @POST("post/{postId}/comment/create")
     suspend fun createCommentByPostId(
         @Path("postId") postId: String,
         @Body createCommentPostRequest: CreateCommentPostRequest
     ): Response<CreateCommentPostResponse>
 
-    @GET("post/{postId}/comments")
+    @GET("post/{postId}/comment/get")
     suspend fun getCommentByPostId(
         @Path("postId") postId: String
     ): Response<List<GetCommentPostResponse>>
