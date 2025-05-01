@@ -68,7 +68,6 @@ import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.api.CommentItem
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
@@ -244,7 +243,8 @@ fun ProfileUserPage(
                         Button(onClick = {
                             coroutineScope.launch {
                                 try {
-                                    val model = if (user!!.role.lowercase() == "doctor") "Doctor" else "User"
+                                    val model =
+                                        if (user!!.role.lowercase() == "doctor") "Doctor" else "User"
                                     val response = RetrofitInstance.reportService.sendReport(
                                         ReportRequest(
                                             reporter = user!!.id,
@@ -255,12 +255,24 @@ fun ProfileUserPage(
                                     )
 
                                     if (response.isSuccessful) {
-                                        Toast.makeText(context, "Đã gửi báo cáo thành công", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Đã gửi báo cáo thành công",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     } else {
-                                        Toast.makeText(context, "Gửi báo cáo thất bại", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Gửi báo cáo thất bại",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Lỗi kết nối đến server", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Lỗi kết nối đến server",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     e.printStackTrace()
                                 }
                             }
@@ -271,13 +283,6 @@ fun ProfileUserPage(
                     }
                 }
             }
-        item {
-            PostUser(
-                posts = post,
-//                comments = comments,
-                postViewModel = postViewModel,
-                userId = userId ?: ""
-            )
         }
     }
 }
@@ -512,179 +517,178 @@ fun ViewPostOwner(
         }
     }
 
-    println ("footer item: "+footerItem)
-        Column(
-            modifier = modifier
-                .background(backgroundColor, RectangleShape)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(10.dp)
+    println("footer item: " + footerItem)
+    Column(
+        modifier = modifier
+            .background(backgroundColor, RectangleShape)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(10.dp)
+    ) {
+        // Row for Avatar and Name
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Row for Avatar and Name
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Avatar
-                AsyncImage(
-                    model = containerPost.imageUrl,
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(45.dp)
-                        .clip(CircleShape)
-                )
+            // Avatar
+            AsyncImage(
+                model = containerPost.imageUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(CircleShape)
+            )
 
-                // Name
-                Text(
-                    text = containerPost.name,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    ),
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                )
-            }
-
-            // Content bài viết
+            // Name
             Text(
-                text = contentPost.content,
+                text = containerPost.name,
                 style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
                     color = Color.Black
                 ),
                 modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis
+                    .padding(start = 10.dp)
             )
+        }
 
-            // Nút "Xem thêm" / "Thu gọn"
-            Text(
-                text = if (expanded) "Thu gọn" else "Xem thêm",
-                color = Color.Blue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { expanded = !expanded }
-                    .padding(top = 4.dp)
-            )
+        // Content bài viết
+        Text(
+            text = contentPost.content,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Color.Black
+            ),
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = TextOverflow.Ellipsis
+        )
 
-            AsyncImage(
-                model = footerItem.imageUrl,
-                contentDescription = "Post Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.LightGray)
-            )
+        // Nút "Xem thêm" / "Thu gọn"
+        Text(
+            text = if (expanded) "Thu gọn" else "Xem thêm",
+            color = Color.Blue,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .clickable { expanded = !expanded }
+                .padding(top = 4.dp)
+        )
 
-            // ICON like & comment
+        AsyncImage(
+            model = footerItem.imageUrl,
+            contentDescription = "Post Image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.LightGray)
+        )
+
+        // ICON like & comment
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // LIKE
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // LIKE
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        postViewModel.updateFavoriteForPost(
-                            postId = postId,
-                            userId = currentUserId,
-                            userModel = userModel
-                        )
+                modifier = Modifier.clickable {
+                    postViewModel.updateFavoriteForPost(
+                        postId = postId,
+                        userId = currentUserId,
+                        userModel = userModel
+                    )
 //                    isFavorited = !isFavorited
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
-                        contentDescription = "Like",
-                        tint = if (isFavorited) Color.Red else Color.Black,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("$totalFavorites Likes", fontSize = 18.sp)
                 }
-
-                // COMMENT
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        isCommenting = !isCommenting
-                        if (isCommenting) {
-                            shouldFetchComments = true
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.comment),
-                        contentDescription = "Comment",
-                        tint = Color.Black,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Comment", fontSize = 18.sp)
-                }
+            ) {
+                Icon(
+                    painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
+                    contentDescription = "Like",
+                    tint = if (isFavorited) Color.Red else Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("$totalFavorites Likes", fontSize = 18.sp)
             }
 
-            // UI COMMENT
-            if (isCommenting) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            // COMMENT
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    isCommenting = !isCommenting
+                    if (isCommenting) {
+                        shouldFetchComments = true
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.comment),
+                    contentDescription = "Comment",
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Comment", fontSize = 18.sp)
+            }
+        }
 
-                    if (comments.isNotEmpty()) {
-                        Column {
-                            comments.forEach { comment ->
-                                Row(
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    AsyncImage(
-                                        model = comment.user?.avatarURL ?: "",
-                                        contentDescription = "avatar",
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .clip(CircleShape)
+        // UI COMMENT
+        if (isCommenting) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+
+                if (comments.isNotEmpty()) {
+                    Column {
+                        comments.forEach { comment ->
+                            Row(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = comment.user?.avatarURL ?: "",
+                                    contentDescription = "avatar",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
+                                )
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Text(
+                                        comment.user?.name ?: "Ẩn danh",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
                                     )
-                                    Column(modifier = Modifier.padding(start = 8.dp)) {
-                                        Text(
-                                            comment.user?.name ?: "Ẩn danh",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
-                                        )
-                                        Text(comment.content, fontSize = 14.sp)
-                                    }
+                                    Text(comment.content, fontSize = 14.sp)
                                 }
                             }
                         }
-                    } else {
-                        Text("Chưa có bình luận nào.")
                     }
+                } else {
+                    Text("Chưa có bình luận nào.")
+                }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextField(
-                            value = newComment,
-                            onValueChange = { newComment = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Nhập bình luận...") }
-                        )
-                        Button(onClick = {
-                            postViewModel.sendComment(postId, currentUserId, userModel, newComment)
-                            newComment = ""
-                        }) {
-                            Text("Gửi")
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = newComment,
+                        onValueChange = { newComment = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Nhập bình luận...") }
+                    )
+                    Button(onClick = {
+                        postViewModel.sendComment(postId, currentUserId, userModel, newComment)
+                        newComment = ""
+                    }) {
+                        Text("Gửi")
                     }
                 }
             }
         }
-
+    }
 }
 
 
