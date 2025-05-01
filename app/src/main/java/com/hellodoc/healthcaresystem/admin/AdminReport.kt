@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.admin
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,6 +49,8 @@ fun ReportManagerScreen() {
     val backgroundColor = Color(0xFFF4F5F7)
     val reportList = remember { mutableStateListOf<ComplaintData>() }
     val coroutineScope = rememberCoroutineScope()
+    var selectedComplaint by remember { mutableStateOf<ComplaintData?>(null) }
+
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
@@ -58,10 +61,11 @@ fun ReportManagerScreen() {
                         ComplaintData(
                             id = (index + 1).toString(),
                             user = report.reporter?.name ?: "Không rõ",
-                            content = report.content,
-                            targetType = report.type,
-                            status = report.status,
-                            createdDate = report.createdAt.substring(0, 10)
+                            content = report.content ?: "Không có nội dung",
+                            targetType = report.type ?: "Không xác định",
+                            status = report.status ?: "pending",
+                            createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
+                            reportedId = report.reportedId ?: "Không rõ"
                         )
                     )
                 }
@@ -95,14 +99,55 @@ fun ReportManagerScreen() {
                         .background(Color.White)
                         .padding(16.dp)
                 )
-                TableReport(reportList)
+                TableReport(reportList) { selectedComplaint = it }
+            }
+        }
+    }
+    if (selectedComplaint != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .wrapContentHeight()
+                    .padding(24.dp),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Chi tiết khiếu nại", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(
+                            "Đóng",
+                            color = Color.Red,
+                            modifier = Modifier.clickable { selectedComplaint = null }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Người báo cáo: ${selectedComplaint!!.user}")
+                    Text("Nội dung: ${selectedComplaint!!.content}")
+                    Text("Loại: ${selectedComplaint!!.targetType}")
+                    Text("Ngày tạo: ${selectedComplaint!!.createdDate}")
+                    Text("ID người bị báo cáo: ${selectedComplaint?.reportedId ?: "Không rõ"}")
+                }
             }
         }
     }
 }
 
 @Composable
-fun TableReport(reportList: List<ComplaintData>){
+fun TableReport(
+    reportList: List<ComplaintData>,
+    onDetailClick: (ComplaintData) -> Unit
+){
 
     LazyRow {
         item {
@@ -166,7 +211,7 @@ fun TableReport(reportList: List<ComplaintData>){
                                             },
                                             onClick = {
                                                 expanded = false
-                                                // Thêm logic xử lý xác minh
+                                                onDetailClick(complaint)
                                             }
                                         )
                                         DropdownMenuItem(

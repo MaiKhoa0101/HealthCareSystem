@@ -6,14 +6,16 @@ data class ComplaintData (
     val content: String,
     val targetType: String,
     val status: String,
-    val createdDate: String
+    val createdDate: String,
+    val reportedId: String
 )
 data class ReportResponse(
-    val reporter: Reporter?,       // Người gửi (doctor hoặc user)
-    val content: String,
-    val type: String,              // "Bác sĩ" hoặc "Ứng dụng"
-    val status: String,
-    val createdAt: String
+    val reporter: Reporter?,
+    val content: String?,
+    val type: String?,
+    val status: String?,
+    val createdAt: String?,
+    val reportedId: String?
 )
 
 data class Reporter(

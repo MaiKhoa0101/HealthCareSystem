@@ -250,7 +250,8 @@ fun ProfileUserPage(
                                             reporter = user!!.id,
                                             reporterModel = model,
                                             content = reportContent,
-                                            type = selectedType
+                                            type = selectedType,
+                                            reportedId = user!!.id
                                         )
                                     )
 

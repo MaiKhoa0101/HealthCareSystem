@@ -4,5 +4,6 @@ data class ReportRequest(
     val reporter: String,
     val reporterModel: String,
     val content: String,
-    val type: String
+    val type: String,
+    val reportedId: String
 )
