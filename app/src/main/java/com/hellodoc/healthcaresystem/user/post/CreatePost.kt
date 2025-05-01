@@ -72,6 +72,7 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 var userId: String = ""
+var userModel: String = ""
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -88,6 +89,8 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+
     }
 
     var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
@@ -110,10 +113,8 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 postText = postText,
                 selectedImageUri = selectedImageUri,
                 onPost = {
-                    postViewModel.createPost(CreatePostRequest(userId, postText, selectedImageUri), context)
+                    postViewModel.createPost(CreatePostRequest(userId, userModel, postText, selectedImageUri), context)
                     navController.navigate("personal")
-//                    Log.d("PostScreen", "Selected content: $postText")
-//                    Log.d("PostScreen", "Selected Image URIs: $selectedImageUri")
                 }
             )
         }
@@ -142,25 +143,11 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                             modifier = Modifier
                                 .size(200.dp)
                         ) {
-//                            if (isVideoUri(uri)) {
-//                                AndroidView(
-//                                    factory = { ctx ->
-//                                        val videoView = VideoView(ctx)
-//                                        videoView.setVideoURI(uri)
-//                                        videoView.setOnPreparedListener { mediaPlayer ->
-//                                            mediaPlayer.isLooping = true
-//                                            videoView.start()
-//                                        }
-//                                        videoView
-//                                    },
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
-//                            }
-                                Image(
-                                    painter = rememberAsyncImagePainter(uri),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxSize()
+                            Image(
+                                painter = rememberAsyncImagePainter(uri),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
                                         .clip(RoundedCornerShape(8.dp)),
                                     contentScale = ContentScale.Crop
                                 )

@@ -9,6 +9,7 @@ import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.PostService
 import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
+import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.api.SpecialtyService
 import com.hellodoc.healthcaresystem.api.UserService
 import okhttp3.OkHttpClient
@@ -40,6 +41,7 @@ object RetrofitInstance {
     val remoteMedicalOptionService: RemoteMedicalOptionService by lazy { retrofit.create(RemoteMedicalOptionService::class.java) }
     val faqItemService: FAQItemService by lazy { retrofit.create(FAQItemService::class.java) }
     val postService: PostService by lazy { retrofit.create(PostService::class.java) }
+    val reviewService: ReviewService by lazy { retrofit.create(ReviewService::class.java) }
 
 
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }

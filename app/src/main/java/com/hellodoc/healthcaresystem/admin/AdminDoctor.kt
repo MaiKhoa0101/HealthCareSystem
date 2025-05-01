@@ -244,7 +244,9 @@ fun DoctorItem(user: User, viewModel: UserViewModel) {
                     email = email,
                     phone = phone,
                     password = if (password.isNotEmpty()) password else currentPassword,
-                    role = role
+                    role = role,
+                    avatarURL = "",
+                    address = ""
                 )
                 Log.d("UserItem", "User ID to update: ${user.id}")
                 Log.d("UserItem", "Data sent to API: $updatedUser")
