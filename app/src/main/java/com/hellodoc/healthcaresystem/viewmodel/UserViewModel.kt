@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
@@ -126,7 +127,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun sendFcmToken(userId: String, token: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.userService.updateFcmToken(userId, token)
+                val response = RetrofitInstance.userService.updateFcmToken(userId, TokenRequest(token))
                 if (response.isSuccessful) {
                     Log.d("FCM", "Đã gửi fcmToken lên server")
                 } else {
