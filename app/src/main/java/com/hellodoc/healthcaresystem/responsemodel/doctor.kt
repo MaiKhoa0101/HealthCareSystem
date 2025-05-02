@@ -24,11 +24,17 @@ data class GetDoctorResponse (
     @SerializedName("ratingsCount")
     val ratingsCount: Int?
 )
+
 data class Specialty (
     @SerializedName("_id") val id:String,
     @SerializedName("name") val name: String
 )
+
 data class ServiceResponse(
     val name: String?,
     val price: Int?
+)
+
+data class ApplyDoctor(
+    val message: String
 )

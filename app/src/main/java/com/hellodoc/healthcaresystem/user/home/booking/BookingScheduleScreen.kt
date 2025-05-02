@@ -39,6 +39,10 @@ import java.time.format.DateTimeFormatter
 fun BookingCalendarScreen(
     navHostController: NavHostController
 ) {
+    // Lấy thông tin chỉnh sửa từ màn hình trước đó
+    val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
+    val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
+
     val availableTimes = listOf(
         "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
         "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
@@ -221,8 +225,8 @@ fun BookingCalendarScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00BCD4), // Màu nền
-                        contentColor = Color.White          // Màu chữ
+                        containerColor = Color(0xFF00BCD4),
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Xác nhận", fontSize = 16.sp)

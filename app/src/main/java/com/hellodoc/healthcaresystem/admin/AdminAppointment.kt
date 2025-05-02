@@ -3,12 +3,11 @@ package com.hellodoc.healthcaresystem.admin
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,28 +16,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.appointment.model.AppointmentRow
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun AppointmentManagerScreenPreview() {
-//    AppointmentManagerScreen()
-//}
-
 @Composable
-fun AppointmentManagerScreen(
-    sharedPreferences: SharedPreferences
-) {
+fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -47,7 +34,10 @@ fun AppointmentManagerScreen(
         appointViewModel.fetchAppointments()
     }
 
-    LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    LazyColumn(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
+
         item {
             Text("Danh sách lịch hẹn", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
@@ -58,12 +48,13 @@ fun AppointmentManagerScreen(
 
             Spacer(Modifier.height(24.dp))
             Text("Quản lí lịch hẹn khám", style = MaterialTheme.typography.titleLarge)
-
             Spacer(Modifier.height(16.dp))
+
             SearchBar()
             Spacer(Modifier.height(16.dp))
 
-            TableDesign(sharedPreferences)
+            // Gọi table
+            TableDesign(sharedPreferences = sharedPreferences)
         }
     }
 }
@@ -85,7 +76,6 @@ fun SearchBar() {
     )
 }
 
-
 @Composable
 fun TableDesign(sharedPreferences: SharedPreferences) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
@@ -93,10 +83,12 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
     })
 
     val appointmentList = appointViewModel.appointmentsUser.collectAsState()
+    var appointmentToDelete by remember { mutableStateOf<String?>(null) }
+
     LazyRow {
         item {
             Column {
-                // Header
+                // Table header
                 Row(
                     Modifier
                         .background(Color(0xFF2B544F))
@@ -114,9 +106,10 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                     TableHeaderCell("Nơi khám", 200)
                     TableHeaderCell("Ngày tạo", 120)
                     TableHeaderCell("Trạng thái", 120)
+                    TableHeaderCell("Chức năng", 120)
                 }
 
-                // Check if list is empty
+                // Hiển thị dữ liệu
                 if (appointmentList.value.isEmpty()) {
                     Row(
                         modifier = Modifier
@@ -137,7 +130,6 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                                 .padding(vertical = 10.dp),
                             horizontalArrangement = Arrangement.Start
                         ) {
-                            // Đảm bảo các trường này khớp với cấu trúc AppointmentRow
                             TableCell(row.id ?: "trống", 60)
                             TableCell(row.doctor?.id ?: "trống", 80)
                             TableCell(row.doctor?.name ?: "trống", 100)
@@ -158,24 +150,61 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                                     else -> Color.Gray
                                 }
                             )
+                            TableCell(width = 120, content = {
+                                IconButton(onClick = {
+                                    appointmentToDelete = row.id
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Xóa lịch hẹn",
+                                        tint = Color.Red
+                                    )
+                                }
+                            })
                         }
                     }
+                }
+
+                // Dialog xác nhận xóa
+                if (appointmentToDelete != null) {
+                    AlertDialog(
+                        onDismissRequest = { appointmentToDelete = null },
+                        title = { Text("Xác nhận xóa") },
+                        text = { Text("Bạn có chắc chắn muốn xóa lịch hẹn này không?") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                appointViewModel.adminDeleteAppointment(appointmentToDelete!!)
+                                appointmentToDelete = null
+                            }) {
+                                Text("Xóa", color = Color.Red)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { appointmentToDelete = null }) {
+                                Text("Hủy")
+                            }
+                        }
+                    )
                 }
             }
         }
     }
 }
 
-
 @Composable
-fun TableCell(text: String, width: Int, color: Color = Color.Black) {
+fun TableCell(
+    text: String = "",
+    width: Int,
+    color: Color = Color.Black,
+    content: (@Composable () -> Unit)? = null
+) {
     Box(
         modifier = Modifier
             .width(width.dp)
             .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
+        content?.invoke() ?: Text(
             text = text,
             color = color,
             textAlign = TextAlign.Center,

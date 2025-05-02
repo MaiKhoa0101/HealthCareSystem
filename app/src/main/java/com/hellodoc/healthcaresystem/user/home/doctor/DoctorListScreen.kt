@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -34,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
@@ -44,7 +46,7 @@ fun DoctorListScreen(
     context: Context,
     specialtyId: String,
     specialtyName: String,
-    onBack: () -> Unit,
+    //onBack: () -> Unit,
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -61,7 +63,7 @@ fun DoctorListScreen(
     Column(modifier = Modifier
         .fillMaxSize()
     ) {
-        TopBar(onClick = onBack)
+        //TopBar(onClick = onBack)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -81,7 +83,7 @@ fun DoctorListScreen(
                 }
             } else {
                 items(doctors) { doctor ->
-                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName)
+                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName, specialtyId = specialtyId)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -115,7 +117,7 @@ fun TopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String) {
+fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -130,14 +132,27 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
     ) {
         // Dòng thông tin chính
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = R.drawable.doctor),
-                contentDescription = "Doctor Image",
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(30.dp)),
-                contentScale = ContentScale.Crop
-            )
+            if (!doctor.avatarURL.isNullOrBlank()) {
+                AsyncImage(
+                    model = doctor.avatarURL,
+                    contentDescription = doctor.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.LightGray, CircleShape)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.doctor),
+                    contentDescription = doctor.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.LightGray, CircleShape)
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 

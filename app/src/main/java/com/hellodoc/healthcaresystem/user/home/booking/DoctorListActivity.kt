@@ -76,7 +76,7 @@ class DoctorListActivity : BaseActivity() {
             startDestination = "doctorList/$specialtyId/$specialtyName"
         ) {
             composable("appointment") {
-                AppointmentListScreen(sharedPreferences)
+                AppointmentListScreen(sharedPreferences, navHostController)
             }
             composable("personal") {
                 ProfileUserPage(sharedPreferences,navHostController)
@@ -96,24 +96,24 @@ class DoctorListActivity : BaseActivity() {
                     context = context,
                     specialtyId = specialtyId,
                     specialtyName = specialtyName,
-                    onBack = {
-                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
-                        startActivity(intent)
-                    },
+//                    onBack = {
+//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
+//                        startActivity(intent)
+//                    },
                     navHostController = navHostController
                 )
             }
             composable("booking") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        AppointmentDetailScreen(
-                            context = context,
-                            onBack = { navHostController.popBackStack()},
-                            navHostController = navHostController
-                        )
-                    }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    AppointmentDetailScreen(
+                        context = context,
+                        onBack = { navHostController.popBackStack()},
+                        navHostController = navHostController
+                    )
+                }
             }
 
             composable("booking-calendar") {
@@ -132,6 +132,7 @@ class DoctorListActivity : BaseActivity() {
                     navHostController = navHostController
                 )
             }
+
         }
 //        }
 //    }

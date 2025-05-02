@@ -21,7 +21,8 @@ data class AppointmentResponse(
         @SerializedName("_id")
         val id: String,
         val name: String,
-        val specialty: Specialty
+        val specialty: Specialty,
+        val avatarURL: String
     )
 
     data class Patient(
@@ -53,3 +54,11 @@ data class CreateAppointmentResponse(
         val totalCost: Double
     )
 }
+
+data class CancelAppointmentResponse(
+    val message: String
+)
+
+data class UpdateAppointmentResponse(
+    val message: String
+)
