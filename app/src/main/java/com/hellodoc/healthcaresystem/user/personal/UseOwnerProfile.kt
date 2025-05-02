@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
@@ -422,17 +423,39 @@ fun UserIntroSection(
                     .padding(top = 50.dp, end = 8.dp)
                     .background(Color.White, shape = RoundedCornerShape(6.dp))
                     .border(5.dp, Color.LightGray)
+                    .padding(12.dp)
+            ) {
+                Column(modifier = Modifier
+                    .fillMaxWidth()
                     .clickable {
                         showReportBox = false
                         onClickShowReport()
                     }
-                    .padding(12.dp)
-            ) {
-                Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.ExtraBold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Phản ánh vi phạm hoặc sự cố hệ thống", fontSize = 15.sp)
+                ) {
+                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.ExtraBold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Phản ánh vi phạm hoặc sự cố hệ thống", fontSize = 15.sp)
+                }
+                Divider(
+                    color = Color.LightGray,
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+                //Quản lý hoạt động
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        showReportBox = false
+                        // TODO: Xử lý chuyển trang hoặc hành động khác
+                    }
+                ) {
+                    Text("Quản lý hoạt động", fontWeight = FontWeight.ExtraBold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Xem và kiểm soát các hoạt động của bạn", fontSize = 15.sp)
+                }
             }
         }
+
     }
 }
 
