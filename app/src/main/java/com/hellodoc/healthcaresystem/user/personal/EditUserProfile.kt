@@ -26,38 +26,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.api.UserResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-
-@Composable
-fun PostUser(posts: List<PostResponse>) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, color = Color.Gray),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                "Bài viết đã đăng",
-                fontWeight = FontWeight.Bold,
-                fontSize = 25.sp
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        PostColumn(posts)
-
-    }
-}
 
 
 @Composable

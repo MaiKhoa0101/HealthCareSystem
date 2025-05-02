@@ -120,7 +120,6 @@ fun ProfileScreen(navHostController: NavHostController) {
                 when (selectedTab) {
                     0 -> BookingButton()
                     1 -> WriteReviewButton { showWriteReviewScreen.value = true }
-                    else -> println("da bam qua trang")
                 }
             }
         }
@@ -290,6 +289,7 @@ fun UserInfo(
     }
 }
 
+
 @Composable
 fun OtherUserListScreen(
     doctor: GetDoctorResponse?,
@@ -352,50 +352,55 @@ fun OtherUserListScreen(
             }
         }
 
-        when (selectedTab) {
-            0 -> ViewIntroduce(doctor = doctor)
-
-            1 -> {
-                if (showWriteReviewScreen.value) {
-                    WriteReviewScreen(
-                        doctorId = doctor?.id ?: "",
-                        userId = currentUserId,
-                        initialRating = editingRating,
-                        initialComment = editingComment,
-                        reviewId = editingReviewId,
-                        onBackClick = {
-                            showWriteReviewScreen.value = false
-                            editingReviewId = null
-                            editingRating = null
-                            editingComment = null
-                        },
-                        onSubmitClick = { _, _ ->
-                            refreshReviewsTrigger = !refreshReviewsTrigger
-                            showWriteReviewScreen.value = false
-                            editingReviewId = null
-                            editingRating = null
-                            editingComment = null
-                        }
-                    )
-                } else {
-                    ViewRating(
-                        doctorId = doctor?.id ?: "",
-                        refreshTrigger = refreshReviewsTrigger,
-                        onEditReview = { reviewId, rating, comment ->
-                            editingReviewId = reviewId
-                            editingRating = rating
-                            editingComment = comment
-                            showWriteReviewScreen.value = true
-                        }
-                    )
+            when (selectedTab) {
+                0 -> ViewIntroduce(doctor = doctor)
+                1 -> {
+                    if (showWriteReviewScreen.value) {
+                        WriteReviewScreen(
+                            doctorId = doctor?.id ?: "",
+                            userId = currentUserId,
+                            initialRating = editingRating,
+                            initialComment = editingComment,
+                            reviewId = editingReviewId,
+                            onBackClick = {
+                                showWriteReviewScreen.value = false
+                                editingReviewId = null
+                                editingRating = null
+                                editingComment = null
+                            },
+                            onSubmitClick = { _, _ ->
+                                refreshReviewsTrigger = !refreshReviewsTrigger
+                                showWriteReviewScreen.value = false
+                                editingReviewId = null
+                                editingRating = null
+                                editingComment = null
+                            }
+                        )
+                    } else {
+                        ViewRating(
+                            doctorId = doctor?.id ?: "",
+                            refreshTrigger = refreshReviewsTrigger,
+                            onEditReview = { reviewId, rating, comment ->
+                                editingReviewId = reviewId
+                                editingRating = rating
+                                editingComment = comment
+                                showWriteReviewScreen.value = true
+                            },
+                            onDeleteReview = {
+                                refreshReviewsTrigger = !refreshReviewsTrigger
+                            }
+                        )
+                    }
                 }
-            }
 
-            2 -> PostColumn(posts)
+            2 -> PostColumn(
+                posts = posts,
+                postViewModel = postViewModel,
+                userId = com.hellodoc.healthcaresystem.user.post.userId ?: ""
+            )
         }
     }
 }
-
 
 @Composable
 fun BookingButton() {

@@ -72,6 +72,7 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 var userId: String = ""
+var userModel: String = ""
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -88,6 +89,8 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+
     }
 
     var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
@@ -110,7 +113,7 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 postText = postText,
                 selectedImageUri = selectedImageUri,
                 onPost = {
-                    postViewModel.createPost(CreatePostRequest(userId, postText, selectedImageUri), context)
+                    postViewModel.createPost(CreatePostRequest(userId, userModel, postText, selectedImageUri), context)
                     navController.navigate("personal")
                 }
             )
@@ -120,7 +123,7 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 containerPost = ContainerPost(
                     imageUrl = R.drawable.img.toString(),
                     name = "Khoa xinh gái",
-                    lable = "Hãy nói gì đó ..."
+                    label = "Hãy nói gì đó ..."
                 ),
                 text = postText,
                 onTextChange = { postText = it }

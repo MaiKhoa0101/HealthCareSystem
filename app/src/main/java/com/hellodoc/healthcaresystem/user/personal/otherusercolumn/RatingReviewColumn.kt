@@ -62,7 +62,8 @@ import kotlinx.coroutines.launch
 fun ViewRating(
     doctorId: String,
     refreshTrigger: Boolean,
-    onEditReview: (reviewId: String, rating: Int, comment: String) -> Unit
+    onEditReview: (reviewId: String, rating: Int, comment: String) -> Unit,
+    onDeleteReview: () -> Unit
 ) {
     val reviews = remember { mutableStateOf<List<ReviewResponse>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
@@ -114,12 +115,17 @@ fun ViewRating(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             filteredReviews.forEach { review ->
-                ReviewItem(review = review, onEditClick = { id, rating, comment ->
-                    onEditReview(id, rating, comment)
-                })
+                ReviewItem(
+                    review = review,
+                    onEditClick = { id, rating, comment ->
+                        onEditReview(id, rating, comment)
+                    },
+                    onDeleteClick = {
+                        onDeleteReview()
+                    }
+                )
             }
         }
-
     }
 }
 
@@ -191,9 +197,11 @@ fun RatingSummary(
 @Composable
 fun ReviewItem(
     review: ReviewResponse,
-    onEditClick: (reviewId: String, rating: Int, comment: String) -> Unit = { _, _, _ -> }
+    onEditClick: (reviewId: String, rating: Int, comment: String) -> Unit = { _, _, _ -> },
+    onDeleteClick: (String) -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +210,6 @@ fun ReviewItem(
         val (avatar, name, time, stars, comment, menuIcon) = createRefs()
 
         Image(
-
             painter = rememberAsyncImagePainter(review.user?.userImage ?: ""),
             contentDescription = "Avatar",
             modifier = Modifier
@@ -283,7 +290,21 @@ fun ReviewItem(
                             Text("Xóa")
                         }
                     },
-                    onClick = { showMenu = false }
+                    onClick = {
+                        showMenu = false
+                        review.id?.let { id ->
+                            coroutineScope.launch {
+                                try {
+                                    val response = RetrofitInstance.reviewService.deleteReview(id)
+                                    if (response.isSuccessful) {
+                                        onDeleteClick(id)
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    }
                 )
                 Divider(thickness = 1.dp, color = Color.LightGray)
                 DropdownMenuItem(
