@@ -41,6 +41,7 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 
 @Composable
 fun UserInfoSkeleton() {
@@ -119,6 +120,7 @@ fun ProfileScreen(navHostController: NavHostController) {
                 when (selectedTab) {
                     0 -> BookingButton()
                     1 -> WriteReviewButton { showWriteReviewScreen.value = true }
+                    else -> println("da bam qua trang")
                 }
             }
         }
@@ -288,7 +290,6 @@ fun UserInfo(
     }
 }
 
-
 @Composable
 fun OtherUserListScreen(
     doctor: GetDoctorResponse?,
@@ -298,93 +299,103 @@ fun OtherUserListScreen(
 ) {
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val token = sharedPreferences.getString("access_token", null)
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    }
+    val token = remember { sharedPreferences.getString("access_token", null) }
+
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
+    val posts by postViewModel.posts.collectAsState()
 
     val jwt = remember(token) {
-        try {
-            JWT(token ?: throw IllegalArgumentException("Token is null"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        runCatching { JWT(token ?: throw IllegalArgumentException("Token is null")) }
+            .onFailure { it.printStackTrace() }
+            .getOrNull()
     }
 
-    val currentUserId = jwt?.getClaim("userId")?.asString() ?: ""
-    println("SharedPreferences lấy userId từ token: $currentUserId")
+    val currentUserId = remember(jwt) {
+        jwt?.getClaim("userId")?.asString() ?: ""
+    }
+
     var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
     var editingReviewId by remember { mutableStateOf<String?>(null) }
     var editingRating by remember { mutableStateOf<Int?>(null) }
     var editingComment by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(doctor?.id) {
+        doctor?.id?.let { postViewModel.getPostUserById(it) }
+    }
 
-    Column {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = Color.Cyan,
+            contentColor = Color.Black
         ) {
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.Cyan,
-                contentColor = Color.Black
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { onTabSelected(index) },
-                        text = {
-                            Text(
-                                text = title,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                            )
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { onTabSelected(index) },
+                    text = {
+                        Text(
+                            text = title,
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+            }
+        }
+
+        when (selectedTab) {
+            0 -> ViewIntroduce(doctor = doctor)
+
+            1 -> {
+                if (showWriteReviewScreen.value) {
+                    WriteReviewScreen(
+                        doctorId = doctor?.id ?: "",
+                        userId = currentUserId,
+                        initialRating = editingRating,
+                        initialComment = editingComment,
+                        reviewId = editingReviewId,
+                        onBackClick = {
+                            showWriteReviewScreen.value = false
+                            editingReviewId = null
+                            editingRating = null
+                            editingComment = null
+                        },
+                        onSubmitClick = { _, _ ->
+                            refreshReviewsTrigger = !refreshReviewsTrigger
+                            showWriteReviewScreen.value = false
+                            editingReviewId = null
+                            editingRating = null
+                            editingComment = null
+                        }
+                    )
+                } else {
+                    ViewRating(
+                        doctorId = doctor?.id ?: "",
+                        refreshTrigger = refreshReviewsTrigger,
+                        onEditReview = { reviewId, rating, comment ->
+                            editingReviewId = reviewId
+                            editingRating = rating
+                            editingComment = comment
+                            showWriteReviewScreen.value = true
                         }
                     )
                 }
             }
 
-            when (selectedTab) {
-                0 -> ViewIntroduce(doctor = doctor)
-                1 -> {
-                    if (showWriteReviewScreen.value) {
-                        WriteReviewScreen(
-                            doctorId = doctor?.id ?: "",
-                            userId = currentUserId,
-                            initialRating = editingRating,
-                            initialComment = editingComment,
-                            reviewId = editingReviewId,
-                            onBackClick = {
-                                showWriteReviewScreen.value = false
-                                editingReviewId = null
-                                editingRating = null
-                                editingComment = null
-                            },
-                            onSubmitClick = { _, _ ->
-                                refreshReviewsTrigger = !refreshReviewsTrigger
-                                showWriteReviewScreen.value = false
-                                editingReviewId = null
-                                editingRating = null
-                                editingComment = null
-                            }
-                        )
-                    } else {
-                        ViewRating(
-                            doctorId = doctor?.id ?: "",
-                            refreshTrigger = refreshReviewsTrigger,
-                            onEditReview = { reviewId, rating, comment ->
-                                editingReviewId = reviewId
-                                editingRating = rating
-                                editingComment = comment
-                                showWriteReviewScreen.value = true
-                            }
-                        )
-                    }
-                }
-                2 -> PostColumn()
-            }
+            2 -> PostColumn(posts)
         }
     }
 }
+
 
 @Composable
 fun BookingButton() {
