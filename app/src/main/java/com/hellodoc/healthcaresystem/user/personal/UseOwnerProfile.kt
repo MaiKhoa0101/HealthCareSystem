@@ -99,7 +99,6 @@ fun PreviewProfileUserPage() {
     )
 }
 
-
 @Composable
 fun ProfileUserPage(
     sharedPreferences: SharedPreferences,

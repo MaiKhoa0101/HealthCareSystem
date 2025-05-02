@@ -1,14 +1,27 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
+import com.hellodoc.healthcaresystem.requestmodel.DoctorUiState
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-//import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse2
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _doctors = MutableStateFlow<List<GetDoctorResponse>>(emptyList())
@@ -35,6 +48,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             }
         }
     }
+
     fun fetchDoctorById(doctorId: String) {
         viewModelScope.launch {
             try {
@@ -52,4 +66,80 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             }
         }
     }
+
+    private fun prepareFilePart(context: Context, fileUri: Uri, partName: String): MultipartBody.Part? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(fileUri)
+            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+            tempFile.outputStream().use { outputStream ->
+                inputStream?.copyTo(outputStream)
+            }
+
+            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Error preparing file part", e)
+            null
+        }
+    }
+
+    val loading = mutableStateOf(false)
+    fun applyForDoctor(userId: String, request: ApplyDoctorRequest, context: Context) {
+        loading.value = true
+
+        viewModelScope.launch {
+            try {
+                val license = MultipartBody.Part.createFormData("license", request.license)
+                val specialty = MultipartBody.Part.createFormData("specialty", request.specialty)
+                val CCCD = MultipartBody.Part.createFormData("CCCD", request.CCCD)
+
+                val licenseUrl = request.licenseUrl?.let {
+                    prepareFilePart(context, it, "licenseUrl")
+                }
+                val faceUrl = request.faceUrl?.let {
+                    prepareFilePart(context, it, "faceUrl")
+                }
+                val avatarURL = request.avatarURL?.let {
+                    prepareFilePart(context, it, "avatarURL")
+                }
+                val frontCccdUrl = request.frontCccdUrl?.let {
+                    prepareFilePart(context, it, "frontCccdUrl")
+                }
+                val backCccdUrl = request.backCccdUrl?.let {
+                    prepareFilePart(context, it, "backCccdUrl")
+                }
+
+                val response = RetrofitInstance.doctor.applyForDoctor(
+                    userId,
+                    license,
+                    specialty,
+                    CCCD,
+                    licenseUrl,
+                    faceUrl,
+                    avatarURL,
+                    frontCccdUrl,
+                    backCccdUrl
+                )
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(context, "Đăng ký thành công. Vui lòng chờ xác thực.", Toast.LENGTH_LONG).show()
+                        Log.d("Đăng ký Bsi", "Đăng ký bác sĩ thành công")
+                    } else {
+                        Toast.makeText(context, "Đăng ký bác sĩ thất bại: ${response.errorBody()?.string()}", Toast.LENGTH_LONG).show()
+                        Log.e("Đăng ký Bsi", "Đăng ký bác sĩ thất bại: ${response.errorBody()?.string()}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Đăng ký bác sĩ thất bại: ${e.message}", Toast.LENGTH_LONG).show()
+                    Log.e("Đăng ký Bsi", "Đăng ký bác sĩ thất bại", e)
+                }
+                Log.e("Đăng ký Bsi", "Đăng ký bác sĩ thất bại ", e)
+            } finally {
+                loading.value = false
+            }
+        }
+    }
+
 }

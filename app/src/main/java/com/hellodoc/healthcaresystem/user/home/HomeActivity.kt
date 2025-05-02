@@ -153,7 +153,7 @@ class HomeActivity : BaseActivity() {
                 EditUserProfile(sharedPreferences,navHostController)
             }
             composable("doctorRegister") {
-                RegisterClinic(navHostController)
+                RegisterClinic(navHostController, sharedPreferences)
             }
             composable("editClinic") {
                 EditClinicServiceScreen(sharedPreferences, navHostController)

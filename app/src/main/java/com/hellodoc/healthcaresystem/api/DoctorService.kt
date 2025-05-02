@@ -1,10 +1,14 @@
 package com.hellodoc.healthcaresystem.api
 
+import com.hellodoc.healthcaresystem.responsemodel.ApplyDoctor
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-//import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse2
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface DoctorService {
@@ -15,4 +19,18 @@ interface DoctorService {
     @Headers("Content-Type: application/json")
     @GET("doctor/{id}")
     suspend fun getDoctorById(@Path("id") doctorId: String): Response<GetDoctorResponse>
+
+    @Multipart
+    @PATCH("doctor/apply-for-doctor/{id}")
+    suspend fun applyForDoctor(
+        @Path("id") id: String,
+        @Part license: MultipartBody.Part,
+        @Part specialty: MultipartBody.Part,
+        @Part CCCD: MultipartBody.Part,
+        @Part licenseUrl: MultipartBody.Part?,
+        @Part faceUrl: MultipartBody.Part?,
+        @Part avatarURL: MultipartBody.Part?,
+        @Part frontCccdUrl: MultipartBody.Part?,
+        @Part backCccdUrl: MultipartBody.Part?,
+    ): Response<ApplyDoctor>
 }
