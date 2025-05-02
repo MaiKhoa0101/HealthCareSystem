@@ -22,10 +22,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +54,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
+import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 @Composable
 fun RegisterClinic(
@@ -71,7 +75,7 @@ fun RegisterClinic(
                 .padding(horizontal = 10.dp)
         ) {
             item {
-                ContentRegistrationForm(doctorViewModel)
+                ContentRegistrationForm(doctorViewModel, sharedPreferences)
             }
         }
     }
@@ -106,14 +110,22 @@ fun HeadbarResClinic(navHostController: NavHostController) {
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun ContentRegistrationForm(viewModel: DoctorViewModel) {
+fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
+
+    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
+        initializer { SpecialtyViewModel(sharedPreferences) }
+    })
+    val specialties by specialtyViewModel.specialties.collectAsState()
 
     val isLoading = viewModel.loading.value
 
     var CCCDText by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
     var specialtyId by remember { mutableStateOf("") }
+
+    var expanded by remember { mutableStateOf(false) }
+    val selectedSpecialtyName = specialties.find { it.id == specialtyId }?.name ?: "Chọn chuyên khoa"
 
     var frontCccdUri by remember { mutableStateOf<Uri?>(null) }
     var backCccdUri by remember { mutableStateOf<Uri?>(null) }
@@ -124,6 +136,10 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel) {
     val isFormValid = remember(CCCDText, licenseNumber, frontCccdUri, backCccdUri, faceUri, licenseUri) {
         CCCDText.isNotBlank() && licenseNumber.isNotBlank() &&
                 frontCccdUri != null && backCccdUri != null && faceUri != null && licenseUri != null
+    }
+
+    LaunchedEffect(Unit) {
+        specialtyViewModel.fetchSpecialties()
     }
 
     Column(
@@ -204,13 +220,32 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel) {
             }
         }
 
-        InputEditField(
-            "Chuyên khoa",
-            specialtyId,
-            { specialtyId = it },
-            "Nhập mã giấy phép hành nghề"
-        )
-
+        Column {
+            Text("Chuyên khoa", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true }
+                    .border(1.dp, Color.Gray)
+                    .padding(12.dp)
+            ) {
+                Text(text = selectedSpecialtyName)
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                specialties.forEach { specialty ->
+                    DropdownMenuItem(
+                        text = { Text(specialty.name) },
+                        onClick = {
+                            specialtyId = specialty.id
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         InputEditField(
             "Mã giấy phép hành nghề do bộ y tế cấp",

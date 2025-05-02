@@ -14,5 +14,6 @@ data class Doctor(
     @SerializedName("_id") val id: String,
     @SerializedName("name") val name: String,
     @SerializedName("specialty") val specialty: String?,
-    @SerializedName("address") val address: String?
+    @SerializedName("address") val address: String?,
+    @SerializedName("avatarURL") val avatarURL: String?
 )

@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
@@ -223,13 +226,27 @@ fun AppointmentCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.doctor),
-                    contentDescription = "Doctor Avatar",
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                )
+                if (!appointment.doctor.avatarURL.isNullOrBlank()) {
+                    AsyncImage(
+                        model = appointment.doctor.avatarURL,
+                        contentDescription = appointment.doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.LightGray, CircleShape)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.doctor),
+                        contentDescription = appointment.doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.LightGray, CircleShape)
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
