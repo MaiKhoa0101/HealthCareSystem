@@ -428,9 +428,9 @@ fun UserIntroSection(
                     }
                     .padding(12.dp)
             ) {
-                Text("Tố cáo người dùng", fontWeight = FontWeight.ExtraBold)
+                Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.ExtraBold)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Tố cáo người dùng vi phạm chính sách hệ thống", fontSize = 15.sp)
+                Text("Phản ánh vi phạm hoặc sự cố hệ thống", fontSize = 15.sp)
             }
         }
     }

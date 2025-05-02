@@ -36,6 +36,17 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
+fun shortenUserName(fullName: String): String {
+    val parts = fullName.trim().split("\\s+".toRegex())
+    return if (parts.size >= 2) {
+        val firstInitial = parts.first().first().uppercaseChar()
+        val lastName = parts.last()
+        "$firstInitial. $lastName"
+    } else {
+        fullName // không cần rút gọn nếu chỉ có 1 từ
+    }
+}
+
 @Composable
 fun Headbar(
     sharedPreferences: SharedPreferences
@@ -50,7 +61,7 @@ fun Headbar(
 
     LaunchedEffect(Unit) {
         viewModel.fetchUsers()
-        userName = viewModel.getUserNameFromToken()
+        userName = shortenUserName(viewModel.getUserNameFromToken())
         role = viewModel.getUserRole()
     }
 
