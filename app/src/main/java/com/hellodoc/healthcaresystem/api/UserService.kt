@@ -15,7 +15,7 @@ interface UserService {
     @GET("admin/userbyid/{id}")
     suspend fun getUser(@Path("id") id: String): User
 
-    @PUT("user/{id}/fcm-token")
+    @PUT("doctor/{id}/fcm-token")
     suspend fun updateFcmToken(
         @Path("id") userId: String,
         @Body tokenRequest: TokenRequest
