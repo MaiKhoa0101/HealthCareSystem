@@ -8,6 +8,7 @@ import com.hellodoc.healthcaresystem.responsemodel.CreateAppointmentResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
@@ -39,4 +40,7 @@ interface AppointmentService {
 
     @PUT("appointments/{id}")
     suspend fun updateAppointment(@Path("id") id: String, @Body request: UpdateAppointmentRequest): Response<UpdateAppointmentResponse>
+
+    @DELETE("appointments/{id}")
+    suspend fun deleteAppointmentById(@Path("id") id: String): Response<UpdateAppointmentResponse>
 }

@@ -281,6 +281,12 @@ fun AppointmentCard(
                         Text("Chỉnh sửa", color = Color.White)
                     }
                 } else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
+                    OutlinedButton(
+                        onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                    ) {
+                        Text("Xóa")
+                    }
                     Button(
                         onClick = {
                             navHostController.currentBackStackEntry?.savedStateHandle?.apply {

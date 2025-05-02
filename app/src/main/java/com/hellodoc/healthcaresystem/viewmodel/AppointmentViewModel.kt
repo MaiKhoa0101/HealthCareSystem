@@ -107,11 +107,10 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                     Log.e("Cancel", "Lỗi mạng/API: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
-                Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
+                Log.e("Cancel", "Lỗi mạng/API: ${e.localizedMessage}")
             }
         }
     }
-
 
     fun updateAppointment(appointmentId: String, appointmentData: UpdateAppointmentRequest){
         viewModelScope.launch {
@@ -129,6 +128,45 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                 }
             } catch (e: Exception) {
                 Log.e("Update", "Lỗi mạng/API: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun deleteAppointment(appointmentId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.appointment.deleteAppointmentById(appointmentId)
+                if(response.isSuccessful) {
+                    val result = response.body()
+                    Log.d("Delete", "Thành công: ${result?.message}")
+
+                    //gọi lại api để load lại ds
+                    getAppointmentUser(userId)
+                    getAppointmentDoctor(userId)
+                } else {
+                    Log.e("Delete", "Lỗi mạng/API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Delete", "Lỗi mạng/API: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun adminDeleteAppointment(appointmentId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.appointment.deleteAppointmentById(appointmentId)
+                if(response.isSuccessful) {
+                    val result = response.body()
+                    Log.d("Delete", "Thành công: ${result?.message}")
+
+                    //gọi lại api để load lại ds
+                    fetchAppointments()
+                } else {
+                    Log.e("Delete", "Lỗi mạng/API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Delete", "Lỗi mạng/API: ${e.localizedMessage}")
             }
         }
     }
