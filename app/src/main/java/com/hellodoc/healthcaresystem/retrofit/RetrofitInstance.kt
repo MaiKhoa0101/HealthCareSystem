@@ -7,6 +7,7 @@ import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
 import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
+import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.api.PostService
 import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
 import com.hellodoc.healthcaresystem.api.ReportService
@@ -20,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitInstance {
 //    private const val BASE_URL = "http://192.168.222.22:4000"
 //    private const val BASE_URL = "http://192.168.100.3:3000"
-    private const val BASE_URL = "http://192.168.1.6:4000"
+    private const val BASE_URL = "http://192.168.1.241:3000"
 
     private val client = OkHttpClient.Builder()
         .build()
@@ -44,9 +45,8 @@ object RetrofitInstance {
     val faqItemService: FAQItemService by lazy { retrofit.create(FAQItemService::class.java) }
     val postService: PostService by lazy { retrofit.create(PostService::class.java) }
     val reviewService: ReviewService by lazy { retrofit.create(ReviewService::class.java) }
-    val reportService: ReportService by lazy {
-        retrofit.create(ReportService::class.java)
-    }
+    val reportService: ReportService by lazy { retrofit.create(ReportService::class.java) }
+    val notificationService: NotificationService by lazy { retrofit.create(NotificationService::class.java) }
 
 
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }

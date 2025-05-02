@@ -121,4 +121,20 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun sendFcmToken(userId: String, token: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.userService.updateFcmToken(userId, token)
+                if (response.isSuccessful) {
+                    Log.d("FCM", "Đã gửi fcmToken lên server")
+                } else {
+                    Log.e("FCM", "Lỗi gửi fcmToken: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("FCM", "Lỗi: ${e.localizedMessage}")
+            }
+        }
+    }
 }
+
+

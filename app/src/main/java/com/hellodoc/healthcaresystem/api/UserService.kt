@@ -13,4 +13,11 @@ import retrofit2.http.Path
 interface UserService {
     @GET("admin/userbyid/{id}")
     suspend fun getUser(@Path("id") id: String): User
+
+    @PUT("user/{id}/fcm-token")
+    suspend fun updateFcmToken(
+        @Path("id") userId: String,
+        @Body token: String
+    ): Response<Void>
+
 }
