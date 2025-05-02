@@ -74,7 +74,7 @@ fun ReportManagerScreen() {
                             user = report.reporter?.name ?: "Không rõ",
                             content = report.content ?: "Không có nội dung",
                             targetType = report.type ?: "Không xác định",
-                            status = report.status ?: "pending",
+                            status = report.status ?: "opened",
                             createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
                             reportedId = report.reportedId ?: "Không rõ",
                             postId = report.postId
@@ -342,7 +342,7 @@ fun TableReport(
                                             onClick = {
                                                 expanded = false
                                                 coroutineScope.launch {
-                                                    if (complaint.status == "pending") {
+                                                    if (complaint.status == "opened") {
                                                         Toast.makeText(context, "Chưa thể xóa khiếu nại đang chờ xử lý", Toast.LENGTH_SHORT).show()
                                                         return@launch
                                                     }
