@@ -66,7 +66,7 @@ fun ReportManagerScreen() {
             try {
                 val response = RetrofitInstance.reportService.getAllReports()
                 reportList.clear()
-                response.reversed().forEachIndexed { index, report ->
+                response.forEachIndexed { index, report ->
                     reportList.add(
                         ComplaintData(
                             id = (index + 1).toString(),
