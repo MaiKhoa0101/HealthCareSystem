@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -53,7 +55,8 @@ import kotlinx.coroutines.launch
 fun PostColumn(
     posts: List<PostResponse>,
     postViewModel: PostViewModel,
-    userId: String
+    userId: String,
+    onClickReport: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -85,7 +88,7 @@ fun PostColumn(
             )
         } else {
             posts.forEach { postItem ->
-                ViewUserPost(
+                ViewPostOwner(
                     postId = postItem.id,
                     containerPost = ContainerPost(
                         name = postItem.user.name,
@@ -94,7 +97,8 @@ fun PostColumn(
                     contentPost = ContentPost(postItem.content),
                     footerItem = FooterItem(imageUrl = postItem.media.firstOrNull() ?: ""),
                     postViewModel = postViewModel,
-                    currentUserId = userId
+                    currentUserId = userId,
+                    onClickReport = onClickReport
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -104,23 +108,21 @@ fun PostColumn(
 
 
 @Composable
-fun ViewUserPost(
+fun ViewPostOwner(
     postId: String,
     containerPost: ContainerPost,
     contentPost: ContentPost,
     footerItem: FooterItem,
     postViewModel: PostViewModel,
     currentUserId: String,
+    onClickReport: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
     var isCommenting by remember { mutableStateOf(false) }
     var newComment by remember { mutableStateOf("") }
-//    val commentsState = remember { mutableStateOf<List<GetCommentPostResponse>>(emptyList()) }
     var shouldFetchComments by remember { mutableStateOf(false) }
-//    var isFavorited by remember { mutableStateOf(false) }
-//    var totalFavorites by remember { mutableIntStateOf(0) }
 
     val isFavoritedMap by postViewModel.isFavoritedMap.collectAsState()
     val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
@@ -130,6 +132,7 @@ fun ViewUserPost(
 
     val commentsMap by postViewModel.commentsMap.collectAsState()
     val comments = commentsMap[postId] ?: emptyList()
+    var showPostReportBox by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(postId) {
@@ -147,176 +150,205 @@ fun ViewUserPost(
             }
         }
     }
-
-    println("footer item: " + footerItem)
-    Column(
-        modifier = modifier
-            .background(backgroundColor, RectangleShape)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(10.dp)
-    ) {
-        // Row for Avatar and Name
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = modifier
+                .background(backgroundColor, RectangleShape)
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(10.dp)
         ) {
-            // Avatar
-            AsyncImage(
-                model = containerPost.imageUrl,
-                contentDescription = "Avatar",
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape)
-            )
+            // Row for Avatar and Name
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween // để dồn 2 phần trái - phải
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = containerPost.imageUrl,
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .size(45.dp)
+                            .clip(CircleShape)
+                    )
+                    Text(
+                        text = containerPost.name,
+                        style = TextStyle(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+                }
 
-            // Name
+                IconButton(
+                    onClick = { showPostReportBox = !showPostReportBox },
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "Menu",
+                        tint = Color.Black
+                    )
+                }
+            }
+
+            // Content bài viết
             Text(
-                text = containerPost.name,
+                text = contentPost.content,
                 style = TextStyle(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp,
                     color = Color.Black
                 ),
                 modifier = Modifier
-                    .padding(start = 10.dp)
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis
             )
-        }
 
-        // Content bài viết
-        Text(
-            text = contentPost.content,
-            style = TextStyle(
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Color.Black
-            ),
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .fillMaxWidth(),
-            maxLines = if (expanded) Int.MAX_VALUE else 2,
-            overflow = TextOverflow.Ellipsis
-        )
+            // Nút "Xem thêm" / "Thu gọn"
+            Text(
+                text = if (expanded) "Thu gọn" else "Xem thêm",
+                color = Color.Blue,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clickable { expanded = !expanded }
+                    .padding(top = 4.dp)
+            )
 
-        // Nút "Xem thêm" / "Thu gọn"
-        Text(
-            text = if (expanded) "Thu gọn" else "Xem thêm",
-            color = Color.Blue,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .clickable { expanded = !expanded }
-                .padding(top = 4.dp)
-        )
+            AsyncImage(
+                model = footerItem.imageUrl,
+                contentDescription = "Post Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.LightGray)
+            )
 
-        AsyncImage(
-            model = footerItem.imageUrl,
-            contentDescription = "Post Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.LightGray)
-        )
-
-        // ICON like & comment
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // LIKE
+            // ICON like & comment
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    postViewModel.updateFavoriteForPost(
-                        postId = postId,
-                        userId = currentUserId,
-                        userModel = userModel
-                    )
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // LIKE
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable {
+                        postViewModel.updateFavoriteForPost(
+                            postId = postId,
+                            userId = currentUserId,
+                            userModel = userModel
+                        )
 //                    isFavorited = !isFavorited
-                }
-            ) {
-                Icon(
-                    painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
-                    contentDescription = "Like",
-                    tint = if (isFavorited) Color.Red else Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("$totalFavorites Likes", fontSize = 18.sp)
-            }
-
-            // COMMENT
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    isCommenting = !isCommenting
-                    if (isCommenting) {
-                        shouldFetchComments = true
                     }
+                ) {
+                    Icon(
+                        painter = painterResource(id = if (isFavorited) R.drawable.liked else R.drawable.like),
+                        contentDescription = "Like",
+                        tint = if (isFavorited) Color.Red else Color.Black,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("$totalFavorites Likes", fontSize = 18.sp)
                 }
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.comment),
-                    contentDescription = "Comment",
-                    tint = Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Comment", fontSize = 18.sp)
+
+                // COMMENT
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable {
+                        isCommenting = !isCommenting
+                        if (isCommenting) {
+                            shouldFetchComments = true
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.comment),
+                        contentDescription = "Comment",
+                        tint = Color.Black,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Comment", fontSize = 18.sp)
+                }
             }
-        }
 
-        // UI COMMENT
-        if (isCommenting) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            // UI COMMENT
+            if (isCommenting) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
 
-                if (comments.isNotEmpty()) {
-                    Column {
-                        comments.forEach { comment ->
-                            Row(
-                                modifier = Modifier.padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                AsyncImage(
-                                    model = comment.user?.avatarURL ?: "",
-                                    contentDescription = "avatar",
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .clip(CircleShape)
-                                )
-                                Column(modifier = Modifier.padding(start = 8.dp)) {
-                                    Text(
-                                        comment.user?.name ?: "Ẩn danh",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
+                    if (comments.isNotEmpty()) {
+                        Column {
+                            comments.forEach { comment ->
+                                Row(
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    AsyncImage(
+                                        model = comment.user?.avatarURL ?: "",
+                                        contentDescription = "avatar",
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clip(CircleShape)
                                     )
-                                    Text(comment.content, fontSize = 14.sp)
+                                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                                        Text(
+                                            comment.user?.name ?: "Ẩn danh",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp
+                                        )
+                                        Text(comment.content, fontSize = 14.sp)
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        Text("Chưa có bình luận nào.")
                     }
-                } else {
-                    Text("Chưa có bình luận nào.")
-                }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextField(
-                        value = newComment,
-                        onValueChange = { newComment = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Nhập bình luận...") }
-                    )
-                    Button(onClick = {
-                        postViewModel.sendComment(postId, currentUserId, userModel, newComment)
-                        newComment = ""
-                    }) {
-                        Text("Gửi")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = newComment,
+                            onValueChange = { newComment = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Nhập bình luận...") }
+                        )
+                        Button(onClick = {
+                            postViewModel.sendComment(postId, currentUserId, userModel, newComment)
+                            newComment = ""
+                        }) {
+                            Text("Gửi")
+                        }
                     }
                 }
+            }
+        }
+        if (showPostReportBox) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 50.dp, end = 8.dp)
+                    .background(Color.White, shape = RoundedCornerShape(6.dp))
+                    .border(5.dp, Color.LightGray)
+                    .clickable {
+                        showPostReportBox = false
+                        onClickReport(postId)
+                    }
+                    .padding(12.dp)
+            ) {
+                Text("Tố cáo bài viết", fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Bài viết có nội dung vi phạm", fontSize = 15.sp)
             }
         }
     }

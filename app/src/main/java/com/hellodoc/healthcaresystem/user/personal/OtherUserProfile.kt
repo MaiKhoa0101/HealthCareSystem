@@ -324,6 +324,8 @@ fun OtherUserListScreen(
     var editingRating by remember { mutableStateOf<Int?>(null) }
     var editingComment by remember { mutableStateOf<String?>(null) }
 
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let { postViewModel.getPostUserById(it) }
     }
@@ -396,7 +398,11 @@ fun OtherUserListScreen(
             2 -> PostColumn(
                 posts = posts,
                 postViewModel = postViewModel,
-                userId = com.hellodoc.healthcaresystem.user.post.userId ?: ""
+                userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
+                onClickReport = { postId ->
+                    reportedPostId = postId
+                    showReportDialog = true
+                }
             )
         }
     }
