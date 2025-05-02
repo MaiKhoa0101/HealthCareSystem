@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.GetUserID
+import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
 import retrofit2.Response
@@ -17,7 +18,7 @@ interface UserService {
     @PUT("user/{id}/fcm-token")
     suspend fun updateFcmToken(
         @Path("id") userId: String,
-        @Body token: String
+        @Body tokenRequest: TokenRequest
     ): Response<Void>
 
 }

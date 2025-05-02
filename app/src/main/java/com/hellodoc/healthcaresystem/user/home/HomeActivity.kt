@@ -53,6 +53,7 @@ import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
+import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
@@ -64,8 +65,6 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
-            GetFcmInstance(sharedPreferences)
 
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -89,6 +88,7 @@ class HomeActivity : BaseActivity() {
         modifier: Modifier = Modifier,
         sharedPreferences: SharedPreferences
     ) {
+        GetFcmInstance(sharedPreferences)
         // Lấy route hiện tại để kiểm tra
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -96,7 +96,6 @@ class HomeActivity : BaseActivity() {
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
-
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -254,7 +253,7 @@ class HomeActivity : BaseActivity() {
                 val token = task.result
                 Log.d("FCM", "FCM Token: $token")
                 // Gửi lên server
-                val userId = sharedPreferences.getString("user_id", "") ?: ""
+                val userId = userViewModel.getUserAttributeString("userId")
                 userViewModel.sendFcmToken(userId, token)
             }
         }
