@@ -34,15 +34,20 @@ fun UserListScreen() {
     val sharedPreferences = remember {
         context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     }
-    val userViewModel :UserViewModel = viewModel(factory = viewModelFactory {
+
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
-    val userList by userViewModel.users.collectAsState()
+
+    val userList by userViewModel.allUser.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("User") }
+    val users = userList?.let { it.doctors + it.users } ?: emptyList()
 
-    LaunchedEffect(userList)
-    { userList.let { userViewModel.getAllUsers() } }
+    // Gọi 1 lần khi composable khởi tạo
+    LaunchedEffect(Unit) {
+        userViewModel.getAllUsers()
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
@@ -54,7 +59,7 @@ fun UserListScreen() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "${userList.size} tài khoản",
+            text = "${users.size} tài khoản",
             color = Color.White,
             modifier = Modifier
                 .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
@@ -69,34 +74,37 @@ fun UserListScreen() {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Tìm kiếm
-            Column(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    placeholder = { Text("Tìm...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
-                )
-            }
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                placeholder = { Text("Tìm...") },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
+            )
 
-            // Lọc
-            Column(modifier = Modifier.width(100.dp)) {
-                DropdownMenuRoleSelector(selectedRole) {
-                    selectedRole = it
-                }
-            }
+            // Lọc theo role
+            DropdownMenuRoleSelector(
+                selected = selectedRole,
+                onSelected = { selectedRole = it }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        println("userlist: "+userList)
+        // Lọc danh sách theo email và role
 
-        AccountTable2(userList.filter {
-            it.email.contains(searchText, ignoreCase = true)
-        })
+        val filteredUsers = users.filter {
+            it.email.contains(searchText, ignoreCase = true) &&
+                    it.role.equals(selectedRole, ignoreCase = true)
+        }
+
+        AccountTable2(filteredUsers)
     }
 }
+
 
 @Composable
 fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
@@ -167,7 +175,7 @@ fun AccountRow2(id: Int, account: User) {
         TableCell(account.email, width = 200.dp)
         TableCell(account.phone, width = 150.dp)
         TableCell(account.address, width = 120.dp)
-        TableCell(account.avatarURL, width = 150.dp)
+        TableCellImage(account.avatarURL.ifBlank { "" }, width = 150.dp)
         TableCell(account.createdAt, width = 150.dp)
         TableCell(account.updatedAt, width = 120.dp)
         Box(

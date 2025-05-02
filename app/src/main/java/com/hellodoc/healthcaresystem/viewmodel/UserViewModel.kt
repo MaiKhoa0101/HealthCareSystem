@@ -14,31 +14,44 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.responsemodel.UserResponse
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    //Bien lay nhieu user
-    private val _users = MutableStateFlow<List<User>>(emptyList())
-    val users: StateFlow<List<User>> get() = _users
+
 
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    val users: StateFlow<List<User>> get() = _users
+
+    private val _allUser = MutableStateFlow<UserResponse?>(null)
+    val allUser: StateFlow<UserResponse?> get() = _allUser
+
+
     fun getAllUsers() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.admin.getUsers()
+                val response = RetrofitInstance.admin.getAllUser()
                 if (response.isSuccessful) {
-                    _users.value = response.body() ?: emptyList()
-                    println("OK fetch user"+response.body())
+                    response.body()?.let { userResponse ->
+                        val combinedList = userResponse.doctors + userResponse.users
+                        _users.value = combinedList          // <-- gán danh sách hiển thị
+                        _allUser.value = userResponse        // <-- lưu đầy đủ nếu cần sau này
+                    } ?: run {
+                        Log.e("UserViewModel", "Response body is null")
+                    }
                 } else {
-                    println("Lỗi API: ${response.errorBody()?.string()}")
+                    Log.e("UserViewModel", "Response failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("UserViewModel", "Exception: ${e.message}")
             }
         }
     }
+
+
 
     fun getUser(id: String) {
         viewModelScope.launch {

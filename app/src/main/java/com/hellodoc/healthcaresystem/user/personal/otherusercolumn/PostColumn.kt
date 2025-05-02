@@ -52,7 +52,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun PostColumn(
     posts: List<PostResponse>,
-//    comments: List<GetCommentPostResponse>,
     postViewModel: PostViewModel,
     userId: String
 ) {
