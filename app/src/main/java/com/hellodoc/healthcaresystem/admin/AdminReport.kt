@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.admin
 
+import android.widget.Toast
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -235,7 +237,8 @@ fun TableReport(
     onDetailClick: (ComplaintData) -> Unit,
     navController: NavController
 ){
-
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     LazyRow {
         item {
             Column {
@@ -338,8 +341,22 @@ fun TableReport(
                                             },
                                             onClick = {
                                                 expanded = false
-                                                // Thêm logic xử lý xóa
+                                                coroutineScope.launch {
+                                                    if (complaint.status == "pending") {
+                                                        Toast.makeText(context, "Chưa thể xóa khiếu nại đang chờ xử lý", Toast.LENGTH_SHORT).show()
+                                                        return@launch
+                                                    }
+
+                                                    val result = RetrofitInstance.reportService.deleteReport(complaint.reportId)
+                                                    if (result.isSuccessful) {
+                                                        (reportList as MutableList).remove(complaint)
+                                                        Toast.makeText(context, "Đã xóa khiếu nại", Toast.LENGTH_SHORT).show()
+                                                    } else {
+                                                        Toast.makeText(context, "Xóa thất bại", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
                                             }
+
                                         )
 
                                 }
