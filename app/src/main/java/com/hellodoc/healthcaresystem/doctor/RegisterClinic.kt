@@ -296,7 +296,7 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                         backCccdUrl = backCccdUri
                     )
                     // Assuming you have a way to get the userId
-                    val userId = "681443fa97a6835b3cc16968" // Replace with actual user ID retrieval
+                    val userId = "6814cd3e62c7a9f5ac95af6f" // Replace with actual user ID retrieval
                     viewModel.applyForDoctor(userId, request, context)
                 },
                 modifier = Modifier.fillMaxWidth(),

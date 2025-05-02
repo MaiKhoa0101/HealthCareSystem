@@ -192,7 +192,7 @@ fun AppointmentCard(
     selectedTab: Int,
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
-    ) {
+) {
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -260,7 +260,7 @@ fun AppointmentCard(
                             contentDescription = "Hospital Location",
                             modifier = Modifier.padding(end = 4.dp)
                         )
-                        Text(appointment.location ?: "Địa điểm không xác định" )
+                        Text(appointment.location ?: "Địa điểm không xác định")
                     }
                 }
             }
@@ -273,7 +273,12 @@ fun AppointmentCard(
             ) {
                 if (selectedTab == 0) { // Chờ khám
                     OutlinedButton(
-                        onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
+                        onClick = {
+                            appointmentViewModel.cancelAppointment(
+                                appointment.id,
+                                userID
+                            )
+                        },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
                     ) {
                         Text("Huỷ")
@@ -299,7 +304,12 @@ fun AppointmentCard(
                     }
                 } else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
                     OutlinedButton(
-                        onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
+                        onClick = {
+                            appointmentViewModel.deleteAppointment(
+                                appointment.id,
+                                userID
+                            )
+                        },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
                     ) {
                         Text("Xóa")

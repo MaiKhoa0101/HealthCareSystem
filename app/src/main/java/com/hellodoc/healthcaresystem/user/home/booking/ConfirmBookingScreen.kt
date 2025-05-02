@@ -3,6 +3,8 @@ package com.hellodoc.healthcaresystem.user.home.booking
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -34,6 +36,7 @@ import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
@@ -245,6 +248,7 @@ fun InfoText(label: String, value: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun ConfirmBookingScreenPreview() {
