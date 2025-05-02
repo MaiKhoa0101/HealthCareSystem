@@ -44,7 +44,7 @@ fun DoctorListScreen(
     var role by remember { mutableStateOf("Người dùng") }
 
     LaunchedEffect(Unit) {
-        viewModel.fetchUsers()
+        viewModel.getAllUsers()
         userName = viewModel.getUserNameFromToken()
         role = viewModel.getUserRole()
     }
