@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -26,7 +24,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
-    fun fetchUsers() {
+    fun getAllUsers() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.admin.getUsers()
@@ -113,7 +111,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val response = RetrofitInstance.admin.updateUserByID(id, updatedUser)
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: ${id}") // Log khi cập nhật thành công
-                    fetchUsers() // Cập nhật danh sách sau khi chỉnh sửa
+                    getAllUsers() // Cập nhật danh sách sau khi chỉnh sửa
                 } else {
                     Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}") // Log lỗi nếu có
                 }
