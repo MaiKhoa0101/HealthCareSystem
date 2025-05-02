@@ -336,7 +336,7 @@ fun TableReport(
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                     Spacer(modifier = Modifier.width(8.dp))
-                                                    Text("Close")
+                                                    Text("Delete")
                                                 }
                                             },
                                             onClick = {
