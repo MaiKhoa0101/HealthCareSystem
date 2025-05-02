@@ -51,6 +51,7 @@ var time: String = "" // Ví dụ: "14:30"
 var totalCost: String = "0"
 var reason: String = "hello"
 var location: String = ""
+var patientModel = ""
 
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
@@ -67,6 +68,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         patientPhone = userViewModel.getUserAttributeString("phone")
         patientAddress = userViewModel.getUserAttributeString("address")
         patientID = userViewModel.getUserAttributeString("userId")
+        patientModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
