@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -18,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 
 
 import androidx.navigation.NavHostController
@@ -25,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.messaging.FirebaseMessaging
 
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
@@ -41,6 +46,7 @@ import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
 class HomeActivity : BaseActivity() {
@@ -51,6 +57,9 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+            GetFcmInstance(sharedPreferences)
+
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             HealthCareSystemTheme {
@@ -156,6 +165,23 @@ class HomeActivity : BaseActivity() {
             }
             composable("other_user_profile") {
                 ProfileScreen(navHostController)
+            }
+        }
+    }
+
+    @Composable
+    fun GetFcmInstance(sharedPreferences: SharedPreferences) {
+        val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+            initializer { UserViewModel(sharedPreferences) }
+        })
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "FCM Token: $token")
+                // Gửi lên server
+                val userId = sharedPreferences.getString("user_id", "") ?: ""
+                userViewModel.sendFcmToken(userId, token)
             }
         }
     }
