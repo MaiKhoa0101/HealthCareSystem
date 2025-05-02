@@ -134,7 +134,7 @@ class HomeActivity : BaseActivity() {
                 AppointmentListScreen(sharedPreferences)
             }
             composable("notification") {
-                NotificationPage(navHostController)
+                NotificationPage(context, navHostController)
             }
             composable("personal") {
                 ProfileUserPage(sharedPreferences,navHostController)

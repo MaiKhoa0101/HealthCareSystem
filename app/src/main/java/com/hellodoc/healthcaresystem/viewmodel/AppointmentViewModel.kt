@@ -18,6 +18,13 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
     private val _appointmentsDoctor= MutableStateFlow<List<AppointmentResponse>>(emptyList())
     val appointmentsDoctor: StateFlow<List<AppointmentResponse>> get() = _appointmentsDoctor
 
+    private val _appointmentSuccess = MutableStateFlow(false)
+    val appointmentSuccess: StateFlow<Boolean> get() = _appointmentSuccess
+
+    private val _appointmentError = MutableStateFlow<String?>(null)
+    val appointmentError: StateFlow<String?> get() = _appointmentError
+
+
     fun fetchAppointments(){
         viewModelScope.launch{
             try{
@@ -68,6 +75,7 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
             }
         }
     }
+
     fun createAppointment(createAppointmentRequest: CreateAppointmentRequest) {
         val token = sharedPreferences.getString("access_token", null)
         if (token != null) {
@@ -77,16 +85,32 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                     if (response.isSuccessful) {
                         val result = response.body()
                         Log.d("Book", "Thành công: ${result?.message}")
+                        _appointmentSuccess.value = true
+                        _appointmentError.value = null
                     } else {
-                        Log.e("Book", "Lỗi từ server: ${response.errorBody()?.string()}")
+                        val errorMsg = response.errorBody()?.string() ?: "Lỗi không xác định từ server"
+                        Log.e("Book", "Lỗi từ server: $errorMsg")
+                        _appointmentError.value = errorMsg // ✅ Lưu lỗi
                     }
                 } catch (e: Exception) {
-                    Log.e("Book", "Lỗi mạng/API: ${e.localizedMessage}")
+                    val errorMsg = e.localizedMessage ?: "Lỗi kết nối mạng"
+                    Log.e("Book", "Lỗi mạng/API: $errorMsg")
+                    _appointmentError.value = errorMsg // ✅ Lưu lỗi
                 }
             }
         } else {
-            Log.e("Book", "Token null - người dùng chưa đăng nhập?")
+            val errorMsg = "Token null - người dùng chưa đăng nhập?"
+            Log.e("Book", errorMsg)
+            _appointmentError.value = errorMsg // ✅ Lưu lỗi
         }
+    }
+
+    fun resetAppointmentSuccess() {
+        _appointmentSuccess.value = false
+    }
+
+    fun resetAppointmentError() {
+        _appointmentError.value = null
     }
 
 
