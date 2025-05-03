@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.androidx.core)
     implementation(libs.androidx.room.runtime.android)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

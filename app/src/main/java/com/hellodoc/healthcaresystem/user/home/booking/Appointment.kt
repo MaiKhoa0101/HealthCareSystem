@@ -25,16 +25,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -64,6 +68,16 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostControlle
     }
 
     val userId = jwt?.getClaim("userId")?.asString()
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+    LaunchedEffect(navBackStackEntry) {
+        navBackStackEntry?.lifecycle?.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    appointmentViewModel.getAppointmentUser(userId!!)
+                }
+            }
+        )
+    }
 
     LaunchedEffect(userId) {
         userId?.let {
@@ -197,8 +211,19 @@ fun AppointmentCard(
         initializer { AppointmentViewModel(sharedPreferences) }
     })
 
-    val formattedDate = ZonedDateTime.parse(appointment.date)
-        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    val formattedDate = try {
+        ZonedDateTime.parse(appointment.date)
+            .withZoneSameInstant(java.time.ZoneId.systemDefault())
+            .toLocalDate()
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    } catch (e: Exception) {
+        try {
+            LocalDate.parse(appointment.date)
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        } catch (e: Exception) {
+            "Ngày không hợp lệ"
+        }
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -211,15 +236,9 @@ fun AppointmentCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    formattedDate,
+                    "$formattedDate | ${appointment.time}",
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
-                )
-                Text(
-                    appointment.time,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.End
                 )
             }
 
