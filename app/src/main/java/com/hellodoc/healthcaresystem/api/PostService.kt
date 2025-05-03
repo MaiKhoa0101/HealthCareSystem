@@ -15,10 +15,12 @@ import retrofit2.http.GET
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -63,5 +65,14 @@ interface PostService {
     suspend fun getCommentByPostId(
         @Path("postId") postId: String
     ): Response<List<GetCommentPostResponse>>
+
+    @PATCH("post/{commentId}/comment/update")
+    suspend fun updateCommentById(
+        @Path("commentId") commentId: String,
+        @Body update: CreateCommentPostRequest
+    ): Response<Unit>
+
+    @DELETE("post/{commentId}/comment/delete")
+    suspend fun deleteCommentById(@Path("commentId") commentId: String): Response<Unit>
 
 }

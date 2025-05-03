@@ -42,6 +42,8 @@ data class CreateCommentPostResponse(
 )
 
 data class GetCommentPostResponse(
+    @SerializedName("_id")
+    val id: String,
     val user: User,
     val post: String,
     val content: String,
