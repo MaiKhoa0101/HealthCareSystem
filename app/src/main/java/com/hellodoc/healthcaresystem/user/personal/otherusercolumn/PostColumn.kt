@@ -145,7 +145,12 @@ fun ViewPostOwner(
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
-
+    LaunchedEffect(editingCommentId) {
+        if (editingCommentId == null) {
+            // Sau khi lưu xong và thoát khỏi chế độ sửa, cập nhật lại UI
+            postViewModel.fetchComments(postId)
+        }
+    }
     LaunchedEffect(postId) {
         // Gọi API và cập nhật state khi dữ liệu được fetch về
         postViewModel.fetchFavoriteForPost(postId, userId)
