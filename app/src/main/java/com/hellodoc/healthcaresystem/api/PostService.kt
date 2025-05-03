@@ -1,20 +1,16 @@
 package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
-import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
-import com.hellodoc.healthcaresystem.requestmodel.GetFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
-import com.hellodoc.healthcaresystem.responsemodel.CommentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
-import com.hellodoc.healthcaresystem.responsemodel.commentPost
+import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import okhttp3.MultipartBody
 import retrofit2.http.GET
-import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Multipart
@@ -53,7 +49,6 @@ interface PostService {
         @Query("userId") userId: String
     ): Response<GetFavoritePostResponse>
 
-
     // comment
     @POST("post/{postId}/comment/create")
     suspend fun createCommentByPostId(
@@ -69,5 +64,10 @@ interface PostService {
     @GET("post/user/{id}/comment/get")
     suspend fun getCommentByUserId(
         @Path("id") id: String,
-    ): Response<List<CommentResponse>>
+    ): Response<List<ManagerResponse>>
+
+    @GET("post/user/{id}/favorite/get")
+    suspend fun getUserFavoritePost(
+        @Path("id") id: String,
+    ): Response<List<ManagerResponse>>
 }

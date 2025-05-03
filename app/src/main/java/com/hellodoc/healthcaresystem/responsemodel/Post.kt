@@ -55,16 +55,16 @@ data class GetCommentPostResponse(
     )
 }
 
-data class CommentResponse(
+data class ManagerResponse(
     val user: User,
     val userModel: String,
-    val post: commentPost,
+    val post: CommentPost,
     val content: String,
     val createdAt: String,
     val updatedAt: String,
 )
 
-data class commentPost(
+data class CommentPost(
     @SerializedName("_id") val id: String,
     val content: String,
     val media: List<String>

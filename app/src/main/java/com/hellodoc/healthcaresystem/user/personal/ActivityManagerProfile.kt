@@ -120,7 +120,7 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
                 .padding(vertical = 8.dp)
                 .background(Color.White, shape = RoundedCornerShape(12.dp))
                 .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { /* TODO: Navigate or show liked posts */ }
+                .clickable { navHostController.navigate("userFavorite") }
                 .padding(16.dp)
         ) {
             Column {

@@ -52,6 +52,7 @@ import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.PostListScreen
+import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
@@ -245,6 +246,9 @@ class HomeActivity : BaseActivity() {
             }
             composable("userComment") {
                 PostListScreen(sharedPreferences)
+            }
+            composable("userFavorite") {
+                PostListScreen2(sharedPreferences)
             }
         }
     }
