@@ -338,6 +338,18 @@ fun AppointmentCard(
                     ) {
                         Text("Đặt lại", color = Color.White)
                     }
+                    Button(
+                        onClick = {
+                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("doctorId", appointment.doctor.id)
+                                set("selectedTab", 1)
+                            }
+                            navHostController.navigate("other_user_profile")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242760))
+                    ) {
+                        Text("Đánh giá", color = Color.White)
+                    }
                 }
             }
         }
