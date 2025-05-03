@@ -10,6 +10,8 @@ data class PostResponse(
     val media: List<String>,
     val user: User,
     val userModel: String,
+    @SerializedName("createdAt")
+    val createdAt: String
 ) {
     data class User(
         @SerializedName("_id")
@@ -52,3 +54,19 @@ data class GetCommentPostResponse(
         val avatarURL: String?
     )
 }
+
+data class CommentResponse(
+    val user: User,
+    val userModel: String,
+    val post: commentPost,
+    val content: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+data class commentPost(
+    @SerializedName("_id") val id: String,
+    val content: String,
+    val media: List<String>
+)
+

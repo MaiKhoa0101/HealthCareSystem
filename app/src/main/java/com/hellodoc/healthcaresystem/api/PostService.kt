@@ -4,12 +4,14 @@ import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.GetFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
+import com.hellodoc.healthcaresystem.responsemodel.CommentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.commentPost
 import okhttp3.MultipartBody
 import retrofit2.http.GET
 import retrofit2.Call
@@ -64,4 +66,8 @@ interface PostService {
         @Path("postId") postId: String
     ): Response<List<GetCommentPostResponse>>
 
+    @GET("post/user/{id}/comment/get")
+    suspend fun getCommentByUserId(
+        @Path("id") id: String,
+    ): Response<List<CommentResponse>>
 }

@@ -8,10 +8,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.GetFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
+import com.hellodoc.healthcaresystem.responsemodel.CommentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
@@ -210,6 +212,26 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             emptyList()
         }
     }
+
+    private val _userComments = MutableStateFlow<List<CommentResponse>>(emptyList())
+    val userComments: StateFlow<List<CommentResponse>> get()= _userComments
+
+    fun getPostCommentByUserId(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getCommentByUserId(userId)
+                if (response.isSuccessful) {
+                    _userComments.value = response.body() ?: emptyList()
+                    Log.d("tag", "Get user comment success")
+                } else {
+                    Log.e("tag", "Get user comment failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("tag", "Get user comment error: ${e.message}")
+            }
+        }
+    }
+
 
 
 }
