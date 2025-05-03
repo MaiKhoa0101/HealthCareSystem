@@ -21,7 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
-import com.hellodoc.healthcaresystem.responsemodel.managerResponse
+import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -60,7 +60,7 @@ fun PostListScreen(sharedPreferences: SharedPreferences) {
 }
 
 @Composable
-fun CommentCard(comment: managerResponse, dateText: String) {
+fun CommentCard(comment: ManagerResponse, dateText: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
