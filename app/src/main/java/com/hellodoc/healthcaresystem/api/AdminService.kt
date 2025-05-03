@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.api
 import com.hellodoc.healthcaresystem.requestmodel.GetUserID
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.responsemodel.UserResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -26,11 +27,7 @@ interface AdminService {
         @Body user: UpdateUser
     ):  Response<User>
 
-    @Multipart
-    @PUT("admin/updateUser/{id}")
-    suspend fun updateUsersByID(
-        @Path("id") id: String,
-        @Part user: UpdateUser
-    ):  Response<User>
 
+    @GET("admin/getallusers")
+    suspend fun getAllUser(): Response<UserResponse> //trả về một đối tượng GetUser
 }

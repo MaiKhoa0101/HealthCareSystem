@@ -32,7 +32,9 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
+import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -41,13 +43,14 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val appointmentViewModel: AppointmentViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer {
-                AppointmentViewModel(sharedPreferences)
-            }
-        }
-    )
+    val appointmentViewModel: AppointmentViewModel = viewModel( factory = viewModelFactory {
+            initializer { AppointmentViewModel(sharedPreferences) }
+        })
+
+    val notificationViewModel: NotificationViewModel = viewModel(factory = viewModelFactory {
+        initializer { NotificationViewModel(sharedPreferences) }
+    })
+
     var notes by remember { mutableStateOf("") }
     var examinationMethod by remember { mutableStateOf("") }
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
@@ -62,6 +65,16 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
     }
 
     var showDialog by remember { mutableStateOf(false) }
+    val appointmentSuccess by appointmentViewModel.appointmentSuccess.collectAsState()
+
+    LaunchedEffect(appointmentSuccess) {
+        if (appointmentSuccess) {
+            showDialog = true // ✅ khi thành công thì hiển thị dialog
+            notificationViewModel.createNotification(userId = patientID, userModel = patientModel, content = "Bạn đã đặt lịch khám thành công với bác sĩ $doctorName")
+            notificationViewModel.createNotification(userId = doctorId, userModel = "Doctor", content = "Bạn có lịch khám mới với bệnh nhân $patientName")
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -137,6 +150,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                             CreateAppointmentRequest(
                                 doctorID = doctorId,
                                 patientID = patientID,
+                                patientModel = patientModel,
                                 date = formattedDate,
                                 time = time,
 //                                status = status,
@@ -147,7 +161,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                                 location = location
                             )
                         )
-                        showDialog = true },
+                              },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                     modifier = Modifier
                         .weight(1f)
@@ -199,7 +213,9 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                             Button(
                                 onClick = {
                                     showDialog = false
-                                    navigateToAppointment(context) },
+                                    appointmentViewModel.resetAppointmentSuccess()
+                                    navigateToAppointment(context)
+                                          },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A0E21)),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
@@ -211,6 +227,26 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
                         }
                     }
                 }
+            }
+
+            val appointmentError by appointmentViewModel.appointmentError.collectAsState()
+
+            if (appointmentError != null) {
+                AlertDialog(
+                    onDismissRequest = {
+                        appointmentViewModel.resetAppointmentError()
+                    },
+                    confirmButton = {
+                        Button(onClick = {
+                            appointmentViewModel.resetAppointmentError()
+                            navHostController.popBackStack()
+                        }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("Đặt lịch thất bại") },
+                    text = { Text(appointmentError ?: "") }
+                )
             }
         }
     }

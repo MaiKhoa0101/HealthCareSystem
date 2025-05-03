@@ -54,6 +54,7 @@ import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 //@Composable
@@ -115,9 +116,17 @@ fun HealthMateHomeScreen(
     LaunchedEffect(Unit) {
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        medicalOptionViewModel.fetchMedicalOptions()
-        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
-        faqItemViewModel.fetchFAQItems()
+        launch {
+            medicalOptionViewModel.fetchMedicalOptions()
+        }
+
+        launch {
+            remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
+        }
+
+        launch {
+            faqItemViewModel.fetchFAQItems()
+        }
 
 //        userName = viewModel.getUserNameFromToken()
 //        role = viewModel.getUserRole()

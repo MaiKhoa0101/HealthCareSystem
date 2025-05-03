@@ -53,6 +53,7 @@ var time: String = "" // Ví dụ: "14:30"
 var totalCost: String = "0"
 var reason: String = "hello"
 var location: String = ""
+var patientModel = ""
 var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
 
 @Composable
@@ -67,11 +68,12 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     // Biến kiểm tra xem đang ở chế độ chỉnh sửa hay tạo mới
     var isEditing by remember { mutableStateOf(false)}
 
-        LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         patientName = userViewModel.getUserAttributeString("name")
         patientPhone = userViewModel.getUserAttributeString("phone")
         patientAddress = userViewModel.getUserAttributeString("address")
         patientID = userViewModel.getUserAttributeString("userId")
+        patientModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
@@ -441,6 +443,7 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
         }
     }
 }
+
 
 @Composable
 fun AppointmentDateSection(navHostController: NavHostController) {

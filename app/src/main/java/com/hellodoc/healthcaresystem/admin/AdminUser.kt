@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.admin
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -17,24 +18,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hellodoc.healthcaresystem.responsemodel.Account2
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun UserListScreen() {
-    val accountList2 = remember {
-        mutableStateListOf(
-            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
-            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
-            Account2("phuong","phuong@gmail.com", "0783203982", "2025-01-19"),
-            Account2("phuong","minh@gmail.com", "0783203982", "2025-01-19"),
-            )
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     }
 
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    val userList by userViewModel.allUser.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("User") }
+    val users = userList?.let { it.doctors + it.users } ?: emptyList()
+
+    // Gọi 1 lần khi composable khởi tạo
+    LaunchedEffect(Unit) {
+        userViewModel.getAllUsers()
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
@@ -46,7 +59,7 @@ fun UserListScreen() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "${accountList2.size} tài khoản",
+            text = "${users.size} tài khoản",
             color = Color.White,
             modifier = Modifier
                 .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
@@ -61,34 +74,37 @@ fun UserListScreen() {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Tìm kiếm
-            Column(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    placeholder = { Text("Tìm...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
-                )
-            }
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                placeholder = { Text("Tìm...") },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
+            )
 
-            // Lọc
-            Column(modifier = Modifier.width(100.dp)) {
-                DropdownMenuRoleSelector(selectedRole) {
-                    selectedRole = it
-                }
-            }
+            // Lọc theo role
+            DropdownMenuRoleSelector(
+                selected = selectedRole,
+                onSelected = { selectedRole = it }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        println("userlist: "+userList)
+        // Lọc danh sách theo email và role
 
-        AccountTable2(accountList2.filter {
-            it.email.contains(searchText, ignoreCase = true)
-        })
+        val filteredUsers = users.filter {
+            it.email.contains(searchText, ignoreCase = true) &&
+                    it.role.equals(selectedRole, ignoreCase = true)
+        }
+
+        AccountTable2(filteredUsers)
     }
 }
+
 
 @Composable
 fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
@@ -115,7 +131,7 @@ fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
 }
 
 @Composable
-fun AccountTable2(accounts: List<Account2>) {
+fun AccountTable2(accounts: List<User>) {
     // Cho phép cuộn ngang
     Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
         Column {
@@ -129,7 +145,10 @@ fun AccountTable2(accounts: List<Account2>) {
                 TableCell("Name", isHeader = true, width = 100.dp)
                 TableCell("Email", isHeader = true, width = 200.dp)
                 TableCell("Số điện thoại", isHeader = true, width = 150.dp)
+                TableCell("Địa chỉ", isHeader = true, width = 150.dp)
+                TableCell("Ảnh đại diện", isHeader = true, width = 150.dp)
                 TableCell("Ngày tạo", isHeader = true, width = 120.dp)
+                TableCell("Ngày cập nhật", isHeader = true, width = 120.dp)
                 TableCell("Chức năng", isHeader = true, width = 100.dp)
             }
 
@@ -143,7 +162,7 @@ fun AccountTable2(accounts: List<Account2>) {
     }
 }
 @Composable
-fun AccountRow2(id: Int, account: Account2) {
+fun AccountRow2(id: Int, account: User) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(
@@ -155,7 +174,10 @@ fun AccountRow2(id: Int, account: Account2) {
         TableCell(account.name, width = 100.dp)
         TableCell(account.email, width = 200.dp)
         TableCell(account.phone, width = 150.dp)
-        TableCell(account.createdDate, width = 120.dp)
+        TableCell(account.address, width = 120.dp)
+        TableCellImage(account.avatarURL.ifBlank { "" }, width = 150.dp)
+        TableCell(account.createdAt, width = 150.dp)
+        TableCell(account.updatedAt, width = 120.dp)
         Box(
             modifier = Modifier
                 .width(100.dp),

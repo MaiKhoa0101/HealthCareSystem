@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -13,34 +11,48 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.responsemodel.UserResponse
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    //Bien lay nhieu user
-    private val _users = MutableStateFlow<List<User>>(emptyList())
-    val users: StateFlow<List<User>> get() = _users
+
 
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
-    fun fetchUsers() {
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    val users: StateFlow<List<User>> get() = _users
+
+    private val _allUser = MutableStateFlow<UserResponse?>(null)
+    val allUser: StateFlow<UserResponse?> get() = _allUser
+
+
+    fun getAllUsers() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.admin.getUsers()
+                val response = RetrofitInstance.admin.getAllUser()
                 if (response.isSuccessful) {
-                    _users.value = response.body() ?: emptyList()
-                    println("OK fetch user"+response.body())
+                    response.body()?.let { userResponse ->
+                        val combinedList = userResponse.doctors + userResponse.users
+                        _users.value = combinedList          // <-- gán danh sách hiển thị
+                        _allUser.value = userResponse        // <-- lưu đầy đủ nếu cần sau này
+                    } ?: run {
+                        Log.e("UserViewModel", "Response body is null")
+                    }
                 } else {
-                    println("Lỗi API: ${response.errorBody()?.string()}")
+                    Log.e("UserViewModel", "Response failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("UserViewModel", "Exception: ${e.message}")
             }
         }
     }
+
+
 
     fun getUser(id: String) {
         viewModelScope.launch {
@@ -113,7 +125,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val response = RetrofitInstance.admin.updateUserByID(id, updatedUser)
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: ${id}") // Log khi cập nhật thành công
-                    fetchUsers() // Cập nhật danh sách sau khi chỉnh sửa
+                    getAllUsers() // Cập nhật danh sách sau khi chỉnh sửa
                 } else {
                     Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}") // Log lỗi nếu có
                 }
@@ -123,4 +135,20 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun sendFcmToken(userId: String, token: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.userService.updateFcmToken(userId, TokenRequest(token))
+                if (response.isSuccessful) {
+                    Log.d("FCM", "Đã gửi fcmToken lên server")
+                } else {
+                    Log.e("FCM", "Lỗi gửi fcmToken: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("FCM", "Lỗi: ${e.localizedMessage}")
+            }
+        }
+    }
 }
+
+

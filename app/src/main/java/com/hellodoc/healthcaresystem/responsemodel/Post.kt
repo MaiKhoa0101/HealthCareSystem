@@ -12,6 +12,8 @@ data class PostResponse(
     val userModel: String,
 ) {
     data class User(
+        @SerializedName("_id")
+        val id: String? = null,
         val name: String,
         val avatarURL: String?
     )
