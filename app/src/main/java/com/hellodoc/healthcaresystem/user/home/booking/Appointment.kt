@@ -35,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -105,11 +106,21 @@ fun AppointmentScreenUI(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
-    var roleSelectedTab by remember { mutableStateOf(0) }
     var selectedTab by remember { mutableStateOf(0) }
 
     val roles = listOf("Đã đặt", "Được đặt")
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
+    val jwt = remember {
+        try {
+            JWT(sharedPreferences.getString("access_token", null) ?: "")
+        } catch (e: Exception) {
+            null
+        }
+    }
+    val userRole = jwt?.getClaim("role")?.asString() ?: "user"
+    val isPatient = userRole == "user" || userRole == "patient"
+    val isDoctor = userRole == "doctor"
+    var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
 
     Column(
         modifier = Modifier
@@ -131,7 +142,7 @@ fun AppointmentScreenUI(
                 .fillMaxSize()
                 .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
         ) {
-            // Tabs chọn Vai trò
+            //Tabs chọn Vai trò
             TabRow(
                 selectedTabIndex = roleSelectedTab,
                 containerColor = Color.Transparent,
@@ -139,13 +150,21 @@ fun AppointmentScreenUI(
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 roles.forEachIndexed { index, title ->
+                    val isTabEnabled = (index == 0 && isPatient) || (index == 1 && isDoctor)
+
                     Tab(
                         selected = roleSelectedTab == index,
-                        onClick = { roleSelectedTab = index },
+                        onClick = {
+                            if (isTabEnabled) {
+                                roleSelectedTab = index
+                            }
+                        },
+                        enabled = isTabEnabled,
                         text = {
                             Text(
                                 text = title,
-                                fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isTabEnabled) Color.Black else Color.Gray
                             )
                         }
                     )
@@ -191,7 +210,14 @@ fun AppointmentScreenUI(
             // ✅ Hiển thị
             LazyColumn {
                 items(filteredAppointments) { appointment ->
-                    AppointmentCard(appointment, userID, selectedTab = selectedTab, sharedPreferences = sharedPreferences, navHostController = navHostController  )
+                    AppointmentCard(
+                        appointment,
+                        userID,
+                        selectedTab = selectedTab,
+                        roleSelectedTab = roleSelectedTab,
+                        sharedPreferences = sharedPreferences,
+                        navHostController = navHostController
+                    )
                 }
             }
         }
@@ -204,9 +230,15 @@ fun AppointmentCard(
     appointment: AppointmentResponse,
     userID: String,
     selectedTab: Int,
+    roleSelectedTab: Int,
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
     ) {
+    val isPatient = roleSelectedTab == 0
+    val isDoctor = roleSelectedTab == 1
+    val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
+    val displayName = if (isDoctor) appointment.patient.name else appointment.doctor.name
+
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -245,10 +277,10 @@ fun AppointmentCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!appointment.doctor.avatarURL.isNullOrBlank()) {
+                if (!avatarUrl.isNullOrBlank()) {
                     AsyncImage(
-                        model = appointment.doctor.avatarURL,
-                        contentDescription = appointment.doctor.name,
+                        model = avatarUrl,
+                        contentDescription = displayName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(90.dp)
@@ -258,7 +290,7 @@ fun AppointmentCard(
                 } else {
                     Image(
                         painter = painterResource(id = R.drawable.doctor),
-                        contentDescription = appointment.doctor.name,
+                        contentDescription = displayName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(72.dp)
@@ -270,7 +302,7 @@ fun AppointmentCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column {
-                    Text(appointment.doctor.name, fontWeight = FontWeight.Bold)
+                    Text(displayName, fontWeight = FontWeight.Bold)
                     Text(appointment.notes ?: "Không có ghi chú")
 
                     Row {
@@ -290,67 +322,99 @@ fun AppointmentCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (selectedTab == 0) { // Chờ khám
-                    OutlinedButton(
-                        onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                    ) {
-                        Text("Huỷ")
-                    }
-                    Button(
-                        onClick = {
-                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                                set("isEditing", true)
-                                set("appointmentId", appointment.id)
-                                set("doctorId", appointment.doctor.id)
-                                set("doctorName", appointment.doctor.name)
-                                set("specialtyName", appointment.doctor.specialty ?: "")
-                                set("selected_date", formattedDate)
-                                set("selected_time", appointment.time)
-                                set("notes", appointment.notes ?: "")
-                                set("location", appointment.location ?: "")
+                if (isDoctor) {
+                    if (selectedTab == 0) {
+                        OutlinedButton(onClick = {
+                            appointmentViewModel.deleteAppointment(appointment.id, userID)
+                        }) {
+                            Text("Hủy")
+                        }
+                        Button(onClick = {
+                            appointmentViewModel.updateAppointment(
+                                appointment.id,
+                                UpdateAppointmentRequest(time = appointment.time, date = appointment.date)
+                            )
+                        }) {
+                            Text("Hoàn thành", color = Color.White)
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OutlinedButton(onClick = {
+                                appointmentViewModel.deleteAppointment(appointment.id, userID)
+                            }) {
+                                Text("Xóa")
                             }
-                            navHostController.navigate("appointment-detail")
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                    ) {
-                        Text("Chỉnh sửa", color = Color.White)
-                    }
-                } else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
-                    OutlinedButton(
-                        onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                    ) {
-                        Text("Xóa")
-                    }
-                    Button(
-                        onClick = {
-                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                                set("isEditing", false)
-                                set("doctorId", appointment.doctor.id)
-                                set("doctorName", appointment.doctor.name)
-                                set("specialtyName", appointment.doctor.specialty ?: "")
-                                set("location", appointment.location ?: "")
-                            }
-                            navHostController.navigate("appointment-detail")
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                    ) {
-                        Text("Đặt lại", color = Color.White)
-                    }
-                    Button(
-                        onClick = {
-                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                                set("doctorId", appointment.doctor.id)
-                                set("selectedTab", 1)
-                            }
-                            navHostController.navigate("other_user_profile")
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242760))
-                    ) {
-                        Text("Đánh giá", color = Color.White)
+                        }
                     }
                 }
+                else if (isPatient) {
+                    if (selectedTab == 0) { // Chờ khám
+                        OutlinedButton(
+                            onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                        ) {
+                            Text("Huỷ")
+                        }
+                        Button(
+                            onClick = {
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("isEditing", true)
+                                    set("appointmentId", appointment.id)
+                                    set("doctorId", appointment.doctor.id)
+                                    set("doctorName", appointment.doctor.name)
+                                    set("specialtyName", appointment.doctor.specialty ?: "")
+                                    set("selected_date", formattedDate)
+                                    set("selected_time", appointment.time)
+                                    set("notes", appointment.notes ?: "")
+                                    set("location", appointment.location ?: "")
+                                }
+                                navHostController.navigate("appointment-detail")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                        ) {
+                            Text("Chỉnh sửa", color = Color.White)
+                        }
+                    }
+                    else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
+                        OutlinedButton(
+                            onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                        ) {
+                            Text("Xóa")
+                        }
+                        Button(
+                            onClick = {
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("isEditing", false)
+                                    set("doctorId", appointment.doctor.id)
+                                    set("doctorName", appointment.doctor.name)
+                                    set("specialtyName", appointment.doctor.specialty ?: "")
+                                    set("location", appointment.location ?: "")
+                                }
+                                navHostController.navigate("appointment-detail")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                        ) {
+                            Text("Đặt lại", color = Color.White)
+                        }
+                        Button(
+                            onClick = {
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("doctorId", appointment.doctor.id)
+                                    set("selectedTab", 1)
+                                }
+                                navHostController.navigate("other_user_profile")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242760))
+                        ) {
+                            Text("Đánh giá", color = Color.White)
+                        }
+                    }
+                }
+
             }
         }
     }
