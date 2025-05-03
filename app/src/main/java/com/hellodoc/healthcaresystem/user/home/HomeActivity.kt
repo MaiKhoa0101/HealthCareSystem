@@ -53,7 +53,6 @@ import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
-import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
@@ -254,7 +253,15 @@ class HomeActivity : BaseActivity() {
                 Log.d("FCM", "FCM Token: $token")
                 // Gửi lên server
                 val userId = userViewModel.getUserAttributeString("userId")
-                userViewModel.sendFcmToken(userId, token)
+                var userModel = ""
+                if (userViewModel.getUserAttributeString("role") == "user")
+                    userModel = "User"
+                else if (userViewModel.getUserAttributeString("role") == "doctor")
+                    userModel = "Doctor"
+                if (userId != "" && userModel != "") {
+                    userViewModel.sendFcmToken(userId, userModel, token)
+                }
+
             }
         }
     }
