@@ -13,10 +13,12 @@ import okhttp3.MultipartBody
 import retrofit2.http.GET
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -32,6 +34,7 @@ interface PostService {
     @POST("post/create")
     suspend fun createPost(
         @Part userId: MultipartBody.Part,
+        @Part userModel: MultipartBody.Part,
         @Part content: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>?
     ): Response<CreatePostResponse>
@@ -60,6 +63,18 @@ interface PostService {
     suspend fun getCommentByPostId(
         @Path("postId") postId: String
     ): Response<List<GetCommentPostResponse>>
+
+    @PATCH("post/{commentId}/comment/update")
+    suspend fun updateCommentById(
+        @Path("commentId") commentId: String,
+        @Body update: CreateCommentPostRequest
+    ): Response<Unit>
+
+    @DELETE("post/{commentId}/comment/delete")
+    suspend fun deleteCommentById(@Path("commentId") commentId: String): Response<Unit>
+
+    @DELETE("post/{postId}")
+    suspend fun deletePostById(@Path("postId") postId: String): Response<Unit>
 
     @GET("post/user/{id}/comment/get")
     suspend fun getCommentByUserId(

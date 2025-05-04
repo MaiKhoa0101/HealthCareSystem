@@ -71,6 +71,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             try {
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
+                val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
 
                 val imageParts = request.images?.mapNotNull { uri ->
@@ -79,6 +80,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 val response = RetrofitInstance.postService.createPost(
                     userIdPart,
+                    userModelPart,
                     contentPart,
                     imageParts ?: emptyList()
                 )
@@ -209,6 +211,19 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.postService.updateCommentById(
+                    commentId,
+                    CreateCommentPostRequest(userId, userModel, content)
+                )
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Update Comment Error", e)
+            }
+        }
+    }
+    
     private val _userComments = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userComments: StateFlow<List<ManagerResponse>> get()= _userComments
 
@@ -228,6 +243,21 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun deleteComment(commentId: String, postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deleteCommentById(commentId)
+                if (response.isSuccessful) {
+                    fetchComments(postId) // Refresh danh sách bình luận
+                } else {
+                    Log.e("PostViewModel", "Delete comment failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Comment Error", e)
+            }
+        }
+    }
+    
     private val _userFavorites = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userFavorites: StateFlow<List<ManagerResponse>> get()= _userFavorites
 
@@ -247,6 +277,19 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deletePostById(postId)
+                if (response.isSuccessful) {
+                    getAllPosts() // cập nhật lại danh sách
+                } else {
+                    Log.e("PostViewModel", "Delete post failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Post Error", e)
+            }
+        }
+    }
 
 }

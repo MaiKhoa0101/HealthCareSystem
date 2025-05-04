@@ -15,7 +15,7 @@ data class PostResponse(
 ) {
     data class User(
         @SerializedName("_id")
-        val id: String? = null,
+        val id: String,
         val name: String,
         val avatarURL: String?
     )
@@ -44,6 +44,8 @@ data class CreateCommentPostResponse(
 )
 
 data class GetCommentPostResponse(
+    @SerializedName("_id")
+    val id: String,
     val user: User,
     val post: String,
     val content: String,
