@@ -154,7 +154,12 @@ fun HealthMateHomeScreen(
                     EmptyList("dịch vụ hệ thống")
                 } else {
                     GridServiceList(medicalOptions) { medicalOption ->
-                        showToast(context, "Clicked: ${medicalOption.name}")
+                        when (medicalOption.name) {
+                            "Tính BMI" -> navHostController.navigate("bmi-checking")
+                            else -> {
+
+                            }
+                        }
                     }
                 }
             }

@@ -38,7 +38,6 @@ import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable

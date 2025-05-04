@@ -16,13 +16,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.HeadbarPara
 import com.hellodoc.healthcaresystem.responsemodel.SidebarItem
 import kotlinx.coroutines.launch
 
-class AdminRoot : ComponentActivity() {
+class AdminRoot : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -66,6 +67,11 @@ val sidebarItems = listOf(
         nameField = "Quản lý tin tức",
         iconField = R.drawable.edit,
         navigationField = "NewsManager"
+    ),
+    SidebarItem(
+        nameField = "Quản lý bài viết",
+        iconField = R.drawable.ic_post,
+        navigationField = "PostManager"
     ),
     SidebarItem(
         nameField = "Lịch khám",
@@ -138,6 +144,9 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     }
                     composable("NewsManager"){
                         NewsManagerScreen()
+                    }
+                    composable("PostManager"){
+                        PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
                     composable("AppointmentManager") {
                         AppointmentManagerScreen(sharedPreferences)

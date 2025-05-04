@@ -93,7 +93,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             applicationContext,
             channelId
         )
-            .setSmallIcon(R.drawable.ic_hacker)
+            .setSmallIcon(R.drawable.doctor)
             .setAutoCancel(true)
             .setVibrate(
                 longArrayOf(

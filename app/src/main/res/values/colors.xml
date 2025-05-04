@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="bluetheme">#00C5CB</color>
     <color name="grey">#C0C0C0</color>
+    <color name="notification_text_color">#000000</color>
 </resources>
