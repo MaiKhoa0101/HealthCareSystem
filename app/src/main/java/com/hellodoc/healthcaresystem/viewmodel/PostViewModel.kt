@@ -73,6 +73,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             try {
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
+                val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
 
                 val imageParts = request.images?.mapNotNull { uri ->
@@ -81,6 +82,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 val response = RetrofitInstance.postService.createPost(
                     userIdPart,
+                    userModelPart,
                     contentPart,
                     imageParts ?: emptyList()
                 )

@@ -10,10 +10,11 @@ data class PostResponse(
     val media: List<String>,
     val user: User,
     val userModel: String,
+    val createdAt: String,
 ) {
     data class User(
         @SerializedName("_id")
-        val id: String? = null,
+        val id: String,
         val name: String,
         val avatarURL: String?
     )

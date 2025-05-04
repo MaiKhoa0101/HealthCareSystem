@@ -34,6 +34,7 @@ interface PostService {
     @POST("post/create")
     suspend fun createPost(
         @Part userId: MultipartBody.Part,
+        @Part userModel: MultipartBody.Part,
         @Part content: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>?
     ): Response<CreatePostResponse>

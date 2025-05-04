@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -87,11 +89,27 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
         initializer { PostViewModel(sharedPreferences) }
     })
 
+    val user by userViewModel.user.collectAsState()
+    var avatarUrl by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userViewModel.getUser(userId)
+        avatarUrl = user?.avatarURL ?: ""
 
+        username = user?.name ?: ""
     }
+
+
+
+//    LaunchedEffect(userId) {
+//        userId.let {
+//            userViewModel.getUser(it)
+//        }
+//
+//    }
 
     var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var postText by remember { mutableStateOf("") }
@@ -121,8 +139,8 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
         item {
             PostBody(
                 containerPost = ContainerPost(
-                    imageUrl = R.drawable.img.toString(),
-                    name = "Khoa xinh gái",
+                    imageUrl = user?.avatarURL ?: "",
+                    name = user?.name ?: "",
                     label = "Hãy nói gì đó ..."
                 ),
                 text = postText,
@@ -273,11 +291,13 @@ fun PostBody(
     ) {
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
         val (iconImage, tvName, textField) = createRefs()
-        Image(
-            painter = rememberAsyncImagePainter(containerPost.imageUrl),
-            contentDescription = null,
+        AsyncImage(
+            model = containerPost.imageUrl,
+            contentDescription = "Avatar",
             modifier = Modifier
-                .clip(shape = CircleShape)
+//                .height(140.dp)
+//                .padding(10.dp)
+                .clip(CircleShape)
                 .size(45.dp)
                 .constrainAs(iconImage){
                     start.linkTo(parent.start, margin = 20.dp)

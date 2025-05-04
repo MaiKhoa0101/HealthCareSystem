@@ -18,7 +18,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:padding="5dp"
-            android:src="@drawable/ic_hacker" />
+            android:src="@drawable/doctor" />
     </LinearLayout>
 
     <!-- Parent layout for holding the Title and the Body-->
@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Title"
-            android:textColor="#000"
+            android:textColor="@color/notification_text_color"
             android:textStyle="bold" />
 
         <!-- TextView for Body -->
@@ -44,6 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Message"
+            android:textColor="@color/notification_text_color"
             android:textSize="15sp" />
 
     </LinearLayout>
