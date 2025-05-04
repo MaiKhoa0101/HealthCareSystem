@@ -244,6 +244,7 @@ class HomeActivity : BaseActivity() {
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)
+            }
             composable("activity_manager") {
                 ActivityManagerScreen ( onBack = { navHostController.popBackStack()}, navHostController)
             }
