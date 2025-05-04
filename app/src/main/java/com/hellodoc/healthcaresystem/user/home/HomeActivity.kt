@@ -238,6 +238,7 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController
                 )
             }
+
         }
     }
 

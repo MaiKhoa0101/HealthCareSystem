@@ -436,7 +436,17 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = { navHostController.navigate("doctorRegister") },
+            onClick = {
+                if (user == null) {
+                    return@Button
+                }
+                else if (user.role=="user"){
+                    navHostController.navigate("doctorRegister")
+                }
+                else{
+                    navHostController.navigate("editClinic")
+                }
+                 },
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier

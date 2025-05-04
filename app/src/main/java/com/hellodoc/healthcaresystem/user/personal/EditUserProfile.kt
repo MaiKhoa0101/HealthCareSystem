@@ -41,7 +41,6 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
         initializer { UserViewModel(sharedPreferences) }
     })
 
-
     val token = sharedPreferences.getString("access_token", null)
 
     val jwt = remember(token) {

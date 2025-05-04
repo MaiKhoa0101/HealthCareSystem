@@ -50,9 +50,9 @@ fun ViewIntroduce(
             certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
             workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
             services = doctor?.services?.map {
-                (it.name ?: "Dịch vụ chưa đặt tên") to (it.price ?: 0)
+                (it.specialtyName ?: "Dịch vụ chưa đặt tên") to (it.minPrice ?: 0)
             } ?: listOf(
-                "Dịch vụ khám cơ bản" to 500000
+                "Dịch vụ khám cơ bản" to "500000"
             )
         ),
         images = Images(
@@ -215,7 +215,7 @@ fun Introduce(
                     Triple(imageRef, serviceRef, priceRef)
                 }
 
-                contents.services.forEachIndexed { index, (serviceName, servicePrice) ->
+                contents.services.forEachIndexed { index, (serviceName, minPrice) ->
                     val (imageRef, serviceRef, priceRef) = serviceRefs[index]
                     val topAnchor =
                         if (index == 0) tvService else serviceRefs[index - 1].first
@@ -246,7 +246,7 @@ fun Introduce(
                     )
 
                     Text(
-                        text = formatPrice(servicePrice),
+                        text = formatPrice(100000),
                         style = TextStyle(
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp,

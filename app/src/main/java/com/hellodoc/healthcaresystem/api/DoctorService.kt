@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 
@@ -33,4 +34,16 @@ interface DoctorService {
         @Part frontCccdUrl: MultipartBody.Part?,
         @Part backCccdUrl: MultipartBody.Part?,
     ): Response<ApplyDoctor>
+
+    @Multipart
+    @PUT("doctor/{id}/update-profile")
+    suspend fun updateClinic(
+        @Path("id") id: String,
+        @Part address: MultipartBody.Part,
+        @Part workingHours: MultipartBody.Part,
+        @Part services: MultipartBody.Part,
+        @Part images: List<MultipartBody.Part>
+    ): Response<Unit>
+
+
 }

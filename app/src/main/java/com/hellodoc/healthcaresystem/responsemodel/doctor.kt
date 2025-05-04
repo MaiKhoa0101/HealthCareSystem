@@ -7,6 +7,7 @@ data class GetDoctorResponse (
     @SerializedName("role") val role: String,
     @SerializedName("email") val email: String,
     @SerializedName("name") val name: String,
+    @SerializedName("workingHours") val workHour:List<WorkHour>,
     val address: String,
     @SerializedName("phone") val phone: String,
     @SerializedName("password") val password: String,
@@ -18,7 +19,7 @@ data class GetDoctorResponse (
     @SerializedName("certificates")
     val certificates: List<String>?,
     @SerializedName("services")
-    val services: List<ServiceResponse>?,
+    val services: List<ServiceOutput>,
     @SerializedName("patientsCount")
     val patientsCount: Int?,
     @SerializedName("ratingsCount")
@@ -30,11 +31,13 @@ data class Specialty (
     @SerializedName("name") val name: String
 )
 
-data class ServiceResponse(
-    val name: String?,
-    val price: Int?
-)
 
 data class ApplyDoctor(
     val message: String
+)
+
+data class WorkHour(
+    val dayOfWeek: Int,
+    val hour: Int,
+    val minute: Int
 )
