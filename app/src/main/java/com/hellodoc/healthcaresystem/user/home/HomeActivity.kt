@@ -40,6 +40,7 @@ import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 
 
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.bmiChecking.BMICheckerScreen
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
 import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
@@ -237,6 +238,9 @@ class HomeActivity : BaseActivity() {
                     context = context,
                     navHostController = navHostController
                 )
+            }
+            composable("bmi-checking") {
+                BMICheckerScreen(navHostController)
             }
         }
     }

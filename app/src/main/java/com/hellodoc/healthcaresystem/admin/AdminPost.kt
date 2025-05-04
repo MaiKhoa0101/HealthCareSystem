@@ -266,7 +266,7 @@ fun PostItem(id: Int,post: PostResponse,  postViewModel: PostViewModel) {
                     }
 
                     IconButton(
-                        onClick = { /* Handle delete action */ },
+                        onClick = { postViewModel.deletePost(post.id) },
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
@@ -415,7 +415,7 @@ fun PostItem(id: Int,post: PostResponse,  postViewModel: PostViewModel) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(
-                                    onClick = { /* Handle delete action */ },
+                                    onClick = { postViewModel.deleteComment(comment.id, post.id) },
                                     modifier = Modifier.size(40.dp)
                                 ) {
                                     Icon(
