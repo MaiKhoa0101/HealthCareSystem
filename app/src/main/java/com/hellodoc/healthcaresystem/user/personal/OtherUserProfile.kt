@@ -103,9 +103,15 @@ fun ProfileScreen(navHostController: NavHostController) {
     var doctorId by remember { mutableStateOf<String?>(null) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    //
     LaunchedEffect(savedStateHandle) {
         doctorId = savedStateHandle?.get<String>("doctorId")
+        savedStateHandle?.remove<String>("doctorId")
+
+        selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
+        savedStateHandle?.remove<Int>("selectedTab")
     }
+
 
     LaunchedEffect(doctorId) {
         doctorId?.let { viewModel.fetchDoctorById(it) }

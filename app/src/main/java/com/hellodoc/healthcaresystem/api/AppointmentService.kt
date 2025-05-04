@@ -43,4 +43,8 @@ interface AppointmentService {
 
     @DELETE("appointments/{id}")
     suspend fun deleteAppointmentById(@Path("id") id: String): Response<UpdateAppointmentResponse>
+
+    @PATCH("appointments/confirm/{id}")
+    suspend fun confirmAppointment(@Path("id") id: String): Response<UpdateAppointmentResponse>
+
 }

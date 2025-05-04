@@ -27,6 +27,9 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
     private val _appointmentError = MutableStateFlow<String?>(null)
     val appointmentError: StateFlow<String?> get() = _appointmentError
 
+    private val _appointmentUpdated = MutableStateFlow(false)
+    val appointmentUpdated: StateFlow<Boolean> get() = _appointmentUpdated
+
 
     fun fetchAppointments(){
         viewModelScope.launch{
@@ -193,6 +196,27 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                 Log.e("Delete", "Lỗi mạng/API: ${e.localizedMessage}")
             }
         }
+    }
+
+    fun confirmAppointmentDone(appointmentId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.appointment.confirmAppointment(appointmentId)
+                if (response.isSuccessful) {
+                    Log.d("Confirm", "Xác nhận đã hoàn thành")
+                    getAppointmentUser(userId)
+                    getAppointmentDoctor(userId)
+                    _appointmentUpdated.value = true
+                } else {
+                    Log.e("Confirm", "Lỗi xác nhận: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Confirm", "Lỗi mạng/API: ${e.localizedMessage}")
+            }
+        }
+    }
+    fun resetAppointmentUpdated() {
+        _appointmentUpdated.value = false
     }
 
 }

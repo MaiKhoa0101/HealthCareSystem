@@ -40,6 +40,7 @@ import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 
 
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.bmiChecking.BMICheckerScreen
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
 import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
@@ -49,7 +50,10 @@ import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 
 
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
+import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
+import com.hellodoc.healthcaresystem.user.personal.PostListScreen
+import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
@@ -237,6 +241,18 @@ class HomeActivity : BaseActivity() {
                     context = context,
                     navHostController = navHostController
                 )
+            }
+            composable("bmi-checking") {
+                BMICheckerScreen(navHostController)
+            }
+            composable("activity_manager") {
+                ActivityManagerScreen ( onBack = { navHostController.popBackStack()}, navHostController)
+            }
+            composable("userComment") {
+                PostListScreen(sharedPreferences)
+            }
+            composable("userFavorite") {
+                PostListScreen2(sharedPreferences)
             }
         }
     }

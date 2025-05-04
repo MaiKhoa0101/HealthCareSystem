@@ -10,13 +10,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
-import com.hellodoc.healthcaresystem.requestmodel.GetFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
-import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -73,6 +71,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             try {
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
+                val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
 
                 val imageParts = request.images?.mapNotNull { uri ->
@@ -81,6 +80,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 val response = RetrofitInstance.postService.createPost(
                     userIdPart,
+                    userModelPart,
                     contentPart,
                     imageParts ?: emptyList()
                 )
@@ -211,5 +211,85 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.postService.updateCommentById(
+                    commentId,
+                    CreateCommentPostRequest(userId, userModel, content)
+                )
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Update Comment Error", e)
+            }
+        }
+    }
+    
+    private val _userComments = MutableStateFlow<List<ManagerResponse>>(emptyList())
+    val userComments: StateFlow<List<ManagerResponse>> get()= _userComments
+
+    fun getPostCommentByUserId(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getCommentByUserId(userId)
+                if (response.isSuccessful) {
+                    _userComments.value = response.body() ?: emptyList()
+                    Log.d("userCommentManager", "Get user comment success")
+                } else {
+                    Log.e("userCommentManager", "Get user comment failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("userCommentManager", "Get user comment error: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteComment(commentId: String, postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deleteCommentById(commentId)
+                if (response.isSuccessful) {
+                    fetchComments(postId) // Refresh danh sách bình luận
+                } else {
+                    Log.e("PostViewModel", "Delete comment failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Comment Error", e)
+            }
+        }
+    }
+    
+    private val _userFavorites = MutableStateFlow<List<ManagerResponse>>(emptyList())
+    val userFavorites: StateFlow<List<ManagerResponse>> get()= _userFavorites
+
+    fun getPostFavoriteByUserId(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getUserFavoritePost(userId)
+                if (response.isSuccessful) {
+                    _userFavorites.value = response.body() ?: emptyList()
+                    Log.d("userFavoriteManager", "Get user favorite success")
+                } else {
+                    Log.e("userFavoriteManager", "Get user favorite failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("userFavoriteManager", "Get user favorite error: ${e.message}")
+            }
+        }
+    }
+
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deletePostById(postId)
+                if (response.isSuccessful) {
+                    getAllPosts() // cập nhật lại danh sách
+                } else {
+                    Log.e("PostViewModel", "Delete post failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Post Error", e)
+            }
+        }
+    }
 
 }

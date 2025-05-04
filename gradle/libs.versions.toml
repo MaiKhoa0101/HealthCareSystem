@@ -21,6 +21,7 @@ firebaseMessaging = "24.1.1"
 core = "1.6.1"
 roomRuntimeAndroid = "2.7.0"
 playServicesMaps = "19.2.0"
+runtimeLivedata = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

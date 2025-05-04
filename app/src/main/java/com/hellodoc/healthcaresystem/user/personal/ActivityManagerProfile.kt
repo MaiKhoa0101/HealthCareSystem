@@ -71,7 +71,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun ActivityManagerScreen(onBack: () -> Unit) {
+fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,7 +103,7 @@ fun ActivityManagerScreen(onBack: () -> Unit) {
                 .padding(vertical = 8.dp)
                 .background(Color.White, shape = RoundedCornerShape(12.dp))
                 .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { /* TODO: Navigate or show detail */ }
+                .clickable { navHostController.navigate("userComment") }
                 .padding(16.dp)
         ) {
             Column {
@@ -120,7 +120,7 @@ fun ActivityManagerScreen(onBack: () -> Unit) {
                 .padding(vertical = 8.dp)
                 .background(Color.White, shape = RoundedCornerShape(12.dp))
                 .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { /* TODO: Navigate or show liked posts */ }
+                .clickable { navHostController.navigate("userFavorite") }
                 .padding(16.dp)
         ) {
             Column {
