@@ -104,6 +104,7 @@ fun PostColumn(
                 ViewPostOwner(
                     postId = postItem.id,
                     containerPost = ContainerPost(
+                        id = postItem.user.id,
                         name = postItem.user.name,
                         imageUrl = postItem.user.avatarURL ?: ""
                     ),
@@ -457,17 +458,39 @@ fun ViewPostOwner(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 50.dp, end = 8.dp)
+                    .width(220.dp)
                     .background(Color.White, shape = RoundedCornerShape(6.dp))
                     .border(5.dp, Color.LightGray)
-                    .clickable {
-                        showPostReportBox = false
-                        onClickReport(postId)
-                    }
                     .padding(12.dp)
             ) {
-                Text("Tố cáo bài viết", fontWeight = FontWeight.ExtraBold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Bài viết có nội dung vi phạm", fontSize = 15.sp)
+                // Tố cáo
+                Column(
+                    modifier = Modifier
+                        .clickable {
+                            showPostReportBox = false
+                            onClickReport(postId)
+                        }
+                        .padding(8.dp)
+                ) {
+                    Text("Tố cáo bài viết", fontWeight = FontWeight.Bold)
+                    Text("Bài viết có nội dung vi phạm", fontSize = 13.sp)
+                }
+
+                // Chỉ hiển thị nút XÓA nếu là chính người đăng
+                if (currentUserId == containerPost.id) {
+                    Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
+                    Column(
+                        modifier = Modifier
+                            .clickable {
+                                showPostReportBox = false
+                                postViewModel.deletePost(postId)
+                            }
+                            .padding(8.dp)
+                    ) {
+                        Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
+                        Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                    }
+                }
             }
         }
     }

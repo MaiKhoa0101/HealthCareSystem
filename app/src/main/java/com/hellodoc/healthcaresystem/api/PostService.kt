@@ -75,4 +75,7 @@ interface PostService {
     @DELETE("post/{commentId}/comment/delete")
     suspend fun deleteCommentById(@Path("commentId") commentId: String): Response<Unit>
 
+    @DELETE("post/{postId}")
+    suspend fun deletePostById(@Path("postId") postId: String): Response<Unit>
+
 }

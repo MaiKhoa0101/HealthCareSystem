@@ -239,5 +239,19 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deletePostById(postId)
+                if (response.isSuccessful) {
+                    getAllPosts() // cập nhật lại danh sách
+                } else {
+                    Log.e("PostViewModel", "Delete post failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Post Error", e)
+            }
+        }
+    }
 
 }
