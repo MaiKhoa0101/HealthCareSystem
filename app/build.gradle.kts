@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.androidx.core)
     implementation(libs.androidx.room.runtime.android)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -96,4 +97,6 @@ dependencies {
 
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation ("com.google.accompanist:accompanist-pager:0.30.1")
+
 }

@@ -213,5 +213,47 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.postService.updateCommentById(
+                    commentId,
+                    CreateCommentPostRequest(userId, userModel, content)
+                )
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Update Comment Error", e)
+            }
+        }
+    }
+
+    fun deleteComment(commentId: String, postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deleteCommentById(commentId)
+                if (response.isSuccessful) {
+                    fetchComments(postId) // Refresh danh sách bình luận
+                } else {
+                    Log.e("PostViewModel", "Delete comment failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Comment Error", e)
+            }
+        }
+    }
+
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.deletePostById(postId)
+                if (response.isSuccessful) {
+                    getAllPosts() // cập nhật lại danh sách
+                } else {
+                    Log.e("PostViewModel", "Delete post failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Delete Post Error", e)
+            }
+        }
+    }
 
 }

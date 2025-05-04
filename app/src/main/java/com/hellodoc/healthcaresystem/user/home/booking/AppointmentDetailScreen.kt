@@ -2,6 +2,8 @@ package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +39,10 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import androidx.compose.runtime.livedata.observeAsState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 
 var doctorId: String = ""
 var doctorName: String = ""
@@ -56,6 +62,14 @@ var location: String = ""
 var patientModel = ""
 var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
 
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatDateForServer(input: String): String {
+    val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    return LocalDate.parse(input, inputFormatter).format(outputFormatter)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -77,6 +91,25 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    val selectedDateLiveData = navHostController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<String>("selected_date")
+
+    val selectedDateState = selectedDateLiveData?.observeAsState()
+    val selectedDate = selectedDateState?.value ?: remember { mutableStateOf("") }.value
+
+    val selectedTimeLiveData = navHostController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<String>("selected_time")
+
+    val selectedTimeState = selectedTimeLiveData?.observeAsState()
+    val selectedTime = selectedTimeState?.value ?: ""
+
+    LaunchedEffect(selectedDate, selectedTime) {
+        if (selectedDate.isNotEmpty()) date = selectedDate
+        if (selectedTime.isNotEmpty()) time = selectedTime
+    }
+
     LaunchedEffect(savedStateHandle) {
         // Kiểm tra xem có đang ở chế độ chỉnh sửa không
         savedStateHandle?.get<Boolean>("isEditing")?.let {
@@ -100,12 +133,6 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         }
         savedStateHandle?.get<String>("specialtyName")?.let {
             specialtyName = it
-        }
-        savedStateHandle?.get<String>("selected_date")?.let {
-            date = it
-        }
-        savedStateHandle?.get<String>("selected_time")?.let {
-            time = it
         }
         savedStateHandle?.get<String>("notes")?.let {
             reason = it
@@ -173,6 +200,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
@@ -208,7 +236,7 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
                 }
                 else -> {
                     val updateRequest = UpdateAppointmentRequest(
-                        date = date,
+                        date = formatDateForServer(date),
                         time = time,
                     )
 
@@ -216,6 +244,7 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
                         appointmentId = appointmentId,
                         appointmentData = updateRequest
                     )
+                    navHostController.popBackStack("appointment", inclusive = false)
                 }
             }
         },
@@ -657,6 +686,7 @@ fun InfoRow(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(name = "Light Mode")
 @Composable
 fun PreviewAppointmentDetailScreen() {
