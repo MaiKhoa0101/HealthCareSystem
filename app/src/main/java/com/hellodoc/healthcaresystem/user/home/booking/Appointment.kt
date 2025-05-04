@@ -327,7 +327,7 @@ fun AppointmentCard(
                             contentDescription = "Hospital Location",
                             modifier = Modifier.padding(end = 4.dp)
                         )
-                        Text(appointment.location ?: "Địa điểm không xác định" )
+                        Text(appointment.location ?: "Địa điểm không xác định")
                     }
                 }
             }

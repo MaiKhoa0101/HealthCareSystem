@@ -311,7 +311,8 @@ fun ProfileSection(navHostController: NavHostController, user: User, onClickShow
         ) {
             UserIntroSection(
                 user = user,
-                onClickShowReport = onClickShowReport
+                onClickShowReport = onClickShowReport,
+                navController = navHostController
             )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
@@ -320,13 +321,11 @@ fun ProfileSection(navHostController: NavHostController, user: User, onClickShow
     }
 }
 
-
-
-
 @Composable
 fun UserIntroSection(
     user: User,
-    onClickShowReport: () -> Unit
+    onClickShowReport: () -> Unit,
+    navController: NavHostController
 ) {
     var showReportBox by remember { mutableStateOf(false) }
     Box(
@@ -396,7 +395,7 @@ fun UserIntroSection(
                     .fillMaxWidth()
                     .clickable {
                         showReportBox = false
-                        // TODO: Xử lý chuyển trang hoặc hành động khác
+                        navController.navigate("activity_manager")
                     }
                 ) {
                     Text("Quản lý hoạt động", fontWeight = FontWeight.ExtraBold)
