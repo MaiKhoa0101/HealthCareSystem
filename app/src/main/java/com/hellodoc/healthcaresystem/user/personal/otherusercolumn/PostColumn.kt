@@ -1,5 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,7 +60,10 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     posts: List<PostResponse>,
@@ -104,6 +109,7 @@ fun PostColumn(
                     ),
                     contentPost = ContentPost(postItem.content),
                     footerItem = FooterItem(imageUrl = postItem.media.firstOrNull() ?: ""),
+                    createdAt = postItem.createdAt,
                     postViewModel = postViewModel,
                     currentUserId = userId,
                     onClickReport = onClickReport
@@ -115,12 +121,14 @@ fun PostColumn(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ViewPostOwner(
     postId: String,
     containerPost: ContainerPost,
     contentPost: ContentPost,
     footerItem: FooterItem,
+    createdAt: String,
     postViewModel: PostViewModel,
     currentUserId: String,
     onClickReport: (String) -> Unit,
@@ -180,23 +188,36 @@ fun ViewPostOwner(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween // để dồn 2 phần trái - phải
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     AsyncImage(
                         model = containerPost.imageUrl,
-                        contentDescription = "Avatar",
+                        contentDescription = null,
                         modifier = Modifier
                             .size(45.dp)
                             .clip(CircleShape)
                     )
-                    Text(
-                        text = containerPost.name,
-                        style = TextStyle(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
-                            color = Color.Black
-                        ),
-                        modifier = Modifier.padding(start = 10.dp)
-                    )
+
+                    Spacer(modifier = Modifier.width(5.dp))
+
+                    Column(modifier = Modifier.padding(start = 10.dp)) {
+                        Text(
+                            text = containerPost.name,
+                            style = TextStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp,
+                                color = Color.Black
+                            )
+                        )
+                        Text(
+                            text = createdAt.timeAgoInVietnam(),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
 
                 IconButton(

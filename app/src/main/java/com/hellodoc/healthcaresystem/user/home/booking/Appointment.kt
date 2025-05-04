@@ -94,19 +94,26 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostControlle
         return
     }
 
-    AppointmentScreenUI(appointmentsUser = appointmentsUser, appointmentsDoc = appointmentsDoc, userId, sharedPreferences = sharedPreferences, navHostController = navHostController )
+    AppointmentScreenUI(
+        appointmentsUser = appointmentsUser,
+        userId,
+        sharedPreferences = sharedPreferences,
+        navHostController = navHostController,
+        appointmentViewModel = appointmentViewModel
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentScreenUI(
     appointmentsUser: List<AppointmentResponse>,
-    appointmentsDoc: List<AppointmentResponse>,
     userID: String,
     sharedPreferences: SharedPreferences,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    appointmentViewModel: AppointmentViewModel
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    val appointmentsDoc by appointmentViewModel.appointmentsDoctor.collectAsState()
 
     val roles = listOf("Đã đặt", "Được đặt")
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
@@ -121,6 +128,14 @@ fun AppointmentScreenUI(
     val isPatient = userRole == "user" || userRole == "patient"
     val isDoctor = userRole == "doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
+    val appointmentUpdated by appointmentViewModel.appointmentUpdated.collectAsState()
+
+    LaunchedEffect(appointmentUpdated, appointmentsDoc) {
+        if (appointmentUpdated && appointmentsDoc.any { it.status == "done" }) {
+            selectedTab = 1 //chuyển tab khi dữ liệu done đã cập nhật
+            appointmentViewModel.resetAppointmentUpdated()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -216,7 +231,9 @@ fun AppointmentScreenUI(
                         selectedTab = selectedTab,
                         roleSelectedTab = roleSelectedTab,
                         sharedPreferences = sharedPreferences,
-                        navHostController = navHostController
+                        navHostController = navHostController,
+                        appointmentViewModel = appointmentViewModel,
+                        onDoneConfirmed = { selectedTab = 1 }
                     )
                 }
             }
@@ -232,16 +249,15 @@ fun AppointmentCard(
     selectedTab: Int,
     roleSelectedTab: Int,
     sharedPreferences: SharedPreferences,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    appointmentViewModel: AppointmentViewModel,
+    onDoneConfirmed: () -> Unit
     ) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1
     val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
     val displayName = if (isDoctor) appointment.patient.name else appointment.doctor.name
 
-    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
-    })
 
     val formattedDate = try {
         ZonedDateTime.parse(appointment.date)
@@ -325,15 +341,12 @@ fun AppointmentCard(
                 if (isDoctor) {
                     if (selectedTab == 0) {
                         OutlinedButton(onClick = {
-                            appointmentViewModel.deleteAppointment(appointment.id, userID)
+                            appointmentViewModel.cancelAppointment(appointment.id, userID)
                         }) {
                             Text("Hủy")
                         }
                         Button(onClick = {
-                            appointmentViewModel.updateAppointment(
-                                appointment.id,
-                                UpdateAppointmentRequest(time = appointment.time, date = appointment.date)
-                            )
+                            appointmentViewModel.confirmAppointmentDone(appointment.id, userID)
                         }) {
                             Text("Hoàn thành", color = Color.White)
                         }
