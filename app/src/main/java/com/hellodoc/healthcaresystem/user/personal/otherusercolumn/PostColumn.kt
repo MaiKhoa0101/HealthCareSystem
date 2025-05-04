@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -61,6 +62,7 @@ import kotlinx.coroutines.launch
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
+import com.google.accompanist.pager.*
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -109,7 +111,7 @@ fun PostColumn(
                         imageUrl = postItem.user.avatarURL ?: ""
                     ),
                     contentPost = ContentPost(postItem.content),
-                    footerItem = FooterItem(imageUrl = postItem.media.firstOrNull() ?: ""),
+                    footerItem = FooterItem(imageUrl = postItem.media.joinToString("|")),
                     createdAt = postItem.createdAt,
                     postViewModel = postViewModel,
                     currentUserId = userId,
@@ -166,6 +168,8 @@ fun ViewPostOwner(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState()
+    val mediaList = footerItem.imageUrl.split("|").filter { it.isNotBlank() }
 
     LaunchedEffect(shouldFetchComments) {
         if (shouldFetchComments) {
@@ -259,15 +263,41 @@ fun ViewPostOwner(
                     .clickable { expanded = !expanded }
                     .padding(top = 4.dp)
             )
-
-            AsyncImage(
-                model = footerItem.imageUrl,
-                contentDescription = "Post Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.LightGray)
-            )
+            //anh
+            if (mediaList.isNotEmpty()) {
+                HorizontalPager(
+                    count = mediaList.size,
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                ) { page ->
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = mediaList[page],
+                            contentDescription = "Post Image",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.LightGray)
+                        )
+                        // Ô số thứ tự ảnh
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "${page + 1}/${mediaList.size}",
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
 
             // ICON like & comment
             Row(
