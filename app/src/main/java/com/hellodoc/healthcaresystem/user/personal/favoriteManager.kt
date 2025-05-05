@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,10 +32,17 @@ fun PostListScreen2(sharedPreferences: SharedPreferences) {
         initializer { PostViewModel(sharedPreferences) }
     })
     val userFavorites by postViewModel.userFavorites.collectAsState()
-    val userID = "68038c468dbb8bbaeefd48dd"
 
-    LaunchedEffect(userID) {
-        postViewModel.getPostFavoriteByUserId(userID)
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+    }
+
+    LaunchedEffect(userId) {
+        postViewModel.getPostFavoriteByUserId(userId)
     }
 
     Scaffold(

@@ -2,8 +2,11 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.responsemodel.ApplyDoctor
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.ReturnPendingDoctorResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
@@ -45,5 +48,16 @@ interface DoctorService {
         @Part images: List<MultipartBody.Part>
     ): Response<Unit>
 
+    @GET("doctor/pending-doctors")
+    suspend fun getPendingDoctor(): Response<List<PendingDoctorResponse>>
+
+    @GET("doctor/pending-doctor/{id}")
+    suspend fun getPendingDoctorById(@Path("id") id: String): Response<PendingDoctorResponse>
+
+    @DELETE("doctor/pending-doctor/{id}")
+    suspend fun deletePendingDoctorById(@Path("id") id: String): Response<ReturnPendingDoctorResponse>
+
+    @PATCH("doctor/verify-doctor/{id}")
+    suspend fun verifyDoctor(@Path("id") id: String): Response<ReturnPendingDoctorResponse>
 
 }

@@ -2,10 +2,12 @@ package com.hellodoc.healthcaresystem.admin
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
@@ -24,6 +26,7 @@ import com.hellodoc.healthcaresystem.responsemodel.SidebarItem
 import kotlinx.coroutines.launch
 
 class AdminRoot : BaseActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,11 +56,11 @@ val sidebarItems = listOf(
         iconField = R.drawable.doctormanage,
         navigationField = "DoctorManager"
     ),
-    SidebarItem(
-        nameField = "Quản lý tin nhắn",
-        iconField = R.drawable.messagemanage,
-        navigationField = "MessageManager"
-    ),
+//    SidebarItem(
+//        nameField = "Quản lý tin nhắn",
+//        iconField = R.drawable.messagemanage,
+//        navigationField = "MessageManager"
+//    ),
     SidebarItem(
         nameField = "Quản lý khiếu nại",
         iconField = R.drawable.reportmanage,
@@ -86,6 +89,7 @@ val sidebarItems = listOf(
     )
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AdminScreen(sharedPreferences: SharedPreferences) {
     val navController = rememberNavController()
@@ -142,9 +146,9 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("ReportManager") {
                         ReportManagerScreen()
                     }
-                    composable("NewsManager"){
-                        NewsManagerScreen()
-                    }
+//                    composable("NewsManager"){
+//                        NewsManagerScreen()
+//                    }
                     composable("PostManager"){
                         PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
@@ -152,7 +156,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         AppointmentManagerScreen(sharedPreferences)
                     }
                     composable("ClarifyManager") {
-                        ClarifyManagerScreen()
+                        ClarifyManagerScreen(sharedPreferences)
                     }
                 }
             }
