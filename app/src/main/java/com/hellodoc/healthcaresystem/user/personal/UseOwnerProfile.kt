@@ -1,7 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,6 +93,7 @@ fun PreviewProfileUserPage() {
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
