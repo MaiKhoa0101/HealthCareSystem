@@ -62,7 +62,7 @@ import java.time.format.DateTimeFormatter
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
-    onNavigateToDoctorList: (String, String) -> Unit,
+    onNavigateToDoctorList: (String, String, String) -> Unit,
     navHostController: NavHostController
 ) {
 
@@ -397,7 +397,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String) -> Unit) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String, String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
@@ -418,7 +418,7 @@ fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onN
 fun SpecialtyItem(
     specialty: GetSpecialtyResponse,
     onClick: () -> Unit,
-    onNavigateToDoctorList: (String, String) -> Unit
+    onNavigateToDoctorList: (String, String, String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -433,7 +433,7 @@ fun SpecialtyItem(
             )
             .clickable {
                 onClick()
-                onNavigateToDoctorList(specialty.id, specialty.name)
+                onNavigateToDoctorList(specialty.id, specialty.name, specialty.description)
             }
             .padding(12.dp),
         contentAlignment = Alignment.Center

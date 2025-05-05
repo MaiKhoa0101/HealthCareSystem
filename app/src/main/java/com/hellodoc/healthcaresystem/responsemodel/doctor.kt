@@ -17,7 +17,7 @@ data class GetDoctorResponse (
     @SerializedName("avatarURL") val avatarURL: String?,
     @SerializedName("hospital") val hospital: String?,
     @SerializedName("certificates")
-    val certificates: List<String>?,
+    val certificates: String?,
     @SerializedName("services")
     val services: List<ServiceOutput>,
     @SerializedName("patientsCount")

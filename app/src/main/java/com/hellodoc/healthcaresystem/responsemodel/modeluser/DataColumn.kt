@@ -11,8 +11,9 @@ data class ContentTitle(
 
 data class Contents(
     val introduce: String,
-    val certificate1: String,
-    val certificate2: String,
+//    val certificate1: String,
+//    val certificate2: String,
+    val certificate: String,
     val workplace: String,
     val services: List<Pair<String, Any>>
 )
