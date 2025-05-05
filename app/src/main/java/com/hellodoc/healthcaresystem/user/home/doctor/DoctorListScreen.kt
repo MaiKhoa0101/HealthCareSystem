@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,55 +62,77 @@ fun DoctorListScreen(
         viewModel.fetchSpecialtyDoctor(specialtyId)
     }
 
-    val doctors by viewModel.doctors.collectAsState()
+    val doctors by viewModel.filteredDoctors.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
-                .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
-                .padding(16.dp)
-        ) {
-            Text(
-                text = specialtyName,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF00796B)
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = specialtyDesc,
-                fontSize = 14.sp,
-                color = Color.DarkGray,
-                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            if (specialtyDesc.length > 100) { // Ngưỡng để hiển thị nút Xem thêm
-                Text(
-                    text = if (isExpanded) "Thu gọn" else "Xem thêm",
-                    fontSize = 14.sp,
-                    color = Color(0xFF0288D1),
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clickable { isExpanded = !isExpanded }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
+    var locationQuery by remember { mutableStateOf("") }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = specialtyName,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00796B)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = specialtyDesc,
+                        fontSize = 14.sp,
+                        color = Color.DarkGray,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    if (specialtyDesc.length > 100) {
+                        Text(
+                            text = if (isExpanded) "Thu gọn" else "Xem thêm",
+                            fontSize = 14.sp,
+                            color = Color(0xFF0288D1),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable { isExpanded = !isExpanded }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = locationQuery,
+                        onValueChange = { locationQuery = it },
+                        label = { Text("Lọc theo vị trí") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        if (locationQuery.isNotBlank()) {
+                            viewModel.filterDoctorsByLocation(locationQuery)
+                        } else {
+                            viewModel.clearFilter()
+                        }
+                    }) {
+                        Text("Lọc")
+                    }
+                }
+            }
+
             if (doctors.isEmpty()) {
                 item {
                     Box(
@@ -139,7 +162,7 @@ fun DoctorListScreen(
             }
         }
     }
-}
+
 
 
 

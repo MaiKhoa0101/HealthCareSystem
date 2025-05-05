@@ -57,19 +57,6 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
-//@Composable
-//fun Index(modifier: Modifier =Modifier) {
-//    Box(modifier = Modifier.padding(top = 45.dp)) {
-//        Column(
-//            Modifier.fillMaxSize(),
-//            Arrangement.Center,
-//            Alignment.CenterHorizontally) {
-//            HealthMateHomeScreen()
-//        }
-//        SidebarMenu()
-//        Menu()
-//    }
-//}
 
 @Composable
 fun HealthMateHomeScreen(

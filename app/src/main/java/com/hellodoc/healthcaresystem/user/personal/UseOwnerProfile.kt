@@ -1,7 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,6 +93,7 @@ fun PreviewProfileUserPage() {
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
@@ -435,7 +438,17 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = { navHostController.navigate("doctorRegister") },
+            onClick = {
+                if (user == null) {
+                    return@Button
+                }
+                else if (user.role=="user"){
+                    navHostController.navigate("doctorRegister")
+                }
+                else{
+                    navHostController.navigate("editClinic")
+                }
+                 },
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier

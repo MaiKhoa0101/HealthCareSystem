@@ -37,6 +37,22 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
     private val _specialty = MutableStateFlow<GetSpecialtyResponse?>(null)
     val specialty: StateFlow<GetSpecialtyResponse?> get() = _specialty
 
+    // Danh sách bác sĩ sau khi lọc
+    private val _filteredDoctors = MutableStateFlow<List<Doctor>>(emptyList())
+    val filteredDoctors: StateFlow<List<Doctor>> get() = _filteredDoctors
+
+    // Lọc theo địa chỉ
+    fun filterDoctorsByLocation(location: String) {
+        _filteredDoctors.value = _doctors.value.filter {
+            it.address?.contains(location, ignoreCase = true) == true
+        }
+    }
+
+    // Xóa bộ lọc (hiển thị tất cả)
+    fun clearFilter() {
+        _filteredDoctors.value = _doctors.value
+    }
+
     fun fetchSpecialtyDoctor(specialtyID: String) {
         viewModelScope.launch {
             try {
@@ -46,6 +62,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
                     if (specialtyResponse != null) {
                         _specialty.value = specialtyResponse
                         _doctors.value = specialtyResponse.doctors
+                        _filteredDoctors.value = specialtyResponse.doctors
                         //println("OK: Successfully retrieved ${specialtyResponse.doctors.size} doctors")
                     } else {
                         _doctors.value = emptyList()

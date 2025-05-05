@@ -15,7 +15,7 @@ data class Contents(
 //    val certificate2: String,
     val certificate: String,
     val workplace: String,
-    val services: List<Pair<String, Int>>
+    val services: List<Pair<String, Any>>
 )
 
 data class Images(
