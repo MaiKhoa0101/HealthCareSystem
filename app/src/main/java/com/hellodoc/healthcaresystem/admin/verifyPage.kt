@@ -35,11 +35,18 @@ fun PendingDoctorDetailScreen(
         initializer { DoctorViewModel(sharedPreferences) }
     })
     val doctor by viewModel.pendingDoctor.collectAsState()
+    val verificationMessage by viewModel.verificationMessage.collectAsState()
 
     var expandedImageUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userId) {
         viewModel.fetchPendingDoctorById(userId)
+    }
+
+    LaunchedEffect(verificationMessage) {
+        if (verificationMessage == "success") {
+            navController.popBackStack() // quay về màn hình trước
+        }
     }
 
     Column(
@@ -105,7 +112,6 @@ fun PendingDoctorDetailScreen(
         Button(
             onClick = {
                 doctor?.userId?.let { viewModel.verifyDoctor(it) }
-                navController.navigate("ClarifyManager")
             },
             modifier = Modifier.fillMaxWidth()
         ) {

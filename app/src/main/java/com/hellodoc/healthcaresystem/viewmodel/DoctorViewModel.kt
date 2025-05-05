@@ -267,6 +267,9 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private val _verificationMessage  = MutableStateFlow<String?>(null)
+    val verificationMessage : StateFlow<String?> = _verificationMessage
+
     fun verifyDoctor(userId: String) {
         viewModelScope.launch {
             try {
@@ -274,6 +277,15 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 if(response.isSuccessful) {
                     fetchPendingDoctor()
                     Log.d("verify pending doctor", " thanh cong")
+                    val message = response.body()?.message
+                    if (message?.contains("thành công", ignoreCase = true) == true) {
+                        _verificationMessage.value = "success"
+                    } else {
+                        _verificationMessage.value = "fail"
+                    }
+                }
+                else {
+                    _verificationMessage.value = "fail"
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
