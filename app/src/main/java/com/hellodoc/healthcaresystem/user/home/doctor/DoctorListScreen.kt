@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.doctor
 
+import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,6 +71,9 @@ fun DoctorListScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
+        TopBar(onClick = {
+            navHostController.popBackStack()
+        })
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -145,6 +150,9 @@ fun DoctorListScreen(
 
 @Composable
 fun TopBar(onClick: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,20 +161,20 @@ fun TopBar(onClick: () -> Unit) {
             .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Back button
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
             tint = Color.White,
             modifier = Modifier
-                .size(24.dp)
+                .size(32.dp)
                 .padding(end = 8.dp)
                 .clickable {
-                    onClick()
+                    activity?.finish()
                 }
         )
     }
 }
+
 
 @Composable
 fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String, specialtyDesc: String) {
