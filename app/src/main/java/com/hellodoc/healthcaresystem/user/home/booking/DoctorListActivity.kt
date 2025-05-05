@@ -34,6 +34,7 @@ class DoctorListActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         val specialtyId = intent.getStringExtra("specialtyId") ?: "Chưa rõ chuyên khoa"
         val specialtyName = intent.getStringExtra("specialtyName") ?: "Chưa rõ chuyên khoa"
+        val specialtyDesc = intent.getStringExtra("specialtyDesc") ?: "Chưa có mô tả"
         val userID = intent.getStringExtra("userID") ?: "chua co id ng dung"
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -53,7 +54,8 @@ class DoctorListActivity : BaseActivity() {
                             sharedPreferences = sharedPreferences,
                             navHostController = navController,
                             specialtyId = specialtyId,
-                            specialtyName = specialtyName
+                            specialtyName = specialtyName,
+                            specialtyDesc = specialtyDesc
                         )
                     }
                 }
@@ -69,11 +71,12 @@ class DoctorListActivity : BaseActivity() {
         sharedPreferences: SharedPreferences,
         navHostController: NavHostController,
         specialtyId: String,
-        specialtyName: String
+        specialtyName: String,
+        specialtyDesc: String
     ) {
         NavHost(
             navController = navHostController,
-            startDestination = "doctorList/$specialtyId/$specialtyName"
+            startDestination = "doctorList/$specialtyId/$specialtyName/$specialtyDesc"
         ) {
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences, navHostController)
@@ -82,20 +85,23 @@ class DoctorListActivity : BaseActivity() {
                 ProfileUserPage(sharedPreferences,navHostController)
             }
             composable(
-                route = "doctorList/{specialtyId}/{specialtyName}",
+                route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
                 arguments = listOf(
                     navArgument("specialtyId") { type = NavType.StringType },
-                    navArgument("specialtyName") { type = NavType.StringType }
+                    navArgument("specialtyName") { type = NavType.StringType },
+                    navArgument("specialtyDesc") { type = NavType.StringType}
                 )
             ) { backStackEntry ->
                 val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
                 val specialtyName =
                     backStackEntry.arguments?.getString("specialtyName") ?: ""
+                val specialtyDesc = backStackEntry.arguments?.getString("specialtyDesc") ?: ""
 
                 DoctorListScreen(
                     context = context,
                     specialtyId = specialtyId,
                     specialtyName = specialtyName,
+                    specialtyDesc = specialtyDesc,
 //                    onBack = {
 //                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
 //                        startActivity(intent)

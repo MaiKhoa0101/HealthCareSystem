@@ -46,7 +46,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
                     if (specialtyResponse != null) {
                         _specialty.value = specialtyResponse
                         _doctors.value = specialtyResponse.doctors
-                        println("OK: Successfully retrieved ${specialtyResponse.doctors.size} doctors")
+                        //println("OK: Successfully retrieved ${specialtyResponse.doctors.size} doctors")
                     } else {
                         _doctors.value = emptyList()
                         println("API returned null response body")

@@ -17,7 +17,7 @@ interface DoctorService {
     suspend fun getDoctors(): Response<List<GetDoctorResponse>>
 
     @Headers("Content-Type: application/json")
-    @GET("doctor/{id}")
+    @GET("doctor/get-by-id/{id}")
     suspend fun getDoctorById(@Path("id") doctorId: String): Response<GetDoctorResponse>
 
     @Multipart
