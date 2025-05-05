@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -28,19 +29,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import kotlinx.coroutines.flow.StateFlow
 
-@Composable
-fun PreviewClarifyListScreen(sharedPreferences: SharedPreferences) {
-    ClarifyManagerScreen(sharedPreferences)
-}
+//@Composable
+//fun PreviewClarifyListScreen(sharedPreferences: SharedPreferences) {
+//    ClarifyManagerScreen(sharedPreferences)
+//}
 
 @Composable
-fun ClarifyManagerScreen(sharedPreferences: SharedPreferences) {
+fun ClarifyManagerScreen(sharedPreferences: SharedPreferences, navController: NavHostController) {
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
@@ -77,13 +81,13 @@ fun ClarifyManagerScreen(sharedPreferences: SharedPreferences) {
 //            )
 //            Spacer(modifier = Modifier.height(8.dp))
 
-            ClarifyTable(accountList, doctorViewModel)
+            ClarifyTable(accountList, doctorViewModel, navController = navController)
 
     }
 }
 
 @Composable
-fun ClarifyTable(clarifies: List<PendingDoctorResponse>, doctorViewModel: DoctorViewModel) {
+fun ClarifyTable(clarifies: List<PendingDoctorResponse>, doctorViewModel: DoctorViewModel, navController: NavHostController) {
     Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
         Column {
             Row(
@@ -99,7 +103,7 @@ fun ClarifyTable(clarifies: List<PendingDoctorResponse>, doctorViewModel: Doctor
             }
             LazyColumn {
                 itemsIndexed(clarifies) { index, clarify ->
-                    ClarifyRow(index + 1, clarify, doctorViewModel = doctorViewModel)
+                    ClarifyRow(index + 1, clarify, doctorViewModel = doctorViewModel, navController = navController)
                 }
             }
         }
@@ -107,7 +111,7 @@ fun ClarifyTable(clarifies: List<PendingDoctorResponse>, doctorViewModel: Doctor
 }
 
 @Composable
-fun ClarifyRow(id: Int, account: PendingDoctorResponse, doctorViewModel: DoctorViewModel) {
+fun ClarifyRow(id: Int, account: PendingDoctorResponse, doctorViewModel: DoctorViewModel, navController: NavHostController) {
     var expanded by remember { mutableStateOf(false)}
 
     Row(
@@ -148,7 +152,7 @@ fun ClarifyRow(id: Int, account: PendingDoctorResponse, doctorViewModel: DoctorV
                     },
                     onClick = {
                         expanded = false
-                        doctorViewModel.verifyDoctor(account.userId)
+                        navController.navigate("pendingDoctorDetail/${account.userId}")
                     }
                 )
                 DropdownMenuItem(

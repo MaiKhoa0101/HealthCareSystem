@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.admin.PendingDoctorDetailScreen
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -86,6 +87,7 @@ class HomeActivity : BaseActivity() {
         // Lấy route hiện tại để kiểm tra
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
+
 
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")

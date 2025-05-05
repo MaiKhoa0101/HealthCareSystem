@@ -156,7 +156,12 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         AppointmentManagerScreen(sharedPreferences)
                     }
                     composable("ClarifyManager") {
-                        ClarifyManagerScreen(sharedPreferences)
+                        ClarifyManagerScreen(sharedPreferences, navController)
+                    }
+                    composable("pendingDoctorDetail/{userId}") {backStackEntry ->
+                        val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                        PendingDoctorDetailScreen(userId = userId, sharedPreferences = sharedPreferences, navController)
+
                     }
                 }
             }
