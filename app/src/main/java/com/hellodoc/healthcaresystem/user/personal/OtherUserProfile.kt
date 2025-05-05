@@ -2,6 +2,8 @@
 package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -91,6 +93,7 @@ fun UserInfoSkeleton() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(navHostController: NavHostController) {
     val sharedPreferences = navHostController.context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -296,6 +299,7 @@ fun UserInfo(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherUserListScreen(
     doctor: GetDoctorResponse?,
@@ -461,6 +465,7 @@ fun WriteReviewButton(onClick: () -> Unit) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun OtherUserProfilePreview() {
