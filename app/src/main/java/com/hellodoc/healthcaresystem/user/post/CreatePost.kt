@@ -69,6 +69,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -78,7 +79,11 @@ var userModel: String = ""
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostScreen(context: Context, navController: NavHostController, modifier: Modifier = Modifier
+fun PostScreen(
+    context: Context,
+    navController: NavHostController,
+    postId: String? = null,
+    modifier: Modifier = Modifier
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
@@ -102,8 +107,6 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
         username = user?.name ?: ""
     }
 
-
-
 //    LaunchedEffect(userId) {
 //        userId.let {
 //            userViewModel.getUser(it)
@@ -119,6 +122,22 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
     ) { uris ->
         selectedImageUri += uris
     }
+    val posts by postViewModel.posts.collectAsState()
+    val mediaUrls = selectedImageUri.map { it.toString() }
+    // Nếu là chỉnh sửa thì gọi API để load dữ liệu bài viết
+    LaunchedEffect(postId, posts) {
+        if (postId != null) {
+            val post = posts.find { it.id == postId }
+            postText = post?.content ?: ""
+            selectedImageUri = post?.media?.map { Uri.parse(it) } ?: emptyList()
+        }
+    }
+
+    LaunchedEffect(postId) {
+        if (postId != null) {
+            postViewModel.getAllPosts()
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -131,7 +150,24 @@ fun PostScreen(context: Context, navController: NavHostController, modifier: Mod
                 postText = postText,
                 selectedImageUri = selectedImageUri,
                 onPost = {
-                    postViewModel.createPost(CreatePostRequest(userId, userModel, postText, selectedImageUri), context)
+                    if (postId != null) {
+                        postViewModel.updatePost(
+                            postId = postId,
+                            request = UpdatePostRequest(
+                                content = postText,
+                                images = selectedImageUri
+                            ),
+                            context = context
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set("shouldReload", true)
+                        navController.navigate("personal")
+                    } else {
+                        //Gọi API tạo mới
+                        postViewModel.createPost(
+                            request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
+                            context = context
+                        )
+                    }
                     navController.navigate("personal")
                 }
             )

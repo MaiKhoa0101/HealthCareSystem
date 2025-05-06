@@ -249,6 +249,13 @@ class HomeActivity : BaseActivity() {
             composable("userFavorite") {
                 PostListScreen2(sharedPreferences)
             }
+            composable(
+                route = "edit_post/{postId}",
+                arguments = listOf(navArgument("postId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                PostScreen(context, navHostController, postId = postId)
+            }
         }
     }
 

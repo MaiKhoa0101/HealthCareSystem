@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,6 +78,7 @@ import kotlinx.coroutines.launch
 var userId = ""
 var userModel = ""
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun PreviewProfileUserPage() {
@@ -109,20 +111,29 @@ fun ProfileUserPage(
     })
     val posts by postViewModel.posts.collectAsState()
 //    val comments by postViewModel.comments.collectAsState()
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val navEntry = navHostController.currentBackStackEntry
+    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
-
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId) {
-        userId?.let {
-            userViewModel.getUser(it)
-            postViewModel.getPostUserById(it)
+    LaunchedEffect(reloadTrigger?.value) {
+        if (reloadTrigger?.value == true) {
+            postViewModel.getAllPosts() // gọi lại danh sách mới
+            navHostController.currentBackStackEntry
+                ?.savedStateHandle?.set("shouldReload", false)
         }
-
     }
+    // Gọi API để fetch user từ server
+    LaunchedEffect(userId, shouldReloadPosts) {
+        if (userId.isNotEmpty()) {
+            userViewModel.getUser(userId)
+            postViewModel.getPostUserById(userId)
+        }
+    }
+
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
     // Nếu chưa có user (null) thì không hiển thị giao diện
@@ -134,7 +145,6 @@ fun ProfileUserPage(
     val context = LocalContext.current
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
-
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier.fillMaxSize()) {
@@ -153,6 +163,7 @@ fun ProfileUserPage(
                     posts = posts,
                     postViewModel = postViewModel,
                     userId = userId ?: "",
+                    navController = navHostController,
                     onClickReport = { postId ->
                         reportedPostId = postId
                         showReportDialog = true
