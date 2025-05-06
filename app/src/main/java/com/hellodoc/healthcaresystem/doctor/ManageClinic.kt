@@ -54,7 +54,7 @@ fun EditClinicServiceScreen(sharedPreferences: SharedPreferences, navHostControl
             HeadbarEditClinic(navHostController)
         }
     ) { innerPadding ->
-        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences)
+        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences,navHostController)
     }
 }
 
@@ -86,7 +86,7 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
 }
 
 @Composable
-fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences) {
+fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences, navHostController:NavHostController) {
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
@@ -240,7 +240,8 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                         address,
                         description,
                         doctorViewModel,
-                        doctorId!!
+                        doctorId!!,
+                        navHostController
                     )
                 }
 
@@ -257,7 +258,8 @@ fun SaveFloatingButton(
     address: String,
     description: String,
     doctorViewModel: DoctorViewModel,
-    doctorID: String
+    doctorID: String,
+    navHostController:NavHostController
 ) {
     val context = LocalContext.current
     Box(
@@ -290,6 +292,14 @@ fun SaveFloatingButton(
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+        }
+        val updateSuccess = doctorViewModel.updateSuccess
+
+        LaunchedEffect(updateSuccess) {
+            if (updateSuccess == true) {
+                navHostController.navigate("personal")
+                doctorViewModel.resetUpdateStatus()
+            }
         }
     }
 }

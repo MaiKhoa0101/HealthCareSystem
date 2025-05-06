@@ -119,7 +119,6 @@ fun ProfileScreen(navHostController: NavHostController) {
     LaunchedEffect(doctorId) {
         doctorId?.let { viewModel.fetchDoctorById(it) }
     }
-
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -150,7 +149,6 @@ fun ProfileScreen(navHostController: NavHostController) {
                     )
                 }
             }
-
             item {
                 OtherUserListScreen(
                     doctor = doctor,
@@ -307,6 +305,8 @@ fun OtherUserListScreen(
     onTabSelected: (Int) -> Unit,
     showWriteReviewScreen: MutableState<Boolean>
 ) {
+    println("Doctor lay duoc: "+doctor)
+
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
     val sharedPreferences = remember {
@@ -337,7 +337,9 @@ fun OtherUserListScreen(
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
     LaunchedEffect(doctor?.id) {
-        doctor?.id?.let { postViewModel.getPostUserById(it) }
+        doctor?.id?.let {
+            postViewModel.getPostUserById(it)
+        }
     }
     Column(
         modifier = Modifier
@@ -362,7 +364,7 @@ fun OtherUserListScreen(
                 )
             }
         }
-
+        println("Vao dươc toi trang user khác")
             when (selectedTab) {
                 0 -> ViewIntroduce(doctor = doctor)
                 1 -> {

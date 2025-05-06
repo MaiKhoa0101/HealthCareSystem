@@ -5,7 +5,9 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
@@ -163,6 +165,11 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    var updateSuccess by mutableStateOf<Boolean?>(null)
+        private set
+    fun resetUpdateStatus() {
+        updateSuccess = null
+    }
     fun updateClinic(clinicUpdateData: ModifyClinic, doctorId: String, context: Context) {
         viewModelScope.launch {
             try {
@@ -210,15 +217,18 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         Toast.makeText(context, "Cập nhật phòng khám thành công!", Toast.LENGTH_LONG).show()
+                        updateSuccess = true
                         Log.d("UpdateClinic", "Thành công: ${response.body()}")
                     } else {
                         val errorBody = response.errorBody()?.string()
+                        updateSuccess = false
                         Toast.makeText(context, "Lỗi cập nhật: $errorBody", Toast.LENGTH_LONG).show()
                         Log.e("UpdateClinic", "Lỗi: $errorBody")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    updateSuccess = false
                     Toast.makeText(context, "Thay đổi thất bại: ${e.message}", Toast.LENGTH_LONG).show()
                     Log.e("UpdateClinic", "Exception", e)
                 }

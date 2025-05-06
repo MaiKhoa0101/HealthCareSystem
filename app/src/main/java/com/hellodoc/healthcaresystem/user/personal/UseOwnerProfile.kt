@@ -138,14 +138,13 @@ fun ProfileUserPage(
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
     // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user == null) {
-        println("user == null")
-        return
-    }
+
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
+    println("user lấy ra đc: "+ user)
+    if (user==null) return
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier.fillMaxSize()) {
