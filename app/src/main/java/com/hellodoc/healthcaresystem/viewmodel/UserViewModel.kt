@@ -3,7 +3,11 @@ package com.hellodoc.healthcaresystem.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -14,8 +18,14 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.responsemodel.UserResponse
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.http.Part
+import java.io.File
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
 
@@ -116,21 +126,70 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         context.startActivity(intent)
     }
 
-    // Update user
-    fun updateUser(id: String, updatedUser: UpdateUser) {
+    private fun prepareFilePart(
+        context: Context,
+        fileUri: Uri,
+        partName: String
+    ): MultipartBody.Part? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(fileUri)
+            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+            tempFile.outputStream().use { outputStream ->
+                inputStream?.copyTo(outputStream)
+            }
+
+            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
+        } catch (e: Exception) {
+            Log.e("UserViewModel", "Error preparing file part", e)
+            null
+        }
+    }
+
+    var updateSuccess by mutableStateOf<Boolean?>(null)
+        private set
+    fun resetUpdateStatus() {
+        updateSuccess = null
+    }
+    fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context) {
         viewModelScope.launch {
             try {
-                Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}") // Log ID user
+                Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
+                println("===== Thông tin gửi lên =====")
+                println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
+                println("Name: ${updatedUser.name}")
+                println("Email: ${updatedUser.email}")
+                println("Phone: ${updatedUser.phone}")
+                println("Password: ${updatedUser.password}")
 
-                val response = RetrofitInstance.admin.updateUserByID(id, updatedUser)
+                val avatar = updatedUser.avatarURL?.let {
+                    prepareFilePart(context, it, "avatarURL")
+                }
+                val name = MultipartBody.Part.createFormData("name", updatedUser.name)
+                val email = MultipartBody.Part.createFormData("email", updatedUser.email)
+                val phone = MultipartBody.Part.createFormData("phone", updatedUser.phone)
+                val password = MultipartBody.Part.createFormData("password", updatedUser.password!!)
+
+                val response = RetrofitInstance.admin.updateUserByID(
+                    id,
+                    avatar,
+                    name,
+                    email,
+                    phone,
+                    password,
+                )
+
                 if (response.isSuccessful) {
-                    Log.d("UserViewModel", "Cập nhật thành công user ID: ${id}") // Log khi cập nhật thành công
-                    getAllUsers() // Cập nhật danh sách sau khi chỉnh sửa
+                    Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
+                    getAllUsers()
+                    updateSuccess = true
                 } else {
-                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}") // Log lỗi nếu có
+                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
+                    updateSuccess = false
                 }
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}") // Log lỗi
+                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
+                updateSuccess = false
             }
         }
     }

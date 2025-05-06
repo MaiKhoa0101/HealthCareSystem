@@ -65,7 +65,6 @@ import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     posts: List<PostResponse>,
@@ -124,7 +123,6 @@ fun PostColumn(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ViewPostOwner(
     postId: String,

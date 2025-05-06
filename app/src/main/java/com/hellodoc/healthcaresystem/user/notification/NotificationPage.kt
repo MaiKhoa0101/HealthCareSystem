@@ -208,7 +208,6 @@ fun NotificationSection(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun String.timeAgoInVietnam(): String {
     return try {
         val instant = Instant.parse(this)

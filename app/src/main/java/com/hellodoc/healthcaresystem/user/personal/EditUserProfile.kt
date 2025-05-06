@@ -1,6 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,6 +14,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
@@ -27,6 +31,7 @@ import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
@@ -66,6 +71,7 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
     if (user == null) return
 
     // 🔁 State lưu thông tin chỉnh sửa
+    var avatarURL by remember { mutableStateOf<Uri?>(null) }
     var nameText by remember { mutableStateOf(user!!.name) }
     var emailText by remember { mutableStateOf(user!!.email) }
     var phoneText by remember { mutableStateOf(user!!.phone) }
@@ -82,7 +88,10 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
                 .padding(paddingValues).padding(horizontal = 10.dp)
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
-            item { ChangeAvatar(user!!) }
+            item { ChangeAvatar(
+                user = user!!,
+                imageUri = avatarURL,
+                onImageSelected = { avatarURL = it }) }
             item {
                 ContentEditUser(
                     nameText, { nameText = it },
@@ -102,7 +111,7 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
                     addressText,
                     passwordText,
                     repasswordText,
-                    avatarURL = user!!.avatarURL,
+                    avatarURL = avatarURL,
                     role = user!!.role,
                     viewModel = userViewModel,
                     navHostController
@@ -143,7 +152,16 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
 }
 
 @Composable
-fun ChangeAvatar(user: User) {
+fun ChangeAvatar(
+    user: User,
+    imageUri: Uri?,
+    onImageSelected: (Uri) -> Unit)
+{
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { onImageSelected(it) }
+    }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -153,18 +171,30 @@ fun ChangeAvatar(user: User) {
     ) {
         Box(contentAlignment = Alignment.Center,
             modifier = Modifier.clickable {
-                // TODO: Open image picker or dialog to change avatar
+                launcher.launch("image/*")
             }
         ) {
-            AsyncImage(
-                model = user.avatarURL,
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
-            )
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                )
+            } else {
+                AsyncImage(
+                    model = user.avatarURL,
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                )
+            }
             Icon(
                 painter = painterResource(R.drawable.camera),
                 contentDescription = "Change Avatar",
@@ -212,11 +242,12 @@ fun AcceptEditButton(
     address: String,
     password: String,
     repassword: String,
-    avatarURL: String,
+    avatarURL: Uri?,
     role: String,
     viewModel: UserViewModel,
     navHostController: NavHostController
 ) {
+    val context = LocalContext.current
     Button(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
@@ -225,22 +256,29 @@ fun AcceptEditButton(
             }
             else {
 
-                val updateUser = UpdateUser(
+                val updateUser = UpdateUserInput(
                     name = name,
                     email = email,
                     phone = phone,
                     address = address,
                     avatarURL = avatarURL,
                     role = role,
-                    password = if (password.isBlank()) null else password
+                    password = password
                 )
 
-                viewModel.updateUser(userId, updateUser)
-                navHostController.navigate("personal")
+                viewModel.updateUser(userId, updateUser, context)
             }
         }
-    ) {
+    ){
         Text("Lưu thay đổi")
+    }
+    val updateSuccess = viewModel.updateSuccess
+
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess == true) {
+            navHostController.navigate("personal")
+            viewModel.resetUpdateStatus()
+        }
     }
 }
 
