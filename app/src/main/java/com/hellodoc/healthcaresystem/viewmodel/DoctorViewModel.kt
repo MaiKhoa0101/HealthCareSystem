@@ -41,7 +41,11 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
-    fun fetchDoctors() {
+    fun fetchDoctors(forceRefresh: Boolean = false) {
+
+        // Tránh gọi lại nếu đã có dữ liệu và không yêu cầu refresh
+        if (_doctors.value.isNotEmpty() && !forceRefresh) return
+
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.doctor.getDoctors()

@@ -86,7 +86,7 @@ fun PendingDoctorDetailScreen(
                 InfoRow("📧 Email", doctor?.email)
                 InfoRow("📞 Điện thoại", doctor?.phone)
                 InfoRow("🪪 CCCD", doctor?.CCCD)
-                InfoRow("🏥 Chuyên khoa", doctor?.specialty?.name)
+                InfoRow("🏥 Mã chuyên khoa", doctor?.specialty)
                 InfoRow("🧾 License", doctor?.license)
             }
         }

@@ -49,7 +49,7 @@ data class PendingDoctorResponse(
     val name: String,
     val phone: String,
     val email: String,
-    val specialty: Specialty,
+    val specialty: String,
     val faceUrl: String?,
     val avatarURL: String?,
     val licenseUrl: String?,
@@ -60,3 +60,5 @@ data class PendingDoctorResponse(
 data class ReturnPendingDoctorResponse(
     val message: String
 )
+
+

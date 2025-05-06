@@ -100,24 +100,28 @@ fun HealthMateHomeScreen(
     val answer by geminiViewModel.answer.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
-        launch {
-            medicalOptionViewModel.fetchMedicalOptions()
-        }
 
-        launch {
-            remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
-        }
-
-        launch {
-            faqItemViewModel.fetchFAQItems()
-        }
-
-//        userName = viewModel.getUserNameFromToken()
-//        role = viewModel.getUserRole()
+    LaunchedEffect(doctors) {
+        if (doctors.isEmpty()) doctorViewModel.fetchDoctors()
     }
+
+    LaunchedEffect(specialties) {
+        if (specialties.isEmpty()) specialtyViewModel.fetchSpecialties()
+    }
+
+    LaunchedEffect(medicalOptions) {
+        if (medicalOptions.isEmpty()) medicalOptionViewModel.fetchMedicalOptions()
+    }
+
+    LaunchedEffect(remoteMedicalOptions) {
+        if (remoteMedicalOptions.isEmpty()) remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
+    }
+
+    LaunchedEffect(faqItems) {
+        if (faqItems.isEmpty()) faqItemViewModel.fetchFAQItems()
+    }
+
+
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier

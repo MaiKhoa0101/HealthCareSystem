@@ -69,18 +69,6 @@ fun ClarifyManagerScreen(sharedPreferences: SharedPreferences, navController: Na
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-
-        // Số lượng tài khoản
-
-//            Text(
-//                text = "${accountList.size} tài khoản",
-//                color = Color.White,
-//                modifier = Modifier
-//                    .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
-//                    .padding(horizontal = 12.dp, vertical = 4.dp)
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-
             ClarifyTable(accountList, doctorViewModel, navController = navController)
 
     }

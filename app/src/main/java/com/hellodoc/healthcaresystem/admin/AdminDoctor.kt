@@ -70,7 +70,6 @@ fun DoctorListScreen(
     }
 }
 
-
 @Composable
 fun EmptyUserList() {
     Box(

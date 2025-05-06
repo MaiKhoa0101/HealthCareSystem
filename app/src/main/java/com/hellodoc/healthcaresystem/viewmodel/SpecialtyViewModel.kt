@@ -14,7 +14,10 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
     private val _specialties = MutableStateFlow<List<GetSpecialtyResponse>>(emptyList())
     val specialties: StateFlow<List<GetSpecialtyResponse>> get() = _specialties
 
-    fun fetchSpecialties() {
+    fun fetchSpecialties(forceRefresh: Boolean = false) {
+        // Tránh gọi lại nếu đã có dữ liệu và không yêu cầu refresh
+        if(_specialties.value.isNotEmpty() &&forceRefresh) return
+
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.specialtyService.getSpecialties()
