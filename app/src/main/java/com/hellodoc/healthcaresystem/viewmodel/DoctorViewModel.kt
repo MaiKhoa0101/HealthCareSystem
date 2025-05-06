@@ -10,12 +10,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.requestmodel.DoctorUiState
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
 import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 import kotlinx.coroutines.Dispatchers
@@ -237,6 +239,80 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             }
         }
     }
+
+    private val _pendingDoctors = MutableStateFlow<List<PendingDoctorResponse>>(emptyList())
+    val pendingDoctors: StateFlow<List<PendingDoctorResponse>> get() = _pendingDoctors
+
+    fun fetchPendingDoctor() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.getPendingDoctor()
+                if (response.isSuccessful) {
+                    _pendingDoctors.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("lấy pending doctor", "Thất bại ", e)
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private val _pendingDoctor = MutableStateFlow<PendingDoctorResponse?>(null)
+    val pendingDoctor: StateFlow<PendingDoctorResponse?> get() = _pendingDoctor
+
+    fun fetchPendingDoctorById(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.getPendingDoctorById(userId)
+                if (response.isSuccessful) {
+                    _pendingDoctor.value = response.body()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deletePendingDoctor(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.deletePendingDoctorById(userId)
+                if(response.isSuccessful) {
+                    fetchPendingDoctor()
+                    Log.d("Xoa pending doctor", " thanh cong")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private val _verificationMessage  = MutableStateFlow<String?>(null)
+    val verificationMessage : StateFlow<String?> = _verificationMessage
+
+    fun verifyDoctor(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.verifyDoctor(userId)
+                if(response.isSuccessful) {
+                    fetchPendingDoctor()
+                    Log.d("verify pending doctor", " thanh cong")
+                    val message = response.body()?.message
+                    if (message?.contains("thành công", ignoreCase = true) == true) {
+                        _verificationMessage.value = "success"
+                    } else {
+                        _verificationMessage.value = "fail"
+                    }
+                }
+                else {
+                    _verificationMessage.value = "fail"
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
 
 

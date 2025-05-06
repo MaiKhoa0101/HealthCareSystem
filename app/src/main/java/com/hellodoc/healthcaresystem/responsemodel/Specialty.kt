@@ -7,7 +7,8 @@ data class GetSpecialtyResponse(
     @SerializedName("_id") val id: String,
     @SerializedName("name") val name: String,
     @SerializedName("icon") val icon:String,
-    @SerializedName("doctors") val doctors: List<Doctor> = emptyList()
+    @SerializedName("doctors") val doctors: List<Doctor> = emptyList(),
+    @SerializedName("description") val description: String
 )
 
 data class Doctor(

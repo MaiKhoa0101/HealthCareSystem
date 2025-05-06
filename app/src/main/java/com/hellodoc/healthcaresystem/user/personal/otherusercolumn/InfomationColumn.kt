@@ -46,8 +46,9 @@ fun ViewIntroduce(
         ),
         contents = Contents(
             introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
-            certificate1 = doctor?.certificates?.getOrNull(0) ?: "Chưa cập nhật bằng cấp 1",
-            certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
+            //certificate1 = doctor?.certificates?.getOrNull(0) ?: "Chưa cập nhật bằng cấp 1",
+            //certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
+            certificate = doctor?.certificates ?: "Chưa cập nhật bằng cấp",
             workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
             services = doctor?.services?.map {
                 (it.specialtyName ?: "Dịch vụ chưa đặt tên") to (it.minPrice ?: 0)
@@ -146,7 +147,8 @@ fun Introduce(
                         },
                 )
                 Text(
-                    text = contents.certificate1,
+                    //text = contents.certificate1,
+                    text = contents.certificate,
                     style = TextStyle(
                         fontWeight = FontWeight.Medium,
                         fontSize = 15.sp,
@@ -159,7 +161,8 @@ fun Introduce(
                     }
                 )
                 Text(
-                    text = contents.certificate2,
+                    //text = contents.certificate2,
+                    text = contents.certificate,
                     style = TextStyle(
                         fontWeight = FontWeight.Medium,
                         fontSize = 15.sp,
@@ -275,8 +278,9 @@ fun IntroducePreview() {
         ),
         contents = Contents(
             introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của bạn.",
-            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
-            certificate2 = "Chứng nhận Sản khoa",
+//            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
+//            certificate2 = "Chứng nhận Sản khoa",
+            certificate = "Bằng Y khoa, Đại học Y Sài Gòn",
             workplace = "Bệnh viện Đại học Y dược TP. HCM",
             services = listOf(
                 "Tư vấn sức khỏe sinh sản" to 1500000,

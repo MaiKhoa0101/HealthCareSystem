@@ -53,8 +53,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
+import com.hellodoc.healthcaresystem.user.personal.userId
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun RegisterClinic(
@@ -65,6 +67,7 @@ fun RegisterClinic(
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
+
     Scaffold(
         topBar = { HeadbarResClinic(navHostController) }
     ) { paddingValues ->
@@ -118,6 +121,7 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
     })
     val specialties by specialtyViewModel.specialties.collectAsState()
 
+    val isLoading = viewModel.loading.value
 
     var CCCDText by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
@@ -137,8 +141,13 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                 frontCccdUri != null && backCccdUri != null && faceUri != null && licenseUri != null
     }
 
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
+        userId = userViewModel.getUserAttributeString("userId")
     }
 
     Column(
@@ -277,23 +286,31 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                     "\n" +
                     "Việc bạn thực hiện đăng kí phòng khám trên ứng dụng đồng nghĩa với việc bạn phải tuân thủ theo chính sách về bác sĩ sử dụng dịch vụ trên hệ thống, chi tiết xem tại đây.\n"
         )
-        Button(
-            onClick = {
-                val request = ApplyDoctorRequest(
-                    license = licenseNumber,
-                    CCCD = CCCDText,
-                    specialty = specialtyId,
-                    licenseUrl = licenseUri,
-                    faceUrl = faceUri,
-                    avatarURL = avatarUri,
-                    frontCccdUrl = frontCccdUri,
-                    backCccdUrl = backCccdUri
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = isFormValid
-        ) {
-            Text("Yêu cầu xét duyệt hồ sơ")
+        if (isLoading) {
+            androidx.compose.material3.CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        } else {
+            Button(
+                onClick = {
+                    val request = ApplyDoctorRequest(
+                        license = licenseNumber,
+                        CCCD = CCCDText,
+                        specialty = specialtyId,
+                        licenseUrl = licenseUri,
+                        faceUrl = faceUri,
+                        avatarURL = avatarUri,
+                        frontCccdUrl = frontCccdUri,
+                        backCccdUrl = backCccdUri
+                    )
+
+                    viewModel.applyForDoctor(userId, request, context)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = isFormValid
+            ) {
+                Text("Yêu cầu xét duyệt hồ sơ")
+            }
         }
     }
 }

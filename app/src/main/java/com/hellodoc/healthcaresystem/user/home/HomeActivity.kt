@@ -15,16 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-
-
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-
-
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,12 +29,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.messaging.FirebaseMessaging
-
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.admin.PendingDoctorDetailScreen
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
-
-
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.bmiChecking.BMICheckerScreen
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
@@ -47,8 +41,6 @@ import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.home.booking.BookingCalendarScreen
 import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
-
-
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
@@ -96,6 +88,7 @@ class HomeActivity : BaseActivity() {
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
+
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
@@ -136,11 +129,13 @@ class HomeActivity : BaseActivity() {
                 HealthMateHomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences,
-                    onNavigateToDoctorList = { specialtyId, specialtyName ->
+                    onNavigateToDoctorList = { specialtyId, specialtyName, specialtyDesc ->
                         val intent = Intent(this@HomeActivity, DoctorListActivity::class.java).apply {
                             putExtra("specialtyId", specialtyId)
 
                             putExtra("specialtyName", specialtyName)
+
+                            putExtra("specialtyDesc", specialtyDesc)
                         }
                         startActivity(intent)
                     },
@@ -192,20 +187,22 @@ class HomeActivity : BaseActivity() {
                 ProfileUserPage(sharedPreferences,navHostController)
             }
             composable(
-                route = "doctorList/{specialtyId}/{specialtyName}",
+                route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
                 arguments = listOf(
                     navArgument("specialtyId") { type = NavType.StringType },
-                    navArgument("specialtyName") { type = NavType.StringType }
+                    navArgument("specialtyName") { type = NavType.StringType },
+                    navArgument("specialtyDesc") { type = NavType.StringType}
                 )
             ) { backStackEntry ->
                 val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
                 val specialtyName =
                     backStackEntry.arguments?.getString("specialtyName") ?: ""
-
+                val specialtyDesc = backStackEntry.arguments?.getString("specialtyDesc") ?: ""
                 DoctorListScreen(
                     context = context,
                     specialtyId = specialtyId,
                     specialtyName = specialtyName,
+                    specialtyDesc = specialtyDesc,
 //                    onBack = {
 //                        val intent = Intent(this, HomeActivity::class.java)
 //                        startActivity(intent)

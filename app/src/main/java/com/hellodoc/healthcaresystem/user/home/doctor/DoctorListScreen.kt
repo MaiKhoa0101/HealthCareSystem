@@ -17,11 +17,15 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,14 +44,13 @@ import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
-import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun DoctorListScreen(
     context: Context,
     specialtyId: String,
     specialtyName: String,
-    //onBack: () -> Unit,
+    specialtyDesc: String,
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -58,20 +62,83 @@ fun DoctorListScreen(
         viewModel.fetchSpecialtyDoctor(specialtyId)
     }
 
-    val doctors by viewModel.doctors.collectAsState()
-
-    Column(modifier = Modifier
-        .fillMaxSize()
-    ) {
-        //TopBar(onClick = onBack)
-
-        Spacer(modifier = Modifier.height(16.dp))
+    val doctors by viewModel.filteredDoctors.collectAsState()
+    var isExpanded by remember { mutableStateOf(false) }
+    var locationQuery by remember { mutableStateOf("") }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = specialtyName,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00796B)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = specialtyDesc,
+                        fontSize = 14.sp,
+                        color = Color.DarkGray,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    if (specialtyDesc.length > 100) {
+                        Text(
+                            text = if (isExpanded) "Thu gọn" else "Xem thêm",
+                            fontSize = 14.sp,
+                            color = Color(0xFF0288D1),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable { isExpanded = !isExpanded }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = locationQuery,
+                        onValueChange = { locationQuery = it },
+                        label = { Text("Lọc theo vị trí") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        if (locationQuery.isNotBlank()) {
+                            viewModel.filterDoctorsByLocation(locationQuery)
+                        } else {
+                            viewModel.clearFilter()
+                        }
+                    }) {
+                        Text("Lọc")
+                    }
+                }
+            }
+
             if (doctors.isEmpty()) {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -83,13 +150,21 @@ fun DoctorListScreen(
                 }
             } else {
                 items(doctors) { doctor ->
-                    DoctorItem(navHostController = navHostController, doctor = doctor, specialtyName = specialtyName, specialtyId = specialtyId)
+                    DoctorItem(
+                        navHostController = navHostController,
+                        doctor = doctor,
+                        specialtyName = specialtyName,
+                        specialtyId = specialtyId,
+                        specialtyDesc = specialtyDesc
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
-}
+
+
+
 
 @Composable
 fun TopBar(onClick: () -> Unit) {
@@ -117,7 +192,7 @@ fun TopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String) {
+fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String, specialtyDesc: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -157,7 +232,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text("Thạc sĩ, Bác sĩ", fontSize = 16.sp, color = Color.Gray)
+                Text("Bác sĩ", fontSize = 16.sp, color = Color.Gray)
                 Text(doctor.name, fontSize = 26.sp, fontWeight = FontWeight.Medium)
                 Text(specialtyName, fontSize = 16.sp, color = Color(0xFF0097A7))
             }

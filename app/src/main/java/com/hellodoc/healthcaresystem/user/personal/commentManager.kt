@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,11 +33,18 @@ fun PostListScreen(sharedPreferences: SharedPreferences) {
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
-    val userComments by postViewModel.userComments.collectAsState()
-    val userID = "67e64c230633b0e42ca9ce01"
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
 
-    LaunchedEffect(userID) {
-        postViewModel.getPostCommentByUserId(userID)
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+    }
+
+    val userComments by postViewModel.userComments.collectAsState()
+
+    LaunchedEffect(userId) {
+        postViewModel.getPostCommentByUserId(userId)
     }
 
     Scaffold(
