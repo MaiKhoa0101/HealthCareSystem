@@ -128,9 +128,9 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
 
     var selectedSpecialization by remember { mutableStateOf("") }
-    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    var priceFrom by remember { mutableStateOf("") }
-    var priceTo by remember { mutableStateOf("") }
+    var imageService by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var minprice by remember { mutableStateOf("") }
+    var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
 
@@ -153,19 +153,22 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(16.dp))
-                SpecializationSection(selectedSpecialization)
+                SpecializationSection(
+                    selectedSpecialization = selectedSpecialization,
+                    onSpecializationSelected = { selectedSpecialization = it }
+                )
                 Spacer(Modifier.height(16.dp))
-                ServiceImagePicker(imageUris) { pickedUri ->
-                    imageUris = pickedUri
+                ServiceImagePicker(imageService) { pickedUri ->
+                    imageService = pickedUri
                 }
 
                 Spacer(Modifier.height(16.dp))
 
                 PriceRangeInput(
-                    priceFrom = priceFrom,
-                    priceTo = priceTo,
-                    onFromChanged = { priceFrom = it },
-                    onToChanged = { priceTo = it }
+                    priceFrom = minprice,
+                    priceTo = maxprice,
+                    onFromChanged = { minprice = it },
+                    onToChanged = { maxprice = it }
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -175,12 +178,18 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 Spacer(Modifier.height(8.dp))
 
                 AddServiceButton {
-                    if (selectedSpecialization.isNotBlank() && priceFrom.isNotBlank() && priceTo.isNotBlank()) {
+                    println("selectedSpecialization.isNotBlank():"
+                            +selectedSpecialization.isNotBlank()
+                            +"priceFrom.isNotBlank():"
+                            +minprice.isNotBlank()
+                            +"priceTo.isNotBlank():"
+                            +maxprice.isNotBlank())
+                    if (selectedSpecialization.isNotBlank() && minprice.isNotBlank() && maxprice.isNotBlank()) {
                         val newService = ServiceInput(
-                            specializationName = selectedSpecialization,
-                            imageUris = imageUris,
-                            priceFrom = priceFrom,
-                            priceTo = priceTo,
+                            specialtyName = selectedSpecialization,
+                            imageService = imageService,
+                            minprice = minprice,
+                            maxprice = maxprice,
                             description = description
                         )
 
@@ -190,9 +199,9 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
 
                         // Reset fields
                         selectedSpecialization = ""
-                        imageUris = emptyList()
-                        priceFrom = ""
-                        priceTo = ""
+                        imageService = emptyList()
+                        minprice = ""
+                        maxprice = ""
                         description = ""
                     }
                 }
@@ -225,7 +234,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 )
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
-                        imageUris,
+                        imageService,
                         schedule,
                         services,
                         address,
@@ -287,16 +296,19 @@ fun SaveFloatingButton(
 
 
 @Composable
-fun SpecializationSection(selectedSpecialization:String) {
+fun SpecializationSection(
+    selectedSpecialization: String,
+    onSpecializationSelected: (String) -> Unit
+) {
     val allSpecialties = listOf("Nội soi", "Nội tiết", "Nha khoa", "Da liễu", "Tim mạch")
-    var selectedSpecialty by remember { mutableStateOf("") }
 
     AutoCompleteSpecialization(
         allSpecializations = allSpecialties,
-        selected = selectedSpecialty,
-        onSpecializationSelected = { selectedSpecialty = it }
+        selected = selectedSpecialization,
+        onSpecializationSelected = onSpecializationSelected
     )
 }
+
 
 @Composable
 fun ServiceImagePicker(imageUris: List<Uri>, onImagesPicked: (List<Uri>) -> Unit) {
@@ -563,20 +575,18 @@ fun TimePickerSection(
     }
 }
 
-
 @Composable
 fun AutoCompleteSpecialization(
-    allSpecializations: List<String>, // giả lập từ DB
+    allSpecializations: List<String>,
     selected: String,
     onSpecializationSelected: (String) -> Unit
 ) {
-    var query by remember { mutableStateOf(selected) }
     var expanded by remember { mutableStateOf(false) }
 
-    val filtered = remember(query) {
-        if (query.isBlank()) emptyList()
+    val filtered = remember(selected) {
+        if (selected.isBlank()) emptyList()
         else allSpecializations.filter {
-            it.contains(query, ignoreCase = true)
+            it.contains(selected, ignoreCase = true)
         }
     }
 
@@ -584,9 +594,9 @@ fun AutoCompleteSpecialization(
         Text("Chuyên khoa của bạn", fontWeight = FontWeight.Bold)
 
         OutlinedTextField(
-            value = query,
+            value = selected,
             onValueChange = {
-                query = it
+                onSpecializationSelected(it)
                 expanded = true
             },
             modifier = Modifier.fillMaxWidth(),
@@ -597,19 +607,21 @@ fun AutoCompleteSpecialization(
         DropdownMenu(
             expanded = expanded && filtered.isNotEmpty(),
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth().background(Color.White)
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
         ) {
             filtered.forEach { item ->
                 DropdownMenuItem(
                     text = { Text(item) },
                     onClick = {
-                        query = item
-                        expanded = false
                         onSpecializationSelected(item)
+                        expanded = false
                     }
                 )
             }
         }
     }
 }
+
 
