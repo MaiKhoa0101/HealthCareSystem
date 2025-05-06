@@ -24,3 +24,9 @@ data class UpdateFavoritePostRequest(
 data class GetFavoritePostRequest(
     val userId: String
 )
+
+data class UpdatePostRequest(
+    val content: String,
+    val media: List<String>? = null,
+    val images: List<Uri> = emptyList()
+)

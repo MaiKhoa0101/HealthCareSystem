@@ -181,6 +181,7 @@ fun HealthMateHomeScreen(
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
+                    println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctors)
                 }
             }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
@@ -288,6 +290,30 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Delete Post Error", e)
+            }
+        }
+    }
+
+    fun updatePost(postId: String, request: UpdatePostRequest, context: Context) {
+        viewModelScope.launch {
+            try {
+                val contentPart = MultipartBody.Part.createFormData("content", request.content)
+
+                val imageParts = request.images.mapNotNull { uri ->
+                    prepareFilePart(context, uri, "images")
+                }
+
+                val response = RetrofitInstance.postService.updatePost(
+                    postId = postId,
+                    content = contentPart,
+                    images = imageParts
+                )
+
+                if (response.isSuccessful) {
+                    getAllPosts() // cập nhật lại toàn bộ post sau khi sửa
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "Update Post Exception", e)
             }
         }
     }

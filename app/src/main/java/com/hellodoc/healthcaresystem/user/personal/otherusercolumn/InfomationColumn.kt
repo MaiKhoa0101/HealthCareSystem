@@ -28,6 +28,15 @@ import com.hellodoc.healthcaresystem.responsemodel.modeluser.Contents
 import com.hellodoc.healthcaresystem.responsemodel.modeluser.Images
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import coil.compose.rememberAsyncImagePainter
+import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
 
 fun formatPrice(price: Int): String {
     val formatter: NumberFormat = DecimalFormat("#,###")
@@ -46,15 +55,9 @@ fun ViewIntroduce(
         ),
         contents = Contents(
             introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
-            //certificate1 = doctor?.certificates?.getOrNull(0) ?: "Chưa cập nhật bằng cấp 1",
-            //certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
             certificate = doctor?.certificates ?: "Chưa cập nhật bằng cấp",
             workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
-            services = doctor?.services?.map {
-                (it.specialtyName ?: "Dịch vụ chưa đặt tên") to (it.minPrice ?: 0)
-            } ?: listOf(
-                "Dịch vụ khám cơ bản" to "500000"
-            )
+            services = doctor?.services ?: emptyList()
         ),
         images = Images(
             image1 = R.drawable.image_certif,
@@ -62,6 +65,7 @@ fun ViewIntroduce(
             image3 = R.drawable.clarifymanage
         )
     )
+
 }
 @Composable
 fun Introduce(
@@ -211,88 +215,82 @@ fun Introduce(
                         start.linkTo(tvIntroduce.start)
                     }
                 )
-                val serviceRefs = contents.services.mapIndexed { index, _ ->
-                    val imageRef = createRef()
-                    val serviceRef = createRef()
-                    val priceRef = createRef()
-                    Triple(imageRef, serviceRef, priceRef)
-                }
+                val serviceConstraints = contents.services.map { createRef() }
+                val (iconRef, textRef) = createRefs()
 
-                contents.services.forEachIndexed { index, (serviceName, minPrice) ->
-                    val (imageRef, serviceRef, priceRef) = serviceRefs[index]
-                    val topAnchor =
-                        if (index == 0) tvService else serviceRefs[index - 1].first
-
-                    Image(
-                        painter = painterResource(id = images.image3),
-                        contentDescription = null,
+                contents.services.forEachIndexed { index, service ->
+                    val currentRef = serviceConstraints[index]
+                    val topAnchor = if (index == 0) tvService else serviceConstraints[index - 1]
+                    Column(
                         modifier = Modifier
-                            .size(27.dp)
-                            .constrainAs(imageRef) {
-                                start.linkTo(tvIntroduce.start)
-                                top.linkTo(topAnchor.bottom, margin = 10.dp)
+                            .constrainAs(currentRef) {
+                                top.linkTo(topAnchor.bottom, margin = 16.dp)
+                                start.linkTo(tvIntroduce.start, margin = 10.dp)
+                                end.linkTo(parent.end)
                             }
-                    )
+                    ) {
+                        ConstraintLayout(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.clarifymanage),
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .constrainAs(iconRef) {
+                                        start.linkTo(parent.start)
+                                        top.linkTo(parent.top)
+                                        bottom.linkTo(parent.bottom)
+                                    }
+                            )
 
-                    Text(
-                        text = serviceName,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp,
-                            color = Color(0xFF242760)
-                        ),
-                        modifier = Modifier.constrainAs(serviceRef) {
-                            top.linkTo(imageRef.top)
-                            bottom.linkTo(imageRef.bottom)
-                            start.linkTo(imageRef.end, margin = 5.dp)
+                            Text(
+                                text = service.specialtyName,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF242760)
+                                ),
+                                modifier = Modifier
+                                    .constrainAs(textRef) {
+                                        start.linkTo(iconRef.end, margin = 8.dp)
+                                        top.linkTo(iconRef.top)
+                                        bottom.linkTo(iconRef.bottom)
+                                    }
+                            )
                         }
-                    )
+                        println("Vo duoc 264")
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 5.dp)
+                        ) {
+                            items(service.imageService) { imageUrl ->
+                                println("Hinh anh fetch ra dc: "+imageUrl)
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl),
+                                    contentDescription = "Hinh anh dich vu",
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(120.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
+                            }
 
-                    Text(
-                        text = formatPrice(100000),
-                        style = TextStyle(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp,
-                            color = Color(0xFF242760)
-                        ),
-                        modifier = Modifier.constrainAs(priceRef) {
-                            top.linkTo(imageRef.top)
-                            bottom.linkTo(imageRef.bottom)
-                            end.linkTo(parent.end)
                         }
-                    )
+
+//                        Text(
+//                            text = "Giá: ${formatPrice(service.minPrice.toInt())} - ${formatPrice(service.maxPrice.toInt())}",
+//                            style = TextStyle(fontSize = 14.sp, color = Color.DarkGray)
+//                        )
+                    }
                 }
             }
         }
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun IntroducePreview() {
-    Introduce(
-        contentTitle = ContentTitle(
-            introduce = "Giới thiệu",
-            certificate = "Bằng cấp & chứng chỉ",
-            workplace = "Nơi làm việc",
-            service = "Dịch vụ & Giá cả",
-        ),
-        contents = Contents(
-            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của bạn.",
-//            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
-//            certificate2 = "Chứng nhận Sản khoa",
-            certificate = "Bằng Y khoa, Đại học Y Sài Gòn",
-            workplace = "Bệnh viện Đại học Y dược TP. HCM",
-            services = listOf(
-                "Tư vấn sức khỏe sinh sản" to 1500000,
-                "Điều trị rối loạn sinh lý" to 1800000,
-                "Thăm khám định kỳ" to 1000000
-            )
-        ),
-        images = Images(
-            image1 = R.drawable.image_certif,
-            image2 = R.drawable.image_certif_2,
-            image3 = R.drawable.clarifymanage
-        )
-    )
-}
+
+
 
