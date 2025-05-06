@@ -503,7 +503,7 @@ fun ViewPostOwner(
                         .padding(8.dp)
                 ) {
                     Text("Tố cáo bài viết", fontWeight = FontWeight.Bold)
-                    Text("Bài viết có nội dung vi phạm", fontSize = 13.sp)
+                    Text("Bài viết có nội dung vi phạm", fontSize = 13.sp, color = Color.Gray)
                 }
 
                 // Chỉ hiển thị nút XÓA nếu là chính người đăng
@@ -519,6 +519,18 @@ fun ViewPostOwner(
                     ) {
                         Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
                         Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                    }
+                    Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
+                    Column(
+                        modifier = Modifier
+                            .clickable {
+                                showPostReportBox = false
+//                                postViewModel.deletePost(postId)
+                            }
+                            .padding(8.dp)
+                    ) {
+                        Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
+                        Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
                     }
                 }
             }
