@@ -50,7 +50,7 @@ data class PendingDoctorResponse(
     val name: String,
     val phone: String,
     val email: String,
-    val specialty: String,
+    val specialty: Specialty,
     val faceUrl: String?,
     val avatarURL: String?,
     val licenseUrl: String?,

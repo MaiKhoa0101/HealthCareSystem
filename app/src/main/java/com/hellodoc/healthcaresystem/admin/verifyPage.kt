@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,14 +30,16 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 
 @Composable
 fun PendingDoctorDetailScreen(
-    userId: String, sharedPreferences: SharedPreferences, navController: NavHostController
+    userId: String,
+    sharedPreferences: SharedPreferences,
+    navController: NavHostController
 ) {
     val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
+
     val doctor by viewModel.pendingDoctor.collectAsState()
     val verificationMessage by viewModel.verificationMessage.collectAsState()
-
     var expandedImageUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userId) {
@@ -45,81 +48,95 @@ fun PendingDoctorDetailScreen(
 
     LaunchedEffect(verificationMessage) {
         if (verificationMessage == "success") {
-            navController.popBackStack() // quay về màn hình trước
+            navController.popBackStack()
         }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Ảnh đại diện
-        AsyncImage(
-            model = doctor?.avatarURL,
-            contentDescription = "Ảnh đại diện",
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .align(Alignment.CenterHorizontally)
-        )
+        // Avatar + Name
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            AsyncImage(
+                model = doctor?.avatarURL,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(CircleShape)
+                    .shadow(4.dp, CircleShape)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = doctor?.name ?: "Đang tải...",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Card(
+        // Thông tin cơ bản
+        OutlinedCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(4.dp)
+            shape = MaterialTheme.shapes.large
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Họ tên: ${doctor?.name}", style = MaterialTheme.typography.titleMedium)
-                Text("Email: ${doctor?.email}")
-                Text("Số điện thoại: ${doctor?.phone}")
-                Text("CCCD: ${doctor?.CCCD}")
-                Text("Mã chuyên khoa: ${doctor?.specialty}")
-                Text("License: ${doctor?.license}")
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                InfoRow("📧 Email", doctor?.email)
+                InfoRow("📞 Điện thoại", doctor?.phone)
+                InfoRow("🪪 CCCD", doctor?.CCCD)
+                InfoRow("🏥 Chuyên khoa", doctor?.specialty?.name)
+                InfoRow("🧾 License", doctor?.license)
             }
         }
 
+        // Tài liệu ảnh
+        Text("📂 Tài liệu xác minh", fontWeight = FontWeight.SemiBold)
+
         val imageItems = listOf(
             "Ảnh khuôn mặt" to doctor?.faceUrl,
-            "Ảnh CCCD Mặt Trước" to doctor?.frontCccdUrl,
-            "Ảnh CCCD Mặt Sau" to doctor?.backCccdUrl,
-            "Ảnh Giấy Phép Hành Nghề" to doctor?.licenseUrl
+            "CCCD Mặt trước" to doctor?.frontCccdUrl,
+            "CCCD Mặt sau" to doctor?.backCccdUrl,
+            "Giấy phép hành nghề" to doctor?.licenseUrl
         )
 
-        imageItems.forEach { (label, url) ->
-            if (!url.isNullOrBlank()) {
-                Column {
-                    Text(text = label, fontWeight = FontWeight.SemiBold)
-                    AsyncImage(
-                        model = url,
-                        contentDescription = label,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable { expandedImageUrl = url }
-                    )
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            imageItems.forEach { (label, url) ->
+                if (!url.isNullOrBlank()) {
+                    Column {
+                        Text(text = label, fontWeight = FontWeight.Medium)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clickable { expandedImageUrl = url }
+                                .shadow(3.dp, MaterialTheme.shapes.medium),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            AsyncImage(
+                                model = url,
+                                contentDescription = label,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
+        // Nút xác minh
         Button(
-            onClick = {
-                doctor?.userId?.let { viewModel.verifyDoctor(it) }
-            },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { doctor?.userId?.let { viewModel.verifyDoctor(it) } },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
         ) {
-            Text("Xác minh tài khoản")
+            Text("✅ Xác minh tài khoản")
         }
     }
 
-    // Dialog hiển thị ảnh phóng to
+    // Dialog xem ảnh
     if (expandedImageUrl != null) {
         AlertDialog(
             onDismissRequest = { expandedImageUrl = null },
@@ -140,3 +157,14 @@ fun PendingDoctorDetailScreen(
         )
     }
 }
+
+// Hàm hiển thị từng dòng thông tin với icon
+@Composable
+fun InfoRow(label: String, value: String?) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(text = "$label: ", fontWeight = FontWeight.SemiBold)
+        Text(text = value ?: "", modifier = Modifier.weight(1f))
+    }
+}
+
+
