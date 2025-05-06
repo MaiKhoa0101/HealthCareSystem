@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -130,25 +128,17 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
 
     var selectedSpecialization by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var priceFrom by remember { mutableStateOf("") }
     var priceTo by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    var service by remember { mutableStateOf<ServiceInput?>(null) }
-
 
     println("Dữ liệu đã sửa schedule: "+schedule)
     println("Dữ liệu đã sửa service: "+services)
     println("Dữ liệu đã sửa address: "+address)
 
-    service = ServiceInput(
-        specializationName = selectedSpecialization,
-        imageUri = imageUri ?: Uri.EMPTY, // hoặc kiểm tra null phù hợp
-        priceFrom = priceFrom,
-        priceTo = priceTo,
-        description = description
-    )
+
 
     LazyColumn(
         modifier = modifier
@@ -163,10 +153,10 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(16.dp))
-                SpecializationSection()
+                SpecializationSection(selectedSpecialization)
                 Spacer(Modifier.height(16.dp))
-                ServiceImagePicker(imageUri) { pickedUri ->
-                    imageUri = pickedUri
+                ServiceImagePicker(imageUris) { pickedUri ->
+                    imageUris = pickedUri
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -188,23 +178,25 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     if (selectedSpecialization.isNotBlank() && priceFrom.isNotBlank() && priceTo.isNotBlank()) {
                         val newService = ServiceInput(
                             specializationName = selectedSpecialization,
-                            imageUri = imageUri ?: Uri.EMPTY,
+                            imageUris = imageUris,
                             priceFrom = priceFrom,
                             priceTo = priceTo,
                             description = description
                         )
 
-                        services = (services ?: emptyList()) + newService
+                        services = services + newService
 
-                        println("So service da them: "+services)
-                        // Xóa input sau khi thêm
+                        println("So service da them: $services")
+
+                        // Reset fields
                         selectedSpecialization = ""
-                        imageUri = null
+                        imageUris = emptyList()
                         priceFrom = ""
                         priceTo = ""
                         description = ""
                     }
                 }
+
 
 
                 Spacer(Modifier.height(12.dp))
@@ -233,9 +225,11 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 )
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
+                        imageUris,
                         schedule,
                         services,
                         address,
+                        description,
                         doctorViewModel,
                         doctorId!!
                     )
@@ -248,9 +242,11 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
 
 @Composable
 fun SaveFloatingButton(
+    imageUris: List<Uri>,
     schedule: List<WorkHour>,
     services: List<ServiceInput>,
     address: String,
+    description: String,
     doctorViewModel: DoctorViewModel,
     doctorID: String
 ) {
@@ -263,10 +259,12 @@ fun SaveFloatingButton(
         Button(
             onClick = {
                 val clinicUpdateData = ModifyClinic(
+                    address = address,
+                    description = description,
                     workingHours = schedule,
                     services = services,
-                    address = address
-                )
+                    images = imageUris
+                    )
                 println ("Clinic data: "+ clinicUpdateData)
                 doctorViewModel.updateClinic(clinicUpdateData, doctorID,context)
             },
@@ -289,7 +287,7 @@ fun SaveFloatingButton(
 
 
 @Composable
-fun SpecializationSection() {
+fun SpecializationSection(selectedSpecialization:String) {
     val allSpecialties = listOf("Nội soi", "Nội tiết", "Nha khoa", "Da liễu", "Tim mạch")
     var selectedSpecialty by remember { mutableStateOf("") }
 
@@ -301,34 +299,34 @@ fun SpecializationSection() {
 }
 
 @Composable
-fun ServiceImagePicker(imageUri: Uri?, onImagePicked: (Uri) -> Unit) {
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { onImagePicked(it) }
+fun ServiceImagePicker(imageUris: List<Uri>, onImagesPicked: (List<Uri>) -> Unit) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        onImagesPicked(uris)
     }
 
-    Row {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .border(1.dp, Color.Gray)
-                .clickable { launcher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
+    Column {
+        Button(onClick = { launcher.launch("image/*") }) {
             Icon(Icons.Default.PhotoCamera, contentDescription = null)
+            Text("Chọn ảnh")
         }
 
-        Spacer(Modifier.width(8.dp))
-
-        imageUri?.let {
-            Image(
-                painter = rememberAsyncImagePainter(it),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                contentScale = ContentScale.Crop
-            )
+        LazyRow {
+            items(imageUris) { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .size(80.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun PriceRangeInput(

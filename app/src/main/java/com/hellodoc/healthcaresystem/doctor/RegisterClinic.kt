@@ -118,7 +118,6 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
     })
     val specialties by specialtyViewModel.specialties.collectAsState()
 
-    val isLoading = viewModel.loading.value
 
     var CCCDText by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
@@ -278,32 +277,23 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                     "\n" +
                     "Việc bạn thực hiện đăng kí phòng khám trên ứng dụng đồng nghĩa với việc bạn phải tuân thủ theo chính sách về bác sĩ sử dụng dịch vụ trên hệ thống, chi tiết xem tại đây.\n"
         )
-        if (isLoading) {
-            androidx.compose.material3.CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        } else {
-            Button(
-                onClick = {
-                    val request = ApplyDoctorRequest(
-                        license = licenseNumber,
-                        CCCD = CCCDText,
-                        specialty = specialtyId,
-                        licenseUrl = licenseUri,
-                        faceUrl = faceUri,
-                        avatarURL = avatarUri,
-                        frontCccdUrl = frontCccdUri,
-                        backCccdUrl = backCccdUri
-                    )
-                    // Assuming you have a way to get the userId
-                    val userId = "68038c468dbb8bbaeefd48dd" // Replace with actual user ID retrieval
-                    viewModel.applyForDoctor(userId, request, context)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isFormValid
-            ) {
-                Text("Yêu cầu xét duyệt hồ sơ")
-            }
+        Button(
+            onClick = {
+                val request = ApplyDoctorRequest(
+                    license = licenseNumber,
+                    CCCD = CCCDText,
+                    specialty = specialtyId,
+                    licenseUrl = licenseUri,
+                    faceUrl = faceUri,
+                    avatarURL = avatarUri,
+                    frontCccdUrl = frontCccdUri,
+                    backCccdUrl = backCccdUri
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isFormValid
+        ) {
+            Text("Yêu cầu xét duyệt hồ sơ")
         }
     }
 }

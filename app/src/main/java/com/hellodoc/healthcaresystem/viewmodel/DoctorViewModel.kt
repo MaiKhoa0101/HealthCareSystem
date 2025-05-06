@@ -88,7 +88,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
             MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
         } catch (e: Exception) {
-            Log.e("PostViewModel", "Error preparing file part", e)
+            Log.e("DoctorViewModel", "Error preparing file part", e)
             null
         }
     }
@@ -173,8 +173,10 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val gson = Gson()
 
                 val addressPart = MultipartBody.Part.createFormData("address", clinicUpdateData.address)
+                val descriptionPart = MultipartBody.Part.createFormData("description", clinicUpdateData.description)
+
                 val workHourJson = gson.toJson(clinicUpdateData.workingHours)
-                val workHourPart = MultipartBody.Part.createFormData("workingHour", workHourJson)
+                val workHourPart = MultipartBody.Part.createFormData("workingHours", workHourJson)
 
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
@@ -182,28 +184,47 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         priceFrom = it.priceFrom,
                         priceTo = it.priceTo,
                         description = it.description,
-                        imageUri = Uri.EMPTY // tạm để imageUri rỗng khi serialize
+                        imageUris = emptyList() // Bỏ URI trong JSON để tránh upload ảnh 2 lần
                     )
                 }
                 val servicesJson = gson.toJson(servicesJsonList)
                 val servicesPart = MultipartBody.Part.createFormData("services", servicesJson)
 
-                // Upload từng ảnh
-                val imageParts = clinicUpdateData.services.mapIndexed { index, service ->
-                    prepareFilePart(context, service.imageUri, "image$index")
+                val imageParts = mutableListOf<MultipartBody.Part>()
+                clinicUpdateData.services.forEachIndexed { serviceIndex, service ->
+                    service.imageUris.forEachIndexed { imageIndex, uri ->
+                        val partName = "image_${serviceIndex}_$imageIndex"
+                        prepareFilePart(context, uri, partName)?.let { imageParts.add(it) }
+                    }
                 }
-                val updatedImageParts: List<MultipartBody.Part> = imageParts.filterNotNull()
+
                 val response = RetrofitInstance.doctor.updateClinic(
                     doctorId,
                     addressPart,
+                    descriptionPart,
                     workHourPart,
                     servicesPart,
-                    updatedImageParts
+                    imageParts
                 )
 
-                println(response.toString())
-                println(response.body())
 
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            context,
+                            "Cập nhật phòng khám thành công!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        Log.d("UpdateClinic", "Thành công: ${response.body()}")
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Lỗi cập nhật: ${response.errorBody()?.string()}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        Log.e("UpdateClinic", "Lỗi: ${response.errorBody()?.string()}")
+                    }
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
@@ -211,11 +232,11 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         "Thay đổi thất bại: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
-                    Log.e("Thay đổi clinic", "Thất bại", e)
+                    Log.e("UpdateClinic", "Exception", e)
                 }
-                Log.e("Thay đổi Clinic", "Thất bại ", e)
             }
         }
     }
 }
+
 

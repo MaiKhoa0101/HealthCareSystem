@@ -19,7 +19,9 @@ data class ApplyDoctorRequest(
 data class ModifyClinic(
     val workingHours:List<WorkHour>,
     val address: String,
-    val services: List<ServiceInput>
+    val description: String,
+    val services: List<ServiceInput>,
+    val images: List<Uri>
 )
 
 
