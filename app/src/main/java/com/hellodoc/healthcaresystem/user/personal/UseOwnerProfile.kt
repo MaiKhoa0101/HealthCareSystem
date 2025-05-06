@@ -57,12 +57,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
@@ -71,6 +73,7 @@ import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -90,7 +93,6 @@ fun PreviewProfileUserPage() {
 
     // Fake NavController
     val navController = rememberNavController()
-
     ProfileUserPage(
         sharedPreferences = sharedPreferences,
         navHostController = navController
@@ -102,6 +104,7 @@ fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
+
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
@@ -143,9 +146,14 @@ fun ProfileUserPage(
     val context = LocalContext.current
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
+
     println("user lấy ra đc: "+ user)
     if (user==null) return
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -155,7 +163,8 @@ fun ProfileUserPage(
                     user = user!!,
                     onClickShowReport = {
                         showReportDialog = true
-                    }
+                    },
+                    onImageClick = { selectedImageUrl = it}
                 )
             }
             item {
@@ -314,7 +323,10 @@ fun ProfileUserPage(
 }
 
 @Composable
-fun ProfileSection(navHostController: NavHostController, user: User, onClickShowReport: () -> Unit) {
+fun ProfileSection(
+    navHostController: NavHostController,
+    user: User, onClickShowReport: () -> Unit,
+    onImageClick: (String) -> Unit) {
     Column(
         modifier = Modifier.background(Color.Cyan)
     ) {
@@ -326,7 +338,8 @@ fun ProfileSection(navHostController: NavHostController, user: User, onClickShow
             UserIntroSection(
                 user = user,
                 onClickShowReport = onClickShowReport,
-                navController = navHostController
+                navController = navHostController,
+                onImageClick
             )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
@@ -339,10 +352,10 @@ fun ProfileSection(navHostController: NavHostController, user: User, onClickShow
 fun UserIntroSection(
     user: User,
     onClickShowReport: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    onImageClick: (String) -> Unit
 ) {
     var showReportBox by remember { mutableStateOf(false) }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -366,8 +379,11 @@ fun UserIntroSection(
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                        .clip(CircleShape)
+                        .clickable {
+                            onImageClick(user.avatarURL)
+                        },
+                    contentScale = ContentScale.Crop,
                 )
             }
 

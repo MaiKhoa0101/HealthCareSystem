@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,7 +51,8 @@ fun formatPrice(price: Int): String {
 }
 @Composable
 fun ViewIntroduce(
-    doctor: GetDoctorResponse?
+    doctor: GetDoctorResponse?,
+    onImageClick: (String) -> Unit
 ){
     println("Đang ở trang thông tin với service là: ${doctor?.services ?: "ko co"}")
     Introduce(
@@ -70,7 +72,8 @@ fun ViewIntroduce(
             image1 = R.drawable.image_certif,
             image2 = R.drawable.image_certif_2,
             image3 = R.drawable.clarifymanage
-        )
+        ),
+        onImageClick
     )
 
 }
@@ -79,6 +82,7 @@ fun Introduce(
     contentTitle: ContentTitle,
     contents: Contents,
     images: Images,
+    onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
@@ -239,6 +243,9 @@ fun Introduce(
                                 .padding(end = 8.dp)
                                 .size(120.dp)
                                 .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    onImageClick(imageUrl)
+                                },
                         )
                     }
                 }
