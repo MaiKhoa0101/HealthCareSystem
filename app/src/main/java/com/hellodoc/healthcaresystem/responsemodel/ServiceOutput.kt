@@ -4,10 +4,10 @@ import android.net.Uri
 import com.google.gson.annotations.SerializedName
 
 data class ServiceInput(
-    var specializationName: String,
-    var imageUris: List<Uri>,
-    var priceFrom: String,
-    var priceTo: String,
+    var specialtyName: String,
+    var imageService: List<Uri>,
+    var minprice: String,
+    var maxprice: String,
     var description: String
 )
 

@@ -5,21 +5,16 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
-import com.hellodoc.healthcaresystem.requestmodel.DoctorUiState
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
-import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +23,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.jetbrains.annotations.Async.Schedule
 import java.io.File
 
 class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -184,26 +178,30 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val workHourJson = gson.toJson(clinicUpdateData.workingHours)
                 val workHourPart = MultipartBody.Part.createFormData("workingHours", workHourJson)
 
+                // Dữ liệu services không gửi ảnh qua JSON
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
-                        specializationName = it.specializationName,
-                        priceFrom = it.priceFrom,
-                        priceTo = it.priceTo,
+                        specialtyName = it.specialtyName,
+                        minprice = it.minprice,
+                        maxprice = it.maxprice,
                         description = it.description,
-                        imageUris = emptyList() // Bỏ URI trong JSON để tránh upload ảnh 2 lần
+                        imageService = emptyList() // tránh gửi uri dạng content:// vào JSON
                     )
                 }
                 val servicesJson = gson.toJson(servicesJsonList)
                 val servicesPart = MultipartBody.Part.createFormData("services", servicesJson)
 
+                // Tạo danh sách ảnh
                 val imageParts = mutableListOf<MultipartBody.Part>()
                 clinicUpdateData.services.forEachIndexed { serviceIndex, service ->
-                    service.imageUris.forEachIndexed { imageIndex, uri ->
+                    service.imageService.forEachIndexed { imageIndex, uri ->
                         val partName = "image_${serviceIndex}_$imageIndex"
-                        prepareFilePart(context, uri, partName)?.let { imageParts.add(it) }
+                        val part = prepareFilePart(context, uri, partName)
+                        if (part != null) imageParts.add(part)
                     }
                 }
 
+                // Gọi API Retrofit
                 val response = RetrofitInstance.doctor.updateClinic(
                     doctorId,
                     addressPart,
@@ -213,36 +211,25 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                     imageParts
                 )
 
-
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        Toast.makeText(
-                            context,
-                            "Cập nhật phòng khám thành công!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(context, "Cập nhật phòng khám thành công!", Toast.LENGTH_LONG).show()
                         Log.d("UpdateClinic", "Thành công: ${response.body()}")
                     } else {
-                        Toast.makeText(
-                            context,
-                            "Lỗi cập nhật: ${response.errorBody()?.string()}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.e("UpdateClinic", "Lỗi: ${response.errorBody()?.string()}")
+                        val errorBody = response.errorBody()?.string()
+                        Toast.makeText(context, "Lỗi cập nhật: $errorBody", Toast.LENGTH_LONG).show()
+                        Log.e("UpdateClinic", "Lỗi: $errorBody")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "Thay đổi thất bại: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Thay đổi thất bại: ${e.message}", Toast.LENGTH_LONG).show()
                     Log.e("UpdateClinic", "Exception", e)
                 }
             }
         }
     }
+
 
     private val _pendingDoctors = MutableStateFlow<List<PendingDoctorResponse>>(emptyList())
     val pendingDoctors: StateFlow<List<PendingDoctorResponse>> get() = _pendingDoctors

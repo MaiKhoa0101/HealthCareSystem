@@ -31,6 +31,7 @@ data class Specialty (
     @SerializedName("name") val name: String
 )
 
+
 data class ApplyDoctor(
     val message: String
 )
