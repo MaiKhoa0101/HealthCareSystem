@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.api
 
+import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
 import com.hellodoc.healthcaresystem.responsemodel.ApplyDoctor
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
@@ -11,6 +12,7 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -39,14 +41,15 @@ interface DoctorService {
     ): Response<ApplyDoctor>
 
     @Multipart
-    @PUT("doctor/{id}/update-profile")
+    @POST("doctor/{id}/updateclinic")
     suspend fun updateClinic(
         @Path("id") id: String,
         @Part address: MultipartBody.Part,
+        @Part description: MultipartBody.Part,
         @Part workingHours: MultipartBody.Part,
         @Part services: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>
-    ): Response<Unit>
+    ): Response<ModifyClinic>
 
     @GET("doctor/pending-doctors")
     suspend fun getPendingDoctor(): Response<List<PendingDoctorResponse>>
