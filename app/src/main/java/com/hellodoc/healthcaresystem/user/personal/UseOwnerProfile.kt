@@ -438,7 +438,7 @@ fun UserIntroSection(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 48.dp, end = 8.dp)
-                    .width(220.dp)
+                    .width(250.dp)
                     .background(Color.White, shape = RoundedCornerShape(8.dp))
                     .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                     .shadow(4.dp, RoundedCornerShape(8.dp))
