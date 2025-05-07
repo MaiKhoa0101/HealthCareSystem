@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.doctor
 
+import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,77 +64,58 @@ fun DoctorListScreen(
         viewModel.fetchSpecialtyDoctor(specialtyId)
     }
 
-    val doctors by viewModel.filteredDoctors.collectAsState()
+    val doctors by viewModel.doctors.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
-    var locationQuery by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        TopBar(onClick = {
+            navHostController.popBackStack()
+        })
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
+                .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = specialtyName,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF00796B)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = specialtyDesc,
+                fontSize = 14.sp,
+                color = Color.DarkGray,
+                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (specialtyDesc.length > 100) { // Ngưỡng để hiển thị nút Xem thêm
+                Text(
+                    text = if (isExpanded) "Thu gọn" else "Xem thêm",
+                    fontSize = 14.sp,
+                    color = Color(0xFF0288D1),
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clickable { isExpanded = !isExpanded }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = specialtyName,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00796B)
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = specialtyDesc,
-                        fontSize = 14.sp,
-                        color = Color.DarkGray,
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    if (specialtyDesc.length > 100) {
-                        Text(
-                            text = if (isExpanded) "Thu gọn" else "Xem thêm",
-                            fontSize = 14.sp,
-                            color = Color(0xFF0288D1),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .clickable { isExpanded = !isExpanded }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = locationQuery,
-                        onValueChange = { locationQuery = it },
-                        label = { Text("Lọc theo vị trí") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
-                        if (locationQuery.isNotBlank()) {
-                            viewModel.filterDoctorsByLocation(locationQuery)
-                        } else {
-                            viewModel.clearFilter()
-                        }
-                    }) {
-                        Text("Lọc")
-                    }
-                }
-            }
-
             if (doctors.isEmpty()) {
                 item {
                     Box(
@@ -162,12 +145,15 @@ fun DoctorListScreen(
             }
         }
     }
-
+}
 
 
 
 @Composable
 fun TopBar(onClick: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,16 +162,15 @@ fun TopBar(onClick: () -> Unit) {
             .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Back button
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
             tint = Color.White,
             modifier = Modifier
-                .size(24.dp)
+                .size(32.dp)
                 .padding(end = 8.dp)
                 .clickable {
-                    onClick()
+                    activity?.finish()
                 }
         )
     }

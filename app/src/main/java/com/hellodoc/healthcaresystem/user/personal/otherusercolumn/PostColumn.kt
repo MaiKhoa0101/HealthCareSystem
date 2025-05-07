@@ -1,6 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
+import android.content.Intent
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -61,16 +65,18 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     posts: List<PostResponse>,
     postViewModel: PostViewModel,
     userId: String,
+    navController: NavHostController? = null,
     onClickReport: (String) -> Unit
 ) {
     Column(
@@ -115,6 +121,7 @@ fun PostColumn(
                     createdAt = postItem.createdAt,
                     postViewModel = postViewModel,
                     currentUserId = userId,
+                    navController = navController,
                     onClickReport = onClickReport
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -124,7 +131,6 @@ fun PostColumn(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ViewPostOwner(
     postId: String,
@@ -134,6 +140,7 @@ fun ViewPostOwner(
     createdAt: String,
     postViewModel: PostViewModel,
     currentUserId: String,
+    navController: NavHostController? = null,
     onClickReport: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -483,6 +490,7 @@ fun ViewPostOwner(
             }
 
         }
+        val context = LocalContext.current
         if (showPostReportBox) {
             Column(
                 modifier = Modifier
@@ -503,7 +511,7 @@ fun ViewPostOwner(
                         .padding(8.dp)
                 ) {
                     Text("Tố cáo bài viết", fontWeight = FontWeight.Bold)
-                    Text("Bài viết có nội dung vi phạm", fontSize = 13.sp)
+                    Text("Bài viết có nội dung vi phạm", fontSize = 13.sp, color = Color.Gray)
                 }
 
                 // Chỉ hiển thị nút XÓA nếu là chính người đăng
@@ -519,6 +527,21 @@ fun ViewPostOwner(
                     ) {
                         Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
                         Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                    }
+                    Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
+                    Column(
+                        modifier = Modifier
+                            .clickable {
+                                showPostReportBox = false
+                                val intent = Intent(context, HomeActivity::class.java).apply {
+                                    putExtra("navigate-to", "edit_post/$postId")
+                                }
+                                context.startActivity(intent)
+                            }
+                            .padding(8.dp)
+                    ) {
+                        Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
+                        Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
                     }
                 }
             }

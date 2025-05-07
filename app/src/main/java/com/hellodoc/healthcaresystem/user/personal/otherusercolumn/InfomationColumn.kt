@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,21 @@ import com.hellodoc.healthcaresystem.responsemodel.modeluser.Contents
 import com.hellodoc.healthcaresystem.responsemodel.modeluser.Images
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import coil.compose.rememberAsyncImagePainter
+import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
 
 fun formatPrice(price: Int): String {
     val formatter: NumberFormat = DecimalFormat("#,###")
@@ -35,8 +51,10 @@ fun formatPrice(price: Int): String {
 }
 @Composable
 fun ViewIntroduce(
-    doctor: GetDoctorResponse?
+    doctor: GetDoctorResponse?,
+    onImageClick: (String) -> Unit
 ){
+    println("Đang ở trang thông tin với service là: ${doctor?.services ?: "ko co"}")
     Introduce(
         contentTitle = ContentTitle(
             introduce = "Giới thiệu",
@@ -46,253 +64,195 @@ fun ViewIntroduce(
         ),
         contents = Contents(
             introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
-            //certificate1 = doctor?.certificates?.getOrNull(0) ?: "Chưa cập nhật bằng cấp 1",
-            //certificate2 = doctor?.certificates?.getOrNull(1) ?: "Chưa cập nhật bằng cấp 2",
             certificate = doctor?.certificates ?: "Chưa cập nhật bằng cấp",
             workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
-            services = doctor?.services?.map {
-                (it.specialtyName ?: "Dịch vụ chưa đặt tên") to (it.minPrice ?: 0)
-            } ?: listOf(
-                "Dịch vụ khám cơ bản" to "500000"
-            )
+            services = doctor?.services ?: emptyList()
         ),
         images = Images(
             image1 = R.drawable.image_certif,
             image2 = R.drawable.image_certif_2,
             image3 = R.drawable.clarifymanage
-        )
+        ),
+        onImageClick
     )
+
 }
 @Composable
 fun Introduce(
     contentTitle: ContentTitle,
     contents: Contents,
     images: Images,
+    onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
-    Box(
+
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(color = backgroundColor)
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
-            ConstraintLayout(
-                modifier = modifier
-                    .padding(top = 5.dp, end = 5.dp)
-                    .background(color = backgroundColor, shape = RectangleShape)
+        Text(
+            text = contentTitle.introduce,
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                color = Color(0xFF242760)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = contents.introduce,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = Color.Black
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = contentTitle.certificate,
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                color = Color(0xFF242760)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = images.image1),
+                contentDescription = null,
+                modifier = Modifier.size(27.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = contents.certificate,
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = Color(0xFF242760)
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = images.image2),
+                contentDescription = null,
+                modifier = Modifier.size(27.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = contents.certificate,
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = Color(0xFF242760)
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = contentTitle.workplace,
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                color = Color(0xFF242760)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = contents.workplace,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = Color.Black,
+                textAlign = TextAlign.Justify
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = contentTitle.service,
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                color = Color(0xFF242760)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        contents.services.forEach { service ->
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
+                    .padding(vertical = 10.dp)
             ) {
-                val (iconImage1, iconImage2, tvIntroduce, tvCIntroduce, tvCertif, tvC1Certifi, tvC2Certifi, tvWorkplace, tvCWorkplace, tvService) = createRefs()
-                Text(
-                    text = contentTitle.introduce,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 24.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvIntroduce) {
-                        top.linkTo(parent.top, margin = 10.dp)
-                        start.linkTo(parent.start, margin = 15.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.clarifymanage),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = service.specialtyName,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color(0xFF242760)
+                            )
+                        )
                     }
-                )
-                Text(
-                    text = contents.introduce,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .constrainAs(tvCIntroduce) {
-                            top.linkTo(tvIntroduce.bottom, margin = 10.dp)
-                            start.linkTo(tvIntroduce.start, margin = 10.dp)
-                            end.linkTo(parent.end)
-                        }
-                )
-                Text(
-                    text = contentTitle.certificate,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 24.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvCertif) {
-                        top.linkTo(tvCIntroduce.bottom, margin = 10.dp)
-                        start.linkTo(tvIntroduce.start)
-                    }
-                )
-                Image(
-                    painter = painterResource(id = images.image1),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(27.dp)
-                        .constrainAs(iconImage1) {
-                            start.linkTo(tvIntroduce.start)
-                            top.linkTo(tvCertif.bottom, margin = 10.dp)
-                        },
-                )
-                Image(
-                    painter = painterResource(id = images.image2),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(27.dp)
-                        .constrainAs(iconImage2) {
-                            start.linkTo(tvIntroduce.start)
-                            top.linkTo(iconImage1.bottom, margin = 5.dp)
-                        },
-                )
-                Text(
-                    //text = contents.certificate1,
-                    text = contents.certificate,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvC1Certifi) {
-                        top.linkTo(iconImage1.top)
-                        bottom.linkTo(iconImage1.bottom)
-                        start.linkTo(iconImage1.end, margin = 10.dp)
-                    }
-                )
-                Text(
-                    //text = contents.certificate2,
-                    text = contents.certificate,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvC2Certifi) {
-                        top.linkTo(iconImage2.top)
-                        bottom.linkTo(iconImage2.bottom, margin = 3.dp)
-                        start.linkTo(iconImage2.end, margin = 10.dp)
-                    }
-                )
-                Text(
-                    text = contentTitle.workplace,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 24.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvWorkplace) {
-                        top.linkTo(iconImage2.bottom, margin = 10.dp)
-                        start.linkTo(tvIntroduce.start)
-                    }
-                )
-                Text(
-                    text = contents.workplace,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = Color.Black,
-                        textAlign = TextAlign.Justify,
-                    ),
-                    modifier = Modifier.constrainAs(tvCWorkplace) {
-                        top.linkTo(tvWorkplace.bottom, margin = 10.dp)
-                        start.linkTo(tvIntroduce.start)
-                    }
-                )
-                Text(
-                    text = contentTitle.service,
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 24.sp,
-                        color = Color(0xFF242760)
-                    ),
-                    modifier = Modifier.constrainAs(tvService) {
-                        top.linkTo(tvCWorkplace.bottom, margin = 10.dp)
-                        start.linkTo(tvIntroduce.start)
-                    }
-                )
-                val serviceRefs = contents.services.mapIndexed { index, _ ->
-                    val imageRef = createRef()
-                    val serviceRef = createRef()
-                    val priceRef = createRef()
-                    Triple(imageRef, serviceRef, priceRef)
+
+                    Text(
+                        text = "Giá: ${formatPrice(service.minPrice.toInt())} - ${formatPrice(service.maxPrice.toInt())}",
+                        style = TextStyle(fontSize = 14.sp, color = Color.DarkGray)
+                    )
                 }
 
-                contents.services.forEachIndexed { index, (serviceName, minPrice) ->
-                    val (imageRef, serviceRef, priceRef) = serviceRefs[index]
-                    val topAnchor =
-                        if (index == 0) tvService else serviceRefs[index - 1].first
+                Spacer(modifier = Modifier.height(5.dp))
 
-                    Image(
-                        painter = painterResource(id = images.image3),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(27.dp)
-                            .constrainAs(imageRef) {
-                                start.linkTo(tvIntroduce.start)
-                                top.linkTo(topAnchor.bottom, margin = 10.dp)
-                            }
-                    )
-
-                    Text(
-                        text = serviceName,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp,
-                            color = Color(0xFF242760)
-                        ),
-                        modifier = Modifier.constrainAs(serviceRef) {
-                            top.linkTo(imageRef.top)
-                            bottom.linkTo(imageRef.bottom)
-                            start.linkTo(imageRef.end, margin = 5.dp)
-                        }
-                    )
-
-                    Text(
-                        text = formatPrice(100000),
-                        style = TextStyle(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp,
-                            color = Color(0xFF242760)
-                        ),
-                        modifier = Modifier.constrainAs(priceRef) {
-                            top.linkTo(imageRef.top)
-                            bottom.linkTo(imageRef.bottom)
-                            end.linkTo(parent.end)
-                        }
-                    )
+                LazyRow {
+                    items(service.imageService) { imageUrl ->
+                        Image(
+                            painter = rememberAsyncImagePainter(imageUrl),
+                            contentDescription = "Hinh anh dich vu",
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(120.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    onImageClick(imageUrl)
+                                },
+                        )
+                    }
                 }
             }
         }
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun IntroducePreview() {
-    Introduce(
-        contentTitle = ContentTitle(
-            introduce = "Giới thiệu",
-            certificate = "Bằng cấp & chứng chỉ",
-            workplace = "Nơi làm việc",
-            service = "Dịch vụ & Giá cả",
-        ),
-        contents = Contents(
-            introduce = "Bác sĩ với 10 năm kinh nghiệm trong các vấn đề sức khỏe sinh sản và sinh lý. Chuyên điều trị rối loạn sinh lý, thoát dương sớm và các vấn đề sức khỏe của bạn.",
-//            certificate1 = "Bằng Y khoa, Đại học Y Sài Gòn",
-//            certificate2 = "Chứng nhận Sản khoa",
-            certificate = "Bằng Y khoa, Đại học Y Sài Gòn",
-            workplace = "Bệnh viện Đại học Y dược TP. HCM",
-            services = listOf(
-                "Tư vấn sức khỏe sinh sản" to 1500000,
-                "Điều trị rối loạn sinh lý" to 1800000,
-                "Thăm khám định kỳ" to 1000000
-            )
-        ),
-        images = Images(
-            image1 = R.drawable.image_certif,
-            image2 = R.drawable.image_certif_2,
-            image3 = R.drawable.clarifymanage
-        )
-    )
-}
+
+
 

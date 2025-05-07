@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.responsemodel.modeluser
 
 import androidx.annotation.DrawableRes
+import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
 
 data class ContentTitle(
     val introduce: String,
@@ -11,11 +12,9 @@ data class ContentTitle(
 
 data class Contents(
     val introduce: String,
-//    val certificate1: String,
-//    val certificate2: String,
     val certificate: String,
     val workplace: String,
-    val services: List<Pair<String, Any>>
+    val services: List<ServiceOutput>
 )
 
 data class Images(

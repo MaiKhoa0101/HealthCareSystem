@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.User
 
 @Composable
@@ -107,6 +108,7 @@ fun DoctorItem(user: User, viewModel: UserViewModel) {
     var phone by remember { mutableStateOf(user.phone) }
     var password by remember { mutableStateOf("") } // Empty to avoid security risks
     val currentPassword = user.password ?: ""
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier
@@ -238,18 +240,18 @@ fun DoctorItem(user: User, viewModel: UserViewModel) {
             onPhoneChange = { phone = it },
             onPasswordChange = { password = it },
             onConfirm = {
-                val updatedUser = UpdateUser(
+                val updatedUser = UpdateUserInput(
                     name = name,
                     email = email,
                     phone = phone,
                     password = if (password.isNotEmpty()) password else currentPassword,
                     role = role,
-                    avatarURL = "",
+                    avatarURL = null,
                     address = ""
                 )
                 Log.d("UserItem", "User ID to update: ${user.id}")
                 Log.d("UserItem", "Data sent to API: $updatedUser")
-                viewModel.updateUser(user.id, updatedUser)
+                viewModel.updateUser(user.id, updatedUser, context)
                 isEditing = false
             },
             onDismiss = { isEditing = false }

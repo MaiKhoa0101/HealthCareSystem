@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
@@ -85,4 +86,13 @@ interface PostService {
     suspend fun getUserFavoritePost(
         @Path("id") id: String,
     ): Response<List<ManagerResponse>>
+
+    @Multipart
+    @PATCH("post/{postId}")
+    suspend fun updatePost(
+        @Path("postId") postId: String,
+        @Part content: MultipartBody.Part,
+        @Part images: List<MultipartBody.Part>
+    ): Response<Unit>
+
 }
