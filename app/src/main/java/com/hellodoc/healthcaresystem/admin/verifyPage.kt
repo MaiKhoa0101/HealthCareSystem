@@ -136,26 +136,11 @@ fun PendingDoctorDetailScreen(
         }
     }
 
-    // Dialog xem ảnh
-    if (expandedImageUrl != null) {
-        AlertDialog(
-            onDismissRequest = { expandedImageUrl = null },
-            confirmButton = {
-                TextButton(onClick = { expandedImageUrl = null }) {
-                    Text("Đóng")
-                }
-            },
-            text = {
-                AsyncImage(
-                    model = expandedImageUrl,
-                    contentDescription = "Phóng to ảnh",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                )
-            }
-        )
-    }
+    // Hiển thị Dialog zoom ảnh
+    ZoomableImageDialog(
+        selectedImageUrl = expandedImageUrl,
+        onDismiss = { expandedImageUrl = null }
+    )
 }
 
 // Hàm hiển thị từng dòng thông tin với icon
