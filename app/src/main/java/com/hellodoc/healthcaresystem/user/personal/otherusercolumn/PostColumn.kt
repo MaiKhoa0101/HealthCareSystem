@@ -35,6 +35,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,6 +71,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import androidx.compose.ui.layout.SubcomposeLayout
 
 
 @Composable
@@ -77,8 +80,10 @@ fun PostColumn(
     postViewModel: PostViewModel,
     userId: String,
     navController: NavHostController? = null,
-    onClickReport: (String) -> Unit
+    onClickReport: (String) -> Unit,
+    onShowComment: (String) -> Unit
 ) {
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -122,7 +127,8 @@ fun PostColumn(
                     postViewModel = postViewModel,
                     currentUserId = userId,
                     navController = navController,
-                    onClickReport = onClickReport
+                    onClickReport = onClickReport,
+                    onShowComment = onShowComment
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -142,6 +148,7 @@ fun ViewPostOwner(
     currentUserId: String,
     navController: NavHostController? = null,
     onClickReport: (String) -> Unit,
+    onShowComment: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color.White
@@ -186,6 +193,8 @@ fun ViewPostOwner(
             }
         }
     }
+    var shouldShowSeeMore by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = modifier
@@ -246,30 +255,53 @@ fun ViewPostOwner(
             }
 
             // Content bài viết
-            Text(
-                text = contentPost.content,
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    color = Color.Black
-                ),
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            SubcomposeLayout { constraints ->
+                val measuredText = subcompose("text") {
+                    Text(
+                        text = contentPost.content,
+                        style = TextStyle(fontSize = 16.sp),
+                        maxLines = Int.MAX_VALUE,
+                        onTextLayout = {
+                            shouldShowSeeMore = it.lineCount > 2
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }[0].measure(constraints)
 
-            // Nút "Xem thêm" / "Thu gọn"
-            Text(
-                text = if (expanded) "Thu gọn" else "Xem thêm",
-                color = Color.Blue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { expanded = !expanded }
-                    .padding(top = 4.dp)
-            )
+                val actualText = subcompose("displayText") {
+                    Text(
+                        text = contentPost.content,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        ),
+                        maxLines = if (expanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }[0].measure(constraints)
+
+                val seeMoreText = if (shouldShowSeeMore) {
+                    subcompose("seeMore") {
+                        Text(
+                            text = if (expanded) "Thu gọn" else "Xem thêm",
+                            color = Color.Blue,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable { expanded = !expanded }
+                        )
+                    }[0].measure(constraints)
+                } else null
+
+                layout(constraints.maxWidth, actualText.height + (seeMoreText?.height ?: 0)) {
+                    actualText.placeRelative(0, 0)
+                    seeMoreText?.placeRelative(0, actualText.height)
+                }
+            }
             //anh
             if (mediaList.isNotEmpty()) {
                 HorizontalPager(
@@ -340,10 +372,7 @@ fun ViewPostOwner(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
-                        isCommenting = !isCommenting
-                        if (isCommenting) {
-                            shouldFetchComments = true
-                        }
+                        onShowComment(postId)
                     }
                 ) {
                     Icon(
@@ -358,136 +387,6 @@ fun ViewPostOwner(
             }
 
             // UI COMMENT
-            if (isCommenting) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Bình luận:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-
-                    if (comments.isNotEmpty()) {
-                        Column {
-                            comments.forEach { comment ->
-                                val coroutineScope = rememberCoroutineScope()
-//                                var showMenu by remember { mutableStateOf(false) }
-                                ConstraintLayout(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                                    val (avatar, contentCol, menuIcon) = createRefs()
-
-                                    AsyncImage(
-                                        model = comment.user?.avatarURL ?: "",
-                                        contentDescription = "avatar",
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .clip(CircleShape)
-                                            .constrainAs(avatar) {
-                                                top.linkTo(parent.top)
-                                                start.linkTo(parent.start)
-                                            }
-                                    )
-
-                                    Column(modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .constrainAs(contentCol) {
-                                            top.linkTo(avatar.top)
-                                            start.linkTo(avatar.end)
-                                            end.linkTo(menuIcon.start)
-                                            width = androidx.constraintlayout.compose.Dimension.fillToConstraints
-                                        }
-                                    ) {
-                                        Text(comment.user?.name ?: "Ẩn danh", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                        Text(comment.content, fontSize = 14.sp)
-                                    }
-
-                                    Box(
-                                        modifier = Modifier.constrainAs(menuIcon) {
-                                            top.linkTo(contentCol.top)
-                                            end.linkTo(parent.end)
-                                        }
-                                    ) {
-                                        IconButton(onClick = { activeMenuCommentId = comment.id }) {
-                                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-                                        }
-
-                                        DropdownMenu(
-                                            expanded = activeMenuCommentId == comment.id,
-                                            onDismissRequest = { activeMenuCommentId = null },
-                                            offset = DpOffset((-16).dp, 0.dp)
-                                        ) {
-                                            DropdownMenuItem(
-                                                text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Xóa") } },
-                                                onClick = {
-                                                    activeMenuCommentId = null
-                                                    coroutineScope.launch {
-                                                        postViewModel.deleteComment(comment.id, postId)
-                                                        postViewModel.fetchComments(postId) // cập nhật ngay
-                                                    }
-                                                }
-                                            )
-                                            Divider(thickness = 1.dp, color = Color.LightGray)
-                                            DropdownMenuItem(
-                                                text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Sửa") } },
-                                                onClick = {
-                                                    activeMenuCommentId = null
-                                                    editingCommentId = comment.id
-                                                    editedCommentContent = comment.content
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Hiển thị TextField nhập mới hoặc sửa bình luận tại vị trí cuối cùng
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextField(
-                                    value = if (editingCommentId == null) newComment else editedCommentContent,
-                                    onValueChange = {
-                                        if (editingCommentId == null) newComment = it else editedCommentContent = it
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    placeholder = {
-                                        Text(if (editingCommentId == null) "Nhập bình luận..." else "Chỉnh sửa bình luận...")
-                                    }
-                                )
-                                Button(onClick = {
-                                    coroutineScope.launch {
-                                        if (editingCommentId == null) {
-                                            postViewModel.sendComment(postId, currentUserId, userModel, newComment)
-                                            newComment = ""
-                                            postViewModel.fetchComments(postId) // cập nhật ngay
-                                        } else {
-                                            postViewModel.updateComment(
-                                                commentId = editingCommentId!!,
-                                                userId = currentUserId,
-                                                userModel = userModel,
-                                                content = editedCommentContent
-                                            )
-                                            editingCommentId = null
-                                            editedCommentContent = ""
-                                            postViewModel.fetchComments(postId) // cập nhật ngay
-                                        }
-                                    }
-                                }) {
-                                    Text(if (editingCommentId == null) "Gửi" else "Lưu")
-                                }
-                            }
-                        }
-                    } else {
-                        Text("Chưa có bình luận nào.")
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextField(
-                                value = newComment,
-                                onValueChange = { newComment = it },
-                                modifier = Modifier.weight(1f),
-                                placeholder = { Text("Nhập bình luận...") }
-                            )
-                            Button(onClick = {
-                                postViewModel.sendComment(postId, currentUserId, userModel, newComment)
-                                newComment = ""
-                            }) {
-                                Text("Gửi")
-                            }
-                        }
-                    }
-                }
-            }
 
         }
         val context = LocalContext.current

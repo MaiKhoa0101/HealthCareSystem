@@ -348,6 +348,8 @@ fun OtherUserListScreen(
 
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let {
             postViewModel.getPostUserById(it)
@@ -426,6 +428,10 @@ fun OtherUserListScreen(
                 onClickReport = { postId ->
                     reportedPostId = postId
                     showReportDialog = true
+                },
+                onShowComment = { postId ->
+                    selectedPostIdForComment = postId
+                    showFullScreenComment = true
                 }
             )
         }
