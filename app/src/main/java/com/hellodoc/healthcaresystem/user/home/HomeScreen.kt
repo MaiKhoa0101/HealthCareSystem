@@ -181,6 +181,7 @@ fun HealthMateHomeScreen(
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
+                    println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctors)
                 }
             }
@@ -488,7 +489,7 @@ fun DoctorList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

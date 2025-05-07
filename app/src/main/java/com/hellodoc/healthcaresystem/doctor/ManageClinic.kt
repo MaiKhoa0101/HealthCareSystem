@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,7 +54,7 @@ fun EditClinicServiceScreen(sharedPreferences: SharedPreferences, navHostControl
             HeadbarEditClinic(navHostController)
         }
     ) { innerPadding ->
-        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences)
+        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences,navHostController)
     }
 }
 
@@ -88,7 +86,7 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
 }
 
 @Composable
-fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences) {
+fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences, navHostController:NavHostController) {
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
@@ -130,25 +128,17 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
 
     var selectedSpecialization by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var priceFrom by remember { mutableStateOf("") }
-    var priceTo by remember { mutableStateOf("") }
+    var imageService by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var minprice by remember { mutableStateOf("") }
+    var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    var service by remember { mutableStateOf<ServiceInput?>(null) }
-
 
     println("Dữ liệu đã sửa schedule: "+schedule)
     println("Dữ liệu đã sửa service: "+services)
     println("Dữ liệu đã sửa address: "+address)
 
-    service = ServiceInput(
-        specializationName = selectedSpecialization,
-        imageUri = imageUri ?: Uri.EMPTY, // hoặc kiểm tra null phù hợp
-        priceFrom = priceFrom,
-        priceTo = priceTo,
-        description = description
-    )
+
 
     LazyColumn(
         modifier = modifier
@@ -163,19 +153,22 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(16.dp))
-                SpecializationSection()
+                SpecializationSection(
+                    selectedSpecialization = selectedSpecialization,
+                    onSpecializationSelected = { selectedSpecialization = it }
+                )
                 Spacer(Modifier.height(16.dp))
-                ServiceImagePicker(imageUri) { pickedUri ->
-                    imageUri = pickedUri
+                ServiceImagePicker(imageService) { pickedUri ->
+                    imageService = pickedUri
                 }
 
                 Spacer(Modifier.height(16.dp))
 
                 PriceRangeInput(
-                    priceFrom = priceFrom,
-                    priceTo = priceTo,
-                    onFromChanged = { priceFrom = it },
-                    onToChanged = { priceTo = it }
+                    priceFrom = minprice,
+                    priceTo = maxprice,
+                    onFromChanged = { minprice = it },
+                    onToChanged = { maxprice = it }
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -185,26 +178,34 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 Spacer(Modifier.height(8.dp))
 
                 AddServiceButton {
-                    if (selectedSpecialization.isNotBlank() && priceFrom.isNotBlank() && priceTo.isNotBlank()) {
+                    println("selectedSpecialization.isNotBlank():"
+                            +selectedSpecialization.isNotBlank()
+                            +"priceFrom.isNotBlank():"
+                            +minprice.isNotBlank()
+                            +"priceTo.isNotBlank():"
+                            +maxprice.isNotBlank())
+                    if (selectedSpecialization.isNotBlank() && minprice.isNotBlank() && maxprice.isNotBlank()) {
                         val newService = ServiceInput(
-                            specializationName = selectedSpecialization,
-                            imageUri = imageUri ?: Uri.EMPTY,
-                            priceFrom = priceFrom,
-                            priceTo = priceTo,
+                            specialtyName = selectedSpecialization,
+                            imageService = imageService,
+                            minprice = minprice,
+                            maxprice = maxprice,
                             description = description
                         )
 
-                        services = (services ?: emptyList()) + newService
+                        services = services + newService
 
-                        println("So service da them: "+services)
-                        // Xóa input sau khi thêm
+                        println("So service da them: $services")
+
+                        // Reset fields
                         selectedSpecialization = ""
-                        imageUri = null
-                        priceFrom = ""
-                        priceTo = ""
+                        imageService = emptyList()
+                        minprice = ""
+                        maxprice = ""
                         description = ""
                     }
                 }
+
 
 
                 Spacer(Modifier.height(12.dp))
@@ -233,11 +234,14 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 )
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
+                        imageService,
                         schedule,
                         services,
                         address,
+                        description,
                         doctorViewModel,
-                        doctorId!!
+                        doctorId!!,
+                        navHostController
                     )
                 }
 
@@ -248,11 +252,14 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
 
 @Composable
 fun SaveFloatingButton(
+    imageUris: List<Uri>,
     schedule: List<WorkHour>,
     services: List<ServiceInput>,
     address: String,
+    description: String,
     doctorViewModel: DoctorViewModel,
-    doctorID: String
+    doctorID: String,
+    navHostController:NavHostController
 ) {
     val context = LocalContext.current
     Box(
@@ -263,10 +270,12 @@ fun SaveFloatingButton(
         Button(
             onClick = {
                 val clinicUpdateData = ModifyClinic(
+                    address = address,
+                    description = description,
                     workingHours = schedule,
                     services = services,
-                    address = address
-                )
+                    images = imageUris
+                    )
                 println ("Clinic data: "+ clinicUpdateData)
                 doctorViewModel.updateClinic(clinicUpdateData, doctorID,context)
             },
@@ -284,51 +293,62 @@ fun SaveFloatingButton(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }
+        val updateSuccess = doctorViewModel.updateSuccess
+
+        LaunchedEffect(updateSuccess) {
+            if (updateSuccess == true) {
+                navHostController.navigate("personal")
+                doctorViewModel.resetUpdateStatus()
+            }
+        }
     }
 }
 
 
 @Composable
-fun SpecializationSection() {
+fun SpecializationSection(
+    selectedSpecialization: String,
+    onSpecializationSelected: (String) -> Unit
+) {
     val allSpecialties = listOf("Nội soi", "Nội tiết", "Nha khoa", "Da liễu", "Tim mạch")
-    var selectedSpecialty by remember { mutableStateOf("") }
 
     AutoCompleteSpecialization(
         allSpecializations = allSpecialties,
-        selected = selectedSpecialty,
-        onSpecializationSelected = { selectedSpecialty = it }
+        selected = selectedSpecialization,
+        onSpecializationSelected = onSpecializationSelected
     )
 }
 
+
 @Composable
-fun ServiceImagePicker(imageUri: Uri?, onImagePicked: (Uri) -> Unit) {
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { onImagePicked(it) }
+fun ServiceImagePicker(imageUris: List<Uri>, onImagesPicked: (List<Uri>) -> Unit) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        onImagesPicked(uris)
     }
 
-    Row {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .border(1.dp, Color.Gray)
-                .clickable { launcher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
+    Column {
+        Button(onClick = { launcher.launch("image/*") }) {
             Icon(Icons.Default.PhotoCamera, contentDescription = null)
+            Text("Chọn ảnh")
         }
 
-        Spacer(Modifier.width(8.dp))
-
-        imageUri?.let {
-            Image(
-                painter = rememberAsyncImagePainter(it),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                contentScale = ContentScale.Crop
-            )
+        LazyRow {
+            items(imageUris) { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .size(80.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun PriceRangeInput(
@@ -565,20 +585,18 @@ fun TimePickerSection(
     }
 }
 
-
 @Composable
 fun AutoCompleteSpecialization(
-    allSpecializations: List<String>, // giả lập từ DB
+    allSpecializations: List<String>,
     selected: String,
     onSpecializationSelected: (String) -> Unit
 ) {
-    var query by remember { mutableStateOf(selected) }
     var expanded by remember { mutableStateOf(false) }
 
-    val filtered = remember(query) {
-        if (query.isBlank()) emptyList()
+    val filtered = remember(selected) {
+        if (selected.isBlank()) emptyList()
         else allSpecializations.filter {
-            it.contains(query, ignoreCase = true)
+            it.contains(selected, ignoreCase = true)
         }
     }
 
@@ -586,9 +604,9 @@ fun AutoCompleteSpecialization(
         Text("Chuyên khoa của bạn", fontWeight = FontWeight.Bold)
 
         OutlinedTextField(
-            value = query,
+            value = selected,
             onValueChange = {
-                query = it
+                onSpecializationSelected(it)
                 expanded = true
             },
             modifier = Modifier.fillMaxWidth(),
@@ -599,19 +617,21 @@ fun AutoCompleteSpecialization(
         DropdownMenu(
             expanded = expanded && filtered.isNotEmpty(),
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth().background(Color.White)
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
         ) {
             filtered.forEach { item ->
                 DropdownMenuItem(
                     text = { Text(item) },
                     onClick = {
-                        query = item
-                        expanded = false
                         onSpecializationSelected(item)
+                        expanded = false
                     }
                 )
             }
         }
     }
 }
+
 

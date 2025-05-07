@@ -71,7 +71,6 @@ import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     posts: List<PostResponse>,
@@ -132,7 +131,6 @@ fun PostColumn(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ViewPostOwner(
     postId: String,

@@ -4,18 +4,18 @@ import android.net.Uri
 import com.google.gson.annotations.SerializedName
 
 data class ServiceInput(
-    var specializationName: String,
-    var imageUri: Uri,
-    var priceFrom: String,
-    var priceTo: String,
+    var specialtyName: String,
+    var imageService: List<Uri>,
+    var minprice: String,
+    var maxprice: String,
     var description: String
 )
 
 data class ServiceOutput(
     val specialtyID : String,
     val specialtyName : String,
-    val imageService: String,
+    val description: String,
+    val imageService: List<String>,
     @SerializedName("minprice") val minPrice: String,
     @SerializedName("maxprice")val maxPrice: String,
-    val description: String
 )

@@ -5,19 +5,18 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
-import com.hellodoc.healthcaresystem.requestmodel.DoctorUiState
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
-import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +25,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.jetbrains.annotations.Async.Schedule
 import java.io.File
 
 class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -88,7 +86,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
             MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
         } catch (e: Exception) {
-            Log.e("PostViewModel", "Error preparing file part", e)
+            Log.e("DoctorViewModel", "Error preparing file part", e)
             null
         }
     }
@@ -167,55 +165,151 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    var updateSuccess by mutableStateOf<Boolean?>(null)
+        private set
+    fun resetUpdateStatus() {
+        updateSuccess = null
+    }
     fun updateClinic(clinicUpdateData: ModifyClinic, doctorId: String, context: Context) {
         viewModelScope.launch {
             try {
                 val gson = Gson()
 
                 val addressPart = MultipartBody.Part.createFormData("address", clinicUpdateData.address)
-                val workHourJson = gson.toJson(clinicUpdateData.workingHours)
-                val workHourPart = MultipartBody.Part.createFormData("workingHour", workHourJson)
+                val descriptionPart = MultipartBody.Part.createFormData("description", clinicUpdateData.description)
 
+                val workHourJson = gson.toJson(clinicUpdateData.workingHours)
+                val workHourPart = MultipartBody.Part.createFormData("workingHours", workHourJson)
+
+                // Dữ liệu services không gửi ảnh qua JSON
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
-                        specializationName = it.specializationName,
-                        priceFrom = it.priceFrom,
-                        priceTo = it.priceTo,
+                        specialtyName = it.specialtyName,
+                        minprice = it.minprice,
+                        maxprice = it.maxprice,
                         description = it.description,
-                        imageUri = Uri.EMPTY // tạm để imageUri rỗng khi serialize
+                        imageService = emptyList() // tránh gửi uri dạng content:// vào JSON
                     )
                 }
                 val servicesJson = gson.toJson(servicesJsonList)
                 val servicesPart = MultipartBody.Part.createFormData("services", servicesJson)
 
-                // Upload từng ảnh
-                val imageParts = clinicUpdateData.services.mapIndexed { index, service ->
-                    prepareFilePart(context, service.imageUri, "image$index")
+                // Tạo danh sách ảnh
+                val imageParts = mutableListOf<MultipartBody.Part>()
+                clinicUpdateData.services.forEachIndexed { serviceIndex, service ->
+                    service.imageService.forEachIndexed { imageIndex, uri ->
+                        val partName = "image_${serviceIndex}_$imageIndex"
+                        val part = prepareFilePart(context, uri, partName)
+                        if (part != null) imageParts.add(part)
+                    }
                 }
-                val updatedImageParts: List<MultipartBody.Part> = imageParts.filterNotNull()
+
+                // Gọi API Retrofit
                 val response = RetrofitInstance.doctor.updateClinic(
                     doctorId,
                     addressPart,
+                    descriptionPart,
                     workHourPart,
                     servicesPart,
-                    updatedImageParts
+                    imageParts
                 )
 
-                println(response.toString())
-                println(response.body())
-
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(context, "Cập nhật phòng khám thành công!", Toast.LENGTH_LONG).show()
+                        updateSuccess = true
+                        Log.d("UpdateClinic", "Thành công: ${response.body()}")
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        updateSuccess = false
+                        Toast.makeText(context, "Lỗi cập nhật: $errorBody", Toast.LENGTH_LONG).show()
+                        Log.e("UpdateClinic", "Lỗi: $errorBody")
+                    }
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "Thay đổi thất bại: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    Log.e("Thay đổi clinic", "Thất bại", e)
+                    updateSuccess = false
+                    Toast.makeText(context, "Thay đổi thất bại: ${e.message}", Toast.LENGTH_LONG).show()
+                    Log.e("UpdateClinic", "Exception", e)
                 }
-                Log.e("Thay đổi Clinic", "Thất bại ", e)
             }
         }
     }
+
+
+    private val _pendingDoctors = MutableStateFlow<List<PendingDoctorResponse>>(emptyList())
+    val pendingDoctors: StateFlow<List<PendingDoctorResponse>> get() = _pendingDoctors
+
+    fun fetchPendingDoctor() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.getPendingDoctor()
+                if (response.isSuccessful) {
+                    _pendingDoctors.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("lấy pending doctor", "Thất bại ", e)
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private val _pendingDoctor = MutableStateFlow<PendingDoctorResponse?>(null)
+    val pendingDoctor: StateFlow<PendingDoctorResponse?> get() = _pendingDoctor
+
+    fun fetchPendingDoctorById(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.getPendingDoctorById(userId)
+                if (response.isSuccessful) {
+                    _pendingDoctor.value = response.body()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deletePendingDoctor(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.deletePendingDoctorById(userId)
+                if(response.isSuccessful) {
+                    fetchPendingDoctor()
+                    Log.d("Xoa pending doctor", " thanh cong")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private val _verificationMessage  = MutableStateFlow<String?>(null)
+    val verificationMessage : StateFlow<String?> = _verificationMessage
+
+    fun verifyDoctor(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.doctor.verifyDoctor(userId)
+                if(response.isSuccessful) {
+                    fetchPendingDoctor()
+                    Log.d("verify pending doctor", " thanh cong")
+                    val message = response.body()?.message
+                    if (message?.contains("thành công", ignoreCase = true) == true) {
+                        _verificationMessage.value = "success"
+                    } else {
+                        _verificationMessage.value = "fail"
+                    }
+                }
+                else {
+                    _verificationMessage.value = "fail"
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
+
 

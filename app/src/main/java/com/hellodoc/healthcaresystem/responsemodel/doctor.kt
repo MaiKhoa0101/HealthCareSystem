@@ -41,3 +41,23 @@ data class WorkHour(
     val hour: Int,
     val minute: Int
 )
+
+data class PendingDoctorResponse(
+    @SerializedName("_id") val id: String,
+    val userId: String,
+    val CCCD: String,
+    val license: String,
+    val name: String,
+    val phone: String,
+    val email: String,
+    val specialty: Specialty,
+    val faceUrl: String?,
+    val avatarURL: String?,
+    val licenseUrl: String?,
+    val backCccdUrl: String?,
+    val frontCccdUrl: String?
+)
+
+data class ReturnPendingDoctorResponse(
+    val message: String
+)

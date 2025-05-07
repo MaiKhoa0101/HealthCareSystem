@@ -43,6 +43,7 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 
 @Composable
@@ -119,10 +120,13 @@ fun ProfileScreen(navHostController: NavHostController) {
     LaunchedEffect(doctorId) {
         doctorId?.let { viewModel.fetchDoctorById(it) }
     }
-
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
     Scaffold(
         bottomBar = {
             if (!showWriteReviewScreen.value) {
@@ -146,17 +150,18 @@ fun ProfileScreen(navHostController: NavHostController) {
                 } else {
                     UserInfo(
                         doctor = doctor,
-                        navHostController = navHostController
+                        navHostController = navHostController,
+                        onImageClick = { selectedImageUrl = it}
                     )
                 }
             }
-
             item {
                 OtherUserListScreen(
                     doctor = doctor,
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
-                    showWriteReviewScreen = showWriteReviewScreen
+                    showWriteReviewScreen = showWriteReviewScreen,
+                    onImageClick = { selectedImageUrl = it}
                 )
             }
         }
@@ -167,6 +172,7 @@ fun ProfileScreen(navHostController: NavHostController) {
 fun UserInfo(
     doctor: GetDoctorResponse?,
     navHostController: NavHostController,
+    onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     ConstraintLayout(
@@ -194,6 +200,9 @@ fun UserInfo(
                     top.linkTo(parent.top, margin = 45.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
+                }
+                .clickable {
+                    onImageClick(imageUrl)
                 },
             contentScale = ContentScale.Crop
         )
@@ -305,8 +314,11 @@ fun OtherUserListScreen(
     doctor: GetDoctorResponse?,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    showWriteReviewScreen: MutableState<Boolean>
+    showWriteReviewScreen: MutableState<Boolean>,
+    onImageClick: (String) -> Unit
 ) {
+    println("Doctor lay duoc: "+doctor)
+
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
     val sharedPreferences = remember {
@@ -337,7 +349,9 @@ fun OtherUserListScreen(
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
     LaunchedEffect(doctor?.id) {
-        doctor?.id?.let { postViewModel.getPostUserById(it) }
+        doctor?.id?.let {
+            postViewModel.getPostUserById(it)
+        }
     }
 
     Column(
@@ -363,9 +377,9 @@ fun OtherUserListScreen(
                 )
             }
         }
-
+        println("Vao dươc toi trang user khác")
             when (selectedTab) {
-                0 -> ViewIntroduce(doctor = doctor)
+                0 -> ViewIntroduce(doctor = doctor,onImageClick)
                 1 -> {
                     if (showWriteReviewScreen.value) {
                         WriteReviewScreen(
