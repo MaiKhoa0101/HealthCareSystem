@@ -165,7 +165,11 @@ fun AppointmentScreenUI(
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 roles.forEachIndexed { index, title ->
-                    val isTabEnabled = (index == 0 && isPatient) || (index == 1 && isDoctor)
+                    val isTabEnabled = when {
+                        isPatient -> index == 0
+                        isDoctor -> true
+                        else -> false
+                    }
 
                     Tab(
                         selected = roleSelectedTab == index,

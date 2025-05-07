@@ -1,14 +1,22 @@
 package com.hellodoc.healthcaresystem.doctor
 
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,21 +24,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import com.auth0.android.jwt.JWT
 
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
+import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
+import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
+import com.hellodoc.healthcaresystem.responsemodel.WorkHour
+import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 
 
 @Composable
-fun EditClinicServiceScreen(sharedPreferences: SharedPreferences,navHostController: NavHostController) {
-    BodyEditClinicServiceScreen()
-
+fun EditClinicServiceScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            HeadbarEditClinic(navHostController)
+        }
+    ) { innerPadding ->
+        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences,navHostController)
+    }
 }
+
 
 @Composable
 fun HeadbarEditClinic(navHostController: NavHostController) {
@@ -59,150 +86,552 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
 }
 
 @Composable
-fun BodyEditClinicServiceScreen() {
-    val specialties = listOf("Răng hàm mặt", "Nha khoa", "Chấn thương chỉnh hình")
+fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences, navHostController:NavHostController) {
 
-    var selectedSpecialty by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var address by remember { mutableStateOf("") }
-    var hasHomeVisit by remember { mutableStateOf(false) }
-    var feeFrom by remember { mutableStateOf("") }
-    var feeTo by remember { mutableStateOf("") }
+    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
+    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+        initializer { DoctorViewModel(sharedPreferences) }
+    })
+
+
+    val token = sharedPreferences.getString("access_token", null)
+
+    val jwt = remember(token) {
+        try {
+            JWT(token ?: throw IllegalArgumentException("Token is null"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    val doctorId = jwt?.getClaim("userId")?.asString()
+    var servicesCreated by remember { mutableStateOf(listOf<ServiceOutput>()) }
+    var scheduleCreated by remember { mutableStateOf(listOf<WorkHour>())}
+
+    var schedule by remember { mutableStateOf<List<WorkHour>>(emptyList()) }
+    var services by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
+
+    // Gọi API để fetch user từ server
+    LaunchedEffect(doctorId) {
+        doctorId?.let {
+            doctorViewModel.fetchDoctorById(it)
+        }
+
+    }
+    // Lấy dữ liệu doctor từ StateFlow
+    val doctor by doctorViewModel.doctor.collectAsState()
+    if (doctor == null) return
+    else {
+        servicesCreated = doctor!!.services
+        scheduleCreated = doctor!!.workHour
+    }
+
+    var selectedSpecialization by remember { mutableStateOf("") }
+    var imageService by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var minprice by remember { mutableStateOf("") }
+    var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var workplace by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+
+    println("Dữ liệu đã sửa schedule: "+schedule)
+    println("Dữ liệu đã sửa service: "+services)
+    println("Dữ liệu đã sửa address: "+address)
+
+
 
     LazyColumn(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize()
+        modifier = modifier
     ) {
         item {
-            Text(
-                text = "Chức năng này sẽ cho phép bạn chỉnh sửa thông tin phòng khám, dịch vụ của bạn đến các người dùng khác của hệ thống.",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    "Chức năng này sẽ cho phép bạn chỉnh sửa thông tin phòng khám, dịch vụ của bạn",
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(Modifier.height(16.dp))
+                SpecializationSection(
+                    selectedSpecialization = selectedSpecialization,
+                    onSpecializationSelected = { selectedSpecialization = it }
+                )
+                Spacer(Modifier.height(16.dp))
+                ServiceImagePicker(imageService) { pickedUri ->
+                    imageService = pickedUri
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
-            Text("Chuyên khoa của bạn", fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Box {
-                OutlinedTextField(
-                    value = selectedSpecialty,
-                    onValueChange = {},
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true },
-                    readOnly = true,
-                    label = { Text("Chưa chọn") },
-                    trailingIcon = {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
+                PriceRangeInput(
+                    priceFrom = minprice,
+                    priceTo = maxprice,
+                    onFromChanged = { minprice = it },
+                    onToChanged = { maxprice = it }
                 )
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    specialties.forEach {
-                        DropdownMenuItem(
-                            text = { Text(it) },
-                            onClick = {
-                                selectedSpecialty = it
-                                expanded = false
-                            }
+                Spacer(Modifier.height(16.dp))
+
+                DescriptionInput(description) { description = it }
+
+                Spacer(Modifier.height(8.dp))
+
+                AddServiceButton {
+                    println("selectedSpecialization.isNotBlank():"
+                            +selectedSpecialization.isNotBlank()
+                            +"priceFrom.isNotBlank():"
+                            +minprice.isNotBlank()
+                            +"priceTo.isNotBlank():"
+                            +maxprice.isNotBlank())
+                    if (selectedSpecialization.isNotBlank() && minprice.isNotBlank() && maxprice.isNotBlank()) {
+                        val newService = ServiceInput(
+                            specialtyName = selectedSpecialization,
+                            imageService = imageService,
+                            minprice = minprice,
+                            maxprice = maxprice,
+                            description = description
                         )
+
+                        services = services + newService
+
+                        println("So service da them: $services")
+
+                        // Reset fields
+                        selectedSpecialization = ""
+                        imageService = emptyList()
+                        minprice = ""
+                        maxprice = ""
+                        description = ""
                     }
                 }
+
+
+
+                Spacer(Modifier.height(12.dp))
+
+                ServiceTags(servicesCreated) { removed ->
+                    servicesCreated = servicesCreated - removed
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Ảnh bìa của dịch vụ", fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.camera),
-                        contentDescription = "Upload Image"
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(Modifier.height(8.dp))
+                AddressSection(
+                    address = address,
+                    onAddressChange = { address = it },
+                )
+                Spacer(Modifier.height(8.dp))
+                WorkScheduleSection(scheduleCreated)
+                Spacer(Modifier.height(8.dp))
+                TimePickerSection(
+                    tempSchedule = schedule,
+                    onAddTime = { newHour ->
+                        schedule = schedule + newHour
+                    }
+                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    SaveFloatingButton (
+                        imageService,
+                        schedule,
+                        services,
+                        address,
+                        description,
+                        doctorViewModel,
+                        doctorId!!,
+                        navHostController
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+            }
+        }
+    }
+}
 
+@Composable
+fun SaveFloatingButton(
+    imageUris: List<Uri>,
+    schedule: List<WorkHour>,
+    services: List<ServiceInput>,
+    address: String,
+    description: String,
+    doctorViewModel: DoctorViewModel,
+    doctorID: String,
+    navHostController:NavHostController
+) {
+    val context = LocalContext.current
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Button(
+            onClick = {
+                val clinicUpdateData = ModifyClinic(
+                    address = address,
+                    description = description,
+                    workingHours = schedule,
+                    services = services,
+                    images = imageUris
+                    )
+                println ("Clinic data: "+ clinicUpdateData)
+                doctorViewModel.updateClinic(clinicUpdateData, doctorID,context)
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp)
+                .align(Alignment.Center)
+            ) {
+            Text(
+                text = "Đặt khám",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        val updateSuccess = doctorViewModel.updateSuccess
+
+        LaunchedEffect(updateSuccess) {
+            if (updateSuccess == true) {
+                navHostController.navigate("personal")
+                doctorViewModel.resetUpdateStatus()
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SpecializationSection(
+    selectedSpecialization: String,
+    onSpecializationSelected: (String) -> Unit
+) {
+    val allSpecialties = listOf("Nội soi", "Nội tiết", "Nha khoa", "Da liễu", "Tim mạch")
+
+    AutoCompleteSpecialization(
+        allSpecializations = allSpecialties,
+        selected = selectedSpecialization,
+        onSpecializationSelected = onSpecializationSelected
+    )
+}
+
+
+@Composable
+fun ServiceImagePicker(imageUris: List<Uri>, onImagesPicked: (List<Uri>) -> Unit) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        onImagesPicked(uris)
+    }
+
+    Column {
+        Button(onClick = { launcher.launch("image/*") }) {
+            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+            Text("Chọn ảnh")
+        }
+
+        LazyRow {
+            items(imageUris) { uri ->
                 Image(
-                    painter = painterResource(id = R.drawable.doctor),
-                    contentDescription = "Clinic Image",
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .padding(4.dp)
+                        .size(80.dp),
                     contentScale = ContentScale.Crop
                 )
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Địa chỉ phòng khám", fontWeight = FontWeight.SemiBold)
+@Composable
+fun PriceRangeInput(
+    priceFrom: String,
+    priceTo: String,
+    onFromChanged: (String) -> Unit,
+    onToChanged: (String) -> Unit
+) {
+    Column {
+        Text("Phí dịch vụ", fontWeight = FontWeight.Bold)
+        Row {
             OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                modifier = Modifier.fillMaxWidth()
+                value = priceFrom,
+                onValueChange = onFromChanged,
+                label = { Text("Từ") },
+                modifier = Modifier.weight(1f)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = hasHomeVisit,
-                    onCheckedChange = { hasHomeVisit = it }
-                )
-                Text("Có dịch vụ khám tại nhà")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Phí dịch vụ", fontWeight = FontWeight.SemiBold)
-            Row {
-                OutlinedTextField(
-                    value = feeFrom,
-                    onValueChange = { feeFrom = it },
-                    label = { Text("Từ") },
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedTextField(
-                    value = feeTo,
-                    onValueChange = { feeTo = it },
-                    label = { Text("Đến") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Thông tin giới thiệu", fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.width(8.dp))
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Nơi làm việc", fontWeight = FontWeight.SemiBold)
-            OutlinedTextField(
-                value = workplace,
-                onValueChange = { workplace = it },
-                modifier = Modifier.fillMaxWidth()
+                value = priceTo,
+                onValueChange = onToChanged,
+                label = { Text("Đến") },
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
+
+
+@Composable
+fun DescriptionInput(description: String, onChange: (String) -> Unit) {
+    Column {
+        Text("Thông tin giới thiệu", fontWeight = FontWeight.Bold)
+        OutlinedTextField(
+            value = description,
+            onValueChange = onChange,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun AddServiceButton(onAdd: () -> Unit) {
+    IconButton(onClick = onAdd) {
+        Icon(Icons.Default.Add, contentDescription = null)
+    }
+}
+@Composable
+fun ServiceTags(
+    services: List<ServiceOutput>,
+    onRemove: (ServiceOutput) -> Unit,
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+    ) {
+        items(services) { service ->
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFE0E0E0))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = service.specialtyName,
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.DeleteForever,
+                        contentDescription = "Xoá",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { onRemove(service) },
+                        tint = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun AddressSection(
+    address: String,
+    onAddressChange: (String) -> Unit,
+) {
+    Column {
+        OutlinedTextField(
+            value = address,
+            onValueChange = { onAddressChange(it) },
+            label = { Text("Địa chỉ phòng khám") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = false,
+                onCheckedChange = { }
+            )
+            Text("Có dịch vụ khám tại nhà")
+        }
+    }
+}
+
+
+@Composable
+fun WorkScheduleSection(schedule: List<WorkHour>) {
+    val weekdays = listOf("TH 2", "TH 3", "TH 4", "TH 5", "TH 6", "TH 7", "CN")
+
+    // Nhóm theo thứ trong tuần (2-8)
+    val scheduleByDay = schedule.groupBy { it.dayOfWeek }
+
+    // Tìm số khung giờ tối đa trong 1 ngày (để lặp theo hàng)
+    val maxRows = scheduleByDay.values.maxOfOrNull { it.size } ?: 0
+
+    Text("Lịch hiện tại", fontWeight = FontWeight.SemiBold)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // Hàng tiêu đề: TH2 - CN
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                weekdays.forEach { day ->
+                    Text(
+                        text = day,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Vẽ từng hàng thời gian (giống như table row)
+            for (i in 0 until maxRows) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (dayIndex in 2..8) {
+                        val times = scheduleByDay[dayIndex] ?: emptyList()
+                        val time = times.getOrNull(i)
+
+                        Text(
+                            text = time?.let { "${it.hour}:${it.minute.toString().padStart(2, '0')}" } ?: "",
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 13.sp,
+                            color = Color(0xFF444444)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun TimePickerSection(
+    tempSchedule: List<WorkHour>,
+    onAddTime: (WorkHour) -> Unit
+) {
+    var day by remember { mutableStateOf("") }
+    var hour by remember { mutableStateOf("") }
+    var minute by remember { mutableStateOf("") }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = day,
+            onValueChange = { day = it },
+            label = { Text("Thứ") },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("2 - 8") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+            value = hour,
+            onValueChange = { hour = it },
+            label = { Text("Giờ") },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("0 - 23") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+            value = minute,
+            onValueChange = { minute = it },
+            label = { Text("Phút") },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("0 - 59") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
+        IconButton(onClick = {
+            val d = day.toIntOrNull()
+            val h = hour.toIntOrNull()
+            val m = minute.toIntOrNull()
+
+            if (d in 2..8 && h in 0..23 && m in 0..59) {
+                val newWorkHour = WorkHour(d!!, h!!, m!!)
+                if (newWorkHour !in tempSchedule) {
+                    onAddTime(newWorkHour)
+                }
+                // Reset input
+                day = ""
+                hour = ""
+                minute = ""
+            }
+        }) {
+            Icon(Icons.Default.Add, contentDescription = "Add time")
+        }
+    }
+}
+
+@Composable
+fun AutoCompleteSpecialization(
+    allSpecializations: List<String>,
+    selected: String,
+    onSpecializationSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val filtered = remember(selected) {
+        if (selected.isBlank()) emptyList()
+        else allSpecializations.filter {
+            it.contains(selected, ignoreCase = true)
+        }
+    }
+
+    Column {
+        Text("Chuyên khoa của bạn", fontWeight = FontWeight.Bold)
+
+        OutlinedTextField(
+            value = selected,
+            onValueChange = {
+                onSpecializationSelected(it)
+                expanded = true
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Nhập chuyên khoa") },
+            singleLine = true
+        )
+
+        DropdownMenu(
+            expanded = expanded && filtered.isNotEmpty(),
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            filtered.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item) },
+                    onClick = {
+                        onSpecializationSelected(item)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+

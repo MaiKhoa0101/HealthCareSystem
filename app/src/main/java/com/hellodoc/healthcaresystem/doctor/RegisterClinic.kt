@@ -53,8 +53,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
+import com.hellodoc.healthcaresystem.user.personal.userId
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun RegisterClinic(
@@ -65,6 +67,7 @@ fun RegisterClinic(
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
+
     Scaffold(
         topBar = { HeadbarResClinic(navHostController) }
     ) { paddingValues ->
@@ -138,8 +141,13 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                 frontCccdUri != null && backCccdUri != null && faceUri != null && licenseUri != null
     }
 
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
+        userId = userViewModel.getUserAttributeString("userId")
     }
 
     Column(
@@ -295,8 +303,7 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                         frontCccdUrl = frontCccdUri,
                         backCccdUrl = backCccdUri
                     )
-                    // Assuming you have a way to get the userId
-                    val userId = "68038c468dbb8bbaeefd48dd" // Replace with actual user ID retrieval
+
                     viewModel.applyForDoctor(userId, request, context)
                 },
                 modifier = Modifier.fillMaxWidth(),

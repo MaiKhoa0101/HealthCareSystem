@@ -1,6 +1,9 @@
 package com.hellodoc.healthcaresystem.requestmodel
 
 import android.net.Uri
+import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
+import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
+import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 
 data class ApplyDoctorRequest(
     val license: String,
@@ -12,6 +15,15 @@ data class ApplyDoctorRequest(
     val frontCccdUrl: Uri?,
     val backCccdUrl: Uri?
 )
+
+data class ModifyClinic(
+    val workingHours:List<WorkHour>,
+    val address: String,
+    val description: String,
+    val services: List<ServiceInput>,
+    val images: List<Uri>
+)
+
 
 data class DoctorUiState(
     val isLoading: Boolean = false,

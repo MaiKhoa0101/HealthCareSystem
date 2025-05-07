@@ -57,25 +57,12 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
-//@Composable
-//fun Index(modifier: Modifier =Modifier) {
-//    Box(modifier = Modifier.padding(top = 45.dp)) {
-//        Column(
-//            Modifier.fillMaxSize(),
-//            Arrangement.Center,
-//            Alignment.CenterHorizontally) {
-//            HealthMateHomeScreen()
-//        }
-//        SidebarMenu()
-//        Menu()
-//    }
-//}
 
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
-    onNavigateToDoctorList: (String, String) -> Unit,
+    onNavigateToDoctorList: (String, String, String) -> Unit,
     navHostController: NavHostController
 ) {
 
@@ -194,6 +181,7 @@ fun HealthMateHomeScreen(
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
+                    println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctors)
                 }
             }
@@ -283,7 +271,6 @@ fun AssistantAnswerDialog(
         }
     )
 }
-
 
 @Composable
 fun AssistantQueryRow(
@@ -376,7 +363,6 @@ fun FAQItem(
     }
 }
 
-
 @Composable
 fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
     Column (modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -410,7 +396,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String) -> Unit) {
+fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String, String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
@@ -431,7 +417,7 @@ fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onN
 fun SpecialtyItem(
     specialty: GetSpecialtyResponse,
     onClick: () -> Unit,
-    onNavigateToDoctorList: (String, String) -> Unit
+    onNavigateToDoctorList: (String, String, String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -446,7 +432,7 @@ fun SpecialtyItem(
             )
             .clickable {
                 onClick()
-                onNavigateToDoctorList(specialty.id, specialty.name)
+                onNavigateToDoctorList(specialty.id, specialty.name, specialty.description)
             }
             .padding(12.dp),
         contentAlignment = Alignment.Center
@@ -503,7 +489,7 @@ fun DoctorList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

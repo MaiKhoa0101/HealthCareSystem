@@ -4,6 +4,7 @@ import com.hellodoc.healthcaresystem.requestmodel.GetUserID
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.responsemodel.UserResponse
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -21,10 +22,15 @@ interface AdminService {
     @GET("user/get/{id}")
     suspend fun GetByUserID(@Body request: GetUserID): Response<User>
 
+    @Multipart
     @PUT("admin/updateUser/{id}")
     suspend fun updateUserByID(
         @Path("id") id: String,
-        @Body user: UpdateUser
+        @Part avatarURL: MultipartBody.Part?,
+        @Part name: MultipartBody.Part?,
+        @Part email: MultipartBody.Part?,
+        @Part phone: MultipartBody.Part?,
+        @Part password: MultipartBody.Part?,
     ):  Response<User>
 
 
