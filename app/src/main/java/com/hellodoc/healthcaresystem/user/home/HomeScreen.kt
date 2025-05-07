@@ -204,12 +204,12 @@ fun HealthMateHomeScreen(
 //                }
 //            }
 
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                if (posts.isNotEmpty()) {
-                    DoctorList(navHostController = navHostController, doctors = doctors)
-                }
-            }
+//            item {
+//                Spacer(modifier = Modifier.height(8.dp))
+//                if (posts.isNotEmpty()) {
+//                    DoctorList(navHostController = navHostController, doctors = doctors)
+//                }
+//            }
 
             item {
                 Spacer(modifier = Modifier.height(100.dp))
