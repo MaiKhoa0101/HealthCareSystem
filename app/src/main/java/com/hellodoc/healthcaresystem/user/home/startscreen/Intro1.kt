@@ -1,34 +1,40 @@
 package com.hellodoc.healthcaresystem.user.home.startscreen
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.content.SharedPreferences
+import androidx.lifecycle.lifecycleScope
+import com.auth0.android.jwt.JWT
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.admin.AdminRoot
+import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class Intro1 : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val sharedPref: SharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE)
-        val isFirstRun = sharedPref.getBoolean("isFirstRun", true)
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("access_token", null)
         setContentView(R.layout.activity_intro1)
-        sharedPref.edit().putBoolean("isFirstRun", true).apply()
-        if (isFirstRun) {
-            // Nếu là lần đầu, hiển thị Intro1 rồi chuyển đến SignIn
-            sharedPref.edit().putBoolean("isFirstRun", false).apply()
-            setContentView(R.layout.activity_intro1)
-
-            // Sau 3 giây chuyển đến SignIn (hoặc có nút chuyển)
-            window.decorView.postDelayed({
-                startActivity(Intent(this, Intro2::class.java))
-                finish() // Đóng Intro1 để không quay lại được
-            }, 3000)
-
-        } else {
-            // Nếu đã mở app trước đó, chuyển thẳng đến SignIn
-            startActivity(Intent(this, SignIn::class.java))
+        lifecycleScope.launch {
+            delay(3000)
+            if (token == null) {
+                startActivity(Intent(this@Intro1, Intro2::class.java))
+            } else {
+                val jwt = JWT(token)
+                val role = jwt.getClaim("role").asString() ?: "unknown"
+                if (role == "admin") {
+                    startActivity(Intent(this@Intro1, AdminRoot::class.java))
+                } else {
+                    startActivity(Intent(this@Intro1, HomeActivity::class.java))
+                }
+            }
             finish()
         }
+
     }
 }
