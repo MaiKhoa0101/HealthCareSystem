@@ -21,7 +21,7 @@ class Intro1 : BaseActivity() {
         val token = sharedPreferences.getString("access_token", null)
         setContentView(R.layout.activity_intro1)
         lifecycleScope.launch {
-            delay(3000)
+            delay(1000)
             if (token == null) {
                 startActivity(Intent(this@Intro1, Intro2::class.java))
             } else {
