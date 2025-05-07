@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -60,10 +61,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         )
         remoteViews.setTextViewText(R.id.title, title)
         remoteViews.setTextViewText(R.id.message, message)
-        remoteViews.setImageViewResource(
-            R.id.icon,
-            R.drawable.ic_hacker
-        )
+//        remoteViews.setImageViewResource(
+//            R.id.icon,
+//            R.drawable.doctor
+//        )
         return remoteViews
     }
 
@@ -89,11 +90,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Create a Builder object using NotificationCompat
         // class. This will allow control over all the flags
+
+        val shortMessage = if (message.length > 60) message.take(60) + "..." else message
+        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.arrow_back)
+
         var builder: NotificationCompat.Builder = NotificationCompat.Builder(
             applicationContext,
             channelId
         )
             .setSmallIcon(R.drawable.doctor)
+            .setLargeIcon(bitmap)
             .setAutoCancel(true)
             .setVibrate(
                 longArrayOf(
@@ -102,7 +108,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 )
             )
             .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000))
+            .setOnlyAlertOnce(true)
             .setContentIntent(pendingIntent)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText(message))
 
         // A customized design for the notification can be
         // set only for Android versions 4.1 and above. Thus

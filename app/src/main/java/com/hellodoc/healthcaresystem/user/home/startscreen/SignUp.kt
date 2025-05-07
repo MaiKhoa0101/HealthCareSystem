@@ -56,18 +56,15 @@ class SignUp : BaseActivity() {
 
 
         val emailInput = findViewById<EditText>(R.id.email)
-
-        val linearLayoutPass= findViewById<LinearLayout>(R.id.linearpassword)
-        val passwordInput = linearLayoutPass.findViewById<EditText>(R.id.password)
-        val linearLayoutRepass= findViewById<LinearLayout>(R.id.linearrepassword)
-        val repasswordInput = linearLayoutRepass.findViewById<EditText>(R.id.repassword)
         val usernameInput = findViewById<EditText>(R.id.username)
         val phoneInput = findViewById<EditText>(R.id.phonenumber)
+        val passwordInput = findViewById<EditText>(R.id.password)
+        val repasswordInput = findViewById<EditText>(R.id.repassword)
 
-        val passwordEditText = findViewById<EditText>(R.id.password)
-        val passwordEyeIcon = findViewById<ImageView>(R.id.password_eye)
-        val repasswordEditText = findViewById<EditText>(R.id.repassword)
-        val repasswordEyeIcon = findViewById<ImageView>(R.id.repassword_eye)
+        val passwordEye = findViewById<ImageView>(R.id.password_eye)
+        val repasswordEye = findViewById<ImageView>(R.id.repassword_eye)
+
+
 
         fun togglePasswordVisibility(editText: EditText, eyeIcon: ImageView) {
             if (editText.transformationMethod is PasswordTransformationMethod) {
@@ -83,9 +80,12 @@ class SignUp : BaseActivity() {
             editText.setSelection(editText.text.length)
         }
 
-        // Xử lý sự kiện nhấn vào icon mắt
-        passwordEyeIcon.setOnClickListener { togglePasswordVisibility(passwordEditText, passwordEyeIcon) }
-        repasswordEyeIcon.setOnClickListener { togglePasswordVisibility(repasswordEditText, repasswordEyeIcon) }
+        passwordEye.setOnClickListener {
+            togglePasswordVisibility(passwordInput, passwordEye)
+        }
+        repasswordEye.setOnClickListener {
+            togglePasswordVisibility(repasswordInput, repasswordEye)
+        }
 
 
         btnSignUp.setOnClickListener {

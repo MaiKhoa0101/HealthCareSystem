@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/intro1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
     tools:context=".user.home.startscreen.Intro1">
 
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/doctor"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/main_page_text"
-        android:text="Chao mung"
-        android:textSize="35dp"
+        android:text="HelloDoc"
+        android:textSize="60sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
+        android:textColor="@color/bluetheme"
         android:gravity="center"
         android:layout_margin="25dp"/>
-</RelativeLayout>
+</LinearLayout>

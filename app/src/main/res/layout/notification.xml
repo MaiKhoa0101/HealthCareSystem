@@ -5,48 +5,42 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="20dp">
+    android:gravity="center_vertical">
 
-    <!-- Parent Layout of ImageView -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <!-- Image section -->
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/doctor"
+        android:layout_marginEnd="12dp" />
 
-        <!--Image to be displayed beside the notification text-->
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:padding="5dp"
-            android:src="@drawable/doctor" />
-    </LinearLayout>
-
-    <!-- Parent layout for holding the Title and the Body-->
+    <!-- Text section -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:padding="5dp">
+        android:orientation="vertical">
 
-        <!-- TextView for Title -->
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Title"
+            android:text="Tiêu đề"
             android:textColor="@color/notification_text_color"
-            android:textStyle="bold" />
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
 
-        <!-- TextView for Body -->
         <TextView
             android:id="@+id/message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Message"
+            android:text="Nội dung thông báo sẽ hiển thị ở đây."
             android:textColor="@color/notification_text_color"
-            android:textSize="15sp" />
-
+            android:textSize="13sp"
+            android:maxLines="3"
+            android:ellipsize="end" />
     </LinearLayout>
-
 </LinearLayout>
