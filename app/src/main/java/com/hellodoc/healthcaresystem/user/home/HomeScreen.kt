@@ -271,7 +271,6 @@ fun AssistantAnswerDialog(
     )
 }
 
-
 @Composable
 fun AssistantQueryRow(
     navHostController: NavHostController,
@@ -362,7 +361,6 @@ fun FAQItem(
         Divider(color = Color.White, thickness = 1.dp) // Đường kẻ ngang
     }
 }
-
 
 @Composable
 fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
