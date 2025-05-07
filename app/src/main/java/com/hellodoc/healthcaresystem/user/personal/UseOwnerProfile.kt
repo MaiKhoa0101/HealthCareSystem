@@ -159,6 +159,8 @@ fun ProfileUserPage(
     }
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier
@@ -166,6 +168,7 @@ fun ProfileUserPage(
         .pointerInput(Unit) {
             detectTapGestures {
                 postViewModel.closeAllPostMenus()  //tắt menu post
+                showReportBox = false
             }
         }
     ) {
@@ -174,10 +177,10 @@ fun ProfileUserPage(
                 ProfileSection(
                     navHostController = navHostController,
                     user = user!!,
-                    onClickShowReport = {
-                        showReportDialog = true
-                    },
-                    onImageClick = { selectedImageUrl = it}
+                    onClickShowReport = { showReportDialog = true },
+                    onImageClick = { selectedImageUrl = it },
+                    showReportBox = showReportBox,
+                    onToggleReportBox = { showReportBox = !showReportBox }
                 )
             }
             item {
@@ -351,7 +354,11 @@ fun ProfileUserPage(
 fun ProfileSection(
     navHostController: NavHostController,
     user: User, onClickShowReport: () -> Unit,
-    onImageClick: (String) -> Unit) {
+    onImageClick: (String) -> Unit,
+    showReportBox: Boolean,
+    onToggleReportBox: () -> Unit
+)
+{
     Column(
         modifier = Modifier.background(Color.Cyan)
     ) {
@@ -364,7 +371,9 @@ fun ProfileSection(
                 user = user,
                 onClickShowReport = onClickShowReport,
                 navController = navHostController,
-                onImageClick
+                onImageClick = onImageClick,
+                showReportBox = showReportBox,
+                onToggleReportBox = onToggleReportBox
             )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
@@ -378,9 +387,10 @@ fun UserIntroSection(
     user: User,
     onClickShowReport: () -> Unit,
     navController: NavHostController,
-    onImageClick: (String) -> Unit
+    onImageClick: (String) -> Unit,
+    showReportBox: Boolean,
+    onToggleReportBox: () -> Unit
 ) {
-    var showReportBox by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -429,7 +439,7 @@ fun UserIntroSection(
 
         // Icon 3 chấm
         IconButton(
-            onClick = { showReportBox = !showReportBox },
+            onClick = { onToggleReportBox() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp)
@@ -457,7 +467,7 @@ fun UserIntroSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showReportBox = false
+                            onToggleReportBox()
                             onClickShowReport()
                         }
                 ) {
@@ -476,7 +486,7 @@ fun UserIntroSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showReportBox = false
+                            onToggleReportBox()
                             navController.navigate("activity_manager")
                         }
                 ) {
