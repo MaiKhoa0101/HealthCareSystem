@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.doctor
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -78,7 +79,7 @@ fun RegisterClinic(
                 .padding(horizontal = 10.dp)
         ) {
             item {
-                ContentRegistrationForm(doctorViewModel, sharedPreferences)
+                ContentRegistrationForm(doctorViewModel, sharedPreferences, navHostController = navHostController)
             }
         }
     }
@@ -113,7 +114,7 @@ fun HeadbarResClinic(navHostController: NavHostController) {
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: SharedPreferences) {
+fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: SharedPreferences, navHostController: NavHostController) {
     val context = LocalContext.current
 
     val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
@@ -145,9 +146,23 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
         initializer { UserViewModel(sharedPreferences) }
     })
 
+    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+        initializer { DoctorViewModel(sharedPreferences) }
+    })
+
+    val applyMessage by viewModel.applyMessage.collectAsState()
+
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
         userId = userViewModel.getUserAttributeString("userId")
+    }
+
+    LaunchedEffect(applyMessage) {
+        Log.d("DEBUG", "applyMessage changed: $applyMessage")
+        if (applyMessage == "success") {
+            navHostController.popBackStack()
+            viewModel.setApplyMessage("")
+        }
     }
 
     Column(

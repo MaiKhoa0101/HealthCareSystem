@@ -47,7 +47,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val response = RetrofitInstance.doctor.getDoctors()
                 if (response.isSuccessful) {
                     _doctors.value = response.body() ?: emptyList()
-                    println("OK 1" + response.body())
+                    //println("OK 1" + response.body())
                 } else {
                     println("Lỗi API: ${response.errorBody()?.string()}")
                 }
@@ -95,16 +95,25 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private val _applyMessage  = MutableStateFlow<String?>(null)
+    val applyMessage : StateFlow<String?> = _applyMessage
     val loading = mutableStateOf(false)
+
+    fun setApplyMessage(value: String) {
+        _applyMessage.value = value
+    }
+
     fun applyForDoctor(userId: String, request: ApplyDoctorRequest, context: Context) {
         loading.value = true
 
         viewModelScope.launch {
             try {
+                // Tạo multipart từ các trường bắt buộc
                 val license = MultipartBody.Part.createFormData("license", request.license)
                 val specialty = MultipartBody.Part.createFormData("specialty", request.specialty)
                 val CCCD = MultipartBody.Part.createFormData("CCCD", request.CCCD)
 
+                // Tạo multipart từ các file nếu có
                 val licenseUrl = request.licenseUrl?.let {
                     prepareFilePart(context, it, "licenseUrl")
                 }
@@ -121,6 +130,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                     prepareFilePart(context, it, "backCccdUrl")
                 }
 
+                // Gọi API
                 val response = RetrofitInstance.doctor.applyForDoctor(
                     userId,
                     license,
@@ -134,23 +144,47 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 )
 
                 withContext(Dispatchers.Main) {
+                    val successKeywords = listOf("thành công", "đã gửi", "trước đó", "hoàn tất")
+
                     if (response.isSuccessful) {
+                        val message = response.body()?.message?.lowercase().orEmpty()
+
                         Toast.makeText(
                             context,
                             "Đăng ký thành công. Vui lòng chờ xác thực.",
                             Toast.LENGTH_LONG
                         ).show()
-                        Log.d("Đăng ký Bsi", "Đăng ký bác sĩ thành công")
+                        Log.d("Đăng ký Bsi", "Đăng ký bác sĩ thành công: $message")
+
+                        if (successKeywords.any { message.contains(it) }) {
+                            _applyMessage.value = "success"
+                            Log.d("Đăng ký Bsi", "Set applyMessage = success (body)")
+                        } else {
+                            _applyMessage.value = "fail"
+                            Log.d("Đăng ký Bsi", "Set applyMessage = fail (body message không hợp lệ)")
+                        }
                     } else {
-                        Toast.makeText(
-                            context,
-                            "Đăng ký bác sĩ thất bại: ${response.errorBody()?.string()}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.e(
-                            "Đăng ký Bsi",
-                            "Đăng ký bác sĩ thất bại: ${response.errorBody()?.string()}"
-                        )
+                        // Lấy nội dung lỗi từ server
+                        val errorMsg = response.errorBody()?.string()?.lowercase().orEmpty()
+                        Log.e("Đăng ký Bsi", "Đăng ký thất bại - error body: $errorMsg")
+
+                        if (successKeywords.any { errorMsg.contains(it) }) {
+                            _applyMessage.value = "success"
+                            Toast.makeText(
+                                context,
+                                "Bạn đã gửi yêu cầu trước đó.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            Log.d("Đăng ký Bsi", "Set applyMessage = success (từ error)")
+                        } else {
+                            _applyMessage.value = "fail"
+                            Toast.makeText(
+                                context,
+                                "Đăng ký bác sĩ thất bại.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            Log.d("Đăng ký Bsi", "Set applyMessage = fail (error không hợp lệ)")
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -160,14 +194,15 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         "Đăng ký bác sĩ thất bại: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
-                    Log.e("Đăng ký Bsi", "Đăng ký bác sĩ thất bại", e)
+                    _applyMessage.value = "fail"
+                    Log.e("Đăng ký Bsi", "Exception khi đăng ký bác sĩ", e)
                 }
-                Log.e("Đăng ký Bsi", "Đăng ký bác sĩ thất bại ", e)
             } finally {
                 loading.value = false
             }
         }
     }
+
 
     var updateSuccess by mutableStateOf<Boolean?>(null)
         private set

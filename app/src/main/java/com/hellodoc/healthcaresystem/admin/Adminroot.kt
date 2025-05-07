@@ -56,11 +56,11 @@ val sidebarItems = listOf(
         iconField = R.drawable.doctormanage,
         navigationField = "DoctorManager"
     ),
-//    SidebarItem(
-//        nameField = "Quản lý tin nhắn",
-//        iconField = R.drawable.messagemanage,
-//        navigationField = "MessageManager"
-//    ),
+    SidebarItem(
+        nameField = "Quản lý chuyên khoa",
+        iconField = R.drawable.messagemanage,
+        navigationField = "CreateSpecialty"
+    ),
     SidebarItem(
         nameField = "Quản lý khiếu nại",
         iconField = R.drawable.reportmanage,
@@ -140,15 +140,15 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("DoctorManager") {
                         DoctorListScreen(sharedPreferences = sharedPreferences)
                     }
-                    composable("MessageManager") {
-                        MessageManagerScreen()
+                    composable("CreateSpecialty") {
+                        CreateSpecialtyScreen(sharedPreferences)
                     }
                     composable("ReportManager") {
                         ReportManagerScreen()
                     }
-//                    composable("NewsManager"){
-//                        NewsManagerScreen()
-//                    }
+                    composable("NewsManager"){
+                        NewsManagerScreen()
+                    }
                     composable("PostManager"){
                         PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
