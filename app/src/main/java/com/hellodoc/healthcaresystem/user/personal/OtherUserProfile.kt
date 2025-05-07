@@ -118,7 +118,7 @@ fun ProfileScreen(navHostController: NavHostController) {
 
 
     LaunchedEffect(doctorId) {
-        doctorId?.let { viewModel.fetchDoctorById(it) }
+        doctorId?.let { viewModel.fetchDoctorWithStats(it) }
     }
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
