@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.responsemodel.UserResponse
@@ -205,6 +207,24 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 }
             } catch (e: Exception) {
                 Log.e("FCM", "Lỗi: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    private val _otpResult = MutableStateFlow<Result<OtpResponse>?>(null)
+    val otpResult: StateFlow<Result<OtpResponse>?> get() = _otpResult
+
+    fun requestOtp(email: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.requestOtp(EmailRequest(email))
+                if (response.isSuccessful) {
+                    _otpResult.value = Result.success(response.body()!!)
+                } else {
+                    _otpResult.value = Result.failure(Exception("Gửi OTP thất bại"))
+                }
+            } catch (e: Exception) {
+                _otpResult.value = Result.failure(e)
             }
         }
     }
