@@ -52,6 +52,7 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import kotlinx.coroutines.launch
@@ -93,6 +94,11 @@ fun HealthMateHomeScreen(
     })
     val remoteMedicalOptions by remoteMedicalOptionViewModel.remoteMedicalOptions.collectAsState()
 
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
+    val posts by postViewModel.posts.collectAsState()
+
     val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
         initializer { GeminiViewModel(sharedPreferences) }
     })
@@ -114,6 +120,7 @@ fun HealthMateHomeScreen(
         launch {
             faqItemViewModel.fetchFAQItems()
         }
+        postViewModel.getAllPosts()
 
 //        userName = viewModel.getUserNameFromToken()
 //        role = viewModel.getUserRole()
@@ -187,13 +194,20 @@ fun HealthMateHomeScreen(
             }
 
             // Khám từ xa
-            item {
-                SectionHeader(title = "Khám từ xa")
+//            item {
+//                SectionHeader(title = "Khám từ xa")
+//
+//                if (remoteMedicalOptions.isEmpty()) {
+//                    EmptyList("dịch vụ khám từ xa")
+//                } else {
+//                    RemoteMedicalOptionList(context, remoteMedicalOptions = remoteMedicalOptions)
+//                }
+//            }
 
-                if (remoteMedicalOptions.isEmpty()) {
-                    EmptyList("dịch vụ khám từ xa")
-                } else {
-                    RemoteMedicalOptionList(context, remoteMedicalOptions = remoteMedicalOptions)
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                if (posts.isNotEmpty()) {
+                    DoctorList(navHostController = navHostController, doctors = doctors)
                 }
             }
 

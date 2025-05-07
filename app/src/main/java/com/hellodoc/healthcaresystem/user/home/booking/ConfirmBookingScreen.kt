@@ -70,8 +70,8 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
     LaunchedEffect(appointmentSuccess) {
         if (appointmentSuccess) {
             showDialog = true // ✅ khi thành công thì hiển thị dialog
-            notificationViewModel.createNotification(userId = patientID, userModel = patientModel, content = "Bạn đã đặt lịch khám thành công với bác sĩ $doctorName")
-            notificationViewModel.createNotification(userId = doctorId, userModel = "Doctor", content = "Bạn có lịch khám mới với bệnh nhân $patientName")
+            notificationViewModel.createNotification(userId = patientID, userModel = patientModel, type = "ForAppointment", content = "Bạn đã đặt lịch khám thành công với bác sĩ $doctorName", navigatePath = "appointment")
+            notificationViewModel.createNotification(userId = doctorId, userModel = "Doctor", type = "ForAppointment", content = "Bạn có lịch khám mới với bệnh nhân $patientName", navigatePath = "appointment")
         }
     }
 
