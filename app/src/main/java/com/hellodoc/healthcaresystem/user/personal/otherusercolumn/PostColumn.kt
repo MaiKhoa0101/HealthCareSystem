@@ -35,6 +35,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,6 +71,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import androidx.compose.ui.layout.SubcomposeLayout
 
 
 @Composable
@@ -190,6 +193,8 @@ fun ViewPostOwner(
             }
         }
     }
+    var shouldShowSeeMore by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = modifier
@@ -250,30 +255,53 @@ fun ViewPostOwner(
             }
 
             // Content bài viết
-            Text(
-                text = contentPost.content,
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    color = Color.Black
-                ),
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            SubcomposeLayout { constraints ->
+                val measuredText = subcompose("text") {
+                    Text(
+                        text = contentPost.content,
+                        style = TextStyle(fontSize = 16.sp),
+                        maxLines = Int.MAX_VALUE,
+                        onTextLayout = {
+                            shouldShowSeeMore = it.lineCount > 2
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }[0].measure(constraints)
 
-            // Nút "Xem thêm" / "Thu gọn"
-            Text(
-                text = if (expanded) "Thu gọn" else "Xem thêm",
-                color = Color.Blue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { expanded = !expanded }
-                    .padding(top = 4.dp)
-            )
+                val actualText = subcompose("displayText") {
+                    Text(
+                        text = contentPost.content,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        ),
+                        maxLines = if (expanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }[0].measure(constraints)
+
+                val seeMoreText = if (shouldShowSeeMore) {
+                    subcompose("seeMore") {
+                        Text(
+                            text = if (expanded) "Thu gọn" else "Xem thêm",
+                            color = Color.Blue,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable { expanded = !expanded }
+                        )
+                    }[0].measure(constraints)
+                } else null
+
+                layout(constraints.maxWidth, actualText.height + (seeMoreText?.height ?: 0)) {
+                    actualText.placeRelative(0, 0)
+                    seeMoreText?.placeRelative(0, actualText.height)
+                }
+            }
             //anh
             if (mediaList.isNotEmpty()) {
                 HorizontalPager(
