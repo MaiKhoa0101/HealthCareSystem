@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //    private const val BASE_URL = "http://192.168.222.22:4000"
 //    private const val BASE_URL = "http://192.168.100.3:3000"
-    private const val BASE_URL = "http://192.168.5.41"
+    private const val BASE_URL = "http://192.168.5.41:3000"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
