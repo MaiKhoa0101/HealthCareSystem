@@ -318,4 +318,16 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private val _activePostMenuId = MutableStateFlow<String?>(null)
+    val activePostMenuId: StateFlow<String?> get() = _activePostMenuId
+
+    fun togglePostMenu(postId: String) {
+        _activePostMenuId.value = if (_activePostMenuId.value == postId) null else postId
+    }
+
+    fun closeAllPostMenus() {
+        _activePostMenuId.value = null
+    }
+
+
 }

@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
@@ -165,7 +167,8 @@ fun ViewPostOwner(
 
     val commentsMap by postViewModel.commentsMap.collectAsState()
     val comments = commentsMap[postId] ?: emptyList()
-    var showPostReportBox by remember { mutableStateOf(false) }
+    val showPostReportBox by postViewModel.activePostMenuId.collectAsState()
+    val isMenuOpen = showPostReportBox == postId
     var editingCommentId by remember { mutableStateOf<String?>(null) }
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
@@ -195,7 +198,16 @@ fun ViewPostOwner(
     }
     var shouldShowSeeMore by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.fillMaxWidth()) {
+    Box(modifier = modifier
+        .fillMaxWidth()
+        .pointerInput(showPostReportBox) {
+            if (isMenuOpen) {
+                detectTapGestures {
+                    postViewModel.closeAllPostMenus()
+                }
+            }
+        }
+    ) {
         Column(
             modifier = modifier
                 .background(backgroundColor, RectangleShape)
@@ -242,7 +254,7 @@ fun ViewPostOwner(
                 }
 
                 IconButton(
-                    onClick = { showPostReportBox = !showPostReportBox },
+                    onClick = { postViewModel.togglePostMenu(postId) },
                     modifier = Modifier
                         .padding(end = 4.dp)
                 ) {
@@ -390,7 +402,7 @@ fun ViewPostOwner(
 
         }
         val context = LocalContext.current
-        if (showPostReportBox) {
+        if (isMenuOpen) {
             Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -399,13 +411,14 @@ fun ViewPostOwner(
                     .background(Color.White, shape = RoundedCornerShape(6.dp))
                     .border(5.dp, Color.LightGray)
                     .padding(12.dp)
+                    .clickable(enabled = false) {}
             ) {
                 // Tố cáo
                 if (currentUserId != containerPost.id) {
                     Column(
                         modifier = Modifier
                             .clickable {
-                                showPostReportBox = false
+                                postViewModel.closeAllPostMenus()
                                 onClickReport(postId)
                             }
                             .padding(8.dp)
@@ -421,7 +434,7 @@ fun ViewPostOwner(
                     Column(
                         modifier = Modifier
                             .clickable {
-                                showPostReportBox = false
+                                postViewModel.closeAllPostMenus()
                                 postViewModel.deletePost(postId)
                             }
                             .padding(8.dp)
@@ -433,7 +446,7 @@ fun ViewPostOwner(
                     Column(
                         modifier = Modifier
                             .clickable {
-                                showPostReportBox = false
+                                postViewModel.closeAllPostMenus()
                                 val intent = Intent(context, HomeActivity::class.java).apply {
                                     putExtra("navigate-to", "edit_post/$postId")
                                 }
