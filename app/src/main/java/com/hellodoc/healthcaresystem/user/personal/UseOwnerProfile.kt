@@ -74,6 +74,7 @@ import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -154,6 +155,9 @@ fun ProfileUserPage(
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
     }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -176,9 +180,21 @@ fun ProfileUserPage(
                     onClickReport = { postId ->
                         reportedPostId = postId
                         showReportDialog = true
+                    },
+                    onShowComment = { postId ->
+                        selectedPostIdForComment = postId
+                        showFullScreenComment = true
                     }
                 )
             }
+        }
+        if (showFullScreenComment && selectedPostIdForComment != null) {
+            FullScreenCommentUI(
+                postId = selectedPostIdForComment!!,
+                onClose = { showFullScreenComment = false },
+                postViewModel = postViewModel,
+                currentUserId = userId
+            )
         }
 
         if (showReportDialog && user != null) {
