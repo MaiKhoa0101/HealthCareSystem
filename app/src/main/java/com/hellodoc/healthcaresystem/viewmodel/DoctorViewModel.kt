@@ -310,6 +310,34 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    fun fetchDoctorWithStats(doctorId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                val doctorRes = RetrofitInstance.doctor.getDoctorById(doctorId)
+                val statsRes = RetrofitInstance.appointment.getDoctorStats(doctorId)
+
+                if (doctorRes.isSuccessful && statsRes.isSuccessful) {
+                    val doctor = doctorRes.body()
+                    val stats = statsRes.body()
+
+                    _doctor.value = doctor?.copy(
+                        patientsCount = stats?.patientsCount ?: 0,
+                        ratingsCount = stats?.ratingsCount ?: 0
+                    )
+                } else {
+                    println("Lỗi lấy doctor/stats: ${doctorRes.errorBody()?.string()}, ${statsRes.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+
 }
 
 
