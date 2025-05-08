@@ -7,6 +7,7 @@ import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
 import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
+import com.hellodoc.healthcaresystem.api.NewsService
 import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.api.PostService
 import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
@@ -53,6 +54,8 @@ object RetrofitInstance {
     val reviewService: ReviewService by lazy { retrofit.create(ReviewService::class.java) }
     val reportService: ReportService by lazy { retrofit.create(ReportService::class.java) }
     val notificationService: NotificationService by lazy { retrofit.create(NotificationService::class.java) }
+    val newsService: NewsService by lazy { retrofit.create(NewsService::class.java) }
+
 
 
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }
