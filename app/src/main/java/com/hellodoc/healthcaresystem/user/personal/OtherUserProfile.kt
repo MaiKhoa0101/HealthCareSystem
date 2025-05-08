@@ -356,6 +356,11 @@ fun OtherUserListScreen(
         }
     }
 
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -424,7 +429,7 @@ fun OtherUserListScreen(
             2 -> PostColumn(
                 posts = posts,
                 postViewModel = postViewModel,
-                userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
+                userId = currentUserId,
                 onClickReport = { postId ->
                     reportedPostId = postId
                     showReportDialog = true
@@ -432,7 +437,7 @@ fun OtherUserListScreen(
                 onShowComment = { postId ->
                     selectedPostIdForComment = postId
                     showFullScreenComment = true
-                }
+                },
             )
         }
     }

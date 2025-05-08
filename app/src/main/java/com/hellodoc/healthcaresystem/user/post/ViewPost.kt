@@ -35,6 +35,7 @@ import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.responsemodel.ContentPost
 import com.hellodoc.healthcaresystem.responsemodel.FooterItem
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 
 @Composable
 fun ViewBanner(modifier: Modifier = Modifier) {
@@ -84,6 +85,11 @@ fun ViewPost(
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
 
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
@@ -99,6 +105,9 @@ fun ViewPost(
             modifier = Modifier
                 .clip(shape = CircleShape)
                 .size(45.dp)
+                .clickable {
+                    selectedImageUrl=containerPost.imageUrl
+                }
                 .constrainAs(iconImage) {
                     start.linkTo(parent.start, margin = 20.dp)
                     top.linkTo(horizontalGuideLine50)

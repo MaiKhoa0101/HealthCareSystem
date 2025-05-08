@@ -95,6 +95,7 @@ fun Headbar(
                     .size(50.dp)
             )
 
+            userName=shortenUserName(userName)
             // Cột chứa Text và nút logout ở bên phải
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

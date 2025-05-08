@@ -17,13 +17,14 @@ data class ApplyDoctorRequest(
 )
 
 data class ModifyClinic(
-    val workingHours:List<WorkHour>,
+    val workingHours: List<WorkHour>,
+    val oldWorkingHours: List<WorkHour>,
     val address: String,
     val description: String,
     val services: List<ServiceInput>,
+    val oldServices: List<ServiceOutput>,
     val images: List<Uri>
 )
-
 
 data class DoctorUiState(
     val isLoading: Boolean = false,

@@ -150,11 +150,12 @@ fun ProfileUserPage(
 
     println("user lấy ra đc: "+ user)
     if (user==null) return
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
     }
+
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
 
@@ -393,7 +394,7 @@ fun UserIntroSection(
                 AsyncImage(
                     model = user.avatarURL,
                     contentDescription = "Avatar",
-                    modifier = Modifier
+                                                                                                                                                                                                                                                                                                                                                                                modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
                         .clickable {
