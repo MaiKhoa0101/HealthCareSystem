@@ -95,6 +95,14 @@ fun UserInfoSkeleton() {
     }
 }
 
+var doctorID = ""
+
+var doctorName = ""
+
+var doctorAddress = ""
+
+var specialtyName = ""
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(navHostController: NavHostController) {
@@ -111,7 +119,7 @@ fun ProfileScreen(navHostController: NavHostController) {
     println("Vo duoc 119")
 
 
-    LaunchedEffect(savedStateHandle) {
+    LaunchedEffect(Unit) {
         doctorId = savedStateHandle?.get<String>("doctorId")
         savedStateHandle?.remove<String>("doctorId")
 
@@ -127,13 +135,13 @@ fun ProfileScreen(navHostController: NavHostController) {
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
-    val doctorID = doctor?.id
+     doctorID = doctor?.id!!
 
-    val doctorName = doctor?.name
+     doctorName = doctor?.name!!
 
-    val doctorAddress = doctor?.address
+     doctorAddress = doctor?.address!!
 
-    val specialtyName = doctor?.specialty?.name
+     specialtyName = doctor?.specialty?.name!!
 
     if (doctor != null) {
         println("doctorId" + doctor!!.id)
@@ -147,12 +155,6 @@ fun ProfileScreen(navHostController: NavHostController) {
     if (doctor != null) {
         println("specialtyName" + doctor!!.specialty.name)
     };
-    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-        set("doctorId", doctorID)
-        set("doctorName", doctorName)
-        set("doctorAddress", doctorAddress)
-        set("specialtyName", specialtyName)
-    }
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -479,6 +481,12 @@ fun BookingButton(navController: NavHostController) {
 
         Button(
             onClick = {
+                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                    set("doctorId", doctorID)
+                    set("doctorName", doctorName)
+                    set("doctorAddress", doctorAddress)
+                    set("specialtyName", specialtyName)
+                }
                 navController.navigate("booking")
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
