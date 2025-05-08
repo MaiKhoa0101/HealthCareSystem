@@ -74,6 +74,7 @@ import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import androidx.compose.ui.layout.SubcomposeLayout
+import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 
 
 @Composable
@@ -83,9 +84,12 @@ fun PostColumn(
     userId: String,
     navController: NavHostController,
     onClickReport: (String) -> Unit,
-    onShowComment: (String) -> Unit
-) {
-
+    onShowComment: (String) -> Unit,
+    ) {
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -130,7 +134,8 @@ fun PostColumn(
                     currentUserId = userId,
                     navController = navController,
                     onClickReport = onClickReport,
-                    onShowComment = onShowComment
+                    onShowComment = onShowComment,
+                    onImageClick = { selectedImageUrl = it}
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -151,8 +156,9 @@ fun ViewPostOwner(
     navController: NavHostController,
     onClickReport: (String) -> Unit,
     onShowComment: (String) -> Unit,
+    onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier
-) {
+    ) {
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
     var isCommenting by remember { mutableStateOf(false) }
@@ -333,6 +339,9 @@ fun ViewPostOwner(
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color.LightGray)
+                                .clickable {
+                                    onImageClick(mediaList[page])
+                                }
                         )
                         // Ô số thứ tự ảnh
                         Box(

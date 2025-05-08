@@ -170,10 +170,13 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun resetUpdateStatus() {
         updateSuccess = null
     }
+    // --- ViewModel Function ---
     fun updateClinic(clinicUpdateData: ModifyClinic, doctorId: String, context: Context) {
         viewModelScope.launch {
             try {
                 val gson = Gson()
+                val oldservicesJson = gson.toJson(clinicUpdateData.oldServices)
+                val oldservicesPart = MultipartBody.Part.createFormData("oldService", oldservicesJson)
 
                 val addressPart = MultipartBody.Part.createFormData("address", clinicUpdateData.address)
                 val descriptionPart = MultipartBody.Part.createFormData("description", clinicUpdateData.description)
@@ -181,20 +184,22 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val workHourJson = gson.toJson(clinicUpdateData.workingHours)
                 val workHourPart = MultipartBody.Part.createFormData("workingHours", workHourJson)
 
-                // Dữ liệu services không gửi ảnh qua JSON
+                val oldWorkHourJson = gson.toJson(clinicUpdateData.oldWorkingHours)
+                val oldWorkHourPart = MultipartBody.Part.createFormData("oldWorkingHours", oldWorkHourJson)
+
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
+                        specialtyId = it.specialtyId,
                         specialtyName = it.specialtyName,
                         minprice = it.minprice,
                         maxprice = it.maxprice,
                         description = it.description,
-                        imageService = emptyList() // tránh gửi uri dạng content:// vào JSON
+                        imageService = emptyList()
                     )
                 }
                 val servicesJson = gson.toJson(servicesJsonList)
                 val servicesPart = MultipartBody.Part.createFormData("services", servicesJson)
 
-                // Tạo danh sách ảnh
                 val imageParts = mutableListOf<MultipartBody.Part>()
                 clinicUpdateData.services.forEachIndexed { serviceIndex, service ->
                     service.imageService.forEachIndexed { imageIndex, uri ->
@@ -203,34 +208,33 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         if (part != null) imageParts.add(part)
                     }
                 }
-
-                // Gọi API Retrofit
+                println("Id doctor da ra: "+doctorId)
+                println("Du lieu da ra: "+clinicUpdateData)
                 val response = RetrofitInstance.doctor.updateClinic(
                     doctorId,
                     addressPart,
                     descriptionPart,
                     workHourPart,
+                    oldWorkHourPart,
                     servicesPart,
-                    imageParts
+                    imageParts,
+                    oldservicesPart
                 )
-
+                println("Ket qua cap nhat: "+response.body())
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         Toast.makeText(context, "Cập nhật phòng khám thành công!", Toast.LENGTH_LONG).show()
                         updateSuccess = true
-                        Log.d("UpdateClinic", "Thành công: ${response.body()}")
                     } else {
                         val errorBody = response.errorBody()?.string()
                         updateSuccess = false
                         Toast.makeText(context, "Lỗi cập nhật: $errorBody", Toast.LENGTH_LONG).show()
-                        Log.e("UpdateClinic", "Lỗi: $errorBody")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     updateSuccess = false
                     Toast.makeText(context, "Thay đổi thất bại: ${e.message}", Toast.LENGTH_LONG).show()
-                    Log.e("UpdateClinic", "Exception", e)
                 }
             }
         }

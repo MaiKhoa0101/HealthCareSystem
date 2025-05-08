@@ -40,10 +40,12 @@ import com.auth0.android.jwt.JWT
 
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
+import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
 import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
 import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
+import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 
 @Composable
@@ -93,6 +95,15 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
         initializer { DoctorViewModel(sharedPreferences) }
     })
 
+    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
+        initializer { SpecialtyViewModel(sharedPreferences) }
+    })
+
+    val specialty by specialtyViewModel.specialties.collectAsState()
+
+    LaunchedEffect(Unit) {
+        specialtyViewModel.fetchSpecialties()
+    }
 
     val token = sharedPreferences.getString("access_token", null)
 
@@ -106,11 +117,12 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
 
     val doctorId = jwt?.getClaim("userId")?.asString()
+    var oldSchedule by remember { mutableStateOf(listOf<WorkHour>())}
+    var servicesInput by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
     var servicesCreated by remember { mutableStateOf(listOf<ServiceOutput>()) }
-    var scheduleCreated by remember { mutableStateOf(listOf<WorkHour>())}
 
-    var schedule by remember { mutableStateOf<List<WorkHour>>(emptyList()) }
-    var services by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
+    var newSchedule by remember { mutableStateOf<List<WorkHour>>(emptyList()) }
+
 
     // Gọi API để fetch user từ server
     LaunchedEffect(doctorId) {
@@ -124,18 +136,19 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     if (doctor == null) return
     else {
         servicesCreated = doctor!!.services
-        scheduleCreated = doctor!!.workHour
+        oldSchedule = doctor!!.workHour
     }
 
-    var selectedSpecialization by remember { mutableStateOf("") }
+    var selectedSpecializationId by remember { mutableStateOf("") }
+    var selectedSpecializationName by remember { mutableStateOf("") }
     var imageService by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var minprice by remember { mutableStateOf("") }
     var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
 
-    println("Dữ liệu đã sửa schedule: "+schedule)
-    println("Dữ liệu đã sửa service: "+services)
+    println("Dữ liệu đã sửa schedule: "+newSchedule)
+    println("Dữ liệu đã sửa service: "+servicesInput)
     println("Dữ liệu đã sửa address: "+address)
 
 
@@ -154,8 +167,13 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 )
                 Spacer(Modifier.height(16.dp))
                 SpecializationSection(
-                    selectedSpecialization = selectedSpecialization,
-                    onSpecializationSelected = { selectedSpecialization = it }
+                    allSpecialties = specialty,
+                    selectedSpecializationId = selectedSpecializationId,
+                    selectedSpecialization = selectedSpecializationName,
+                    onSpecializationSelected = { id, name ->
+                        selectedSpecializationId = id
+                        selectedSpecializationName = name
+                    }
                 )
                 Spacer(Modifier.height(16.dp))
                 ServiceImagePicker(imageService) { pickedUri ->
@@ -178,27 +196,28 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 Spacer(Modifier.height(8.dp))
 
                 AddServiceButton {
-                    println("selectedSpecialization.isNotBlank():"
-                            +selectedSpecialization.isNotBlank()
-                            +"priceFrom.isNotBlank():"
-                            +minprice.isNotBlank()
-                            +"priceTo.isNotBlank():"
-                            +maxprice.isNotBlank())
-                    if (selectedSpecialization.isNotBlank() && minprice.isNotBlank() && maxprice.isNotBlank()) {
-                        val newService = ServiceInput(
-                            specialtyName = selectedSpecialization,
-                            imageService = imageService,
-                            minprice = minprice,
-                            maxprice = maxprice,
-                            description = description
+                    if (selectedSpecializationId.isNotBlank()
+                        && selectedSpecializationName.isNotBlank()
+                        && minprice.isNotBlank()
+                        && maxprice.isNotBlank()
+                    ) {
+                        val newInputs = addService(
+                            selectedSpecializationId,
+                            selectedSpecializationName,
+                            imageService,
+                            minprice,
+                            maxprice,
+                            description,
+                            servicesInput,
                         )
 
-                        services = services + newService
+                        servicesInput = newInputs
 
-                        println("So service da them: $services")
+                        println("So service da them: $servicesInput")
 
-                        // Reset fields
-                        selectedSpecialization = ""
+                        // Reset form
+                        selectedSpecializationId = ""
+                        selectedSpecializationName = ""
                         imageService = emptyList()
                         minprice = ""
                         maxprice = ""
@@ -207,12 +226,18 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 }
 
 
-
                 Spacer(Modifier.height(12.dp))
 
                 ServiceTags(servicesCreated) { removed ->
-                    servicesCreated = servicesCreated - removed
+                    val (newInputs, newOutputs) = removeService(removed, servicesInput, servicesCreated)
+                    servicesInput = newInputs
+                    servicesCreated = newOutputs
+                    println("service input: "+newInputs)
+                    println("service input: "+servicesInput)
+                    println("service output: "+newOutputs)
+                    println("service output: "+servicesCreated)
                 }
+
             }
             Column(
                 modifier = Modifier
@@ -224,19 +249,26 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     onAddressChange = { address = it },
                 )
                 Spacer(Modifier.height(8.dp))
-                WorkScheduleSection(scheduleCreated)
+                WorkScheduleSection(
+                    schedule = oldSchedule,
+                    onDelete = { time ->
+                        oldSchedule = removeTime(time, oldSchedule)
+                    }
+                )
                 Spacer(Modifier.height(8.dp))
                 TimePickerSection(
-                    tempSchedule = schedule,
+                    tempSchedule = newSchedule,
                     onAddTime = { newHour ->
-                        schedule = schedule + newHour
+                        newSchedule = newSchedule + newHour
                     }
                 )
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
                         imageService,
-                        schedule,
-                        services,
+                        newSchedule,
+                        oldSchedule,
+                        servicesInput,
+                        servicesCreated,
                         address,
                         description,
                         doctorViewModel,
@@ -250,18 +282,62 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
 }
 
+fun addService(
+    id: String,
+    name: String,
+    imageUris: List<Uri>,
+    min: String,
+    max: String,
+    desc: String,
+    servicesInput: List<ServiceInput>
+): List<ServiceInput> {
+    val newServiceInput = ServiceInput(
+        specialtyId = id,
+        specialtyName = name,
+        imageService = imageUris,
+        minprice = min,
+        maxprice = max,
+        description = desc
+    )
+    return servicesInput + newServiceInput
+}
+
+fun removeService(
+    toRemove: ServiceOutput,
+    servicesInput: List<ServiceInput>,
+    servicesCreated: List<ServiceOutput>
+): Pair<List<ServiceInput>, List<ServiceOutput>> {
+    val updatedOutputs = servicesCreated.filterNot {
+        it.specialtyId == toRemove.specialtyId &&
+                it.specialtyName == toRemove.specialtyName &&
+                it.description == toRemove.description
+    }
+
+    val updatedInputs = servicesInput.filterNot {
+        it.specialtyId == toRemove.specialtyId &&
+                it.specialtyName == toRemove.specialtyName &&
+                it.description == toRemove.description
+    }
+
+    return Pair(updatedInputs, updatedOutputs)
+}
+
+
 @Composable
 fun SaveFloatingButton(
     imageUris: List<Uri>,
     schedule: List<WorkHour>,
-    services: List<ServiceInput>,
+    oldSchedule: List<WorkHour>,
+    servicesInput: List<ServiceInput>,
+    servicesCreated: List<ServiceOutput>,
     address: String,
     description: String,
     doctorViewModel: DoctorViewModel,
     doctorID: String,
-    navHostController:NavHostController
+    navHostController: NavHostController
 ) {
     val context = LocalContext.current
+    println("Service sau khi xoa: $servicesCreated")
     Box(
         Modifier
             .fillMaxWidth()
@@ -273,11 +349,13 @@ fun SaveFloatingButton(
                     address = address,
                     description = description,
                     workingHours = schedule,
-                    services = services,
+                    oldWorkingHours = oldSchedule,
+                    services = servicesInput,
+                    oldServices = servicesCreated,
                     images = imageUris
-                    )
-                println ("Clinic data: "+ clinicUpdateData)
-                doctorViewModel.updateClinic(clinicUpdateData, doctorID,context)
+                )
+                println (address)
+                doctorViewModel.updateClinic(clinicUpdateData, doctorID, context)
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
             shape = RoundedCornerShape(20.dp),
@@ -285,16 +363,16 @@ fun SaveFloatingButton(
                 .fillMaxWidth()
                 .height(55.dp)
                 .align(Alignment.Center)
-            ) {
+        ) {
             Text(
-                text = "Đặt khám",
+                text = "Lưu thông tin phòng khám",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }
-        val updateSuccess = doctorViewModel.updateSuccess
 
+        val updateSuccess = doctorViewModel.updateSuccess
         LaunchedEffect(updateSuccess) {
             if (updateSuccess == true) {
                 navHostController.navigate("personal")
@@ -307,17 +385,18 @@ fun SaveFloatingButton(
 
 @Composable
 fun SpecializationSection(
+    allSpecialties: List<GetSpecialtyResponse>,
+    selectedSpecializationId: String,
     selectedSpecialization: String,
-    onSpecializationSelected: (String) -> Unit
+    onSpecializationSelected: (String, String) -> Unit // ✅ sửa callback
 ) {
-    val allSpecialties = listOf("Nội soi", "Nội tiết", "Nha khoa", "Da liễu", "Tim mạch")
-
     AutoCompleteSpecialization(
         allSpecializations = allSpecialties,
-        selected = selectedSpecialization,
-        onSpecializationSelected = onSpecializationSelected
+        selectedName = selectedSpecialization,
+        onSpecializationSelected = onSpecializationSelected // ✅ truyền đủ id, name
     )
 }
+
 
 
 @Composable
@@ -459,15 +538,13 @@ fun AddressSection(
     }
 }
 
-
 @Composable
-fun WorkScheduleSection(schedule: List<WorkHour>) {
+fun WorkScheduleSection(
+    schedule: List<WorkHour>,
+    onDelete: (WorkHour) -> Unit // thêm callback
+) {
     val weekdays = listOf("TH 2", "TH 3", "TH 4", "TH 5", "TH 6", "TH 7", "CN")
-
-    // Nhóm theo thứ trong tuần (2-8)
     val scheduleByDay = schedule.groupBy { it.dayOfWeek }
-
-    // Tìm số khung giờ tối đa trong 1 ngày (để lặp theo hàng)
     val maxRows = scheduleByDay.values.maxOfOrNull { it.size } ?: 0
 
     Text("Lịch hiện tại", fontWeight = FontWeight.SemiBold)
@@ -480,8 +557,6 @@ fun WorkScheduleSection(schedule: List<WorkHour>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-            // Hàng tiêu đề: TH2 - CN
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -499,7 +574,6 @@ fun WorkScheduleSection(schedule: List<WorkHour>) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Vẽ từng hàng thời gian (giống như table row)
             for (i in 0 until maxRows) {
                 Row(
                     modifier = Modifier
@@ -510,18 +584,36 @@ fun WorkScheduleSection(schedule: List<WorkHour>) {
                     for (dayIndex in 2..8) {
                         val times = scheduleByDay[dayIndex] ?: emptyList()
                         val time = times.getOrNull(i)
-
-                        Text(
-                            text = time?.let { "${it.hour}:${it.minute.toString().padStart(2, '0')}" } ?: "",
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center,
-                            fontSize = 13.sp,
-                            color = Color(0xFF444444)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(enabled = time != null) {
+                                    time?.let { onDelete(it) }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = time?.let {
+                                    "${it.hour}:${it.minute.toString().padStart(2, '0')}"
+                                } ?: "",
+                                textAlign = TextAlign.Center,
+                                fontSize = 13.sp,
+                                color = Color(0xFF444444)
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+
+fun removeTime(timeDelete: WorkHour, schedule: List<WorkHour>): List<WorkHour> {
+    return schedule.filterNot {
+        it.dayOfWeek == timeDelete.dayOfWeek &&
+                it.hour == timeDelete.hour &&
+                it.minute == timeDelete.minute
     }
 }
 
@@ -587,16 +679,18 @@ fun TimePickerSection(
 
 @Composable
 fun AutoCompleteSpecialization(
-    allSpecializations: List<String>,
-    selected: String,
-    onSpecializationSelected: (String) -> Unit
+    allSpecializations: List<GetSpecialtyResponse>,
+    selectedName: String,
+    onSpecializationSelected: (id: String, name: String) -> Unit
 ) {
+    var query by remember { mutableStateOf(selectedName) }
     var expanded by remember { mutableStateOf(false) }
 
-    val filtered = remember(selected) {
-        if (selected.isBlank()) emptyList()
+    // Lọc danh sách theo tên chuyên khoa
+    val filtered = remember(query, allSpecializations) {
+        if (query.isBlank()) emptyList()
         else allSpecializations.filter {
-            it.contains(selected, ignoreCase = true)
+            it.name.contains(query, ignoreCase = true)
         }
     }
 
@@ -604,9 +698,9 @@ fun AutoCompleteSpecialization(
         Text("Chuyên khoa của bạn", fontWeight = FontWeight.Bold)
 
         OutlinedTextField(
-            value = selected,
+            value = query,
             onValueChange = {
-                onSpecializationSelected(it)
+                query = it
                 expanded = true
             },
             modifier = Modifier.fillMaxWidth(),
@@ -623,9 +717,10 @@ fun AutoCompleteSpecialization(
         ) {
             filtered.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(item) },
+                    text = { Text(item.name) },
                     onClick = {
-                        onSpecializationSelected(item)
+                        query = item.name
+                        onSpecializationSelected(item.id, item.name) // ✅ Trả về cả id và name
                         expanded = false
                     }
                 )
@@ -633,5 +728,3 @@ fun AutoCompleteSpecialization(
         }
     }
 }
-
-
