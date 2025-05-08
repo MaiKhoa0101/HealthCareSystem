@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
+package com.hellodoc.healthcaresystem.user
 
 import android.content.Intent
 import android.os.Build
@@ -76,7 +76,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PostColumn(
+fun PostColumn2(
     posts: List<PostResponse>,
     postViewModel: PostViewModel,
     userId: String,
@@ -115,7 +115,7 @@ fun PostColumn(
             )
         } else {
             posts.forEach { postItem ->
-                ViewPostOwner(
+                ViewPostOwner2(
                     postId = postItem.id,
                     containerPost = ContainerPost(
                         id = postItem.user.id,
@@ -140,7 +140,7 @@ fun PostColumn(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ViewPostOwner(
+fun ViewPostOwner2(
     postId: String,
     containerPost: ContainerPost,
     contentPost: ContentPost,
@@ -352,6 +352,7 @@ fun ViewPostOwner(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
+                        Log.d("LikeButton", "Like button clicked")
                         postViewModel.updateFavoriteForPost(
                             postId = postId,
                             userId = currentUserId,
@@ -374,6 +375,7 @@ fun ViewPostOwner(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
+                        Log.d("CommentButton", "Comment button clicked")
                         onShowComment(postId)
                     }
                 ) {

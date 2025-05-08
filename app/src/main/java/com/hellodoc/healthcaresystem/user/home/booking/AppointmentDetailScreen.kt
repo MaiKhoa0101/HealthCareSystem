@@ -72,6 +72,8 @@ fun formatDateForServer(input: String): String {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
+
+    println(" appointment detail render duoc")
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
@@ -84,9 +86,13 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
     LaunchedEffect(Unit) {
         patientName = userViewModel.getUserAttributeString("name")
+        println("patientName" + patientName)
         patientPhone = userViewModel.getUserAttributeString("phone")
+        println("patientPhone" + patientPhone)
         patientAddress = userViewModel.getUserAttributeString("address")
+        println("patientAddress" + patientAddress)
         patientID = userViewModel.getUserAttributeString("userId")
+        println("patientId" + patientID)
         patientModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
@@ -110,7 +116,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         if (selectedTime.isNotEmpty()) time = selectedTime
     }
 
-    LaunchedEffect(savedStateHandle) {
+    LaunchedEffect(Unit) {
         // Kiểm tra xem có đang ở chế độ chỉnh sửa không
         savedStateHandle?.get<Boolean>("isEditing")?.let {
             isEditing = it
@@ -140,6 +146,12 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<String>("location")?.let {
             location = it
         }
+
+        println("test nhaa")
+        println("doctorID" + doctorId)
+        println("doctorName" + doctorName)
+        println("doctorAddress" + doctorAddress)
+        println("specialtyName" + specialtyName)
 
         isDataLoaded = true
     }
@@ -203,6 +215,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
+    println(" update btn render duoc")
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -264,6 +277,7 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
 
 @Composable
 fun TopBar(title: String,onClick: () -> Unit) {
+    println("top bar render duoc")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,6 +308,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
 
 @Composable
 fun DoctorInfoSection() {
+    println("doctor info render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,6 +343,7 @@ fun DoctorInfoSection() {
 
 @Composable
 fun PatientInfoSection() {
+    println("patient info render duoc")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -398,6 +414,7 @@ fun PatientInfoSection() {
 
 @Composable
 fun VisitMethodSection(examinationMethod:  MutableState<String>) {
+    println("visit method render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -476,6 +493,7 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
 
 @Composable
 fun AppointmentDateSection(navHostController: NavHostController) {
+    println("appointment date render duoc")
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     val isEditing = savedStateHandle?.get<Boolean>("isEditing") ?: false
 
@@ -534,6 +552,7 @@ fun AppointmentDateSection(navHostController: NavHostController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
+    println("note doctor render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -565,6 +584,7 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
 
 @Composable
 fun FeeSummarySection() {
+    println(" fee sumary render duoc")
     CardSection(title = "Chi phí khám tại phòng khám") {
         InfoRow("Voucher dịch vụ", "0đ", Color.Red)
         InfoRow("Giá dịch vụ", "0đ")
@@ -582,7 +602,7 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
 //            }
 //        }
 //    )
-
+    println(" book btn render duoc")
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 
@@ -640,6 +660,7 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
 
 @Composable
 fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    println(" card render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -660,6 +681,7 @@ fun InfoRow(
     valueColor: Color = Color.Black,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
+    println("info row render duoc")
     Row(
         modifier = Modifier
             .fillMaxWidth()

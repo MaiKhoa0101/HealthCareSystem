@@ -45,6 +45,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
+import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 @Composable
@@ -258,13 +259,12 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
         ) {
             Button(
                 onClick = {
+                    println("Doctor ID is get: "+ doctor.id)
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
-                        set("doctorName", doctor.name)
-                        set("doctorAddress", doctor.address)
-                        set("specialtyName", specialtyName)
                     }
-                    navHostController.navigate("booking") },
+                    navHostController.navigate("other_user_profile")
+                  },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)

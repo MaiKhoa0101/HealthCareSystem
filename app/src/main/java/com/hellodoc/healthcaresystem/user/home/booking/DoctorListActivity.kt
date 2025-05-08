@@ -26,6 +26,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.home.booking.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
+import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 
 class DoctorListActivity : BaseActivity() {
@@ -84,6 +85,9 @@ class DoctorListActivity : BaseActivity() {
             composable("personal") {
                 ProfileUserPage(sharedPreferences,navHostController)
             }
+            composable("other_user_profile") {
+                ProfileScreen(navHostController)
+            }
             composable(
                 route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
                 arguments = listOf(
@@ -96,7 +100,7 @@ class DoctorListActivity : BaseActivity() {
                 val specialtyName =
                     backStackEntry.arguments?.getString("specialtyName") ?: ""
                 val specialtyDesc = backStackEntry.arguments?.getString("specialtyDesc") ?: ""
-
+                println("Information to doctorlist: "+specialtyId+" "+specialtyName+" "+ specialtyDesc)
                 DoctorListScreen(
                     context = context,
                     specialtyId = specialtyId,

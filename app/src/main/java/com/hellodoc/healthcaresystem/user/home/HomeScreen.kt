@@ -2,8 +2,10 @@ package com.hellodoc.healthcaresystem.user.home
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,17 +49,23 @@ import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetMedicalOptionResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
+import com.hellodoc.healthcaresystem.user.PostColumn2
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.PostColumn
+import com.hellodoc.healthcaresystem.user.personal.userId
 
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
@@ -96,10 +104,32 @@ fun HealthMateHomeScreen(
     val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
         initializer { GeminiViewModel(sharedPreferences) }
     })
+
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
+
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        postViewModel.getAllPosts()
+
+    }
+
+    val posts by postViewModel.posts.collectAsState()
+
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(doctors) {
         if (doctors.isEmpty()) doctorViewModel.fetchDoctors()
@@ -120,7 +150,6 @@ fun HealthMateHomeScreen(
     LaunchedEffect(faqItems) {
         if (faqItems.isEmpty()) faqItemViewModel.fetchFAQItems()
     }
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -199,6 +228,25 @@ fun HealthMateHomeScreen(
                 } else {
                     RemoteMedicalOptionList(context, remoteMedicalOptions = remoteMedicalOptions)
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                PostColumn2(
+                    posts = posts,
+                    postViewModel = postViewModel,
+                    userId = userId,
+                    navController = navHostController,
+                    onClickReport = { postId ->
+                        reportedPostId = postId
+                        showReportDialog = true
+                    },
+                    onShowComment = { postId ->
+                        selectedPostIdForComment = postId
+                        showFullScreenComment = true
+                    }
+                )
             }
 
             item {

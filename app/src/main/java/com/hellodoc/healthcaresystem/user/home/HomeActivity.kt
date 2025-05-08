@@ -136,8 +136,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun NavigationHost(
-        context: Context,
-        navHostController: NavHostController,
+        context: Context, navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         modifier: Modifier = Modifier,
     ) {
@@ -192,7 +191,6 @@ class HomeActivity : BaseActivity() {
             composable("other_user_profile") {
                 ProfileScreen(navHostController)
             }
-
             composable(
                 route = "appointment-detail",
             ) {
@@ -205,32 +203,16 @@ class HomeActivity : BaseActivity() {
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences, navHostController)
             }
-            composable("personal") {
-                ProfileUserPage(sharedPreferences,navHostController)
-            }
-            composable(
-                route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
-                arguments = listOf(
-                    navArgument("specialtyId") { type = NavType.StringType },
-                    navArgument("specialtyName") { type = NavType.StringType },
-                    navArgument("specialtyDesc") { type = NavType.StringType}
-                )
-            ) { backStackEntry ->
-                val specialtyId = backStackEntry.arguments?.getString("specialtyId") ?: ""
-                val specialtyName =
-                    backStackEntry.arguments?.getString("specialtyName") ?: ""
-                val specialtyDesc = backStackEntry.arguments?.getString("specialtyDesc") ?: ""
-                DoctorListScreen(
-                    context = context,
-                    specialtyId = specialtyId,
-                    specialtyName = specialtyName,
-                    specialtyDesc = specialtyDesc,
-//                    onBack = {
-//                        val intent = Intent(this, HomeActivity::class.java)
-//                        startActivity(intent)
-//                    },
-                    navHostController = navHostController
-                )
+
+            composable("booking-calendar") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    BookingCalendarScreen(
+                        navHostController = navHostController
+                    )
+                }
             }
             composable("booking") {
                 Column(
@@ -240,17 +222,6 @@ class HomeActivity : BaseActivity() {
                     AppointmentDetailScreen(
                         context = context,
                         onBack = { navHostController.popBackStack()},
-                        navHostController = navHostController
-                    )
-                }
-            }
-
-            composable("booking-calendar") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    BookingCalendarScreen(
                         navHostController = navHostController
                     )
                 }

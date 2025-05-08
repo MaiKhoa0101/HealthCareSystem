@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 
 @Composable
@@ -107,7 +108,9 @@ fun ProfileScreen(navHostController: NavHostController) {
     var doctorId by remember { mutableStateOf<String?>(null) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    //
+    println("Vo duoc 119")
+
+
     LaunchedEffect(savedStateHandle) {
         doctorId = savedStateHandle?.get<String>("doctorId")
         savedStateHandle?.remove<String>("doctorId")
@@ -124,6 +127,33 @@ fun ProfileScreen(navHostController: NavHostController) {
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    val doctorID = doctor?.id
+
+    val doctorName = doctor?.name
+
+    val doctorAddress = doctor?.address
+
+    val specialtyName = doctor?.specialty?.name
+
+    if (doctor != null) {
+        println("doctorId" + doctor!!.id)
+    };
+    if (doctor != null) {
+        println("doctorName" + doctor!!.name)
+    };
+    if (doctor != null) {
+        println("doctorAddress" + doctor!!.address)
+    };
+    if (doctor != null) {
+        println("specialtyName" + doctor!!.specialty.name)
+    };
+    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+        set("doctorId", doctorID)
+        set("doctorName", doctorName)
+        set("doctorAddress", doctorAddress)
+        set("specialtyName", specialtyName)
+    }
+
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
     }
@@ -131,7 +161,7 @@ fun ProfileScreen(navHostController: NavHostController) {
         bottomBar = {
             if (!showWriteReviewScreen.value) {
                 when (selectedTab) {
-                    0 -> BookingButton()
+                    0 -> BookingButton(navHostController)
                     1 -> WriteReviewButton { showWriteReviewScreen.value = true }
                 }
             }
@@ -439,14 +469,18 @@ fun OtherUserListScreen(
 }
 
 @Composable
-fun BookingButton() {
+fun BookingButton(navController: NavHostController) {
+
     Box(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
+
         Button(
-            onClick = {},
+            onClick = {
+                navController.navigate("booking")
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier

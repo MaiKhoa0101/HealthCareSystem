@@ -7,9 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.content.Intent
+import android.text.InputType
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -68,6 +71,31 @@ class SignIn : BaseActivity() {
 
             userLogin(email, password)
         }
+
+        var isPasswordVisible = false
+        val passwordEditText = findViewById<EditText>(R.id.pass)
+        val togglePasswordBtn = findViewById<ImageView>(R.id.togglePasswordVisibility)
+
+        togglePasswordBtn.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+
+            if (isPasswordVisible) {
+                passwordEditText.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                togglePasswordBtn.setImageResource(R.drawable.baseline_disabled_visible_24) // icon mắt mở
+            } else {
+                passwordEditText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                togglePasswordBtn.setImageResource(R.drawable.baseline_remove_red_eye_24) // icon mắt đóng
+            }
+
+            passwordEditText.setSelection(passwordEditText.text.length) // giữ vị trí con trỏ
+        }
+
+        val forgotPasswordBtn = findViewById<TextView>(R.id.forgot_password)
+        forgotPasswordBtn.setOnClickListener {
+            val intent = Intent(this@SignIn, ForgotPasswordActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun userLogin(email: String, password: String) {

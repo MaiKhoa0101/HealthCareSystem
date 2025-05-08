@@ -73,11 +73,11 @@ val sidebarItems = listOf(
         iconField = R.drawable.doctormanage,
         navigationField = "DoctorManager"
     ),
-    SidebarItem(
-        nameField = "Quản lý chuyên khoa",
-        iconField = R.drawable.messagemanage,
-        navigationField = "CreateSpecialty"
-    ),
+//    SidebarItem(
+//        nameField = "Quản lý chuyên khoa",
+//        iconField = R.drawable.messagemanage,
+//        navigationField = "CreateSpecialty"
+//    ),
     SidebarItem(
         nameField = "Quản lý khiếu nại",
         iconField = R.drawable.reportmanage,
