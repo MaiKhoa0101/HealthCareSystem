@@ -5,6 +5,7 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CancelAppointmentResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreateAppointmentResponse
+import com.hellodoc.healthcaresystem.responsemodel.DoctorStatsResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -46,5 +47,8 @@ interface AppointmentService {
 
     @PATCH("appointments/confirm/{id}")
     suspend fun confirmAppointment(@Path("id") id: String): Response<UpdateAppointmentResponse>
+
+    @GET("appointments/doctor/{doctorID}/stats")
+    suspend fun getDoctorStats(@Path("doctorID") doctorId: String): Response<DoctorStatsResponse>
 
 }

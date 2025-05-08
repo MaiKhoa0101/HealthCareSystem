@@ -14,13 +14,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,14 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -51,7 +46,6 @@ import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.admin.PendingDoctorDetailScreen
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -70,6 +64,7 @@ import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
+import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
@@ -250,6 +245,13 @@ class HomeActivity : BaseActivity() {
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostScreen(context, navHostController, postId = postId)
+            }
+            composable(
+                route = "post-detail/{postId}",
+                arguments = listOf(navArgument("postId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                PostDetailScreen(context, navHostController, postId = postId)
             }
         }
     }

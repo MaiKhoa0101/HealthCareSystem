@@ -61,5 +61,7 @@ data class PendingDoctorResponse(
 data class ReturnPendingDoctorResponse(
     val message: String
 )
-
-
+data class DoctorStatsResponse(
+    val patientsCount: Int,
+    val ratingsCount: Int
+)
