@@ -392,6 +392,11 @@ fun OtherUserListScreen(
         }
     }
 
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

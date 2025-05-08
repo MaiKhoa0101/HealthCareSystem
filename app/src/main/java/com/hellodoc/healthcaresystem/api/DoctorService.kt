@@ -47,8 +47,10 @@ interface DoctorService {
         @Part address: MultipartBody.Part,
         @Part description: MultipartBody.Part,
         @Part workingHours: MultipartBody.Part,
+        @Part oldWorkingHours: MultipartBody.Part,
         @Part services: MultipartBody.Part,
-        @Part images: List<MultipartBody.Part>
+        @Part images: List<MultipartBody.Part>,
+        @Part oldService:MultipartBody.Part
     ): Response<ModifyClinic>
 
     @GET("doctor/pending-doctors")
