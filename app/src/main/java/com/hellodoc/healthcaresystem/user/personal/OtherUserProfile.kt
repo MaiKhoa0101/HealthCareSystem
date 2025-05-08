@@ -431,8 +431,8 @@ fun OtherUserListScreen(
             2 -> PostColumn(
                 posts = posts,
                 postViewModel = postViewModel,
+                userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
                 navController =  navHostController,
-                userId = currentUserId,
                 onClickReport = { postId ->
                     reportedPostId = postId
                     showReportDialog = true
@@ -440,7 +440,7 @@ fun OtherUserListScreen(
                 onShowComment = { postId ->
                     selectedPostIdForComment = postId
                     showFullScreenComment = true
-                }
+                },
             )
         }
     }
