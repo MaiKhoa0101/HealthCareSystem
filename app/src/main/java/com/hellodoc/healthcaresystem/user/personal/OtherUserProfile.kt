@@ -111,50 +111,52 @@ fun ProfileScreen(navHostController: NavHostController) {
         initializer { DoctorViewModel(sharedPreferences) }
     })
 
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
-    var doctorId by remember { mutableStateOf<String?>(null) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     println("Vo duoc 119")
 
 
     LaunchedEffect(Unit) {
-        doctorId = savedStateHandle?.get<String>("doctorId")
+        savedStateHandle?.get<String>("doctorId")?.let {
+            doctorId = it
+        }
         savedStateHandle?.remove<String>("doctorId")
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
+        viewModel.fetchDoctorById(doctorId)
     }
 
 
-    LaunchedEffect(doctorId) {
-        doctorId?.let { viewModel.fetchDoctorById(it) }
-    }
+//    LaunchedEffect(doctorId) {
+//        doctorId?.let { viewModel.fetchDoctorById(it) }
+//    }
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
-     doctorID = doctor?.id!!
+     doctorID = doctor?.id ?: ""
 
-     doctorName = doctor?.name!!
+     doctorName = doctor?.name ?: ""
 
-     doctorAddress = doctor?.address!!
+     doctorAddress = doctor?.address ?: ""
 
-     specialtyName = doctor?.specialty?.name!!
+     specialtyName = doctor?.specialty?.name ?: ""
 
-    if (doctor != null) {
-        println("doctorId" + doctor!!.id)
-    };
-    if (doctor != null) {
-        println("doctorName" + doctor!!.name)
-    };
-    if (doctor != null) {
-        println("doctorAddress" + doctor!!.address)
-    };
-    if (doctor != null) {
-        println("specialtyName" + doctor!!.specialty.name)
-    };
+//    if (doctor != null) {
+//        println("doctorId" + doctor!!.id)
+//    };
+//    if (doctor != null) {
+//        println("doctorName" + doctor!!.name)
+//    };
+//    if (doctor != null) {
+//        println("doctorAddress" + doctor!!.address)
+//    };
+//    if (doctor != null) {
+//        println("specialtyName" + doctor!!.specialty.name)
+//    };
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
