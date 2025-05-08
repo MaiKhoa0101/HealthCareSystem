@@ -137,7 +137,7 @@ fun ProfileUserPage(
     LaunchedEffect(userId, shouldReloadPosts) {
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)
-            postViewModel.getPostUserById(userId)
+            postViewModel.getPostByUserId(userId)
         }
     }
 

@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,17 +89,26 @@ fun Headbar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon bên trái
-            Image(
-                painter = painterResource(id = R.drawable.menu_icon),
-                contentDescription = "Menu Icon",
-                modifier = Modifier
-                    .size(50.dp)
+//            Image(
+//                painter = painterResource(id = R.drawable.menu_icon),
+//                contentDescription = "Menu Icon",
+//                modifier = Modifier
+//                    .size(50.dp)
+//            )
+            Text(
+                text = "HelloDoc",
+                fontSize = 20.sp,
+//                textAlign = TextAlign.Left,
+//                lineHeight = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
 
+            val shortName = truncateName(userName, 10)
             // Cột chứa Text và nút logout ở bên phải
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Xin chào \n$userName",
+                    text = "Xin chào \n$shortName",
                     fontSize = 15.sp,
                     textAlign = TextAlign.Left,
                     lineHeight = 20.sp,
@@ -118,5 +128,13 @@ fun Headbar(
                 }
             }
         }
+    }
+}
+
+fun truncateName(name: String, maxLength: Int): String {
+    return if (name.length > maxLength) {
+        name.take(maxLength) + "..."
+    } else {
+        name
     }
 }

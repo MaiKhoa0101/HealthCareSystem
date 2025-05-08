@@ -30,10 +30,10 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
         }
     }
 
-    fun createNotification(userId: String, userModel: String, content: String) {
+    fun createNotification(userId: String, userModel: String, type: String, content: String, navigatePath: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.notificationService.createNotification(CreateNotificationRequest(userId, userModel, content))
+                val response = RetrofitInstance.notificationService.createNotification(CreateNotificationRequest(userId, userModel, type, content, navigatePath))
                 if (response.isSuccessful) {
                     response.body()?.let { newNotification ->
                         _notifications.value += newNotification
