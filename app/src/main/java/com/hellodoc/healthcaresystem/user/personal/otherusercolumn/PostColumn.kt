@@ -439,7 +439,6 @@ fun ViewPostOwner(
                         Text("Tố cáo bài viết", fontWeight = FontWeight.Bold)
                         Text("Bài viết có nội dung vi phạm", fontSize = 13.sp, color = Color.Gray)
                     }
-                    Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
                 }
 
                 // Chỉ hiển thị nút XÓA nếu là chính người đăng

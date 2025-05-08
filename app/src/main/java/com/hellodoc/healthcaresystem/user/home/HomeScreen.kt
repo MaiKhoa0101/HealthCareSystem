@@ -58,6 +58,7 @@ import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetMedicalOptionResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
+import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewPostOwner
 import com.hellodoc.healthcaresystem.user.personal.userModel
@@ -67,6 +68,7 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
@@ -121,6 +123,11 @@ fun HealthMateHomeScreen(
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    val newsViewModel: NewsViewModel = viewModel(factory = viewModelFactory {
+        initializer { NewsViewModel(sharedPreferences) }
+    })
+    val newsList by newsViewModel.newsList.collectAsState()
+
 
     LaunchedEffect(Unit) {
         doctorViewModel.fetchDoctors()
@@ -134,7 +141,7 @@ fun HealthMateHomeScreen(
         }
 
         launch {
-            faqItemViewModel.fetchFAQItems()
+            newsViewModel.getAllNews()
         }
         postViewModel.getAllPosts()
 
@@ -161,10 +168,10 @@ fun HealthMateHomeScreen(
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    if (faqItems.isEmpty()) {
+                    if (newsList.isEmpty()) {
                         EmptyList("tin mới")
                     } else {
-                        FAQItemList(context, faqItems = faqItems)
+                        NewsItemList(newsList)
                     }
 
                 }
@@ -373,6 +380,52 @@ fun AssistantQueryRow(
         )
     }
 }
+@Composable
+fun NewsItemList(
+    newsList: List<NewsResponse>
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        newsList.forEach { news ->
+            NewsItem(news = news, onSelectNews = {
+
+            })
+        }
+    }
+}
+
+@Composable
+fun NewsItem(
+    news: NewsResponse,
+    onSelectNews: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = news.title,
+                fontSize = 16.sp,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Xem chi tiết",
+                tint = Color.Black,
+                modifier = Modifier.clickable { onSelectNews() }
+            )
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Divider(color = Color.White, thickness = 1.dp)
+    }
+}
+
+
 
 @Composable
 fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {

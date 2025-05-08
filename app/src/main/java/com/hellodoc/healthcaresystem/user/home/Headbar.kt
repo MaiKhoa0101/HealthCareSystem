@@ -88,18 +88,10 @@ fun Headbar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon bên trái
-//            Image(
-//                painter = painterResource(id = R.drawable.menu_icon),
-//                contentDescription = "Menu Icon",
-//                modifier = Modifier
-//                    .size(50.dp)
-//            )
+
             Text(
                 text = "HelloDoc",
                 fontSize = 20.sp,
-//                textAlign = TextAlign.Left,
-//                lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
