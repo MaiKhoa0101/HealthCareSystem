@@ -28,8 +28,11 @@ interface PostService {
     @GET("/post")
     suspend fun getAllPosts(): Response<List<PostResponse>>
 
-    @GET("post/getById/{id}")
-    suspend fun getPostById(@Path("id") id: String): Response<List<PostResponse>>
+    @GET("post/{id}")
+    suspend fun getPostById(@Path("id") id: String): Response<PostResponse>
+
+    @GET("post/get-by-user-id/{id}")
+    suspend fun getPostByUserId(@Path("id") id: String): Response<List<PostResponse>>
 
     @Multipart
     @POST("post/create")

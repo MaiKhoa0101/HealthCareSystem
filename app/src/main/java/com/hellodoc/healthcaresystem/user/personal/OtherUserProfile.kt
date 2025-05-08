@@ -157,6 +157,7 @@ fun ProfileScreen(navHostController: NavHostController) {
             }
             item {
                 OtherUserListScreen(
+                    navHostController = navHostController,
                     doctor = doctor,
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
@@ -311,6 +312,7 @@ fun UserInfo(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherUserListScreen(
+    navHostController: NavHostController,
     doctor: GetDoctorResponse?,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
@@ -352,7 +354,7 @@ fun OtherUserListScreen(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let {
-            postViewModel.getPostUserById(it)
+            postViewModel.getPostByUserId(it)
         }
     }
 
@@ -425,6 +427,7 @@ fun OtherUserListScreen(
                 posts = posts,
                 postViewModel = postViewModel,
                 userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
+                navController =  navHostController,
                 onClickReport = { postId ->
                     reportedPostId = postId
                     showReportDialog = true

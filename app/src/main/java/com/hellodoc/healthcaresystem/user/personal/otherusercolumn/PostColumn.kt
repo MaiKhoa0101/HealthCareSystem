@@ -79,7 +79,7 @@ fun PostColumn(
     posts: List<PostResponse>,
     postViewModel: PostViewModel,
     userId: String,
-    navController: NavHostController? = null,
+    navController: NavHostController,
     onClickReport: (String) -> Unit,
     onShowComment: (String) -> Unit
 ) {
@@ -146,7 +146,7 @@ fun ViewPostOwner(
     createdAt: String,
     postViewModel: PostViewModel,
     currentUserId: String,
-    navController: NavHostController? = null,
+    navController: NavHostController,
     onClickReport: (String) -> Unit,
     onShowComment: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -205,7 +205,9 @@ fun ViewPostOwner(
         ) {
             // Row for Avatar and Name
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { navController.navigate("post-detail/$postId") },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween // để dồn 2 phần trái - phải
             ) {

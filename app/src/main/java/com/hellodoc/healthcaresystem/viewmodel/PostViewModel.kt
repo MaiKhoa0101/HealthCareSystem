@@ -44,27 +44,50 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getPostById")
+                println("Lỗi ở getPostByUserId")
                 Log.e("Post: ", "Lỗi khi lấy Post: ${e.message}")
             }
         }
     }
 
-    fun getPostUserById(id:String) {
+    fun getPostById(id:String) {
         viewModelScope.launch {
             try {
                 println("ID nhận được để lấy post: " + id)
                 val result = RetrofitInstance.postService.getPostById(id)
 
                 if (result.isSuccessful) {
-                    _posts.value = result.body() ?: emptyList()
-                    println("Kets qua: "+_posts.value)
+                    result.body()?.let {
+                        _posts.value = listOf(it)
+                    } ?: run {
+                        _posts.value = emptyList()
+                    }
+                    println("Kết qua: "+_posts.value)
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getPostById")
+                println("Lỗi ở getPostByUserId")
+                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
+        }
+    }
+
+    fun getPostByUserId(userId:String) {
+        viewModelScope.launch {
+            try {
+                println("UserId nhận được để lấy post: " + userId)
+                val result = RetrofitInstance.postService.getPostByUserId(userId)
+
+                if (result.isSuccessful) {
+                    _posts.value = result.body() ?: emptyList()
+                    println("Kết qua: "+_posts.value)
+                } else {
+                    println("Lỗi API: ${result.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                println("Lỗi ở getPostByUserId")
                 Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
         }
     }
