@@ -58,11 +58,11 @@ fun FootBar(navHostController: NavHostController) {
             verticalAlignment = Alignment.Top,
 
         ) {
-            BoxItem(text = "Trang chủ", icon = R.drawable.home, nameDirection = "home", navHostController)
-            BoxItem(text = "Lịch", icon = R.drawable.appointment,"appointment",navHostController)
+            BoxItem(text = "Trang chủ", icon = R.drawable.ic_home, nameDirection = "home", navHostController)
+            BoxItem(text = "Lịch hẹn", icon = R.drawable.ic_appointment,"appointment",navHostController)
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(text = "Thông báo", icon = R.drawable.notification,"notification",navHostController)
-            BoxItem(text = "Cá nhân", icon = R.drawable.personal,"personal",navHostController)
+            BoxItem(text = "Thông báo", icon = R.drawable.ic_notification,"notification",navHostController)
+            BoxItem(text = "Cá nhân", icon = R.drawable.ic_personal,"personal",navHostController)
         }
 
         // Floating button in the center
@@ -111,7 +111,7 @@ fun BoxItem(
 ) {
     Column(
         modifier = modifier
-            .size(60.dp)
+            .size(70.dp)
             .clickable {
             println(nameDirection)
             if (nameDirection.isNotEmpty()) {
@@ -124,9 +124,9 @@ fun BoxItem(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = text,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.Black
         )
     }
 }

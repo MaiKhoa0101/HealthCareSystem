@@ -92,6 +92,7 @@ fun NotificationPage(
             EmptyList("thông báo")
         } else {
             NotificationSectionFrame(
+                navHostController = navHostController,
                 notifications = notifications,
                 notificationViewModel = notificationViewModel
             )
@@ -119,6 +120,7 @@ fun EmptyList(name: String) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationSectionFrame(
+    navHostController: NavHostController,
     notifications: List<NotificationResponse>,
     notificationViewModel: NotificationViewModel
 ){
@@ -149,6 +151,7 @@ fun NotificationSectionFrame(
             }
             items(todayNotifications) { notification ->
                 NotificationSection(
+                    navHostController = navHostController,
                     notification = notification,
                     notificationViewModel = notificationViewModel
                 )
@@ -168,6 +171,7 @@ fun NotificationSectionFrame(
             }
             items(pastNotifications) { notification ->
                 NotificationSection(
+                    navHostController = navHostController,
                     notification = notification,
                     notificationViewModel = notificationViewModel
                 )
@@ -180,6 +184,7 @@ fun NotificationSectionFrame(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationSection(
+    navHostController: NavHostController,
     notification: NotificationResponse,
     notificationViewModel: NotificationViewModel
 ){
@@ -187,7 +192,9 @@ fun NotificationSection(
         modifier = Modifier
             .background(if (notification.isRead) Color.LightGray else CyanNot)
             .fillMaxWidth()
-            .clickable { notificationViewModel.markAsRead(notification.id) }
+            .clickable {
+                if (!notification.isRead) notificationViewModel.markAsRead(notification.id)
+                navHostController.navigate(notification.navigatePath) }
         ,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center

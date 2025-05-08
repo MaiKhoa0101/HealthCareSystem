@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -135,7 +137,7 @@ fun ProfileUserPage(
     LaunchedEffect(userId, shouldReloadPosts) {
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)
-            postViewModel.getPostUserById(userId)
+            postViewModel.getPostByUserId(userId)
         }
     }
 
@@ -158,18 +160,28 @@ fun ProfileUserPage(
 
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+
 
     // Nếu có user rồi thì hiển thị UI
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures {
+                postViewModel.closeAllPostMenus()  //tắt menu post
+                showReportBox = false
+            }
+        }
+    ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 ProfileSection(
                     navHostController = navHostController,
                     user = user!!,
-                    onClickShowReport = {
-                        showReportDialog = true
-                    },
-                    onImageClick = { selectedImageUrl = it}
+                    onClickShowReport = { showReportDialog = true },
+                    onImageClick = { selectedImageUrl = it },
+                    showReportBox = showReportBox,
+                    onToggleReportBox = { showReportBox = !showReportBox }
                 )
             }
             item {
@@ -343,7 +355,11 @@ fun ProfileUserPage(
 fun ProfileSection(
     navHostController: NavHostController,
     user: User, onClickShowReport: () -> Unit,
-    onImageClick: (String) -> Unit) {
+    onImageClick: (String) -> Unit,
+    showReportBox: Boolean,
+    onToggleReportBox: () -> Unit
+)
+{
     Column(
         modifier = Modifier.background(Color.Cyan)
     ) {
@@ -356,7 +372,9 @@ fun ProfileSection(
                 user = user,
                 onClickShowReport = onClickShowReport,
                 navController = navHostController,
-                onImageClick
+                onImageClick = onImageClick,
+                showReportBox = showReportBox,
+                onToggleReportBox = onToggleReportBox
             )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
@@ -370,9 +388,10 @@ fun UserIntroSection(
     user: User,
     onClickShowReport: () -> Unit,
     navController: NavHostController,
-    onImageClick: (String) -> Unit
+    onImageClick: (String) -> Unit,
+    showReportBox: Boolean,
+    onToggleReportBox: () -> Unit
 ) {
-    var showReportBox by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -421,7 +440,7 @@ fun UserIntroSection(
 
         // Icon 3 chấm
         IconButton(
-            onClick = { showReportBox = !showReportBox },
+            onClick = { onToggleReportBox() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp)
@@ -439,7 +458,7 @@ fun UserIntroSection(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 48.dp, end = 8.dp)
-                    .width(220.dp)
+                    .width(250.dp)
                     .background(Color.White, shape = RoundedCornerShape(8.dp))
                     .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                     .shadow(4.dp, RoundedCornerShape(8.dp))
@@ -449,7 +468,7 @@ fun UserIntroSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showReportBox = false
+                            onToggleReportBox()
                             onClickShowReport()
                         }
                 ) {
@@ -468,7 +487,7 @@ fun UserIntroSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showReportBox = false
+                            onToggleReportBox()
                             navController.navigate("activity_manager")
                         }
                 ) {

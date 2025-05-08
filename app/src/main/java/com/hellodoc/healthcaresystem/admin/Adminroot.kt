@@ -146,9 +146,12 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("ReportManager") {
                         ReportManagerScreen()
                     }
-//                    composable("NewsManager"){
-//                        NewsManagerScreen()
-//                    }
+                    composable("NewsManager") {
+                        NewsManagerScreen(sharedPreferences = sharedPreferences, navController = navController)
+                    }
+                    composable("CreateNews") {
+                        NewsCreateScreen(sharedPreferences = sharedPreferences)
+                    }
                     composable("PostManager"){
                         PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
