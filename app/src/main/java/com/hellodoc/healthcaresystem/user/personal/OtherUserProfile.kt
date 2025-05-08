@@ -115,8 +115,6 @@ fun ProfileScreen(navHostController: NavHostController) {
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    println("Vo duoc 119")
-
 
     LaunchedEffect(Unit) {
         savedStateHandle?.get<String>("doctorId")?.let {
@@ -126,13 +124,18 @@ fun ProfileScreen(navHostController: NavHostController) {
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
-        viewModel.fetchDoctorById(doctorId)
+        //viewModel.fetchDoctorById(doctorId)
     }
 
 
 //    LaunchedEffect(doctorId) {
 //        doctorId?.let { viewModel.fetchDoctorById(it) }
 //    }
+
+    LaunchedEffect(doctorId) {
+        doctorId.let { viewModel.fetchDoctorWithStats(it) }
+    }
+
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
