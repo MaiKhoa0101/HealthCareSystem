@@ -160,6 +160,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 println("===== Thông tin gửi lên =====")
                 println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
                 println("Name: ${updatedUser.name}")
+                println("Address: ${updatedUser.address}")
                 println("Email: ${updatedUser.email}")
                 println("Phone: ${updatedUser.phone}")
                 println("Password: ${updatedUser.password}")
@@ -170,15 +171,17 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val name = MultipartBody.Part.createFormData("name", updatedUser.name)
                 val email = MultipartBody.Part.createFormData("email", updatedUser.email)
                 val phone = MultipartBody.Part.createFormData("phone", updatedUser.phone)
+                val address = MultipartBody.Part.createFormData("address", updatedUser.address)
                 val password = MultipartBody.Part.createFormData("password", updatedUser.password!!)
 
                 val response = RetrofitInstance.admin.updateUserByID(
                     id,
                     avatar,
+                    address,
                     name,
                     email,
                     phone,
-                    password,
+                    password
                 )
 
                 if (response.isSuccessful) {
@@ -225,6 +228,22 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 }
             } catch (e: Exception) {
                 _otpResult.value = Result.failure(e)
+            }
+        }
+    }
+
+    fun deleteUser(userID: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.admin.deleteUser(userID)
+                if(response.isSuccessful) {
+                    Log.d("Xóa User", "Thành công")
+                    getAllUsers()
+                }else {
+                    Log.e("xóa user", "thất bại")
+                }
+            } catch (e: Exception) {
+                Log.e("xóa user", "Lỗi khi xóa user: ${e.message}")
             }
         }
     }
