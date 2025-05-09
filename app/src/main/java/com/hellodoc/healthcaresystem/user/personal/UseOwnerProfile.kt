@@ -89,6 +89,7 @@ fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
+    val context = LocalContext.current
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
@@ -98,7 +99,6 @@ fun ProfileUserPage(
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
-    val posts by postViewModel.posts.collectAsState()
 //    val comments by postViewModel.comments.collectAsState()
     var shouldReloadPosts by remember { mutableStateOf(false) }
     val navEntry = navHostController.currentBackStackEntry
@@ -126,22 +126,19 @@ fun ProfileUserPage(
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
     // Nếu chưa có user (null) thì không hiển thị giao diện
-
-    val context = LocalContext.current
-    var reportedPostId by remember { mutableStateOf<String?>(null) }
-    var showReportDialog by remember { mutableStateOf(false) }
-
-    println("user lấy ra đc: "+ user)
     if (user==null) return
+
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
     }
-
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
+    val posts by postViewModel.posts.collectAsState()
 
 
     // Nếu có user rồi thì hiển thị UI
