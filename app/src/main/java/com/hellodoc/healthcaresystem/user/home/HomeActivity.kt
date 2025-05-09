@@ -48,6 +48,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
+import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.bmiChecking.BMICheckerScreen
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
@@ -158,6 +159,16 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController
 
                 )
+            }
+            composable("news_detail") {
+                val dummyNews = NewsResponse(
+                    id = "dummyId",
+                    title = "Tiêu đề mẫu",
+                    content = "Đây là nội dung bài viết mẫu để test",
+                    media = listOf("https://i.imgur.com/CzXTtJV.png"),
+                    createdAt = "2024-01-01T00:00:00Z"
+                )
+                NewsDetailScreen(navHostController = navHostController)
             }
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences, navHostController)

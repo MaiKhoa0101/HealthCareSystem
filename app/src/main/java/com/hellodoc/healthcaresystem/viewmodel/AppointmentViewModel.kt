@@ -29,7 +29,20 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
 
     private val _appointmentUpdated = MutableStateFlow(false)
     val appointmentUpdated: StateFlow<Boolean> get() = _appointmentUpdated
+    private var currentSearchQuery: String = ""
 
+    private val _filteredAppointments = MutableStateFlow<List<AppointmentResponse>>(emptyList())
+    val filteredAppointments: StateFlow<List<AppointmentResponse>> get() = _filteredAppointments
+
+    fun filterAppointmentsByDoctorName(doctorName: String) {
+        currentSearchQuery = doctorName
+        val allAppointments = _appointmentsUser.value
+        _filteredAppointments.value = if (doctorName.isBlank()) {
+            allAppointments
+        } else {
+            allAppointments.filter { it.doctor.name.contains(doctorName, ignoreCase = true) }
+        }
+    }
 
     fun fetchAppointments(){
         viewModelScope.launch{
@@ -37,6 +50,7 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                 val response = RetrofitInstance.appointment.getAllAppointments()
                 if(response.isSuccessful){
                     _appointmentsUser.value = response.body() ?: emptyList()
+                    filterAppointmentsByDoctorName(currentSearchQuery)
                 } else {
                     println("Lỗi API: ${response.errorBody()?.string()}")
                 }

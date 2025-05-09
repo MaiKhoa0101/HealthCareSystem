@@ -1,6 +1,8 @@
 package com.hellodoc.healthcaresystem.admin
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -20,11 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -101,7 +106,7 @@ fun UserListScreen() {
                     it.role.equals(selectedRole, ignoreCase = true)
         }
 
-        AccountTable2(filteredUsers)
+        AccountTable2(filteredUsers, sharedPreferences)
     }
 }
 
@@ -131,7 +136,7 @@ fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
 }
 
 @Composable
-fun AccountTable2(accounts: List<User>) {
+fun AccountTable2(accounts: List<User>, sharedPreferences: SharedPreferences) {
     // Cho phép cuộn ngang
     Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
         Column {
@@ -155,15 +160,21 @@ fun AccountTable2(accounts: List<User>) {
             // Content
             LazyColumn {
                 itemsIndexed(accounts) { index, account ->
-                    AccountRow2(index + 1, account)
+                    AccountRow2(index + 1, account, sharedPreferences)
                 }
             }
         }
     }
 }
 @Composable
-fun AccountRow2(id: Int, account: User) {
+fun AccountRow2(id: Int, account: User, sharedPreferences: SharedPreferences) {
     var expanded by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var selectedUser by remember { mutableStateOf<User?>(null) }
+
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
 
     Row(
         modifier = Modifier
@@ -208,6 +219,8 @@ fun AccountRow2(id: Int, account: User) {
                     },
                     onClick = {
                         expanded = false
+                        selectedUser = account
+                        showEditDialog = true
                     }
                 )
                 DropdownMenuItem(
@@ -224,19 +237,84 @@ fun AccountRow2(id: Int, account: User) {
                     },
                     onClick = {
                         expanded = false
+                        userViewModel.deleteUser(account.id)
                     }
                 )
             }
 
         }
     }
+
+    if (showEditDialog && selectedUser != null) {
+        EditUserDialog(
+            user = selectedUser!!,
+            onDismiss = { showEditDialog = false },
+            onSave = { id, updatedInput, context ->
+                userViewModel.updateUser(id, updatedInput, context)
+                showEditDialog = false
+                userViewModel.getAllUsers() // Reload the list
+            }
+        )
+    }
+
 }
 
 
+@Composable
+fun EditUserDialog(
+    user: User,
+    onDismiss: () -> Unit,
+    onSave: (String, UpdateUserInput, Context) -> Unit, // Use UpdateUserInput for now
+    context: Context = LocalContext.current
+) {
+    var name by remember { mutableStateOf(user.name) }
+    var email by remember { mutableStateOf(user.email) }
+    var phone by remember { mutableStateOf(user.phone) }
+    var address by remember { mutableStateOf(user.address) }
+    var avatarUrl by remember { mutableStateOf(user.avatarURL) }
+    var password by remember { mutableStateOf("") }
 
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = {
+                // Convert avatarUrl (String) to Uri? for UpdateUserInput
+                val avatarUri = avatarUrl.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
 
+                // Create UpdateUserInput with or without password
+                val updatedInput = UpdateUserInput(
+                    avatarURL = avatarUri,
+                    address = address,
+                    name = name,
+                    email = email,
+                    phone = phone,
+                    password = password.takeIf { it.isNotBlank() } ?: "", // Empty string if password unchanged
+                    role = user.role
+                )
 
+                onSave(user.id, updatedInput, context)
 
-
-
-
+                onDismiss()
+            }) {
+                Text("Lưu")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        },
+        title = { Text("Chỉnh sửa tài khoản") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Họ tên") })
+                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
+                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Số điện thoại") })
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Địa chỉ") })
+                OutlinedTextField(value = avatarUrl, onValueChange = { avatarUrl = it }, label = { Text("Ảnh đại diện URL") })
+                OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Mật khẩu (để trống nếu không đổi)") }, visualTransformation = PasswordVisualTransformation())
+            }
+        },
+        shape = RoundedCornerShape(12.dp)
+    )
+}
