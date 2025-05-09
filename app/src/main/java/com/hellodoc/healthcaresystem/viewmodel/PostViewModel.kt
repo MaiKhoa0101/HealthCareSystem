@@ -39,12 +39,13 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val result = RetrofitInstance.postService.getAllPosts()
                 if (result.isSuccessful) {
                     _posts.value = result.body() ?: emptyList()
+                    println("Kết qua getAllPosts: "+_posts.value)
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getPostByUserId")
+                println("Lỗi ở getAllPosts")
                 Log.e("Post: ", "Lỗi khi lấy Post: ${e.message}")
             }
         }
@@ -62,13 +63,13 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     } ?: run {
                         _posts.value = emptyList()
                     }
-                    println("Kết qua: "+_posts.value)
+                    println("Kết qua getPostById: "+_posts.value)
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getPostByUserId")
+                println("Lỗi ở getPostById")
                 Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
         }
     }
@@ -81,7 +82,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 if (result.isSuccessful) {
                     _posts.value = result.body() ?: emptyList()
-                    println("Kết qua: "+_posts.value)
+                    println("Kết qua getPostByUserId: "+_posts.value)
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
