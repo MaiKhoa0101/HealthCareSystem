@@ -68,17 +68,17 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
-var doctorID = ""
-
-var doctorName = ""
-
-var doctorAddress = ""
-
-var specialtyName = ""
-
-var isClinicPaused = false
-
-var hasHomeService = false
+//var doctorID = ""
+//
+//var doctorName = ""
+//
+//var doctorAddress = ""
+//
+//var specialtyName = ""
+//
+//var isClinicPaused = false
+//
+//var hasHomeService = false
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
@@ -153,17 +153,17 @@ fun ProfileOtherUserPage(
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
-    doctorID = doctor?.id ?: ""
-
-    doctorName = doctor?.name ?: ""
-
-    doctorAddress = doctor?.address ?: ""
-
-    specialtyName = doctor?.specialty?.name ?: ""
-
-    isClinicPaused = doctor?.isClinicPaused ?: false
-
-    hasHomeService = doctor?.hasHomeService ?: false
+//    doctorID = doctor?.id ?: ""
+//
+//    doctorName = doctor?.name ?: ""
+//
+//    doctorAddress = doctor?.address ?: ""
+//
+//    specialtyName = doctor?.specialty?.name ?: ""
+//
+//    isClinicPaused = doctor?.isClinicPaused ?: false
+//
+//    hasHomeService = doctor?.hasHomeService ?: false
 
 //    if (doctor != null) {
 //        println("doctorId" + doctor!!.id)
@@ -320,7 +320,7 @@ fun OtherUserIntroSection(
                 AsyncImage(
                     model = user.avatarURL,
                     contentDescription = "Avatar",
-                                                                                                                                                                                                                                                                                                                                                                                modifier = Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
                         .clickable {
@@ -330,81 +330,19 @@ fun OtherUserIntroSection(
                 )
             }
 
-            2 -> PostColumn(
-                posts = posts,
-                postViewModel = postViewModel,
-                userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
-                navController =  navHostController,
-                onClickReport = { postId ->
-                    reportedPostId = postId
-                    showReportDialog = true
-                },
-                onShowComment = { postId ->
-                    selectedPostIdForComment = postId
-                    showFullScreenComment = true
-                }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                user.name,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.Black
             )
-        }
-    }
-}
-
-@Composable
-fun BookingButton(navController: NavHostController) {
-
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-    ) {
-        if (!isClinicPaused) {
-            Button(
-                onClick = {
-                    navController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("doctorId", doctorID)
-                        set("doctorName", doctorName)
-                        set("doctorAddress", doctorAddress)
-                        set("specialtyName", specialtyName)
-                        set("hasHomeService", hasHomeService)
-                    }
-                    navController.navigate("booking")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00C5CB),
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .align(Alignment.Center)
-            ) {
-                Text(
-                    text = "Đặt khám",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        } else {
-            Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFCDD2),
-                    contentColor = Color(0xFFD32F2F)
-                ),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .align(Alignment.Center)
-            ) {
-                Text(
-                    text = "Tạm ngưng nhận lịch",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                user.email,
+                fontSize = 14.sp,
+                color = Color.DarkGray
+            )
         }
 
         // Icon 3 chấm
