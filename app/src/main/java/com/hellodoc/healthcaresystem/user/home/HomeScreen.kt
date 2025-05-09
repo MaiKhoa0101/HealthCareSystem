@@ -171,7 +171,7 @@ fun HealthMateHomeScreen(
                     if (newsList.isEmpty()) {
                         EmptyList("tin mới")
                     } else {
-                        NewsItemList(newsList)
+                        NewsItemList(newsList = newsList, navHostController = navHostController)
                     }
 
                 }
@@ -382,12 +382,14 @@ fun AssistantQueryRow(
 }
 @Composable
 fun NewsItemList(
-    newsList: List<NewsResponse>
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         newsList.forEach { news ->
             NewsItem(news = news, onSelectNews = {
-
+                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                navHostController.navigate("news_detail")
             })
         }
     }
@@ -424,8 +426,6 @@ fun NewsItem(
         Divider(color = Color.White, thickness = 1.dp)
     }
 }
-
-
 
 @Composable
 fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {
