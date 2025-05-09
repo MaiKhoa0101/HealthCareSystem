@@ -2,11 +2,13 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.GetUserID
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import com.hellodoc.healthcaresystem.responsemodel.DeleteUserResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.responsemodel.UserResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
@@ -29,6 +31,7 @@ interface AdminService {
         @Part avatarURL: MultipartBody.Part?,
         @Part name: MultipartBody.Part?,
         @Part email: MultipartBody.Part?,
+        @Part address: MultipartBody.Part?,
         @Part phone: MultipartBody.Part?,
         @Part password: MultipartBody.Part?,
     ):  Response<User>
@@ -36,4 +39,7 @@ interface AdminService {
 
     @GET("admin/getallusers")
     suspend fun getAllUser(): Response<UserResponse> //trả về một đối tượng GetUser
+
+    @DELETE("admin/delete-user/{id}")
+    suspend fun deleteUser(@Path("id") id: String): Response<DeleteUserResponse>
 }
