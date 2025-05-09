@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.user.post
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,11 +91,13 @@ fun PostDetailScreen(
         initializer { PostViewModel(sharedPreferences) }
     })
     val posts by postViewModel.posts.collectAsState()
+    val model = remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         postViewModel.getPostById(postId)
-        userId = userViewModel.getUserAttributeString("userId")
+        currentUserId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        model.value = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
     val post = posts.firstOrNull()
@@ -308,10 +311,10 @@ fun PostDetailScreen(
                             modifier = Modifier.clickable {
                                 postViewModel.updateFavoriteForPost(
                                     postId = postId,
-                                    userId = postUserId,
+                                    userId = currentUserId,
                                     userModel = userModel
                                 )
-                                postViewModel.fetchFavoriteForPost(postId, postUserId)
+                                postViewModel.fetchFavoriteForPost(postId, currentUserId)
                             }
                         ) {
                             Icon(
@@ -423,14 +426,16 @@ fun PostDetailScreen(
                         Button(onClick = {
                             coroutineScope.launch {
                                 if (editingCommentId != null) {
-                                    postViewModel.updateComment(editingCommentId!!, postUserId, userModel, editedCommentContent)
+                                    postViewModel.updateComment(editingCommentId!!, currentUserId, userModel, editedCommentContent)
                                     editingCommentId = null
                                     editedCommentContent = ""
                                 } else {
-                                    postViewModel.sendComment(postId, postUserId, userModel, newComment)
-                                    newComment = ""
+                                    if (newComment.isNotBlank()) {
+                                        postViewModel.sendComment(postId, currentUserId, model.value, newComment)
+                                        newComment = ""
+                                        postViewModel.fetchComments(postId)
+                                    }
                                 }
-                                postViewModel.fetchComments(postId)
                             }
                         }) {
                             Text(if (editingCommentId != null) "Lưu" else "Gửi")

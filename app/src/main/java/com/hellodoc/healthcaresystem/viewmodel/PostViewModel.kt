@@ -213,18 +213,27 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
+                Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
+
                 val response = RetrofitInstance.postService.createCommentByPostId(
                     postId,
                     CreateCommentPostRequest(userId, userModel, content)
                 )
+                Log.d("sendComment", "⬅ Response code: ${response.code()}")
+
                 if (response.isSuccessful) {
-                    fetchComments(postId) // refresh
+                    Log.d("sendComment", " Gửi comment thành công")
+                    fetchComments(postId)
+                } else {
+                    val errorMsg = response.errorBody()?.string()
+                    Log.e("sendComment", " Gửi comment thất bại: $errorMsg")
                 }
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Send Comment Error", e)
+                Log.e("sendComment", "Lỗi ngoại lệ khi gửi comment", e)
             }
         }
     }
+
 
     suspend fun fetchCommentsForPost(postId: String): List<GetCommentPostResponse> {
         return try {
