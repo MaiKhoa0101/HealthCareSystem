@@ -77,6 +77,7 @@ import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
@@ -135,6 +136,32 @@ fun HealthMateHomeScreen(
     })
     val posts by postViewModel.posts.collectAsState()
 
+
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+    }
+
+
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+    val user by userViewModel.user.collectAsState()
+
+
     LaunchedEffect(Unit) {
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
@@ -156,6 +183,12 @@ fun HealthMateHomeScreen(
 
     Box(modifier = Modifier
         .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures {
+                postViewModel.closeAllPostMenus()  //tắt menu post
+                showReportBox = false
+            }
+        }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -205,13 +238,12 @@ fun HealthMateHomeScreen(
             // Chuyên khoa
             item {
                 SectionHeader(title = "Chuyên khoa")
-
-            if (specialties.isEmpty()) {
-                EmptyList("chuyên khoa")
-            } else {
-                SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
+                if (specialties.isEmpty()) {
+                    EmptyList("chuyên khoa")
+                } else {
+                    SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
+                }
             }
-        }
 
             // Bác sĩ nổi bật
             item {
@@ -227,16 +259,46 @@ fun HealthMateHomeScreen(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 OtherPostColumn(
-                    postViewModel,
-                    posts,
-                    navHostController,
-                    sharedPreferences
+                    userViewModel = userViewModel,
+                    postViewModel = postViewModel,
+                    posts = posts,
+                    navHostController = navHostController,
+                    sharedPreferences = sharedPreferences,
+                    onImageClick = { selectedImageUrl = it },
+                    onClickReport = { postId ->
+                        reportedPostId = postId
+                        showReportDialog = true
+                    },
+                    onShowComment = { postId ->
+                        selectedPostIdForComment = postId
+                        showFullScreenComment = true
+                    }
                 )
             }
 
             item {
                 Spacer(modifier = Modifier.height(100.dp))
             }
+        }
+        if ((showFullScreenComment && selectedPostIdForComment != null) ||
+            (showReportDialog && user != null)
+        ) {
+            InteractPostManager(
+                navHostController,
+                user,
+                postViewModel,
+                reportedPostId,
+                context,
+                showFullScreenComment,
+                selectedPostIdForComment,
+                showReportDialog,
+                onCloseComment = {
+                    showFullScreenComment = false
+                },
+                onHideReportDialog = {
+                    showReportDialog = false
+                }
+            )
         }
 
         if (showDialog) {
