@@ -102,6 +102,7 @@ fun PreviewProfileUserPage() {
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
@@ -413,7 +414,7 @@ fun UserIntroSection(
                 AsyncImage(
                     model = user.avatarURL,
                     contentDescription = "Avatar",
-                                                                                                                                                                                                                                                                                                                                                                                modifier = Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
                         .clickable {

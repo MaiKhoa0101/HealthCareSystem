@@ -67,6 +67,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -91,9 +92,9 @@ fun PostDetailScreen(
     val posts by postViewModel.posts.collectAsState()
 
     LaunchedEffect(Unit) {
-        // Gọi API và cập nhật state khi dữ liệu được fetch về
         postViewModel.getPostById(postId)
-        currentUserId = userViewModel.getUserAttributeString("userId")
+        userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
     val post = posts.firstOrNull()
@@ -135,6 +136,8 @@ fun PostDetailScreen(
 
     var shouldShowSeeMore by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState()
+    var showFullScreenComment by remember { mutableStateOf(false) }
+
 
     if(post != null && postUserName != null && postUserId != null) {
         Column {
@@ -308,7 +311,7 @@ fun PostDetailScreen(
                                     userId = postUserId,
                                     userModel = userModel
                                 )
-    //                    isFavorited = !isFavorited
+                                postViewModel.fetchFavoriteForPost(postId, postUserId)
                             }
                         ) {
                             Icon(
@@ -325,7 +328,7 @@ fun PostDetailScreen(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable {
-    //                        onShowComment(postId)
+                                showFullScreenComment = true
                             }
                         ) {
                             Icon(
@@ -438,6 +441,15 @@ fun PostDetailScreen(
                 }
             }
         }
+        if (showFullScreenComment) {
+            FullScreenCommentUI(
+                postId = postId,
+                onClose = { showFullScreenComment = false },
+                postViewModel = postViewModel,
+                currentUserId = currentUserId
+            )
+        }
+
     }
 }
 
