@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.booking
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -29,24 +30,44 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
+import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import java.time.format.DateTimeFormatter
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BookingCalendarScreen(
+    context: Context,
     navHostController: NavHostController
 ) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+        initializer { DoctorViewModel(sharedPreferences) }
+    })
+
     // Lấy thông tin chỉnh sửa từ màn hình trước đó
     val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
     val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
 
-    val availableTimes = listOf(
-        "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-        "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
-    )
+//    val availableTimes = listOf(
+//        "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+//        "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
+//    )
+
+    var availableTimes by remember { mutableStateOf<List<String>>(emptyList()) }
+
+
+    LaunchedEffect(doctorId) {
+        doctorId.let { doctorViewModel.fetchDoctorById(it) }
+    }
+    val doctor by doctorViewModel.doctor.collectAsState()
+    val workHours = doctor?.workHour
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf("") }
@@ -119,7 +140,7 @@ fun BookingCalendarScreen(
                         // Dates
                         val firstDay = currentMonth.atDay(1)
                         val daysInMonth = currentMonth.lengthOfMonth()
-                        val firstDayOfWeek = (firstDay.dayOfWeek.value%7)
+                        val firstDayOfWeek = (firstDay.dayOfWeek.value%8)
                         val dates = List(firstDayOfWeek-1) { null } + (1..daysInMonth).map { currentMonth.atDay(it) }
 
                         val dateRows = dates.chunked(7)
@@ -132,9 +153,21 @@ fun BookingCalendarScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = if (!isLastRow || nonNullDays == 7) Arrangement.SpaceBetween else Arrangement.Start
                             ) {
-                                week.forEach { day ->
+                                week.forEachIndexed { index, day ->
                                     val isPast = day != null && day.isBefore(LocalDate.now())
                                     val isSelected = day == selectedDate
+
+                                    if (isSelected) {
+                                        val selectedDayOfWeek = (index + 2) // vì DayOfWeek.MONDAY = 1
+
+                                        val times = workHours
+                                            ?.filter { wh -> wh.dayOfWeek == selectedDayOfWeek }
+                                            ?.map { wh -> "%02d:%02d".format(wh.hour, wh.minute) }
+
+                                        if (times != null) {
+                                            availableTimes = times
+                                        }
+                                    }
 
                                     Box(
                                         modifier = Modifier
@@ -149,7 +182,18 @@ fun BookingCalendarScreen(
                                                 }
                                             )
                                             .clickable(enabled = day != null && !isPast) {
-                                                day?.let { selectedDate = it }
+                                                day?.let {
+                                                    selectedDate = it
+//                                                    val selectedDayOfWeek = (index + 2) // vì DayOfWeek.MONDAY = 1
+//
+//                                                    val times = workHours
+//                                                        ?.filter { wh -> wh.dayOfWeek == selectedDayOfWeek }
+//                                                        ?.map { wh -> "%02d:%02d".format(wh.hour, wh.minute) }
+//
+//                                                    if (times != null) {
+//                                                        availableTimes = times
+//                                                    }
+                                                }
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -179,31 +223,45 @@ fun BookingCalendarScreen(
                 Text("Chọn giờ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
 
-            items(availableTimes.chunked(3)) { row ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    row.forEach { time ->
-                        val isSelected = selectedTime == time
-                        Button(
-                            onClick = { selectedTime = time },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) Color(0xFF00BCD4) else Color.White,
-                                contentColor = if (isSelected) Color.White else Color.Black
-                            ),
-                            border = BorderStroke(1.dp, Color.Gray),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                        ) {
-                            Text(time, fontSize = 14.sp)
-                        }
+            if (availableTimes.isEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Không có giờ phù hợp cho ngày này", fontSize = 13.sp)
                     }
+                }
+            } else {
+                items(availableTimes.chunked(3)) { row ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        row.forEach { time ->
+                            val isSelected = selectedTime == time
+                            Button(
+                                onClick = { selectedTime = time },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isSelected) Color(0xFF00BCD4) else Color.White,
+                                    contentColor = if (isSelected) Color.White else Color.Black
+                                ),
+                                border = BorderStroke(1.dp, Color.Gray),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Text(time, fontSize = 14.sp)
+                            }
+                        }
 
-                    repeat(3 - row.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        repeat(3 - row.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -223,13 +281,17 @@ fun BookingCalendarScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF00BCD4),
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Xác nhận", fontSize = 16.sp)
+                    Text(
+                        text = "Xác nhận",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Spacer(modifier = Modifier.height(40.dp))
             }
@@ -279,8 +341,10 @@ fun CalendarView(
 @Preview(showBackground = true, name = "Booking Calendar Preview")
 @Composable
 fun BookingCalendarScreenPreview() {
+    val context = LocalContext.current
     val fakeNavController = rememberNavController()
     BookingCalendarScreen(
+        context = context,
         navHostController = fakeNavController,
 //        onDateTimeSelected = { date, time ->
 //            // Cho preview thì mình không cần xử lý gì ở đây

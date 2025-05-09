@@ -71,7 +71,7 @@ fun FootBar(navHostController: NavHostController) {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = -30.dp), // Elevate the button
-            backgroundColor = Color.Cyan
+            backgroundColor = Color(0xFF00C5CB)
         )
     }
 }
@@ -79,7 +79,7 @@ fun FootBar(navHostController: NavHostController) {
 @Composable
 fun CircleButton(
     onClick: () -> Unit,
-    backgroundColor: Color = Color.Cyan,
+    backgroundColor: Color = Color(0xFF00C5CB),
     iconColor: Color = Color.White,
     size: Dp = 64.dp,
     modifier: Modifier = Modifier

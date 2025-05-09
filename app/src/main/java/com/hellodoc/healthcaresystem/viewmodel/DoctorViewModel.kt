@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
-import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
+import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
@@ -210,7 +210,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         updateSuccess = null
     }
     // --- ViewModel Function ---
-    fun updateClinic(clinicUpdateData: ModifyClinic, doctorId: String, context: Context) {
+    fun updateClinic(clinicUpdateData: ModifyClinicRequest, doctorId: String, context: Context) {
         viewModelScope.launch {
             try {
                 val gson = Gson()
@@ -225,6 +225,9 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
                 val oldWorkHourJson = gson.toJson(clinicUpdateData.oldWorkingHours)
                 val oldWorkHourPart = MultipartBody.Part.createFormData("oldWorkingHours", oldWorkHourJson)
+
+                val hasHomeServicePart = MultipartBody.Part.createFormData("hasHomeService", clinicUpdateData.hasHomeService.toString())
+                val isClinicPausedPart = MultipartBody.Part.createFormData("isClinicPaused", clinicUpdateData.isClinicPaused.toString())
 
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
@@ -257,7 +260,9 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                     oldWorkHourPart,
                     servicesPart,
                     imageParts,
-                    oldservicesPart
+                    oldservicesPart,
+                    hasHomeServicePart,
+                    isClinicPausedPart
                 )
                 println("Ket qua cap nhat: "+response.body())
                 withContext(Dispatchers.Main) {

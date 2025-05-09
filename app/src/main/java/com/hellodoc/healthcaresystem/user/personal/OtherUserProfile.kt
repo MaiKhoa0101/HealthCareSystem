@@ -68,6 +68,18 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
+//var doctorID = ""
+//
+//var doctorName = ""
+//
+//var doctorAddress = ""
+//
+//var specialtyName = ""
+//
+//var isClinicPaused = false
+//
+//var hasHomeService = false
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
@@ -140,6 +152,32 @@ fun ProfileOtherUserPage(
     if (user==null) return
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+
+//    doctorID = doctor?.id ?: ""
+//
+//    doctorName = doctor?.name ?: ""
+//
+//    doctorAddress = doctor?.address ?: ""
+//
+//    specialtyName = doctor?.specialty?.name ?: ""
+//
+//    isClinicPaused = doctor?.isClinicPaused ?: false
+//
+//    hasHomeService = doctor?.hasHomeService ?: false
+
+//    if (doctor != null) {
+//        println("doctorId" + doctor!!.id)
+//    };
+//    if (doctor != null) {
+//        println("doctorName" + doctor!!.name)
+//    };
+//    if (doctor != null) {
+//        println("doctorAddress" + doctor!!.address)
+//    };
+//    if (doctor != null) {
+//        println("specialtyName" + doctor!!.specialty.name)
+//    };
+
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
     }
