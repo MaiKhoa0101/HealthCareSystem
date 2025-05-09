@@ -47,6 +47,19 @@ import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 
+
+var doctorID = ""
+
+var doctorName = ""
+
+var doctorAddress = ""
+
+var specialtyName = ""
+
+var isClinicPaused = false
+
+var hasHomeService = false
+
 @Composable
 fun UserInfoSkeleton() {
     ConstraintLayout(
@@ -95,14 +108,6 @@ fun UserInfoSkeleton() {
     }
 }
 
-var doctorID = ""
-
-var doctorName = ""
-
-var doctorAddress = ""
-
-var specialtyName = ""
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(navHostController: NavHostController) {
@@ -140,13 +145,17 @@ fun ProfileScreen(navHostController: NavHostController) {
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
-     doctorID = doctor?.id ?: ""
+    doctorID = doctor?.id ?: ""
 
-     doctorName = doctor?.name ?: ""
+    doctorName = doctor?.name ?: ""
 
-     doctorAddress = doctor?.address ?: ""
+    doctorAddress = doctor?.address ?: ""
 
-     specialtyName = doctor?.specialty?.name ?: ""
+    specialtyName = doctor?.specialty?.name ?: ""
+
+    isClinicPaused = doctor?.isClinicPaused ?: false
+
+    hasHomeService = doctor?.hasHomeService ?: false
 
 //    if (doctor != null) {
 //        println("doctorId" + doctor!!.id)
@@ -491,30 +500,55 @@ fun BookingButton(navController: NavHostController) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-
-        Button(
-            onClick = {
-                navController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("doctorId", doctorID)
-                    set("doctorName", doctorName)
-                    set("doctorAddress", doctorAddress)
-                    set("specialtyName", specialtyName)
-                }
-                navController.navigate("booking")
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp)
-                .align(Alignment.Center)
-        ) {
-            Text(
-                text = "Đặt khám",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+        if (!isClinicPaused) {
+            Button(
+                onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("doctorId", doctorID)
+                        set("doctorName", doctorName)
+                        set("doctorAddress", doctorAddress)
+                        set("specialtyName", specialtyName)
+                        set("hasHomeService", hasHomeService)
+                    }
+                    navController.navigate("booking")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00C5CB),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = "Đặt khám",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        } else {
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFCDD2),
+                    contentColor = Color(0xFFD32F2F)
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = "Tạm ngưng nhận lịch",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
         }
     }
 }

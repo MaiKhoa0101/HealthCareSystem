@@ -23,7 +23,11 @@ data class GetDoctorResponse (
     @SerializedName("patientsCount")
     val patientsCount: Int?,
     @SerializedName("ratingsCount")
-    val ratingsCount: Int?
+    val ratingsCount: Int?,
+    @SerializedName("hasHomeService")
+    val hasHomeService: Boolean?,
+    @SerializedName("isClinicPaused")
+    val isClinicPaused: Boolean?
 )
 
 data class Specialty (

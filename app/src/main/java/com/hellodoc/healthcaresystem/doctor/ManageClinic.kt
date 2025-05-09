@@ -39,7 +39,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.auth0.android.jwt.JWT
 
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
+import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
 import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.responsemodel.ServiceOutput
 import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
@@ -133,11 +133,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     }
     // Lấy dữ liệu doctor từ StateFlow
     val doctor by doctorViewModel.doctor.collectAsState()
-    if (doctor == null) return
-    else {
-        servicesCreated = doctor!!.services
-        oldSchedule = doctor!!.workHour
-    }
+
 
     var selectedSpecializationId by remember { mutableStateOf("") }
     var selectedSpecializationName by remember { mutableStateOf("") }
@@ -146,12 +142,32 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var hasHomeService by remember { mutableStateOf(false) }
+    var isClinicPaused by remember { mutableStateOf(false) }
 
     println("Dữ liệu đã sửa schedule: "+newSchedule)
     println("Dữ liệu đã sửa service: "+servicesInput)
     println("Dữ liệu đã sửa address: "+address)
 
+//    if (doctor == null) return
+//    else {
+//        servicesCreated = doctor!!.services
+//        oldSchedule = doctor!!.workHour
+//        address = doctor?.address ?: ""
+//        hasHomeService = doctor?.hasHomeService ?: false
+//        isClinicPaused = doctor?.isClinicPaused ?: false
+//    }
+    LaunchedEffect(doctor) {
+        if (doctor == null) return@LaunchedEffect
+        else {
+            servicesCreated = doctor?.services ?: emptyList()
+            oldSchedule = doctor?.workHour ?: emptyList()
+            address = doctor?.address ?: ""
+            hasHomeService = doctor?.hasHomeService ?: false
+            isClinicPaused = doctor?.isClinicPaused ?: false
+        }
 
+    }
 
     LazyColumn(
         modifier = modifier
@@ -247,6 +263,8 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                 AddressSection(
                     address = address,
                     onAddressChange = { address = it },
+                    hasHomeService = hasHomeService,
+                    onHomeServiceChange = { hasHomeService = it }
                 )
                 Spacer(Modifier.height(8.dp))
                 WorkScheduleSection(
@@ -262,6 +280,12 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                         newSchedule = newSchedule + newHour
                     }
                 )
+                Spacer(Modifier.height(8.dp))
+                ClinicPauseSwitch(
+                    isPaused = isClinicPaused,
+                    onTogglePause = { isClinicPaused = it }
+                )
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
                         imageService,
@@ -271,12 +295,13 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                         servicesCreated,
                         address,
                         description,
+                        hasHomeService,
+                        isClinicPaused,
                         doctorViewModel,
                         doctorId!!,
                         navHostController
                     )
                 }
-
             }
         }
     }
@@ -332,6 +357,8 @@ fun SaveFloatingButton(
     servicesCreated: List<ServiceOutput>,
     address: String,
     description: String,
+    hasHomeService: Boolean,
+    isClinicPaused: Boolean,
     doctorViewModel: DoctorViewModel,
     doctorID: String,
     navHostController: NavHostController
@@ -345,30 +372,35 @@ fun SaveFloatingButton(
     ) {
         Button(
             onClick = {
-                val clinicUpdateData = ModifyClinic(
+                val clinicUpdateData = ModifyClinicRequest(
                     address = address,
                     description = description,
                     workingHours = schedule,
                     oldWorkingHours = oldSchedule,
                     services = servicesInput,
                     oldServices = servicesCreated,
-                    images = imageUris
+                    images = imageUris,
+                    hasHomeService = hasHomeService,
+                    isClinicPaused = isClinicPaused
                 )
                 println (address)
                 doctorViewModel.updateClinic(clinicUpdateData, doctorID, context)
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-            shape = RoundedCornerShape(20.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp)
-                .align(Alignment.Center)
+                .height(50.dp),
+//                .align(Alignment.Center)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF00C5CB),
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp),
+
         ) {
             Text(
                 text = "Lưu thông tin phòng khám",
-                fontSize = 24.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
             )
         }
 
@@ -519,6 +551,8 @@ fun ServiceTags(
 fun AddressSection(
     address: String,
     onAddressChange: (String) -> Unit,
+    hasHomeService: Boolean,
+    onHomeServiceChange: (Boolean) -> Unit,
 ) {
     Column {
         OutlinedTextField(
@@ -530,8 +564,8 @@ fun AddressSection(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
-                checked = false,
-                onCheckedChange = { }
+                checked = hasHomeService,
+                onCheckedChange = onHomeServiceChange
             )
             Text("Có dịch vụ khám tại nhà")
         }
@@ -674,6 +708,31 @@ fun TimePickerSection(
         }) {
             Icon(Icons.Default.Add, contentDescription = "Add time")
         }
+    }
+}
+
+@Composable
+fun ClinicPauseSwitch(
+    isPaused: Boolean,
+    onTogglePause: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Switch(
+            checked = isPaused,
+            onCheckedChange = onTogglePause,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.Red,
+                checkedTrackColor = Color.Gray,
+                uncheckedThumbColor = Color.LightGray,
+                uncheckedTrackColor = Color.Gray
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Tạm ngưng phòng khám")
     }
 }
 

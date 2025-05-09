@@ -61,6 +61,7 @@ var reason: String = "hello"
 var location: String = ""
 var patientModel = ""
 var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
+var hasHomeService = false
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateForServer(input: String): String {
@@ -145,6 +146,9 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         }
         savedStateHandle?.get<String>("location")?.let {
             location = it
+        }
+        savedStateHandle?.get<Boolean>("hasHomeService")?.let {
+            hasHomeService = it
         }
 
         println("test nhaa")
@@ -343,7 +347,8 @@ fun DoctorInfoSection() {
 
 @Composable
 fun PatientInfoSection() {
-    println("patient info render duoc")
+    var showDetailDialog by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -369,20 +374,23 @@ fun PatientInfoSection() {
                 Text(
                     text = "Xem chi tiết",
                     color = Color.Black,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    modifier = Modifier.clickable {
+                        showDetailDialog = true
+                    }
                 )
 
-                TextButton(
-                    onClick = { /* TODO */ },
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = Color(0xFFDCF5F9),
-                        contentColor = Color.Black
-                    ),
-                    shape = RoundedCornerShape(6.dp),
-                ) {
-                    Text("Sửa hồ sơ", fontSize = 13.sp)
-                }
+//                TextButton(
+//                    onClick = { /* TODO */ },
+//                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+//                    colors = ButtonDefaults.textButtonColors(
+//                        containerColor = Color(0xFFDCF5F9),
+//                        contentColor = Color.Black
+//                    ),
+//                    shape = RoundedCornerShape(6.dp),
+//                ) {
+//                    Text("Sửa hồ sơ", fontSize = 13.sp)
+//                }
             }
         }
 
@@ -409,6 +417,26 @@ fun PatientInfoSection() {
                 InfoRow("Điện thoại:", patientPhone)
             }
         }
+    }
+
+    if (showDetailDialog) {
+        AlertDialog(
+            onDismissRequest = { showDetailDialog = false },
+            title = { Text("Chi tiết hồ sơ") },
+            text = {
+                Column {
+                    InfoRow("Họ và tên:", patientName)
+                    InfoRow("Giới tính:", "Nam")
+                    InfoRow("Ngày sinh:", "11/12/2000")
+                    InfoRow("Điện thoại:", patientPhone)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDetailDialog = false }) {
+                    Text("Đóng")
+                }
+            }
+        )
     }
 }
 
@@ -455,37 +483,43 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Khám tại nhà
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(
-                    if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
-                )
-                .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-                .clickable { examinationMethod.value = "at_home" }
-                .height(100.dp)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier
+        if(hasHomeService) {
+            // Khám tại nhà
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(
+                            0xFFDDFDFF
+                        )
+                    )
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
+                    .clickable { examinationMethod.value = "at_home" }
+                    .height(100.dp)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier
 
-                .weight(1f)) {
-                Text("Khám tại nhà", fontWeight = FontWeight.Bold)
-                Row {
-                    Text(
-                        "Địa chỉ:",
-                        fontSize = 13.sp
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        patientAddress,
-                        fontSize = 13.sp
-                    )
+                        .weight(1f)
+                ) {
+                    Text("Khám tại nhà", fontWeight = FontWeight.Bold)
+                    Row {
+                        Text(
+                            "Địa chỉ:",
+                            fontSize = 13.sp
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            patientAddress,
+                            fontSize = 13.sp
+                        )
+                    }
                 }
+                Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
             }
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
         }
     }
 }
@@ -653,7 +687,11 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
             contentColor = Color.White          // Màu chữ
         )
     ) {
-        Text("Đặt dịch vụ")
+        Text(
+            text = "Đặt dịch vụ",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
     Spacer(modifier = Modifier.height(60.dp))
 }

@@ -514,8 +514,8 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
-                .height(50.dp)
-                .width(120.dp)
+                .height(60.dp)
+                .width(128.dp)
         ) {
             Text(
                 text = "Chỉnh sửa hồ sơ",
@@ -542,8 +542,8 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
-                .height(50.dp)
-                .width(120.dp)
+                .height(60.dp)
+                .width(128.dp)
         ) {
             Text(
                 text = "Quản lý phòng khám",

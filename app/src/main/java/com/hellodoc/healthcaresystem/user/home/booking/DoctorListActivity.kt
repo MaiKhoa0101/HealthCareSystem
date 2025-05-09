@@ -132,6 +132,7 @@ class DoctorListActivity : BaseActivity() {
                         .fillMaxSize()
                 ) {
                     BookingCalendarScreen(
+                        context = context,
                         navHostController = navHostController
                     )
                 }
