@@ -584,13 +584,13 @@ fun DoctorList(
                 color = Color.Black
             )
 
-            Text(
-                text = "Xem thêm",
-                fontSize = 14.sp,
-                color = Color(0xFF0085FF),
-                modifier = Modifier
-                    .clickable { onSeeMoreClick() }
-            )
+//            Text(
+//                text = "Xem thêm",
+//                fontSize = 14.sp,
+//                color = Color(0xFF0085FF),
+//                modifier = Modifier
+//                    .clickable { onSeeMoreClick() }
+//            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))

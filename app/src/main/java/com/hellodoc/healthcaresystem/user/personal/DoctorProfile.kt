@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +50,18 @@ import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+
+var doctorID = ""
+
+var doctorName = ""
+
+var doctorAddress = ""
+
+var specialtyName = ""
+
+var isClinicPaused = false
+
+var hasHomeService = false
 
 @Composable
 fun UserInfoSkeleton() {
@@ -97,13 +111,13 @@ fun UserInfoSkeleton() {
     }
 }
 
-var doctorID = ""
-
-var doctorName = ""
-
-var doctorAddress = ""
-
-var specialtyName = ""
+//var doctorID = ""
+//
+//var doctorName = ""
+//
+//var doctorAddress = ""
+//
+//var specialtyName = ""
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -142,26 +156,17 @@ fun DoctorScreen(navHostController: NavHostController) {
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
-     doctorID = doctor?.id ?: ""
+    doctorID = doctor?.id ?: ""
 
-     doctorName = doctor?.name ?: ""
+    doctorName = doctor?.name ?: ""
 
-     doctorAddress = doctor?.address ?: ""
+    doctorAddress = doctor?.address ?: ""
 
-     specialtyName = doctor?.specialty?.name ?: ""
+    specialtyName = doctor?.specialty?.name ?: ""
 
-//    if (doctor != null) {
-//        println("doctorId" + doctor!!.id)
-//    };
-//    if (doctor != null) {
-//        println("doctorName" + doctor!!.name)
-//    };
-//    if (doctor != null) {
-//        println("doctorAddress" + doctor!!.address)
-//    };
-//    if (doctor != null) {
-//        println("specialtyName" + doctor!!.specialty.name)
-//    };
+    isClinicPaused = doctor?.isClinicPaused ?: false
+
+    hasHomeService = doctor?.hasHomeService ?: false
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -498,37 +503,122 @@ fun DoctorProfileScreen(
 
 @Composable
 fun BookingButton(navController: NavHostController) {
-
+    var showReportBox by remember { mutableStateOf(false) }
     Box(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-
-        Button(
-            onClick = {
-                navController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("doctorId", doctorID)
-                    set("doctorName", doctorName)
-                    set("doctorAddress", doctorAddress)
-                    set("specialtyName", specialtyName)
-                }
-                navController.navigate("booking")
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp)
-                .align(Alignment.Center)
-        ) {
-            Text(
-                text = "Đặt khám",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+        if (!isClinicPaused) {
+            Button(
+                onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("doctorId", doctorID)
+                        set("doctorName", doctorName)
+                        set("doctorAddress", doctorAddress)
+                        set("specialtyName", specialtyName)
+                        set("hasHomeService", hasHomeService)
+                    }
+                    navController.navigate("booking")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00C5CB),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = "Đặt khám",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        } else {
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFCDD2),
+                    contentColor = Color(0xFFD32F2F)
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = "Tạm ngưng nhận lịch",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
         }
+
+        // Icon 3 chấm
+//        IconButton(
+//            onClick = { showReportBox = !showReportBox },
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(8.dp)
+//        ) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.ic_more),
+//                contentDescription = "Menu",
+//                tint = Color.Black
+//            )
+//        }
+//
+//        // Report Box
+//        if (showReportBox) {
+//            Column(
+//                modifier = Modifier
+//                    .align(Alignment.TopEnd)
+//                    .padding(top = 48.dp, end = 8.dp)
+//                    .width(250.dp)
+//                    .background(Color.White, shape = RoundedCornerShape(8.dp))
+//                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+//                    .shadow(4.dp, RoundedCornerShape(8.dp))
+//                    .padding(12.dp)
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable {
+////                            onToggleReportBox()
+////                            onClickShowReport()
+//                        }
+//                ) {
+//                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
+//                    Spacer(modifier = Modifier.height(4.dp))
+//                    Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
+//                }
+//
+//                Divider(
+//                    color = Color.LightGray,
+//                    thickness = 1.dp,
+//                    modifier = Modifier.padding(vertical = 12.dp)
+//                )
+//
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable {
+////                            onToggleReportBox()
+//                            navController.navigate("activity_manager")
+//                        }
+//                ) {
+//                    Text("Quản lý hoạt động", fontWeight = FontWeight.Bold)
+//                    Spacer(modifier = Modifier.height(4.dp))
+//                    Text("Xem và kiểm soát các hoạt động", fontSize = 13.sp)
+//                }
+//            }
+//        }
     }
 }
 

@@ -179,6 +179,7 @@ fun TopBar(onClick: () -> Unit) {
 
 @Composable
 fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String, specialtyDesc: String) {
+    val isClinicPaused = doctor.isClinicPaused ?: false
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,7 +219,27 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text("Bác sĩ", fontSize = 16.sp, color = Color.Gray)
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Bác sĩ", fontSize = 16.sp, color = Color.Gray)
+                    if (isClinicPaused) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(color = Color(0xFFFFCDD2), shape = RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                "Tạm ngưng nhận lịch",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFD32F2F)
+                            )
+                        }
+                    }
+                }
                 Text(doctor.name, fontSize = 26.sp, fontWeight = FontWeight.Medium)
                 Text(specialtyName, fontSize = 16.sp, color = Color(0xFF0097A7))
             }

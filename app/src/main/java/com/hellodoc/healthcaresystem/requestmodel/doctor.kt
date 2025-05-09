@@ -16,14 +16,16 @@ data class ApplyDoctorRequest(
     val backCccdUrl: Uri?
 )
 
-data class ModifyClinic(
+data class ModifyClinicRequest(
     val workingHours: List<WorkHour>,
     val oldWorkingHours: List<WorkHour>,
     val address: String,
     val description: String,
     val services: List<ServiceInput>,
     val oldServices: List<ServiceOutput>,
-    val images: List<Uri>
+    val images: List<Uri>,
+    val hasHomeService: Boolean,
+    val isClinicPaused: Boolean
 )
 
 data class DoctorUiState(

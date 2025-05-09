@@ -219,6 +219,7 @@ class HomeActivity : BaseActivity() {
                         .fillMaxSize()
                 ) {
                     BookingCalendarScreen(
+                        context = context,
                         navHostController = navHostController
                     )
                 }

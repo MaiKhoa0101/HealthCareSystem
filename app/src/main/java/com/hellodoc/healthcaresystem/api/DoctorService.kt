@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.api
 
-import com.hellodoc.healthcaresystem.requestmodel.ModifyClinic
+import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
 import com.hellodoc.healthcaresystem.responsemodel.ApplyDoctor
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
@@ -50,8 +50,10 @@ interface DoctorService {
         @Part oldWorkingHours: MultipartBody.Part,
         @Part services: MultipartBody.Part,
         @Part images: List<MultipartBody.Part>,
-        @Part oldService:MultipartBody.Part
-    ): Response<ModifyClinic>
+        @Part oldService:MultipartBody.Part,
+        @Part hasHomeService:MultipartBody.Part,
+        @Part isClinicPaused:MultipartBody.Part
+    ): Response<ModifyClinicRequest>
 
     @GET("doctor/pending-doctors")
     suspend fun getPendingDoctor(): Response<List<PendingDoctorResponse>>
