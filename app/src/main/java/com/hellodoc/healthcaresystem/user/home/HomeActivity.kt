@@ -55,15 +55,15 @@ import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.home.booking.BookingCalendarScreen
 import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
-import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.PostListScreen
 import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
-import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
+import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 import com.hellodoc.healthcaresystem.user.post.PostScreen
-import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
+import com.hellodoc.healthcaresystem.user.personal.DoctorScreen
+import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -168,6 +168,9 @@ class HomeActivity : BaseActivity() {
             composable("personal") {
                 ProfileUserPage(sharedPreferences,navHostController)
             }
+            composable("otherUserProfile") {
+                ProfileOtherUserPage(sharedPreferences,navHostController)
+            }
             composable("create_post") {
                 PostScreen(context, navHostController)
             }
@@ -184,7 +187,7 @@ class HomeActivity : BaseActivity() {
                 GeminiChatScreen(navHostController, sharedPreferences)
             }
             composable("other_user_profile") {
-                ProfileScreen(navHostController)
+                DoctorScreen(navHostController)
             }
             composable(
                 route = "appointment-detail",

@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.booking
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
@@ -23,11 +22,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.home.booking.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
-import com.hellodoc.healthcaresystem.user.personal.ProfileScreen
-import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
+import com.hellodoc.healthcaresystem.user.personal.DoctorScreen
+import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 
 class DoctorListActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -48,9 +46,9 @@ class DoctorListActivity : BaseActivity() {
                 val navController = rememberNavController()
 
                 com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
                         Index(
-                            modifier = Modifier.padding(innerPadding),
+                            modifier = Modifier.padding(paddingValues),
                             context = context,
                             sharedPreferences = sharedPreferences,
                             navHostController = navController,
@@ -76,6 +74,7 @@ class DoctorListActivity : BaseActivity() {
         specialtyDesc: String
     ) {
         NavHost(
+            modifier = modifier,
             navController = navHostController,
             startDestination = "doctorList/$specialtyId/$specialtyName/$specialtyDesc"
         ) {
@@ -83,10 +82,10 @@ class DoctorListActivity : BaseActivity() {
                 AppointmentListScreen(sharedPreferences, navHostController)
             }
             composable("personal") {
-                ProfileUserPage(sharedPreferences,navHostController)
+                ProfileOtherUserPage(sharedPreferences,navHostController)
             }
             composable("other_user_profile") {
-                ProfileScreen(navHostController)
+                DoctorScreen(navHostController)
             }
             composable(
                 route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
