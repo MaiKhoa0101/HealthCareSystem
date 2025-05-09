@@ -134,7 +134,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
                 if (response != null) {
                     if(response.isSuccessful){
                         _createSpecialtyMessage.value = response.body()
-
+                        fetchSpecialties()
                         Toast.makeText(
                             context,
                             "Tạo chuyên khoa thành công.",

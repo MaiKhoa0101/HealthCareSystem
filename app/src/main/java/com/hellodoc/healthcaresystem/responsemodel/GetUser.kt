@@ -21,3 +21,7 @@ data class User(
     val updatedAt: String,
     val avatarURL: String
 )
+
+data class DeleteUserResponse(
+    val message: String
+)

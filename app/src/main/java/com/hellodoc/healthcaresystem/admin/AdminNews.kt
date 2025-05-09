@@ -51,7 +51,10 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsCreateScreen(sharedPreferences: SharedPreferences) {
+fun NewsCreateScreen(
+    sharedPreferences: SharedPreferences,
+    navController: NavController
+) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
@@ -89,14 +92,28 @@ fun NewsCreateScreen(sharedPreferences: SharedPreferences) {
             .padding(16.dp)
     ) {
         // Header
-        Text(
-            text = "Tạo tin tức",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(bottom = 16.dp)
-                .align(Alignment.CenterHorizontally)
-        )
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_back),
+                    contentDescription = "Quay lại",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Text(
+                text = "Tạo tin tức",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
 
         // Scrollable content
         LazyColumn(

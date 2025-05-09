@@ -267,7 +267,7 @@ fun UserIntroSection(
                 AsyncImage(
                     model = user.avatarURL,
                     contentDescription = "Avatar",
-                                                                                                                                                                                                                                                                                                                                                                                modifier = Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
                         .clickable {

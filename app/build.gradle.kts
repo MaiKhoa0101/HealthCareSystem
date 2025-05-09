@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 //    id("com.android.application")
     id("com.google.gms.google-services")
+    id ("kotlin-parcelize")
 }
 android {
     namespace = "com.hellodoc.healthcaresystem"
