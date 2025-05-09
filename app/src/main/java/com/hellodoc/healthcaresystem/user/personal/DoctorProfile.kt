@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,8 @@ import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
+import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -117,13 +120,6 @@ fun UserInfoSkeleton() {
     }
 }
 
-//var doctorID = ""
-//
-//var doctorName = ""
-//
-//var doctorAddress = ""
-//
-//var specialtyName = ""
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -136,15 +132,26 @@ fun DoctorScreen(
         initializer { DoctorViewModel(sharedPreferences) }
     })
 
+
+
+    val context = LocalContext.current
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
-
+    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+        initializer { PostViewModel(sharedPreferences) }
+    })
     var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     val coroutineScope = rememberCoroutineScope()
+
+
+    val navEntry = navHostController.currentBackStackEntry
+    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
@@ -161,19 +168,12 @@ fun DoctorScreen(
     }
 
 
-//    LaunchedEffect(doctorId) {
-//        doctorId?.let { viewModel.fetchDoctorById(it) }
-//    }
-
     LaunchedEffect(doctorId) {
         doctorId.let { viewModel.fetchDoctorWithStats(it) }
     }
 
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-
-    var showReportDialog by remember { mutableStateOf(false) }
 
     doctorID = doctor?.id ?: ""
 
@@ -187,8 +187,65 @@ fun DoctorScreen(
 
     hasHomeService = doctor?.hasHomeService ?: false
 
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+    }
+    LaunchedEffect(reloadTrigger?.value) {
+        if (reloadTrigger?.value == true) {
+            postViewModel.getAllPosts() // gọi lại danh sách mới
+            navHostController.currentBackStackEntry
+                ?.savedStateHandle?.set("shouldReload", false)
+        }
+    }
+    // Gọi API để fetch user từ server
+    LaunchedEffect(userId, shouldReloadPosts) {
+        if (userId.isNotEmpty()) {
+            userViewModel.getUser(userId)
+            postViewModel.getPostByUserId(userId)
+        }
+    }
+
+    // Lấy dữ liệu user từ StateFlow
+    val user by userViewModel.user.collectAsState()
+    // Nếu chưa có user (null) thì không hiển thị giao diện
+    if (user==null) return
+
+
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+    val posts by postViewModel.posts.collectAsState()
+
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+    if ((showFullScreenComment && selectedPostIdForComment != null) ||
+        (showReportDialog && user != null)
+    ) {
+        InteractPostManager(
+            navHostController,
+            user,
+            postViewModel,
+            reportedPostId,
+            context,
+            showFullScreenComment,
+            selectedPostIdForComment,
+            showReportDialog,
+            onCloseComment = {
+                showFullScreenComment = false
+            },
+            onHideReportDialog = {
+                showReportDialog = false
+            }
+        )
     }
     Scaffold(
         bottomBar = {
@@ -692,7 +749,7 @@ fun DoctorProfileScreen(
             2 -> PostColumn(
                 posts = posts,
                 postViewModel = postViewModel,
-                userId = com.hellodoc.healthcaresystem.user.post.userId ?: "",
+                userId = userId ?: "",
                 navController =  navHostController,
                 onClickReport = { postId ->
                     reportedPostId = postId
@@ -702,9 +759,7 @@ fun DoctorProfileScreen(
                     selectedPostIdForComment = postId
                     showFullScreenComment = true
                 }
-
             )
-
         }
     }
 }
