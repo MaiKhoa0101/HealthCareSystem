@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
@@ -29,6 +30,9 @@ fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
+
+    val searchQuery = remember { mutableStateOf("") }
+    val filteredAppointments by appointViewModel.filteredAppointments.collectAsState()
 
     LaunchedEffect(Unit) {
         appointViewModel.fetchAppointments()
@@ -50,11 +54,42 @@ fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
             Text("Quản lí lịch hẹn khám", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
-            SearchBar()
+            // Thanh tìm kiếm
+            OutlinedTextField(
+                value = searchQuery.value,
+                onValueChange = {
+                    searchQuery.value = it
+                    appointViewModel.filterAppointmentsByDoctorName(it)
+                },
+                label = { Text("Tìm bác sĩ") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(Modifier.height(16.dp))
 
-            // Gọi table
-            TableDesign(sharedPreferences = sharedPreferences)
+            // Gọi bảng danh sách đã lọc
+            TableDesign(
+                sharedPreferences = sharedPreferences,
+                filteredAppointments = filteredAppointments
+            )
+        }
+    }
+}
+
+
+@Composable
+fun AppointmentItem(appointment: AppointmentResponse) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = "Bác sĩ: ${appointment.doctor.name}", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Ngày: ${appointment.date}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Giờ: ${appointment.time}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Trạng thái: ${appointment.status}", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -77,18 +112,17 @@ fun SearchBar() {
 }
 
 @Composable
-fun TableDesign(sharedPreferences: SharedPreferences) {
+fun TableDesign(sharedPreferences: SharedPreferences, filteredAppointments: List<AppointmentResponse>) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
 
-    val appointmentList = appointViewModel.appointmentsUser.collectAsState()
     var appointmentToDelete by remember { mutableStateOf<String?>(null) }
 
     LazyRow {
         item {
             Column {
-                // Table header
+                // Header
                 Row(
                     Modifier
                         .background(Color(0xFF2B544F))
@@ -109,8 +143,8 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                     TableHeaderCell("Chức năng", 120)
                 }
 
-                // Hiển thị dữ liệu
-                if (appointmentList.value.isEmpty()) {
+                // Dữ liệu
+                if (filteredAppointments.isEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -121,14 +155,13 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
                         Text("Không có dữ liệu", color = Color.Gray)
                     }
                 } else {
-                    appointmentList.value.forEachIndexed { index, row ->
+                    filteredAppointments.forEachIndexed { index, row ->
                         val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(bgColor)
-                                .padding(vertical = 10.dp),
-                            horizontalArrangement = Arrangement.Start
+                                .padding(vertical = 10.dp)
                         ) {
                             TableCell(row.id ?: "trống", 60)
                             TableCell(row.doctor?.id ?: "trống", 80)
@@ -190,6 +223,7 @@ fun TableDesign(sharedPreferences: SharedPreferences) {
         }
     }
 }
+
 
 @Composable
 fun TableCell(
