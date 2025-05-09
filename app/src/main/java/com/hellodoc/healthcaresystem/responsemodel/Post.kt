@@ -52,6 +52,8 @@ data class GetCommentPostResponse(
     val createdAt: String
 ) {
     data class User(
+        @SerializedName("_id")
+        val id: String,
         val name: String,
         val avatarURL: String?
     )

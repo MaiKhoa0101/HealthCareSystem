@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.user.personal
+ package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.Context
 import android.content.SharedPreferences
