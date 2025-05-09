@@ -80,36 +80,24 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherPostColumn(
+    userViewModel: UserViewModel,
     postViewModel: PostViewModel,
     posts: List<PostResponse>,
-    navHostController : NavHostController,
-    sharedPreferences: SharedPreferences
-){
-    var shouldReloadPosts by remember { mutableStateOf(false) }
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    navHostController: NavHostController,
+    sharedPreferences: SharedPreferences,
+    onImageClick: (String) -> Unit,
+    onClickReport: (String) -> Unit,
+    onShowComment: (String) -> Unit
+) {
+    val userId = userViewModel.getUserAttributeString("userId")
 
-    val context = LocalContext.current
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
-    }
-
-    var reportedPostId by remember { mutableStateOf<String?>(null) }
-    var showReportDialog by remember { mutableStateOf(false) }
-    var showFullScreenComment by remember { mutableStateOf(false) }
-    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
-    var showReportBox by remember { mutableStateOf(false) }
-
-
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId, shouldReloadPosts) {
+    LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)
         }
     }
-    val user by userViewModel.user.collectAsState()
+
+
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",
@@ -132,41 +120,14 @@ fun OtherPostColumn(
                 postViewModel = postViewModel,
                 currentUserId = userId,
                 navHostController = navHostController,
-                onClickReport = { postId ->
-                    reportedPostId = postId
-                    showReportDialog = true
-                },
-                onShowComment = { postId ->
-                    selectedPostIdForComment = postId
-                    showFullScreenComment = true
-                },
-                onImageClick = { selectedImageUrl = it }
+                onClickReport = { postId -> onClickReport(postId) },
+                onShowComment = { postId -> onShowComment(postId) },
+                onImageClick = { imageUrl -> onImageClick(imageUrl) }
             )
-
         }
     }
-    if ((showFullScreenComment && selectedPostIdForComment != null) ||
-        (showReportDialog && user != null)
-    ) {
-        print("vo duoc interact post manager")
-        InteractPostManager(
-            navHostController,
-            user,
-            postViewModel,
-            reportedPostId,
-            context,
-            showFullScreenComment,
-            selectedPostIdForComment,
-            showReportDialog,
-            onCloseComment = {
-                showFullScreenComment = false
-            },
-            onHideReportDialog = {
-                showReportDialog = false
-            }
-        )
-    }
 }
+
 
 
 
@@ -257,8 +218,6 @@ fun ViewPostOwner(
     ) {
     val backgroundColor = Color.White
     var expanded by remember { mutableStateOf(false) }
-    var isCommenting by remember { mutableStateOf(false) }
-    var newComment by remember { mutableStateOf("") }
     var shouldFetchComments by remember { mutableStateOf(false) }
 
     val isFavoritedMap by postViewModel.isFavoritedMap.collectAsState()
@@ -274,6 +233,9 @@ fun ViewPostOwner(
     var editingCommentId by remember { mutableStateOf<String?>(null) }
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
+
+    println("Tao ra duoc post voi postId: "+ postId)
+    println("Tao ra duoc post voi currentUserId: "+ currentUserId)
 
     LaunchedEffect(editingCommentId) {
         println("fetch comment bai viet")
@@ -483,7 +445,7 @@ fun ViewPostOwner(
                     }
                 }
             }
-
+            println("postId: "+postId+"\ncurrentUserId: "+currentUserId+"\nuserModel: "+userModel)
             // ICON like & comment
             Row(
                 modifier = Modifier
@@ -501,7 +463,6 @@ fun ViewPostOwner(
                             userId = currentUserId,
                             userModel = userModel
                         )
-//                    isFavorited = !isFavorited
                     }
                 ) {
                     Icon(
@@ -620,7 +581,9 @@ fun InteractPostManager(
             currentUserId = user?.id ?: ""
         )
     }
+    println("showReportDialog lay duoc cho post menu: "+showReportDialog)
 
+    println("user lay duoc cho post menu: "+user)
     if (showReportDialog && user != null) {
         var selectedType by remember { mutableStateOf("Ứng dụng") }
         var reportContent by remember { mutableStateOf("") }
