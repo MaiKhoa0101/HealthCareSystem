@@ -443,6 +443,7 @@ fun PostDetailScreen(
         }
         if (showFullScreenComment) {
             FullScreenCommentUI(
+                navHostController = navHostController,
                 postId = postId,
                 onClose = { showFullScreenComment = false },
                 postViewModel = postViewModel,
