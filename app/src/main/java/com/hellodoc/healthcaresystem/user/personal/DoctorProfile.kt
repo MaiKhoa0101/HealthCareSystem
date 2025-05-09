@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,11 +46,14 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
-import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 var doctorID = ""
 
@@ -62,6 +66,8 @@ var specialtyName = ""
 var isClinicPaused = false
 
 var hasHomeService = false
+
+var userName = ""
 
 @Composable
 fun UserInfoSkeleton() {
@@ -121,18 +127,29 @@ fun UserInfoSkeleton() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DoctorScreen(navHostController: NavHostController) {
-    val sharedPreferences = navHostController.context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+fun DoctorScreen(
+    context: Context,
+    navHostController: NavHostController
+) {
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
+    })
+
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
     })
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        userName = userViewModel.getUserAttributeString("name")
+
         savedStateHandle?.get<String>("doctorId")?.let {
             doctorId = it
         }
@@ -155,6 +172,8 @@ fun DoctorScreen(navHostController: NavHostController) {
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+
+    var showReportDialog by remember { mutableStateOf(false) }
 
     doctorID = doctor?.id ?: ""
 
@@ -193,9 +212,11 @@ fun DoctorScreen(navHostController: NavHostController) {
                     UserInfoSkeleton()
                 } else {
                     UserInfo(
+                        context = context,
                         doctor = doctor,
                         navHostController = navHostController,
-                        onImageClick = { selectedImageUrl = it}
+                        onImageClick = { selectedImageUrl = it},
+                        onShowReportDialog = { showReportDialog = !showReportDialog }
                     )
                 }
             }
@@ -211,22 +232,162 @@ fun DoctorScreen(navHostController: NavHostController) {
             }
         }
     }
+    if (showReportDialog && userId != null) {
+        var selectedType by remember { mutableStateOf("Bác sĩ") }
+        var reportContent by remember { mutableStateOf("") }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .clickable(enabled = true, onClick = {}),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(320.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray)
+                    .padding(16.dp)
+            ) {
+                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                Text(userName, color = Color.DarkGray)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { selectedType = "Bác sĩ" }
+                            .padding(end = 10.dp)
+                    ) {
+//                        RadioButton(
+//                            selected = selectedType == "Bác sĩ",
+//                            onClick = null  // <- để dùng chung onClick bên ngoài
+//                        )
+                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+                    }
+//
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier
+//                            .clickable { selectedType = "Ứng dụng" }
+//                            .padding(end = 10.dp)
+//                    ) {
+//                        RadioButton(
+//                            selected = selectedType == "Ứng dụng",
+//                            onClick = null
+//                        )
+//                        Text("Ứng dụng", modifier = Modifier.padding(start = 5.dp))
+//                    }
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.clickable { selectedType = "Bài viết" }
+//                    ) {
+//                        RadioButton(
+//                            selected = selectedType == "Bài viết",
+//                            onClick = null
+//                        )
+//                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
+//                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                TextField(
+                    value = reportContent,
+                    onValueChange = { reportContent = it },
+                    placeholder = { Text("Nhập nội dung...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Huỷ",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .clickable { showReportDialog = !showReportDialog  }
+                            .padding(8.dp),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            try {
+                                val response = RetrofitInstance.reportService.sendReport(
+                                    ReportRequest(
+                                        reporter = userId,
+                                        reporterModel = userModel,
+                                        content = reportContent,
+                                        type = selectedType,
+                                        reportedId = doctor!!.id,
+                                        postId = null
+                                    )
+                                )
+
+                                if (response.isSuccessful) {
+                                    Toast.makeText(
+                                        context,
+                                        "Đã gửi báo cáo thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    println(response)
+                                    Toast.makeText(
+                                        context,
+                                        "Gửi báo cáo thất bại",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Lỗi kết nối đến server",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                        showReportDialog = !showReportDialog
+                    }) {
+                        Text("Gửi báo cáo")
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
 fun UserInfo(
+    context: Context,
     doctor: GetDoctorResponse?,
     navHostController: NavHostController,
     onImageClick: (String) -> Unit,
+    onShowReportDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    var showReportBox by remember { mutableStateOf(false) }
+
     ConstraintLayout(
         modifier = modifier
             .background(Color.Cyan)
             .height(330.dp)
             .fillMaxWidth()
     ) {
-        val (imgIcon, backIcon, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
+        val (imgIcon, backIcon, moreFuncIcon, optionDialog, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
 
         val imageUrl = doctor?.avatarURL ?: ""
         val name = doctor?.name ?: "Tên bác sĩ"
@@ -349,6 +510,53 @@ fun UserInfo(
                 },
             contentScale = ContentScale.Crop
         )
+
+        IconButton(
+            onClick = { showReportBox = !showReportBox },
+            modifier = Modifier
+                .padding(8.dp)
+                .constrainAs(moreFuncIcon) {
+                    top.linkTo(parent.top, margin = 16.dp)
+                    end.linkTo(parent.end, margin = 16.dp)
+                },
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_more),
+                contentDescription = "Menu",
+                tint = Color.Black
+            )
+        }
+
+        if (showReportBox) {
+            Column(
+                modifier = Modifier
+                    .width(250.dp)
+                    .background(Color.White, shape = RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                    .shadow(4.dp, RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+                    .constrainAs(optionDialog) {
+                        top.linkTo(moreFuncIcon.bottom)
+                        end.linkTo(parent.end, margin = 16.dp)
+                    }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showReportBox = !showReportBox
+                            onShowReportDialog()
+//                            onClickShowReport()
+                        }
+                ) {
+                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
+                }
+            }
+        }
+
+
     }
 }
 
@@ -647,9 +855,10 @@ fun WriteReviewButton(onClick: () -> Unit) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun OtherUserProfilePreview() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     HealthCareSystemTheme {
-        DoctorScreen(navController)
+        DoctorScreen(context, navController)
     }
 }
 

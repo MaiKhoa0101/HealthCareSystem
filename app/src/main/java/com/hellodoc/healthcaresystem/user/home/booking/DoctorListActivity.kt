@@ -85,7 +85,7 @@ class DoctorListActivity : BaseActivity() {
                 ProfileOtherUserPage(sharedPreferences,navHostController)
             }
             composable("other_user_profile") {
-                DoctorScreen(navHostController)
+                DoctorScreen(context, navHostController)
             }
             composable(
                 route = "doctorList/{specialtyId}/{specialtyName}/{specialtyDesc}",
