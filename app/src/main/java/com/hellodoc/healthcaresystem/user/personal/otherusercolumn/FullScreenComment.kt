@@ -58,10 +58,12 @@ import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.navigation.NavHostController
 
 
 @Composable
 fun FullScreenCommentUI(
+    navHostController: NavHostController,
     postId: String,
     onClose: () -> Unit,
     postViewModel: PostViewModel,
@@ -115,6 +117,17 @@ fun FullScreenCommentUI(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
+                                .clickable{
+                                if (currentUserId!=comment.user?.id) {
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                        set("UserId", comment.user?.id)
+                                    }
+                                    navHostController.navigate("otherUserProfile")
+                                }
+                                else {
+                                    navHostController.navigate("personal")
+                                }
+                            }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {

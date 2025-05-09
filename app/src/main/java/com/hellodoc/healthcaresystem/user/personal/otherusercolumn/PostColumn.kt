@@ -1,8 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal.otherusercolumn
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -23,20 +24,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,11 +47,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -67,14 +62,112 @@ import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.ConstraintSet
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
+import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+
+
+@Composable
+fun OtherPostColumn(
+    postViewModel: PostViewModel,
+    posts: List<PostResponse>,
+    navHostController : NavHostController,
+    sharedPreferences: SharedPreferences
+){
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+
+    val context = LocalContext.current
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+
+
+    // Gọi API để fetch user từ server
+    LaunchedEffect(userId, shouldReloadPosts) {
+        if (userId.isNotEmpty()) {
+            userViewModel.getUser(userId)
+        }
+    }
+    val user by userViewModel.user.collectAsState()
+    if (posts.isEmpty()) {
+        Text(
+            text = "Chưa có bài viết nào.",
+            modifier = Modifier.padding(16.dp),
+            fontSize = 16.sp,
+            color = Color.Gray
+        )
+    } else {
+        posts.forEach { postItem ->
+            ViewPostOwner(
+                postId = postItem.id,
+                containerPost = ContainerPost(
+                    id = postItem.user.id,
+                    name = postItem.user.name,
+                    imageUrl = postItem.user.avatarURL ?: ""
+                ),
+                contentPost = ContentPost(postItem.content),
+                footerItem = FooterItem(imageUrl = postItem.media.joinToString("|")),
+                createdAt = postItem.createdAt,
+                postViewModel = postViewModel,
+                currentUserId = userId,
+                navHostController = navHostController,
+                onClickReport = { postId ->
+                    reportedPostId = postId
+                    showReportDialog = true
+                },
+                onShowComment = { postId ->
+                    selectedPostIdForComment = postId
+                    showFullScreenComment = true
+                },
+                onImageClick = { selectedImageUrl = it }
+            )
+
+        }
+    }
+    if ((showFullScreenComment && selectedPostIdForComment != null) ||
+        (showReportDialog && user != null)
+    ) {
+        print("vo duoc interact post manager")
+        InteractPostManager(
+            navHostController,
+            user,
+            postViewModel,
+            reportedPostId,
+            context,
+            showFullScreenComment,
+            selectedPostIdForComment,
+            showReportDialog,
+            onCloseComment = {
+                showFullScreenComment = false
+            },
+            onHideReportDialog = {
+                showReportDialog = false
+            }
+        )
+    }
+}
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -133,11 +226,12 @@ fun PostColumn(
                     createdAt = postItem.createdAt,
                     postViewModel = postViewModel,
                     currentUserId = userId,
-                    navController = navController,
+                    navHostController = navController,
                     onClickReport = onClickReport,
                     onShowComment = onShowComment,
                     onImageClick = { selectedImageUrl = it}
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -155,7 +249,7 @@ fun ViewPostOwner(
     createdAt: String,
     postViewModel: PostViewModel,
     currentUserId: String,
-    navController: NavHostController,
+    navHostController: NavHostController,
     onClickReport: (String) -> Unit,
     onShowComment: (String) -> Unit,
     onImageClick: (String) -> Unit,
@@ -182,6 +276,7 @@ fun ViewPostOwner(
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(editingCommentId) {
+        println("fetch comment bai viet")
         if (editingCommentId == null) {
             // Sau khi lưu xong và thoát khỏi chế độ sửa, cập nhật lại UI
             postViewModel.fetchComments(postId)
@@ -189,7 +284,8 @@ fun ViewPostOwner(
     }
     LaunchedEffect(postId) {
         // Gọi API và cập nhật state khi dữ liệu được fetch về
-        postViewModel.fetchFavoriteForPost(postId, userId)
+        println("fetch yeu thich bai viet")
+        postViewModel.fetchFavoriteForPost(postId, currentUserId)
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -227,7 +323,7 @@ fun ViewPostOwner(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { navController.navigate("post-detail/$postId") },
+                    .clickable { navHostController.navigate("post-detail/$postId") },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween // để dồn 2 phần trái - phải
             ) {
@@ -242,12 +338,37 @@ fun ViewPostOwner(
                         modifier = Modifier
                             .size(45.dp)
                             .clip(CircleShape)
+                            .clickable{
+                                if (currentUserId!=containerPost.id) {
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                        set("UserId", containerPost.id)
+                                    }
+                                    navHostController.navigate("otherUserProfile")
+                                    println("Isdifferent: "+currentUserId!=containerPost.id)
+                                }
+                                else {
+                                    navHostController.navigate("personal")
+                                }
+                            },
                     )
 
                     Spacer(modifier = Modifier.width(5.dp))
 
                     Column(modifier = Modifier.padding(start = 10.dp)) {
                         Text(
+                            modifier= Modifier
+                                .clickable{
+                                    if (currentUserId!=containerPost.id) {
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                            set("UserId", containerPost.id)
+                                        }
+                                        navHostController.navigate("otherUserProfile")
+                                        println("Isdifferent: "+currentUserId!=containerPost.id)
+                                    }
+                                    else {
+                                        navHostController.navigate("personal")
+                                    }
+                                },
                             text = containerPost.name,
                             style = TextStyle(
                                 fontWeight = FontWeight.SemiBold,
@@ -468,6 +589,170 @@ fun ViewPostOwner(
                     ) {
                         Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
                         Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InteractPostManager(
+    navHostController: NavHostController,
+    user:User?,
+    postViewModel: PostViewModel,
+    reportedPostId:String?,
+    context: Context,
+    showFullScreenComment: Boolean,
+    selectedPostIdForComment: String?,
+    showReportDialog: Boolean,
+    onCloseComment: () -> Unit,
+    onHideReportDialog: ()-> Unit
+    ){
+    val coroutineScope = rememberCoroutineScope()
+
+    if (showFullScreenComment && selectedPostIdForComment != null) {
+        FullScreenCommentUI(
+            navHostController = navHostController,
+            postId = selectedPostIdForComment,
+            onClose = onCloseComment,
+            postViewModel = postViewModel,
+            currentUserId = user?.id ?: ""
+        )
+    }
+
+    if (showReportDialog && user != null) {
+        var selectedType by remember { mutableStateOf("Ứng dụng") }
+        var reportContent by remember { mutableStateOf("") }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .clickable(enabled = true, onClick = {}),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(320.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray)
+                    .padding(16.dp)
+            ) {
+                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                Text(user!!.name, color = Color.DarkGray)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { selectedType = "Bác sĩ" }
+                            .padding(end = 10.dp)
+                    ) {
+                        RadioButton(
+                            selected = selectedType == "Bác sĩ",
+                            onClick = null  // <- để dùng chung onClick bên ngoài
+                        )
+                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { selectedType = "Ứng dụng" }
+                            .padding(end = 10.dp)
+                    ) {
+                        RadioButton(
+                            selected = selectedType == "Ứng dụng",
+                            onClick = null
+                        )
+                        Text("Ứng dụng", modifier = Modifier.padding(start = 5.dp))
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedType = "Bài viết" }
+                    ) {
+                        RadioButton(
+                            selected = selectedType == "Bài viết",
+                            onClick = null
+                        )
+                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                TextField(
+                    value = reportContent,
+                    onValueChange = { reportContent = it },
+                    placeholder = { Text("Nhập nội dung...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Huỷ",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .clickable { onHideReportDialog  }
+                            .padding(8.dp),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            try {
+                                val model =
+                                    if (user!!.role.lowercase() == "doctor") "Doctor" else "User"
+                                val response = RetrofitInstance.reportService.sendReport(
+                                    ReportRequest(
+                                        reporter = user!!.id,
+                                        reporterModel = model,
+                                        content = reportContent,
+                                        type = selectedType,
+                                        reportedId = user!!.id,
+                                        postId = if (selectedType == "Bài viết") reportedPostId else null
+                                    )
+                                )
+
+                                if (response.isSuccessful) {
+                                    Toast.makeText(
+                                        context,
+                                        "Đã gửi báo cáo thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    println(response)
+                                    Toast.makeText(
+                                        context,
+                                        "Gửi báo cáo thất bại",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Lỗi kết nối đến server",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                        onHideReportDialog
+                    }) {
+                        Text("Gửi báo cáo")
                     }
                 }
             }

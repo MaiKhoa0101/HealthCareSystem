@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -105,6 +106,9 @@ fun CommentCard(comment: ManagerResponse, dateText: String) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
+                        .clickable{
+
+                        },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
