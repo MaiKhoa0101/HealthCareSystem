@@ -198,7 +198,7 @@ class HomeActivity : BaseActivity() {
                 GeminiChatScreen(navHostController, sharedPreferences)
             }
             composable("other_user_profile") {
-                DoctorScreen(navHostController)
+                DoctorScreen(context, navHostController)
             }
             composable(
                 route = "appointment-detail",
