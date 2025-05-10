@@ -5,6 +5,7 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetCommentPageResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
@@ -65,8 +66,12 @@ interface PostService {
 
     @GET("post/{postId}/comment/get")
     suspend fun getCommentByPostId(
-        @Path("postId") postId: String
-    ): Response<List<GetCommentPostResponse>>
+        @Path("postId") postId: String,
+        @Query("skip") skip: Int,
+        @Query("limit") limit: Int
+    ): Response<GetCommentPageResponse>
+
+
 
     @PATCH("post/{commentId}/comment/update")
     suspend fun updateCommentById(

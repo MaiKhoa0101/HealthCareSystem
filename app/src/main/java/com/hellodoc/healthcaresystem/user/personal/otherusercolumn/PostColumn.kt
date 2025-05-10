@@ -97,7 +97,7 @@ fun OtherPostColumn(
         }
     }
 
-
+    println("chay tut tren day")
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",
@@ -234,8 +234,6 @@ fun ViewPostOwner(
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
-    println("Tao ra duoc post voi postId: "+ postId)
-    println("Tao ra duoc post voi currentUserId: "+ currentUserId)
 
     LaunchedEffect(editingCommentId) {
         println("fetch comment bai viet")
@@ -445,7 +443,6 @@ fun ViewPostOwner(
                     }
                 }
             }
-            println("postId: "+postId+"\ncurrentUserId: "+currentUserId+"\nuserModel: "+userModel)
             // ICON like & comment
             Row(
                 modifier = Modifier

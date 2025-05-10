@@ -25,6 +25,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
@@ -41,7 +42,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     _posts.value = result.body() ?: emptyList()
                     println("Kết qua getAllPosts: "+_posts.value)
                 } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
+                    Log.e("Lỗi API", "${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
@@ -54,7 +55,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun getPostById(id:String) {
         viewModelScope.launch {
             try {
-                println("ID nhận được để lấy post: " + id)
                 val result = RetrofitInstance.postService.getPostById(id)
 
                 if (result.isSuccessful) {
@@ -77,7 +77,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun getPostByUserId(userId:String) {
         viewModelScope.launch {
             try {
-                println("UserId nhận được để lấy post: " + userId)
                 val result = RetrofitInstance.postService.getPostByUserId(userId)
 
                 if (result.isSuccessful) {
@@ -191,16 +190,31 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())
-    val commentsMap: StateFlow<Map<String, List<GetCommentPostResponse>>> get() = _commentsMap
 
-    fun fetchComments(postId: String) {
+    private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())
+    val commentsMap: StateFlow<Map<String, List<GetCommentPostResponse>>> = _commentsMap
+
+    private val _hasMoreMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val hasMoreMap: StateFlow<Map<String, Boolean>> = _hasMoreMap
+
+    fun fetchComments(postId: String, skip: Int = 0, limit: Int = 10, append: Boolean = false) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getCommentByPostId(postId)
+                val response = RetrofitInstance.postService.getCommentByPostId(postId, skip, limit)
                 if (response.isSuccessful) {
-                    val comments = response.body() ?: emptyList()
-                    _commentsMap.value += (postId to comments)
+                    println("Respoint la: "+response.body())
+                    val result = response.body()
+                    val comments = result?.comments ?: emptyList()
+                    val hasMore = result?.hasMore ?: false
+                    println("Comment fetch ra voi hasmore la"+hasMore)
+                    if (append) {
+                        val current = _commentsMap.value[postId] ?: emptyList()
+                        _commentsMap.value += (postId to (current + comments))
+                    } else {
+                        _commentsMap.value += (postId to comments)
+                    }
+
+                    _hasMoreMap.value += (postId to hasMore)
                 } else {
                     Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
                 }
@@ -209,6 +223,9 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
+
+
+
 
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
@@ -223,17 +240,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Send Comment Error", e)
             }
-        }
-    }
-
-    suspend fun fetchCommentsForPost(postId: String): List<GetCommentPostResponse> {
-        return try {
-            val response = RetrofitInstance.postService.getCommentByPostId(postId)
-            if (response.isSuccessful) response.body() ?: emptyList()
-            else emptyList()
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Lỗi khi fetch comments", e)
-            emptyList()
         }
     }
 

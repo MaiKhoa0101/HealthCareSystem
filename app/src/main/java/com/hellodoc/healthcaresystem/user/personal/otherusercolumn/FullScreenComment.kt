@@ -38,7 +38,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -61,10 +60,17 @@ import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,59 +82,85 @@ fun FullScreenCommentUI(
     currentUserId: String
 ) {
     val commentsMap by postViewModel.commentsMap.collectAsState()
-    val comments = commentsMap[postId] ?: emptyList()
+    val comments = (commentsMap[postId] ?: emptyList())
+    val hasMoreMap by postViewModel.hasMoreMap.collectAsState()
+    val hasMore = hasMoreMap[postId] ?: true
+
     var newComment by remember { mutableStateOf("") }
     var editingCommentId by remember { mutableStateOf<String?>(null) }
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    var commentIndex by remember { mutableStateOf(6) }
+    var commentIndex by remember { mutableStateOf(9) }
+    var isLoadingMore by remember { mutableStateOf(false) }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-    BackHandler {
-        onClose() //Nút lùi về của màn hình
-    }
+    val listState = rememberLazyListState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    BackHandler { onClose() }
 
     LaunchedEffect(postId) {
-        postViewModel.fetchComments(postId)
+        postViewModel.fetchComments(postId, skip = 0, limit = 10, append = false)
         sheetState.expand()
     }
+
+    LaunchedEffect(listState, comments.size, hasMore) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex >= totalItems - 1
+        }.distinctUntilChanged()
+            .collect { isAtEnd ->
+                if (isAtEnd && hasMore && !isLoadingMore) {
+                    isLoadingMore = true
+                    postViewModel.fetchComments(
+                        postId = postId,
+                        skip = comments.size,
+                        limit = 10,
+                        append = true
+                    )
+                    delay(3000)
+                    isLoadingMore = false
+                }
+            }
+    }
+
+
+
 
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(0.92f) // Chiều cao mong muốn (85% màn hình)
-
+        modifier = Modifier.fillMaxHeight(0.92f),
+        dragHandle = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(15.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.arrowdown),
+                    contentDescription = "Kéo xuống để tắt",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp)
+                .padding(15.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                state = listState
             ) {
-                IconButton(
-                    onClick = onClose,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back),
-                        contentDescription = "Close",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Text("Bình luận", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(comments.take(commentIndex)) { comment ->
-                    Row(verticalAlignment = Alignment.Top) {
+                items(comments) { comment ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.LightGray)
+                            .padding(10.dp)
+                    ) {
                         AsyncImage(
                             model = comment.user?.avatarURL ?: "",
                             contentDescription = null,
@@ -147,51 +179,42 @@ fun FullScreenCommentUI(
                                 }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(comment.user?.name ?: "Ẩn danh", fontWeight = FontWeight.Bold)
-                            Text(comment.content)
-                        }
-                        Box {
-                            IconButton(onClick = { activeMenuCommentId = comment.id }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = null)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(comment.user?.name ?: "Ẩn danh", fontWeight = FontWeight.Bold)
+                                Text(comment.content)
                             }
-                            DropdownMenu(
-                                expanded = activeMenuCommentId == comment.id,
-                                onDismissRequest = { activeMenuCommentId = null }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Xóa") },
-                                    onClick = {
-                                        activeMenuCommentId = null
-                                        coroutineScope.launch {
-                                            postViewModel.deleteComment(comment.id, postId)
-                                            postViewModel.fetchComments(postId)
-                                        }
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Sửa") },
-                                    onClick = {
-                                        editingCommentId = comment.id
-                                        editedCommentContent = comment.content
-                                        activeMenuCommentId = null
-                                    }
-                                )
-                            }
+                            ReportCommentFunction(
+                                comment = comment,
+                                postId = postId,
+                                postViewModel = postViewModel,
+                                setEditingCommentId = { editingCommentId = it },
+                                setEditedCommentContent = { editedCommentContent = it },
+                                activeMenuCommentId = activeMenuCommentId,
+                                setActiveMenuCommentId = { activeMenuCommentId = it }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (commentIndex < comments.size) {
+                if (isLoadingMore && hasMore) {
                     item {
-                        Text(
-                            text = "Xem thêm...",
-                            modifier = Modifier
-                                .clickable { commentIndex += 6 }
-                                .padding(8.dp),
-                            color = Color.Blue
-                        )
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                        }
+                    }
+                    println("isLoadingMore "+isLoadingMore +" commentIndex "+ commentIndex + " comments.size "+comments.size)
+                }
+                else {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                            ) {
+                            Text("Đã hết bình luận")
+                        }
+
                     }
                 }
             }
@@ -216,7 +239,10 @@ fun FullScreenCommentUI(
                             postViewModel.sendComment(postId, currentUserId, userModel, newComment)
                             newComment = ""
                         }
-                        postViewModel.fetchComments(postId)
+
+                        postViewModel.fetchComments(postId, skip = 0, limit = 10, append = false)
+                        delay(200) // Đợi dữ liệu load xong, rồi mới scroll
+                        listState.animateScrollToItem(0)
                     }
                 }) {
                     Text(if (editingCommentId != null) "Lưu" else "Gửi")
@@ -225,3 +251,48 @@ fun FullScreenCommentUI(
         }
     }
 }
+
+
+@Composable
+fun ReportCommentFunction(
+    comment: GetCommentPostResponse,
+    postId:String,
+    postViewModel: PostViewModel,
+    setEditingCommentId: (String?) -> Unit,
+    setEditedCommentContent : (String) -> Unit,
+    activeMenuCommentId: String?,
+    setActiveMenuCommentId: (String?) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Box {
+        IconButton(onClick = { setActiveMenuCommentId(comment.id) }) {
+            Icon(Icons.Default.MoreVert, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = activeMenuCommentId == comment.id,
+            onDismissRequest = { setActiveMenuCommentId(null) }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Xóa") },
+                onClick = {
+                    setActiveMenuCommentId(null)
+                    coroutineScope.launch {
+                        postViewModel.deleteComment(comment.id, postId)
+                        postViewModel.fetchComments(postId)
+                    }
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Sửa") },
+                onClick = {
+                    setEditingCommentId (comment.id)
+                    setEditedCommentContent(comment.content)
+                    setActiveMenuCommentId(null)
+                }
+            )
+        }
+    }
+}
+
