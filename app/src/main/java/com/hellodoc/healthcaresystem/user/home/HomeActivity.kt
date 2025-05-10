@@ -68,7 +68,8 @@ import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-
+var showFullScreenComment :Boolean = false
+var showReportDialog: Boolean = false
 class HomeActivity : BaseActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -109,15 +110,16 @@ class HomeActivity : BaseActivity() {
         // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
+        var showFullScreenComment by remember { mutableStateOf(showFullScreenComment) }
 
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showTopBars) Headbar(sharedPreferences)
+                if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences)
             },
             bottomBar = {
-                if (showFootBars) FootBar(navHostController)
+                if (showFootBars && !showFullScreenComment) FootBar(navHostController)
             }
         ) { paddingValues ->
             NavigationHost(
@@ -161,13 +163,6 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("news_detail") {
-                val dummyNews = NewsResponse(
-                    id = "dummyId",
-                    title = "Tiêu đề mẫu",
-                    content = "Đây là nội dung bài viết mẫu để test",
-                    media = listOf("https://i.imgur.com/CzXTtJV.png"),
-                    createdAt = "2024-01-01T00:00:00Z"
-                )
                 NewsDetailScreen(navHostController = navHostController)
             }
             composable("appointment") {

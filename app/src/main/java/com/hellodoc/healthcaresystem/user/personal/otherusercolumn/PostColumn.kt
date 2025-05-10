@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
@@ -554,6 +555,10 @@ fun ViewPostOwner(
             }
         }
     }
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray
+    )
 }
 
 @Composable

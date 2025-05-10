@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
@@ -216,6 +217,10 @@ fun HealthMateHomeScreen(
                     }
 
                 }
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    color = Color.Gray
+                )
             }
 
             // Dịch vụ toàn diện
@@ -233,6 +238,7 @@ fun HealthMateHomeScreen(
                         }
                     }
                 }
+
             }
 
             // Chuyên khoa
@@ -243,17 +249,20 @@ fun HealthMateHomeScreen(
                 } else {
                     SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
                 }
+
             }
 
             // Bác sĩ nổi bật
             item {
                 Spacer(modifier = Modifier.height(8.dp))
+
                 if (doctors.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
                     println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctors)
                 }
+
             }
 
             item {
@@ -447,7 +456,7 @@ fun NewsItem(
             .padding(vertical = 8.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clickable { onSelectNews() },
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -457,10 +466,9 @@ fun NewsItem(
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Xem chi tiết",
                 tint = Color.Black,
-                modifier = Modifier.clickable { onSelectNews() }
             )
         }
         Spacer(modifier = Modifier.height(5.dp))
@@ -545,7 +553,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String, String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(start = 16.dp)
+        modifier = Modifier.padding(vertical = 16.dp)
     ) {
         items(specialties) { specialty ->
             SpecialtyItem(
@@ -625,11 +633,14 @@ fun DoctorList(
     doctors: List<GetDoctorResponse>,
     onSeeMoreClick: () -> Unit = {} // callback cho "Xem thêm"
 ) {
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 14.dp)
             .background(Color(0xFF73E3E7))
     ) {
         Row(
@@ -674,6 +685,10 @@ fun DoctorList(
             }
         }
     }
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray
+    )
 }
 
 @Composable
