@@ -51,8 +51,8 @@ import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
-import com.hellodoc.healthcaresystem.user.home.showFullScreenComment
-import com.hellodoc.healthcaresystem.user.home.showReportDialog
+//import com.hellodoc.healthcaresystem.user.home.showFullScreenComment
+//import com.hellodoc.healthcaresystem.user.home.showReportDialog
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.post.userId
