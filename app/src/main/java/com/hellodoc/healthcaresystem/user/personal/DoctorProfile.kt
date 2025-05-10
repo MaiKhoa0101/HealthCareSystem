@@ -51,6 +51,8 @@ import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+//import com.hellodoc.healthcaresystem.user.home.showFullScreenComment
+//import com.hellodoc.healthcaresystem.user.home.showReportDialog
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.post.userId
@@ -822,66 +824,6 @@ fun BookingButton(navController: NavHostController) {
                 )
             }
         }
-
-        // Icon 3 chấm
-//        IconButton(
-//            onClick = { showReportBox = !showReportBox },
-//            modifier = Modifier
-//                .align(Alignment.TopEnd)
-//                .padding(8.dp)
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_more),
-//                contentDescription = "Menu",
-//                tint = Color.Black
-//            )
-//        }
-//
-//        // Report Box
-//        if (showReportBox) {
-//            Column(
-//                modifier = Modifier
-//                    .align(Alignment.TopEnd)
-//                    .padding(top = 48.dp, end = 8.dp)
-//                    .width(250.dp)
-//                    .background(Color.White, shape = RoundedCornerShape(8.dp))
-//                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-//                    .shadow(4.dp, RoundedCornerShape(8.dp))
-//                    .padding(12.dp)
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable {
-////                            onToggleReportBox()
-////                            onClickShowReport()
-//                        }
-//                ) {
-//                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
-//                    Spacer(modifier = Modifier.height(4.dp))
-//                    Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
-//                }
-//
-//                Divider(
-//                    color = Color.LightGray,
-//                    thickness = 1.dp,
-//                    modifier = Modifier.padding(vertical = 12.dp)
-//                )
-//
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable {
-////                            onToggleReportBox()
-//                            navController.navigate("activity_manager")
-//                        }
-//                ) {
-//                    Text("Quản lý hoạt động", fontWeight = FontWeight.Bold)
-//                    Spacer(modifier = Modifier.height(4.dp))
-//                    Text("Xem và kiểm soát các hoạt động", fontSize = 13.sp)
-//                }
-//            }
-//        }
     }
 }
 
