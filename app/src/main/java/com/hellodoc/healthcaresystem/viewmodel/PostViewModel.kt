@@ -197,32 +197,32 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _hasMoreMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val hasMoreMap: StateFlow<Map<String, Boolean>> = _hasMoreMap
 
-    fun fetchComments(postId: String, skip: Int = 0, limit: Int = 10, append: Boolean = false) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.postService.getCommentByPostId(postId, skip, limit)
-                if (response.isSuccessful) {
-                    println("Respoint la: "+response.body())
-                    val result = response.body()
-                    val comments = result?.comments ?: emptyList()
-                    val hasMore = result?.hasMore ?: false
-                    println("Comment fetch ra voi hasmore la"+hasMore)
-                    if (append) {
-                        val current = _commentsMap.value[postId] ?: emptyList()
-                        _commentsMap.value += (postId to (current + comments))
-                    } else {
-                        _commentsMap.value += (postId to comments)
-                    }
+    suspend fun fetchComments(postId: String, skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
+        return try {
+            val response = RetrofitInstance.postService.getCommentByPostId(postId, skip, limit)
+            if (response.isSuccessful) {
+                val result = response.body()
+                val comments = result?.comments ?: emptyList()
+                val hasMore = result?.hasMore ?: false
 
-                    _hasMoreMap.value += (postId to hasMore)
+                if (append) {
+                    val current = _commentsMap.value[postId] ?: emptyList()
+                    _commentsMap.value += (postId to (current + comments))
                 } else {
-                    Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                    _commentsMap.value += (postId to comments)
                 }
-            } catch (e: Exception) {
-                Log.e("PostViewModel", "Comment Fetch Error", e)
+                _hasMoreMap.value += (postId to hasMore)
+                true
+            } else {
+                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                false
             }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Comment Fetch Error", e)
+            false
         }
     }
+
 
 
 

@@ -114,17 +114,17 @@ fun FullScreenCommentUI(
             .collect { isAtEnd ->
                 if (isAtEnd && hasMore && !isLoadingMore) {
                     isLoadingMore = true
-                    postViewModel.fetchComments(
+                    val success = postViewModel.fetchComments(
                         postId = postId,
                         skip = comments.size,
                         limit = 10,
                         append = true
                     )
-                    delay(3000)
                     isLoadingMore = false
                 }
             }
     }
+
 
 
 
@@ -244,6 +244,7 @@ fun FullScreenCommentUI(
                         delay(200) // Đợi dữ liệu load xong, rồi mới scroll
                         listState.animateScrollToItem(0)
                     }
+
                 }) {
                     Text(if (editingCommentId != null) "Lưu" else "Gửi")
                 }
