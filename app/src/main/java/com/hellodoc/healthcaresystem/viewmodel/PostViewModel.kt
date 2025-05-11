@@ -251,18 +251,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-
-    suspend fun fetchCommentsForPost(postId: String): List<GetCommentPostResponse> {
-        return try {
-            val response = RetrofitInstance.postService.getCommentByPostId(postId)
-            if (response.isSuccessful) response.body() ?: emptyList()
-            else emptyList()
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Lỗi khi fetch comments", e)
-            emptyList()
-        }
-    }
-
     fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {

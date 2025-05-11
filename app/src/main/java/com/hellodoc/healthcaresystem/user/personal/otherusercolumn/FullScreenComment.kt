@@ -125,10 +125,6 @@ fun FullScreenCommentUI(
             }
     }
 
-
-
-
-
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,

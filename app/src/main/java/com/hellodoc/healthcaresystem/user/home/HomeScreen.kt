@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.user.home
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -48,6 +49,7 @@ import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
@@ -325,20 +327,6 @@ fun AssistantQueryRow(
     }
 }
 
-@Composable
-fun NewsItemList(
-    newsList: List<NewsResponse>,
-    navHostController: NavHostController
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        newsList.forEach { news ->
-            NewsItem(news = news, onSelectNews = {
-                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                navHostController.navigate("news_detail")
-            })
-        }
-    }
-}
 
 @Composable
 fun NewsItem(
@@ -372,45 +360,22 @@ fun NewsItem(
         Divider(color = Color.White, thickness = 1.dp)
     }
 }
-
 @Composable
-fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {
-    faqItems.forEach { faqItem ->
-        FAQItem(faqItem) {
-            showToast(context, "Clicked: ${faqItem.question}")
-        }
-    }
-}
-
-@Composable
-fun FAQItem(
-    faq: GetFAQItemResponse,
-    onSelectQuestion: () -> Unit
+fun NewsItemList(
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = faq.question,
-                fontSize = 16.sp,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Expand",
-                tint = Color.Black,
-                modifier = Modifier.clickable { onSelectQuestion() }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        newsList.forEach { news ->
+            Log.d("NewsDebug", "News in list: ${news.title}, id: ${news.id}")
+            NewsItem(news = news,
+                onSelectNews = {
+                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                    Log.d("NewsSet", "News set to savedStateHandle: ${news.id}")
+                navHostController.navigate("news_detail")
+            }
             )
         }
-        Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = Color.White, thickness = 1.dp)
     }
 }
 
