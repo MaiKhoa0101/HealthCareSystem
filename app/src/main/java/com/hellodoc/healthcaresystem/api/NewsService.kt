@@ -2,9 +2,11 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateNewsCommentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateNewsFavoriteRequest
+import com.hellodoc.healthcaresystem.responsemodel.CommentPaginationResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetNewsCommentResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse1
 import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import okhttp3.MultipartBody
@@ -71,6 +73,13 @@ interface NewsService {
     ): Response<GetFavoritePostResponse>
 
     @GET("news/user/{userId}/favorite/get")
-    suspend fun getUserFavoriteNews(@Path("userId") userId: String): Response<List<ManagerResponse>>
+    suspend fun getUserFavoriteNews(@Path("userId") userId: String): Response<List<ManagerResponse1>>
+
+    @GET("news/{newsId}/comments/get")
+    suspend fun getCommentByNewsIdWithPagination(
+        @Path("newsId") newsId: String,
+        @Query("skip") skip: Int,
+        @Query("limit") limit: Int
+    ): Response<CommentPaginationResponse>
 
 }

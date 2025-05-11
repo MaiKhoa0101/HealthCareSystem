@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentNews
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
 
@@ -156,13 +157,15 @@ fun NewsDetailScreen(
         Text(news.content, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
     }
 
-//    if (showFullScreenComment) {
-//        FullScreenCommentUI(
-//            navHostController = navHostController,
-//            postId = news.id,
-//            onClose = { showFullScreenComment = false },
-//            postViewModel = viewModel,
-//            currentUserId = currentUserId
-//        )
-//    }
+    if (showFullScreenComment && news != null) {
+        FullScreenCommentNews(
+            navHostController = navHostController,
+            newsId = news.id,
+            onClose = { showFullScreenComment = false },
+            newsViewModel = viewModel,
+            currentUserId = currentUserId,
+            currentUserModel = currentUserModel
+        )
+    }
+
 }

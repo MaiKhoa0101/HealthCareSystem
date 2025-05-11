@@ -185,11 +185,11 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun sendComment(newsId: String, userId: String, userModel: String, content: String) {
+    fun sendComment(newsId: String, userId: String,content: String) {
         viewModelScope.launch {
             val res = RetrofitInstance.newsService.createCommentByNewsId(
                 newsId,
-                CreateNewsCommentRequest(userId, userModel, content)
+                CreateNewsCommentRequest(userId, content)
             )
             if (res.isSuccessful) getComments(newsId)
         }
@@ -199,7 +199,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             RetrofitInstance.newsService.updateCommentById(
                 commentId,
-                CreateNewsCommentRequest(userId, userModel, content)
+                CreateNewsCommentRequest(userId, content)
             )
         }
     }
