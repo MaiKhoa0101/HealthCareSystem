@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
@@ -97,7 +98,7 @@ fun OtherPostColumn(
         }
     }
 
-
+    println("chay tut tren day")
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",
@@ -234,8 +235,6 @@ fun ViewPostOwner(
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
-    println("Tao ra duoc post voi postId: "+ postId)
-    println("Tao ra duoc post voi currentUserId: "+ currentUserId)
 
     LaunchedEffect(editingCommentId) {
         println("fetch comment bai viet")
@@ -445,7 +444,6 @@ fun ViewPostOwner(
                     }
                 }
             }
-            println("postId: "+postId+"\ncurrentUserId: "+currentUserId+"\nuserModel: "+userModel)
             // ICON like & comment
             Row(
                 modifier = Modifier
@@ -555,6 +553,10 @@ fun ViewPostOwner(
             }
         }
     }
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray
+    )
 }
 
 @Composable

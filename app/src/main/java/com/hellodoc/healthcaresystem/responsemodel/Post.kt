@@ -74,3 +74,7 @@ data class CommentPost(
     val media: List<String>
 )
 
+data class GetCommentPageResponse(
+    val comments: List<GetCommentPostResponse>,
+    val hasMore: Boolean
+)
