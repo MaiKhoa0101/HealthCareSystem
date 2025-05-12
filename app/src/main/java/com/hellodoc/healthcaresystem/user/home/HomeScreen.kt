@@ -3,10 +3,14 @@ package com.hellodoc.healthcaresystem.user.home
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -47,7 +51,10 @@ import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColu
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
+import kotlinx.coroutines.delay
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
@@ -136,7 +143,7 @@ fun HealthMateHomeScreen(
                     if (newsState.isEmpty()) {
                         EmptyList("tin mới")
                     } else {
-                        NewsItemList(newsList = newsState, navHostController = navHostController)
+                        MarqueeNewsTicker(newsList = newsState, navHostController = navHostController)
                     }
                 }
                 HorizontalDivider(thickness = 2.dp, color = Color.Gray)
@@ -226,6 +233,111 @@ fun HealthMateHomeScreen(
         }
     }
 }
+//lặp lại title 3 lần nếu độ dài < N ký tự
+fun forceMarqueeText(title: String, repeatCount: Int = 3): String {
+    return if (title.length < 30) {
+        (title + "     ").repeat(repeatCount)
+    } else {
+        title
+    }
+}
+
+fun calculateDynamicDelay(title: String, velocityDpPerSecond: Float = 50f, screenWidthDp: Float = 360f): Long {
+    val estimatedTextWidthDp = title.length * 8f  //giả sử mỗi ký tự khoảng 8dp (với font 16sp)
+    val scrollDistanceDp = maxOf(estimatedTextWidthDp, screenWidthDp)// Nếu text ngắn hơn screen → ép delay ngắn tối thiểu
+    val scrollTimeSec = scrollDistanceDp / velocityDpPerSecond
+    return (scrollTimeSec * 1000).toLong() + 2000L  //thêm 2s dừng nhẹ giữa các title
+}
+
+@Composable
+fun MarqueeNewsTicker(
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
+) {
+    if (newsList.isEmpty()) {
+        EmptyList("tin mới")
+    } else {
+        val firstHalf = newsList.take(newsList.size / 2)
+        val secondHalf = newsList.drop(newsList.size / 2)
+
+        var firstIndex by remember { mutableStateOf(0) }
+        var secondIndex by remember { mutableStateOf(0) }
+
+        // Auto next for first line
+        LaunchedEffect(firstIndex, firstHalf) {
+            if (firstHalf.isNotEmpty()) {
+                while (true) {
+                    val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                    val delayTime = calculateDynamicDelay(currentTitle)
+                    delay(delayTime)
+                    firstIndex = (firstIndex + 1) % firstHalf.size
+                }
+            }
+        }
+
+        // Auto next for second line
+        LaunchedEffect(secondIndex, secondHalf) {
+            if (secondHalf.isNotEmpty()) {
+                while (true) {
+                    val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                    val delayTime = calculateDynamicDelay(currentTitle)
+                    delay(delayTime)
+                    secondIndex = (secondIndex + 1) % secondHalf.size
+                }
+            }
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        firstHalf.getOrNull(firstIndex)?.let { news ->
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                            navHostController.navigate("news_detail")
+                        }
+                    }
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        animationMode = MarqueeAnimationMode.Immediately,
+                        spacing = MarqueeSpacing(50.dp),
+                        velocity = 50.dp,
+                    ),
+                fontSize = 16.sp,
+                color = Color.White,
+                maxLines = 1,
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Divider(color = Color.White, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        secondHalf.getOrNull(secondIndex)?.let { news ->
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                            navHostController.navigate("news_detail")
+                        }
+                    }
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        animationMode = MarqueeAnimationMode.Immediately,
+                        spacing = MarqueeSpacing(50.dp),
+                        velocity = 50.dp,
+                    ),
+                fontSize = 16.sp,
+                color = Color.White,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+
 
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -325,20 +437,6 @@ fun AssistantQueryRow(
     }
 }
 
-@Composable
-fun NewsItemList(
-    newsList: List<NewsResponse>,
-    navHostController: NavHostController
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        newsList.forEach { news ->
-            NewsItem(news = news, onSelectNews = {
-                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                navHostController.navigate("news_detail")
-            })
-        }
-    }
-}
 
 @Composable
 fun NewsItem(
@@ -372,45 +470,22 @@ fun NewsItem(
         Divider(color = Color.White, thickness = 1.dp)
     }
 }
-
 @Composable
-fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {
-    faqItems.forEach { faqItem ->
-        FAQItem(faqItem) {
-            showToast(context, "Clicked: ${faqItem.question}")
-        }
-    }
-}
-
-@Composable
-fun FAQItem(
-    faq: GetFAQItemResponse,
-    onSelectQuestion: () -> Unit
+fun NewsItemList(
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = faq.question,
-                fontSize = 16.sp,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Expand",
-                tint = Color.Black,
-                modifier = Modifier.clickable { onSelectQuestion() }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        newsList.forEach { news ->
+            Log.d("NewsDebug", "News in list: ${news.title}, id: ${news.id}")
+            NewsItem(news = news,
+                onSelectNews = {
+                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                    Log.d("NewsSet", "News set to savedStateHandle: ${news.id}")
+                navHostController.navigate("news_detail")
+            }
             )
         }
-        Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = Color.White, thickness = 1.dp)
     }
 }
 

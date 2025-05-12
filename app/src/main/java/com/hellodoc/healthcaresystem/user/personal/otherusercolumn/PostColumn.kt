@@ -78,6 +78,7 @@ import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherPostColumn(
     userViewModel: UserViewModel,
@@ -531,7 +532,7 @@ fun ViewPostOwner(
                             .padding(8.dp)
                     ) {
                         Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
-                        Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                        Text("Xóa khỏi danh sách bài đăng cá nhân", fontSize = 13.sp, color = Color.Gray)
                     }
                     Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
                     Column(
@@ -546,7 +547,7 @@ fun ViewPostOwner(
                             .padding(8.dp)
                     ) {
                         Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
-                        Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
+                        Text("Chỉnh sửa nội dung bài viết", fontSize = 13.sp, color = Color.Gray)
                     }
                 }
             }
@@ -670,10 +671,7 @@ fun InteractPostManager(
                         "Huỷ",
                         color = Color.Red,
                         modifier = Modifier
-                            .clickable {
-                                onHideReportDialog
-                                println("Da bam huy")
-                            }
+                            .clickable { onHideReportDialog()  }
                             .padding(8.dp),
                         fontWeight = FontWeight.Medium
                     )
@@ -717,7 +715,7 @@ fun InteractPostManager(
                                 e.printStackTrace()
                             }
                         }
-                        onHideReportDialog
+                        onHideReportDialog()
                     }) {
                         Text("Gửi báo cáo")
                     }

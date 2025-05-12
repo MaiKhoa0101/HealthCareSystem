@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.user.post
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +69,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.FullScreenCommentUI
+import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -90,11 +92,19 @@ fun PostDetailScreen(
         initializer { PostViewModel(sharedPreferences) }
     })
     val posts by postViewModel.posts.collectAsState()
+    val model = remember { mutableStateOf("") }
+    var reportedPostId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showFullScreenComment by remember { mutableStateOf(false) }
+    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
+    val user by userViewModel.user.collectAsState()
+
 
     LaunchedEffect(Unit) {
         postViewModel.getPostById(postId)
-        userId = userViewModel.getUserAttributeString("userId")
+        currentUserId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        model.value = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
 
     val post = posts.firstOrNull()
@@ -136,7 +146,12 @@ fun PostDetailScreen(
 
     var shouldShowSeeMore by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState()
-    var showFullScreenComment by remember { mutableStateOf(false) }
+    LaunchedEffect(currentUserId) {
+        if (currentUserId.isNotEmpty()) userViewModel.getUser(currentUserId)
+    }
+    val isPostOwner = currentUserId == postUserId
+    val activePostMenuId by postViewModel.activePostMenuId.collectAsState()
+    val isMenuOpen = activePostMenuId == postId
 
 
     if(post != null && postUserName != null && postUserId != null) {
@@ -192,17 +207,82 @@ fun PostDetailScreen(
                             }
                         }
 
-                        IconButton(
-                            onClick = { showPostReportBox = !showPostReportBox },
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "Menu",
-                                tint = Color.Black
-                            )
+                        Box {
+                            IconButton(
+                                onClick = { postViewModel.togglePostMenu(postId) },
+                                modifier = Modifier.padding(end = 4.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "Menu",
+                                    tint = Color.Black
+                                )
+                            }
+
+                            if (isMenuOpen) {
+                                Box(
+                                    modifier = Modifier
+                                ) {
+                                    DropdownMenu(
+                                        expanded = true,
+                                        onDismissRequest = { postViewModel.closeAllPostMenus() },
+                                        modifier = Modifier
+                                            .background(Color.White)
+                                            .border(5.dp, Color.LightGray)
+                                    ) {
+                                        if (!isPostOwner) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text("Tố cáo bài viết", fontWeight = FontWeight.Bold)
+                                                        Text("Bài viết có nội dung vi phạm", fontSize = 13.sp, color = Color.Gray)
+                                                    }
+                                                },
+                                                onClick = {
+                                                    postViewModel.closeAllPostMenus()
+                                                    reportedPostId = postId
+                                                    showReportDialog = true
+                                                }
+                                            )
+                                        }
+
+                                        if (isPostOwner) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
+                                                        Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                                                    }
+                                                },
+                                                onClick = {
+                                                    postViewModel.closeAllPostMenus()
+                                                    postViewModel.deletePost(postId)
+                                                    navHostController.popBackStack()
+                                                }
+                                            )
+                                            Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
+                                                        Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
+                                                    }
+                                                },
+                                                onClick = {
+                                                    postViewModel.closeAllPostMenus()
+                                                    val intent = Intent(context, HomeActivity::class.java).apply {
+                                                        putExtra("navigate-to", "edit_post/$postId")
+                                                    }
+                                                    context.startActivity(intent)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+
                     }
 
                     // Content bài viết
@@ -308,10 +388,10 @@ fun PostDetailScreen(
                             modifier = Modifier.clickable {
                                 postViewModel.updateFavoriteForPost(
                                     postId = postId,
-                                    userId = postUserId,
+                                    userId = currentUserId,
                                     userModel = userModel
                                 )
-                                postViewModel.fetchFavoriteForPost(postId, postUserId)
+                                postViewModel.fetchFavoriteForPost(postId, currentUserId)
                             }
                         ) {
                             Icon(
@@ -423,33 +503,49 @@ fun PostDetailScreen(
                         Button(onClick = {
                             coroutineScope.launch {
                                 if (editingCommentId != null) {
-                                    postViewModel.updateComment(editingCommentId!!, postUserId, userModel, editedCommentContent)
+                                    postViewModel.updateComment(editingCommentId!!, currentUserId, userModel, editedCommentContent)
                                     editingCommentId = null
                                     editedCommentContent = ""
                                 } else {
-                                    postViewModel.sendComment(postId, postUserId, userModel, newComment)
-                                    newComment = ""
+                                    if (newComment.isNotBlank()) {
+                                        postViewModel.sendComment(postId, currentUserId, model.value, newComment)
+                                        newComment = ""
+                                        postViewModel.fetchComments(postId)
+                                    }
                                 }
-                                postViewModel.fetchComments(postId)
                             }
                         }) {
                             Text(if (editingCommentId != null) "Lưu" else "Gửi")
                         }
                     }
-
-
                 }
             }
         }
-        if (showFullScreenComment) {
-            FullScreenCommentUI(
-                navHostController = navHostController,
-                postId = postId,
-                onClose = { showFullScreenComment = false },
-                postViewModel = postViewModel,
-                currentUserId = currentUserId
-            )
-        }
+//        if (showFullScreenComment) {
+//            FullScreenCommentUI(
+//                navHostController = navHostController,
+//                postId = postId,
+//                onClose = { showFullScreenComment = false },
+//                postViewModel = postViewModel,
+//                currentUserId = currentUserId
+//            )
+//        }
+        InteractPostManager(
+            navHostController = navHostController,
+            user = user,
+            postViewModel = postViewModel,
+            reportedPostId = reportedPostId,
+            context = context,
+            showFullScreenComment = showFullScreenComment,
+            selectedPostIdForComment = selectedPostIdForComment,
+            showReportDialog = showReportDialog,
+            onCloseComment = {
+                showFullScreenComment = false
+            },
+            onHideReportDialog = {
+                showReportDialog = false
+            }
+        )
 
     }
 }
