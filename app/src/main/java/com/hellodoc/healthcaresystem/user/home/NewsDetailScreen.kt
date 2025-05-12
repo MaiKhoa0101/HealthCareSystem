@@ -32,6 +32,7 @@ import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -91,70 +92,87 @@ fun NewsDetailScreen(
         return
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        // Header & Back
-        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { navHostController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại", tint = Color.Black)
-            }
-            Text("Tin tức chi tiết", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
-        }
-
-        // Image
-        if (news.media.isNotEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(news.media[0]),
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(220.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(10.dp)),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(news.title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
-            Image(painter = rememberAsyncImagePainter(R.drawable.heart), contentDescription = null,
-                modifier = Modifier.size(48.dp).clip(CircleShape))
-            Column(modifier = Modifier.padding(start = 12.dp)) {
-                Text("Admin đẹp trai ngầu lòi", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = Color.Gray)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentPadding = PaddingValues(bottom = 16.dp)
+    ) {
+        item {
+            // Header & Back
+            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { navHostController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại", tint = Color.Black)
+                }
+                Text("Tin tức chi tiết", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            if (news.media.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(news.media[0]),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(220.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(10.dp)),
+                )
+            }
+        }
 
-        // Like & Comment icon
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clickable {
+        item { Spacer(modifier = Modifier.height(12.dp)) }
+
+        item {
+            Text(news.title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
+        }
+
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
+                Image(painter = rememberAsyncImagePainter(R.drawable.heart), contentDescription = null,
+                    modifier = Modifier.size(48.dp).clip(CircleShape))
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text("Admin đẹp trai ngầu lòi", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = Color.Gray)
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+
+        item {
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable {
                         Log.d("NewsDetail", "Nút like được nhấn")
                         news?.id?.let {
                             viewModel.toggleFavoriteNews(it, currentUserId, currentUserModel)
                         }
-            }) {
-                Icon(
-                    imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Thích",
-                    tint = if (isFavorited) Color.Red else Color.Black
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("$totalFavorites")
-            }
+                    }) {
+                    Icon(
+                        imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Thích",
+                        tint = if (isFavorited) Color.Red else Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("$totalFavorites")
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                showFullScreenComment = true
-            }) {
-                Icon(Icons.Default.ModeComment, contentDescription = "Bình luận", tint = Color.Black)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Bình luận")
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                    showFullScreenComment = true
+                }) {
+                    Icon(Icons.Default.ModeComment, contentDescription = "Bình luận", tint = Color.Black)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Bình luận")
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(news.content, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+
+        item {
+            Text(news.content, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
+        }
     }
 
     if (showFullScreenComment && news != null) {
