@@ -69,6 +69,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetNewsCommentResponse
+import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -124,10 +126,6 @@ fun FullScreenCommentUI(
                 }
             }
     }
-
-
-
-
 
     ModalBottomSheet(
         onDismissRequest = onClose,
@@ -252,7 +250,177 @@ fun FullScreenCommentUI(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FullScreenCommentNews(
+    navHostController: NavHostController,
+    newsId: String,
+    onClose: () -> Unit,
+    newsViewModel: NewsViewModel,
+    currentUserId: String,
+    currentUserModel: String
+) {
+    val commentsMap by newsViewModel.newsComments.collectAsState()
+    val comments = commentsMap[newsId] ?: emptyList()
 
+    var newComment by remember { mutableStateOf("") }
+    var editingCommentId by remember { mutableStateOf<String?>(null) }
+    var editedCommentContent by remember { mutableStateOf("") }
+    var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val listState = rememberLazyListState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    BackHandler { onClose() }
+
+    LaunchedEffect(newsId) {
+        newsViewModel.getComments(newsId)
+        sheetState.expand()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight(0.92f),
+        dragHandle = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(15.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.arrowdown),
+                    contentDescription = "Kéo xuống để tắt",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+        ) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                state = listState
+            ) {
+                items(comments) { comment ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.LightGray)
+                            .padding(10.dp)
+                    ) {
+                        AsyncImage(
+                            model = comment.user?.avatarURL ?: "",
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    if (currentUserId != comment.user?.id) {
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                            set("UserId", comment.user?.id)
+                                        }
+                                        navHostController.navigate("otherUserProfile")
+                                    } else {
+                                        navHostController.navigate("personal")
+                                    }
+                                }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(comment.user?.name ?: "Ẩn danh", fontWeight = FontWeight.Bold)
+                                Text(comment.content)
+                            }
+                            ReportNewsCommentFunction(
+                                comment = comment,
+                                newsId = newsId,
+                                newsViewModel = newsViewModel,
+                                setEditingCommentId = { editingCommentId = it },
+                                setEditedCommentContent = { editedCommentContent = it },
+                                activeMenuCommentId = activeMenuCommentId,
+                                setActiveMenuCommentId = { activeMenuCommentId = it }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextField(
+                    value = if (editingCommentId != null) editedCommentContent else newComment,
+                    onValueChange = {
+                        if (editingCommentId != null) editedCommentContent = it else newComment = it
+                    },
+                    placeholder = { Text("Nhập bình luận...") },
+                    modifier = Modifier.weight(1f)
+                )
+                Button(onClick = {
+                    coroutineScope.launch {
+                        if (editingCommentId != null) {
+                            newsViewModel.updateComment(editingCommentId!!, currentUserId, currentUserModel, editedCommentContent)
+                            editingCommentId = null
+                            editedCommentContent = ""
+                        } else {
+                            newsViewModel.sendComment(newsId, currentUserId, newComment)
+                            newComment = ""
+                        }
+                        newsViewModel.getComments(newsId)
+                        delay(200)
+                        listState.animateScrollToItem(0)
+                    }
+                }) {
+                    Text(if (editingCommentId != null) "Lưu" else "Gửi")
+                }
+            }
+        }
+    }
+}
+@Composable
+fun ReportNewsCommentFunction(
+    comment: GetNewsCommentResponse,
+    newsId: String,
+    newsViewModel: NewsViewModel,
+    setEditingCommentId: (String?) -> Unit,
+    setEditedCommentContent: (String) -> Unit,
+    activeMenuCommentId: String?,
+    setActiveMenuCommentId: (String?) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Box {
+        IconButton(onClick = { setActiveMenuCommentId(comment.id) }) {
+            Icon(Icons.Default.MoreVert, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = activeMenuCommentId == comment.id,
+            onDismissRequest = { setActiveMenuCommentId(null) }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Xóa") },
+                onClick = {
+                    setActiveMenuCommentId(null)
+                    coroutineScope.launch {
+                        newsViewModel.deleteComment(comment.id, newsId)
+                        newsViewModel.getComments(newsId)
+                    }
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Sửa") },
+                onClick = {
+                    setEditingCommentId(comment.id)
+                    setEditedCommentContent(comment.content)
+                    setActiveMenuCommentId(null)
+                }
+            )
+        }
+    }
+}
 
 @Composable
 fun ReportCommentFunction(

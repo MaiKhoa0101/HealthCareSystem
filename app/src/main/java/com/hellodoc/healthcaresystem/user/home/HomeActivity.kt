@@ -237,7 +237,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("news_detail") {
-                NewsDetailScreen(navHostController = navHostController)
+                NewsDetailScreen(navHostController,viewModel = newsViewModel)
             }
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences, navHostController)
