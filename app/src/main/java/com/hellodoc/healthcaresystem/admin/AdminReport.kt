@@ -102,7 +102,7 @@ fun ReportManagerScreen() {
                             fontWeight = FontWeight.Bold
                         )
 
-                        ComplaintStatsScreen()
+                        ComplaintStatsScreen(reportList = reportList)
 
                         Text(
                             text = "Quản lí khiếu nại",
@@ -390,7 +390,8 @@ fun ComplaintTableHeader() {
 
 
 @Composable
-fun ComplaintStatsScreen() {
+fun ComplaintStatsScreen(reportList: List<ComplaintData>) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -400,21 +401,21 @@ fun ComplaintStatsScreen() {
         ComplaintCard(
             icon = Icons.Default.LocalOffer,
             iconColor = Color(0xFF6A5ACD),
-            number = "3947",
+            number = reportList.size.toString(),
             label = "Tổng khiếu nại"
         )
 
         ComplaintCard(
             icon = Icons.Default.AccessTime,
             iconColor = Color(0xFFFFC107),
-            number = "624",
+            number = reportList.count {it.status == "pending"}.toString(),
             label = "Khiếu nại chờ duyệt"
         )
 
         ComplaintCard(
             icon = Icons.Default.CheckCircle,
             iconColor = Color(0xFF009688),
-            number = "3195",
+            number = reportList.count {it.status == "closed"}.toString(),
             label = "Khiếu nại đóng"
         )
     }
