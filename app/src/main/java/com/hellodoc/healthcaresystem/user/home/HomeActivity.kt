@@ -168,7 +168,7 @@ class HomeActivity : BaseActivity() {
                 if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences)
             },
             bottomBar = {
-                if (showFootBars && !showFullScreenComment) FootBar(navHostController)
+                if (showFootBars && !showFullScreenComment) FootBar(currentRoute,navHostController)
             }
         ) { paddingValues ->
             NavigationHost(

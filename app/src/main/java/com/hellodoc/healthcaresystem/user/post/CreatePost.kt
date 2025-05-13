@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -107,13 +108,6 @@ fun PostScreen(
         username = user?.name ?: ""
     }
 
-//    LaunchedEffect(userId) {
-//        userId.let {
-//            userViewModel.getUser(it)
-//        }
-//
-//    }
-
     var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var postText by remember { mutableStateOf("") }
 
@@ -124,6 +118,21 @@ fun PostScreen(
     }
     val posts by postViewModel.posts.collectAsState()
     val mediaUrls = selectedImageUri.map { it.toString() }
+
+    val updateSuccess by postViewModel.updateSuccess.collectAsState()
+    val isUpdating by postViewModel.isUpdating.collectAsState()
+
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            postViewModel.resetUpdateSuccess()
+            navController.currentBackStackEntry?.savedStateHandle?.set("shouldReload", true)
+            println("Chuyển màn trước")
+            navController.navigate("personal")
+        }
+    }
+
+
+
     // Nếu là chỉnh sửa thì gọi API để load dữ liệu bài viết
     LaunchedEffect(postId, posts) {
         if (postId != null) {
@@ -159,17 +168,16 @@ fun PostScreen(
                             ),
                             context = context
                         )
-                        navController.currentBackStackEntry?.savedStateHandle?.set("shouldReload", true)
-                        navController.navigate("personal")
-                    } else {
-                        //Gọi API tạo mới
+                    }
+                    else {
                         postViewModel.createPost(
                             request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
                             context = context
                         )
+                        navController.navigate("personal")
                     }
-                    navController.navigate("personal")
                 }
+
             )
         }
         item {
@@ -238,6 +246,19 @@ fun PostScreen(
                     )
                 }
             )
+        }
+        item{
+            if (isUpdating) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            }
+
         }
     }
 }

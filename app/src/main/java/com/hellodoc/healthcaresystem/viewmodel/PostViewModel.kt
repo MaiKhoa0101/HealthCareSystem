@@ -332,11 +332,18 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private val _isUpdating = MutableStateFlow(false)
+    val isUpdating: StateFlow<Boolean> = _isUpdating
+
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess
+
     fun updatePost(postId: String, request: UpdatePostRequest, context: Context) {
         viewModelScope.launch {
             try {
-                val contentPart = MultipartBody.Part.createFormData("content", request.content)
+                _isUpdating.value = true
 
+                val contentPart = MultipartBody.Part.createFormData("content", request.content)
                 val imageParts = request.images.mapNotNull { uri ->
                     prepareFilePart(context, uri, "images")
                 }
@@ -348,13 +355,23 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 )
 
                 if (response.isSuccessful) {
-                    getAllPosts() // cập nhật lại toàn bộ post sau khi sửa
+                    _updateSuccess.value = true
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Update Post Exception", e)
+            } finally {
+                _isUpdating.value = false
+                println("Đổi biến trc")
             }
         }
     }
+
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
+
+
 
     private val _activePostMenuId = MutableStateFlow<String?>(null)
     val activePostMenuId: StateFlow<String?> get() = _activePostMenuId

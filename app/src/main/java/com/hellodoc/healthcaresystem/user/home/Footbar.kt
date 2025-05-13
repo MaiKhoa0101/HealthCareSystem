@@ -1,5 +1,12 @@
 package com.hellodoc.healthcaresystem.user.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,21 +24,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +43,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 
 @Composable
-fun FootBar(navHostController: NavHostController) {
+fun FootBar(currentRoute: String?,navHostController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,11 +62,11 @@ fun FootBar(navHostController: NavHostController) {
             verticalAlignment = Alignment.Top,
 
         ) {
-            BoxItem(text = "Trang chủ", icon = R.drawable.ic_home, nameDirection = "home", navHostController)
-            BoxItem(text = "Lịch hẹn", icon = R.drawable.ic_appointment,"appointment",navHostController)
+            BoxItem(nameRoute = "Trang chủ", icon = R.drawable.ic_home, nameDirection = "home",  navHostController,currentRoute)
+            BoxItem(nameRoute = "Lịch hẹn", icon = R.drawable.ic_appointment,"appointment", navHostController,currentRoute)
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(text = "Thông báo", icon = R.drawable.ic_notification,"notification",navHostController)
-            BoxItem(text = "Cá nhân", icon = R.drawable.ic_personal,"personal",navHostController)
+            BoxItem(nameRoute = "Thông báo", icon = R.drawable.ic_notification,"notification", navHostController,currentRoute)
+            BoxItem(nameRoute = "Cá nhân", icon = R.drawable.ic_personal,"personal", navHostController,currentRoute)
         }
 
         // Floating button in the center
@@ -103,31 +107,54 @@ fun CircleButton(
 
 @Composable
 fun BoxItem(
-    text: String,
+    nameRoute: String,
     icon: Int,
     nameDirection:String,
     navHostController: NavHostController,
+    currentRoute:String?,
+    visible: Boolean =true,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .size(70.dp)
-            .clickable {
-            println(nameDirection)
-            if (nameDirection.isNotEmpty()) {
-                navHostController.navigate(nameDirection)
-            }
-        },
-        horizontalAlignment = Alignment.CenterHorizontally,
+    // Animate background color based on selection
+    val backgroundColor by animateColorAsState(
+        targetValue = if (currentRoute == nameDirection)
+            MaterialTheme.colorScheme.background
+        else
+            Color.Transparent,
+        animationSpec = tween(durationMillis = 300)
+    )
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
     ) {
-        Image(painter = painterResource(icon), contentDescription = "", modifier = Modifier.height(20.dp))
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = text,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
+        Column(
+            modifier = modifier
+                .clip(CircleShape)
+                .background(backgroundColor)
+                .size(70.dp)
+                .clickable {
+                    println(nameDirection)
+                    if (nameDirection.isNotEmpty()) {
+                        navHostController.navigate(nameDirection)
+                    }
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = "",
+                modifier = Modifier.height(20.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = nameRoute,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
     }
 }
 
