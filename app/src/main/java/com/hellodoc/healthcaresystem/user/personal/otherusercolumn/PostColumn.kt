@@ -164,7 +164,6 @@ fun PostColumn(
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
-        println("San pham lay duoc post: "+posts)
 
         // Nếu không có bài viết thì hiển thị Empty
         if (posts.isEmpty()) {
@@ -236,16 +235,9 @@ fun ViewPostOwner(
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
 
-    LaunchedEffect(editingCommentId) {
-        println("fetch comment bai viet")
-        if (editingCommentId == null) {
-            // Sau khi lưu xong và thoát khỏi chế độ sửa, cập nhật lại UI
-            postViewModel.fetchComments(postId)
-        }
-    }
+
     LaunchedEffect(postId) {
         // Gọi API và cập nhật state khi dữ liệu được fetch về
-        println("fetch yeu thich bai viet")
         postViewModel.fetchFavoriteForPost(postId, currentUserId)
     }
 
@@ -253,14 +245,7 @@ fun ViewPostOwner(
     val pagerState = rememberPagerState()
     val mediaList = footerItem.imageUrl.split("|").filter { it.isNotBlank() }
 
-    LaunchedEffect(shouldFetchComments) {
-        if (shouldFetchComments) {
-            coroutineScope.launch {
-                postViewModel.fetchComments(postId)
-                shouldFetchComments = false
-            }
-        }
-    }
+
     var shouldShowSeeMore by remember { mutableStateOf(false) }
 
     Box(modifier = modifier
@@ -584,7 +569,7 @@ fun InteractPostManager(
         )
     }
     println("showReportDialog lay duoc cho post menu: "+showReportDialog)
-
+    userId
     println("user lay duoc cho post menu: "+user)
     if (showReportDialog && user != null) {
         var selectedType by remember { mutableStateOf("Ứng dụng") }
