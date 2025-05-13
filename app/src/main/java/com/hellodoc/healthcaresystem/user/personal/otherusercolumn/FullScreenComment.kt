@@ -93,20 +93,14 @@ fun FullScreenCommentUI(
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    var commentIndex by remember { mutableStateOf(9) }
+    var commentIndex by remember { mutableStateOf(0) }
     var isLoadingMore by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     BackHandler { onClose() }
 
-    LaunchedEffect(postId) {
-        postViewModel.fetchComments(postId, skip = 0, limit = 10, append = false)
-        sheetState.expand()
-    }
-
-    LaunchedEffect(listState, comments.size, hasMore) {
+    LaunchedEffect(hasMore) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val totalItems = layoutInfo.totalItemsCount
@@ -116,12 +110,13 @@ fun FullScreenCommentUI(
             .collect { isAtEnd ->
                 if (isAtEnd && hasMore && !isLoadingMore) {
                     isLoadingMore = true
-                    val success = postViewModel.fetchComments(
+                    postViewModel.fetchComments(
                         postId = postId,
-                        skip = comments.size,
+                        skip = commentIndex,
                         limit = 10,
                         append = true
                     )
+                    commentIndex+=10
                     isLoadingMore = false
                 }
             }
@@ -237,9 +232,10 @@ fun FullScreenCommentUI(
                             postViewModel.sendComment(postId, currentUserId, userModel, newComment)
                             newComment = ""
                         }
-
-                        postViewModel.fetchComments(postId, skip = 0, limit = 10, append = false)
+                        commentIndex=0
+                        postViewModel.fetchComments(postId, skip = commentIndex, limit = 10, append = false)
                         delay(200) // Đợi dữ liệu load xong, rồi mới scroll
+                        commentIndex+=10
                         listState.animateScrollToItem(0)
                     }
 
