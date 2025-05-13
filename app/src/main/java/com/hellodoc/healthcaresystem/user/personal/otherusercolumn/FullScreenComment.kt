@@ -100,7 +100,7 @@ fun FullScreenCommentUI(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     BackHandler { onClose() }
 
-    LaunchedEffect(hasMore) {
+    LaunchedEffect(commentIndex,hasMore) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val totalItems = layoutInfo.totalItemsCount
@@ -116,6 +116,7 @@ fun FullScreenCommentUI(
                         limit = 10,
                         append = true
                     )
+                    println("Comment index la: "+commentIndex)
                     commentIndex+=10
                     isLoadingMore = false
                 }
@@ -232,11 +233,10 @@ fun FullScreenCommentUI(
                             postViewModel.sendComment(postId, currentUserId, userModel, newComment)
                             newComment = ""
                         }
-                        commentIndex=0
-                        postViewModel.fetchComments(postId, skip = commentIndex, limit = 10, append = false)
                         delay(200) // Đợi dữ liệu load xong, rồi mới scroll
-                        commentIndex+=10
                         listState.animateScrollToItem(0)
+                        commentIndex=10
+                        println("Comment index sau khi gui la: "+commentIndex)
                     }
 
                 }) {
