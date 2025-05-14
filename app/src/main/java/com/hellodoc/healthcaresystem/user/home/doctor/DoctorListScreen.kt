@@ -159,8 +159,8 @@ fun TopBar(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF00BCD4))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .statusBarsPadding(),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+//            .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

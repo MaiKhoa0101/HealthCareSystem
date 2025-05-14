@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -556,18 +558,34 @@ fun UserInfo(
             }
         )
 
-        Image(
-            painter = painterResource(id = R.drawable.arrow_back),
-            contentDescription = "Back Icon",
+//        Image(
+//            painter = painterResource(id = R.drawable.arrow_back),
+//            contentDescription = "Back Icon",
+//            modifier = Modifier
+//                .clip(CircleShape)
+//                .size(40.dp)
+//                .clickable { navHostController.popBackStack() }
+//                .constrainAs(backIcon) {
+//                    top.linkTo(parent.top, margin = 16.dp)
+//                    start.linkTo(parent.start, margin = 16.dp)
+//                },
+//            contentScale = ContentScale.Crop
+//        )
+
+        Icon(
+            imageVector = Icons.Filled.ArrowBack,
+            contentDescription = "Back Button",
+            tint = Color.Black,
             modifier = Modifier
-                .clip(CircleShape)
-                .size(40.dp)
-                .clickable { navHostController.popBackStack() }
+                .size(32.dp)
+                .padding(end = 8.dp)
+                .clickable {
+                    navHostController.popBackStack()
+                }
                 .constrainAs(backIcon) {
-                    top.linkTo(parent.top, margin = 16.dp)
-                    start.linkTo(parent.start, margin = 16.dp)
+                    top.linkTo(parent.top, margin = 30.dp)
+                    start.linkTo(parent.start, margin = 30.dp)
                 },
-            contentScale = ContentScale.Crop
         )
 
         IconButton(
