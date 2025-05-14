@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -50,11 +51,28 @@ fun PostListScreen2(navHostController: NavHostController, sharedPreferences: Sha
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Bài viết đã thích",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+//                    Text(
+//                        "Bài viết đã thích",
+//                        fontSize = 20.sp,
+//                        fontWeight = FontWeight.Bold
+//                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Bài viết đã thích", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Trở lại",
+                            fontSize = 16.sp,
+                            color = Color.Blue,
+                            modifier = Modifier
+                                .padding(end = 20.dp)
+                                .clickable {
+                                    navHostController.popBackStack()
+                                }
+                        )
+                    }
                 }
             )
         }

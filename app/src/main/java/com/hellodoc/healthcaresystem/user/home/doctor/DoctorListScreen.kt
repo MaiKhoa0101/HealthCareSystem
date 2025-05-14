@@ -171,7 +171,7 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
             .background(Color(0xFF00BCD4))
             .padding(horizontal = 16.dp, vertical = 8.dp),
 //            .statusBarsPadding(),
-        verticalAlignment = Alignment.CenterVertically
+//        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
