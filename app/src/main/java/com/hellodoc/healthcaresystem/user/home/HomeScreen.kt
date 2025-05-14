@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -45,13 +44,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,7 +82,6 @@ fun HealthMateHomeScreen(
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
-    val postState by postViewModel.posts.collectAsState()
     val user by userViewModel.user.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
@@ -93,18 +91,53 @@ fun HealthMateHomeScreen(
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
+    var postIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        postViewModel.getAllPosts()
         medicalOptionViewModel.fetchMedicalOptions()
         remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
     }
+
+
+    val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
+
+
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val navEntry = navHostController.currentBackStackEntry
+    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+
+    LaunchedEffect(reloadTrigger?.value) {
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+    }
+
+    LaunchedEffect(postIndex,hasMorePosts) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex >= totalItems - 1
+        }.distinctUntilChanged().collect { isAtEnd ->
+            println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
+                println("Gọi 3")
+                postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
+                postIndex+=10
+            }
+        }
+    }
+    val posts by postViewModel.posts.collectAsState()
+
+
+
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -166,7 +199,6 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "specialties") {
-                SectionHeader(title = "Chuyên khoa")
                 if (specialtyState.isEmpty()) {
                     EmptyList("chuyên khoa")
                 } else {
@@ -189,7 +221,7 @@ fun HealthMateHomeScreen(
                 OtherPostColumn(
                     userViewModel = userViewModel,
                     postViewModel = postViewModel,
-                    posts = postState,
+                    posts = posts,
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     onImageClick = { selectedImageUrl = it },
@@ -202,6 +234,25 @@ fun HealthMateHomeScreen(
                         showFullScreenComment = true
                     }
                 )
+            }
+            item {
+                if (isLoadingMorePosts && hasMorePosts) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                else{
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Đã hết bài viết")
+                    }                }
             }
 
             item(key = "bottom_space") {
@@ -254,89 +305,106 @@ fun MarqueeNewsTicker(
     newsList: List<NewsResponse>,
     navHostController: NavHostController
 ) {
-    if (newsList.isEmpty()) {
-        EmptyList("tin mới")
-    } else {
-        val firstHalf = newsList.take(newsList.size / 2)
-        val secondHalf = newsList.drop(newsList.size / 2)
+    var showAllNews by remember { mutableStateOf(false) }
 
-        var firstIndex by remember { mutableStateOf(0) }
-        var secondIndex by remember { mutableStateOf(0) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (!showAllNews) {
+            val firstHalf = newsList.take(newsList.size / 2)
+            val secondHalf = newsList.drop(newsList.size / 2)
 
-        // Auto next for first line
-        LaunchedEffect(firstIndex, firstHalf) {
-            if (firstHalf.isNotEmpty()) {
-                while (true) {
-                    val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
-                    val delayTime = calculateDynamicDelay(currentTitle)
-                    delay(delayTime)
-                    firstIndex = (firstIndex + 1) % firstHalf.size
+            var firstIndex by remember { mutableStateOf(0) }
+            var secondIndex by remember { mutableStateOf(0) }
+
+            LaunchedEffect(firstIndex, firstHalf) {
+                if (firstHalf.isNotEmpty()) {
+                    while (!showAllNews) {
+                        val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                        val delayTime = calculateDynamicDelay(currentTitle)
+                        delay(delayTime)
+                        firstIndex = (firstIndex + 1) % firstHalf.size
+                    }
                 }
             }
-        }
 
-        // Auto next for second line
-        LaunchedEffect(secondIndex, secondHalf) {
-            if (secondHalf.isNotEmpty()) {
-                while (true) {
-                    val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
-                    val delayTime = calculateDynamicDelay(currentTitle)
-                    delay(delayTime)
-                    secondIndex = (secondIndex + 1) % secondHalf.size
+            LaunchedEffect(secondIndex, secondHalf) {
+                if (secondHalf.isNotEmpty()) {
+                    while (!showAllNews) {
+                        val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                        val delayTime = calculateDynamicDelay(currentTitle)
+                        delay(delayTime)
+                        secondIndex = (secondIndex + 1) % secondHalf.size
+                    }
                 }
             }
+
+            // Nội dung marquee
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            firstHalf.getOrNull(firstIndex)?.let { news ->
+                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                navHostController.navigate("news_detail")
+                            }
+                        }
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            spacing = MarqueeSpacing(50.dp),
+                            velocity = 50.dp,
+                        ),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Divider(color = Color.White, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            secondHalf.getOrNull(secondIndex)?.let { news ->
+                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                navHostController.navigate("news_detail")
+                            }
+                        }
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            spacing = MarqueeSpacing(50.dp),
+                            velocity = 50.dp,
+                        ),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                )
+            }
+        } else {
+            NewsItemList(newsList = newsList, navHostController = navHostController)
         }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+        // Nút xem thêm luôn nằm dưới cùng, tách riêng
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
             Text(
-                text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                text = if (showAllNews) "Thu gọn" else "Xem thêm",
+                color = Color.Yellow,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        firstHalf.getOrNull(firstIndex)?.let { news ->
-                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                            navHostController.navigate("news_detail")
-                        }
-                    }
-                    .basicMarquee(
-                        iterations = Int.MAX_VALUE,
-                        animationMode = MarqueeAnimationMode.Immediately,
-                        spacing = MarqueeSpacing(50.dp),
-                        velocity = 50.dp,
-                    ),
-                fontSize = 16.sp,
-                color = Color.White,
-                maxLines = 1,
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-            Divider(color = Color.White, thickness = 1.dp)
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        secondHalf.getOrNull(secondIndex)?.let { news ->
-                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                            navHostController.navigate("news_detail")
-                        }
-                    }
-                    .basicMarquee(
-                        iterations = Int.MAX_VALUE,
-                        animationMode = MarqueeAnimationMode.Immediately,
-                        spacing = MarqueeSpacing(50.dp),
-                        velocity = 50.dp,
-                    ),
-                fontSize = 16.sp,
-                color = Color.White,
-                maxLines = 1,
+                    .clickable { showAllNews = !showAllNews }
             )
         }
     }
 }
-
 
 
 fun showToast(context: Context, message: String) {
@@ -601,9 +669,11 @@ fun SpecialtyItem(
 @Composable
 fun DoctorList(
     navHostController: NavHostController,
-    doctors: List<GetDoctorResponse>,
-    onSeeMoreClick: () -> Unit = {}
+    doctors: List<GetDoctorResponse>
 ) {
+    var showAllDoctors by remember { mutableStateOf(false) }
+    val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
+
     HorizontalDivider(thickness = 2.dp, color = Color.Gray)
     Column(
         modifier = Modifier
@@ -623,6 +693,15 @@ fun DoctorList(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+            if (doctors.size > 6) {
+                Text(
+                    text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { showAllDoctors = !showAllDoctors }
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
@@ -632,7 +711,7 @@ fun DoctorList(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            items(doctors, key = { it.id }) { doctor ->
+            items(displayedDoctors, key = { it.id }) { doctor ->
                 DoctorItem(doctor) {
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
