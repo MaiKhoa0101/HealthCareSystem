@@ -98,7 +98,6 @@ fun OtherPostColumn(
         }
     }
 
-    println("chay tut tren day")
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",

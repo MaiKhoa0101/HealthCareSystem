@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -47,6 +48,7 @@ import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
 import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import java.nio.file.WatchEvent
 
 
 @Composable
@@ -245,7 +247,6 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
 
 
                 Spacer(Modifier.height(12.dp))
-
                 ServiceTags(servicesCreated) { removed ->
                     val (newInputs, newOutputs) = removeService(removed, servicesInput, servicesCreated)
                     servicesInput = newInputs
@@ -255,8 +256,10 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     println("service output: "+newOutputs)
                     println("service output: "+servicesCreated)
                 }
-
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
             }
+
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -269,6 +272,8 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     onHomeServiceChange = { hasHomeService = it }
                 )
                 Spacer(Modifier.height(8.dp))
+                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+
                 WorkScheduleSection(
                     schedule = oldSchedule,
                     onDelete = { time ->
@@ -287,6 +292,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     isPaused = isClinicPaused,
                     onTogglePause = { isClinicPaused = it }
                 )
+                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
@@ -505,8 +511,21 @@ fun DescriptionInput(description: String, onChange: (String) -> Unit) {
 
 @Composable
 fun AddServiceButton(onAdd: () -> Unit) {
-    IconButton(onClick = onAdd) {
-        Icon(Icons.Default.Add, contentDescription = null)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.LightGray)
+            .clickable(onClick = onAdd),
+        horizontalArrangement = Arrangement.Center
+    ){
+        Column (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        )
+        {
+            Text("Thêm dịch vụ")
+            Icon(Icons.Default.Add, contentDescription = null)
+        }
     }
 }
 @Composable
@@ -514,34 +533,38 @@ fun ServiceTags(
     services: List<ServiceOutput>,
     onRemove: (ServiceOutput) -> Unit,
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-    ) {
-        items(services) { service ->
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xFFE0E0E0))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = service.specialtyName,
-                        fontSize = 14.sp,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(
-                        imageVector = Icons.Default.DeleteForever,
-                        contentDescription = "Xoá",
-                        modifier = Modifier
-                            .size(16.dp)
-                            .clickable { onRemove(service) },
-                        tint = Color.Gray
-                    )
+    Column {
+        Text("Các dịch vụ đã thêm", fontWeight = FontWeight.Bold)
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        ) {
+            items(services) { service ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFFE0E0E0))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = service.specialtyName,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = "Xoá",
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clickable { onRemove(service) },
+                            tint = Color.Gray
+                        )
+                    }
                 }
             }
         }
