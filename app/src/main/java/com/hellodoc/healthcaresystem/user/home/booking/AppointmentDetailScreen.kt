@@ -40,11 +40,14 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
 var doctorId: String = ""
+var doctorAvatarUrl: String = ""
 var doctorName: String = ""
 var doctorAddress: String = ""
 var specialtyName: String = ""
@@ -131,6 +134,9 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
         savedStateHandle?.get<String>("doctorId")?.let {
             doctorId = it
+        }
+        savedStateHandle?.get<String>("doctorAvatarUrl")?.let {
+            doctorAvatarUrl = it
         }
         savedStateHandle?.get<String>("doctorName")?.let {
             doctorName = it
@@ -322,12 +328,23 @@ fun DoctorInfoSection() {
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = R.drawable.doctor), // thay bằng ảnh thực tế
-                contentDescription = "Doctor",
+//            Image(
+//                painter = painterResource(id = R.drawable.doctor), // thay bằng ảnh thực tế
+//                contentDescription = "Doctor",
+//                modifier = Modifier
+//                    .size(100.dp)
+//                    .clip(CircleShape)
+//            )
+            AsyncImage(
+                model = doctorAvatarUrl,
+                contentDescription = "Avatar",
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(90.dp)
                     .clip(CircleShape)
+                    .clickable {
+//                        onImageClick(user.avatarURL)
+                    },
+                contentScale = ContentScale.Crop,
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {

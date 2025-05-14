@@ -64,6 +64,8 @@ import kotlinx.coroutines.launch
 
 var doctorID = ""
 
+var doctorAvatarUrl = ""
+
 var doctorName = ""
 
 var doctorAddress = ""
@@ -180,6 +182,8 @@ fun DoctorScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     doctorID = doctor?.id ?: ""
+
+    doctorAvatarUrl = doctor?.avatarURL ?: ""
 
     doctorName = doctor?.name ?: ""
 
@@ -766,6 +770,7 @@ fun BookingButton(navController: NavHostController) {
                     navController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctorID)
                         set("doctorName", doctorName)
+                        set("doctorAvatarUrl", doctorAvatarUrl)
                         set("doctorAddress", doctorAddress)
                         set("specialtyName", specialtyName)
                         set("hasHomeService", hasHomeService)
