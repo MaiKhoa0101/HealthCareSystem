@@ -73,27 +73,21 @@ fun Headbar(
             .background(color = Color(0xFFE0E0E0)).padding(vertical = 5.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Hình bác sĩ ở giữa
-        Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
-            modifier = Modifier.size(200.dp)
-        )
+
 
         // Row for left icon and right user info
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Text(
-                text = "HelloDoc",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+            // Hình bác sĩ ở giữa
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
+                modifier = Modifier.size(200.dp)
             )
 
             val shortName = truncateName(userName, 10)
