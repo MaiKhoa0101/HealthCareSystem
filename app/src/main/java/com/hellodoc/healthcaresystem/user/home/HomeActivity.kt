@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,26 +50,32 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.bmiChecking.BMICheckerScreen
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentDetailScreen
-import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.home.booking.AppointmentListScreen
 import com.hellodoc.healthcaresystem.user.home.booking.BookingCalendarScreen
 import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
+import com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
+import com.hellodoc.healthcaresystem.user.personal.DoctorScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.PostListScreen
 import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
 import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
-import com.hellodoc.healthcaresystem.user.post.PostScreen
-import com.hellodoc.healthcaresystem.user.personal.DoctorScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
+import com.hellodoc.healthcaresystem.user.post.PostScreen
+import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
+import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
+import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
+import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
+import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-
 
 class HomeActivity : BaseActivity() {
 
@@ -77,18 +85,55 @@ class HomeActivity : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             HealthCareSystemTheme {
                 val context = LocalContext.current
+
+                // Initialize ViewModels at activity scope
+                val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+                    initializer { UserViewModel(sharedPreferences) }
+                })
+                val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+                    initializer { DoctorViewModel(sharedPreferences) }
+                })
+                val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
+                    initializer { SpecialtyViewModel(sharedPreferences) }
+                })
+                val medicalOptionViewModel: MedicalOptionViewModel = viewModel(factory = viewModelFactory {
+                    initializer { MedicalOptionViewModel(sharedPreferences) }
+                })
+                val remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel = viewModel(factory = viewModelFactory {
+                    initializer { RemoteMedicalOptionViewModel(sharedPreferences) }
+                })
+                val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
+                    initializer { GeminiViewModel(sharedPreferences) }
+                })
+                val newsViewModel: NewsViewModel = viewModel(factory = viewModelFactory {
+                    initializer { NewsViewModel(sharedPreferences) }
+                })
+                val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+                    initializer { PostViewModel(sharedPreferences) }
+                })
+                val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
+                    initializer { FAQItemViewModel(sharedPreferences) }
+                })
+
                 Index(
                     context = context,
                     navHostController = navHostController,
-                    sharedPreferences = sharedPreferences
+                    sharedPreferences = sharedPreferences,
+                    userViewModel = userViewModel,
+                    doctorViewModel = doctorViewModel,
+                    specialtyViewModel = specialtyViewModel,
+                    medicalOptionViewModel = medicalOptionViewModel,
+                    remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
+                    geminiViewModel = geminiViewModel,
+                    newsViewModel = newsViewModel,
+                    postViewModel = postViewModel,
+                    faqItemViewModel = faqItemViewModel
                 )
             }
-
         }
     }
 
@@ -97,33 +142,48 @@ class HomeActivity : BaseActivity() {
     fun Index(
         context: Context,
         navHostController: NavHostController,
-        modifier: Modifier = Modifier,
-        sharedPreferences: SharedPreferences
+        sharedPreferences: SharedPreferences,
+        userViewModel: UserViewModel,
+        doctorViewModel: DoctorViewModel,
+        specialtyViewModel: SpecialtyViewModel,
+        medicalOptionViewModel: MedicalOptionViewModel,
+        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
+        geminiViewModel: GeminiViewModel,
+        newsViewModel: NewsViewModel,
+        postViewModel: PostViewModel,
+        faqItemViewModel: FAQItemViewModel,
+        modifier: Modifier = Modifier
     ) {
-        GetFcmInstance(sharedPreferences)
-        // Lấy route hiện tại để kiểm tra
+        GetFcmInstance(sharedPreferences, userViewModel)
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-
-        // Chỉ hiển thị TopBar & BottomBar với các route cụ thể
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
-
+        var showFullScreenComment by remember { mutableStateOf(false) } // Local state
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showTopBars) Headbar(sharedPreferences)
+                if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences)
             },
             bottomBar = {
-                if (showFootBars) FootBar(navHostController)
+                if (showFootBars && !showFullScreenComment) FootBar(currentRoute,navHostController)
             }
         ) { paddingValues ->
             NavigationHost(
                 context = context,
                 navHostController = navHostController,
                 sharedPreferences = sharedPreferences,
+                userViewModel = userViewModel,
+                doctorViewModel = doctorViewModel,
+                specialtyViewModel = specialtyViewModel,
+                medicalOptionViewModel = medicalOptionViewModel,
+                remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
+                geminiViewModel = geminiViewModel,
+                newsViewModel = newsViewModel,
+                postViewModel = postViewModel,
+                faqItemViewModel = faqItemViewModel,
                 modifier = Modifier.padding(paddingValues)
             )
         }
@@ -132,9 +192,19 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun NavigationHost(
-        context: Context, navHostController: NavHostController,
+        context: Context,
+        navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
-        modifier: Modifier = Modifier,
+        userViewModel: UserViewModel,
+        doctorViewModel: DoctorViewModel,
+        specialtyViewModel: SpecialtyViewModel,
+        medicalOptionViewModel: MedicalOptionViewModel,
+        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
+        geminiViewModel: GeminiViewModel,
+        newsViewModel: NewsViewModel,
+        postViewModel: PostViewModel,
+        faqItemViewModel: FAQItemViewModel,
+        modifier: Modifier = Modifier
     ) {
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
@@ -149,26 +219,25 @@ class HomeActivity : BaseActivity() {
                     onNavigateToDoctorList = { specialtyId, specialtyName, specialtyDesc ->
                         val intent = Intent(this@HomeActivity, DoctorListActivity::class.java).apply {
                             putExtra("specialtyId", specialtyId)
-
                             putExtra("specialtyName", specialtyName)
-
                             putExtra("specialtyDesc", specialtyDesc)
                         }
                         startActivity(intent)
                     },
-                    navHostController = navHostController
-
+                    navHostController = navHostController,
+                    userViewModel = userViewModel,
+                    doctorViewModel = doctorViewModel,
+                    specialtyViewModel = specialtyViewModel,
+                    medicalOptionViewModel = medicalOptionViewModel,
+                    remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
+                    geminiViewModel = geminiViewModel,
+                    newsViewModel = newsViewModel,
+                    postViewModel = postViewModel,
+                    faqItemViewModel = faqItemViewModel
                 )
             }
             composable("news_detail") {
-                val dummyNews = NewsResponse(
-                    id = "dummyId",
-                    title = "Tiêu đề mẫu",
-                    content = "Đây là nội dung bài viết mẫu để test",
-                    media = listOf("https://i.imgur.com/CzXTtJV.png"),
-                    createdAt = "2024-01-01T00:00:00Z"
-                )
-                NewsDetailScreen(navHostController = navHostController)
+                NewsDetailScreen(navHostController,viewModel = newsViewModel)
             }
             composable("appointment") {
                 AppointmentListScreen(sharedPreferences, navHostController)
@@ -177,16 +246,16 @@ class HomeActivity : BaseActivity() {
                 NotificationPage(context, navHostController)
             }
             composable("personal") {
-                ProfileUserPage(sharedPreferences,navHostController)
+                ProfileUserPage(sharedPreferences, navHostController)
             }
             composable("otherUserProfile") {
-                ProfileOtherUserPage(sharedPreferences,navHostController)
+                ProfileOtherUserPage(sharedPreferences, navHostController)
             }
             composable("create_post") {
                 PostScreen(context, navHostController)
             }
             composable("editProfile") {
-                EditUserProfile(sharedPreferences,navHostController)
+                EditUserProfile(sharedPreferences, navHostController)
             }
             composable("doctorRegister") {
                 RegisterClinic(navHostController, sharedPreferences)
@@ -200,53 +269,35 @@ class HomeActivity : BaseActivity() {
             composable("other_user_profile") {
                 DoctorScreen(context, navHostController)
             }
-            composable(
-                route = "appointment-detail",
-            ) {
+            composable("appointment-detail") {
                 AppointmentDetailScreen(
                     context = context,
                     onBack = { navHostController.popBackStack() },
                     navHostController = navHostController
                 )
             }
-            composable("appointment") {
-                AppointmentListScreen(sharedPreferences, navHostController)
-            }
-
             composable("booking-calendar") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    BookingCalendarScreen(
-                        context = context,
-                        navHostController = navHostController
-                    )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    BookingCalendarScreen(context = context, navHostController = navHostController)
                 }
             }
             composable("booking") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
+                Column(modifier = Modifier.fillMaxSize()) {
                     AppointmentDetailScreen(
                         context = context,
-                        onBack = { navHostController.popBackStack()},
+                        onBack = { navHostController.popBackStack() },
                         navHostController = navHostController
                     )
                 }
             }
             composable("booking-confirm") {
-                ConfirmBookingScreen(
-                    context = context,
-                    navHostController = navHostController
-                )
+                ConfirmBookingScreen(context = context, navHostController = navHostController)
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)
             }
             composable("activity_manager") {
-                ActivityManagerScreen ( onBack = { navHostController.popBackStack()}, navHostController)
+                ActivityManagerScreen(onBack = { navHostController.popBackStack() }, navHostController)
             }
             composable("userComment") {
                 PostListScreen(sharedPreferences)
@@ -272,30 +323,27 @@ class HomeActivity : BaseActivity() {
     }
 
     @Composable
-    fun GetFcmInstance(sharedPreferences: SharedPreferences) {
-        val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-            initializer { UserViewModel(sharedPreferences) }
-        })
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "FCM Token: $token")
-                // Gửi lên server
-                val userId = userViewModel.getUserAttributeString("userId")
-                var userModel = ""
-                if (userViewModel.getUserAttributeString("role") == "user")
-                    userModel = "User"
-                else if (userViewModel.getUserAttributeString("role") == "doctor")
-                    userModel = "Doctor"
-                if (userId != "" && userModel != "") {
-                    userViewModel.sendFcmToken(userId, userModel, token)
+    fun GetFcmInstance(sharedPreferences: SharedPreferences, userViewModel: UserViewModel) {
+        LaunchedEffect(Unit) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d("FCM", "FCM Token: $token")
+                    val userId = userViewModel.getUserAttributeString("userId")
+                    val userModel = when (userViewModel.getUserAttributeString("role")) {
+                        "user" -> "User"
+                        "doctor" -> "Doctor"
+                        else -> ""
+                    }
+                    if (userId.isNotEmpty() && userModel.isNotEmpty()) {
+                        userViewModel.sendFcmToken(userId, userModel, token)
+                    }
                 }
-
             }
         }
     }
 }
+
 @Composable
 fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
     var scale by remember { mutableStateOf(1f) }
@@ -307,7 +355,7 @@ fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable(onClick = onDismiss) // Dismiss khi bấm vào nền
+                    .clickable(onClick = onDismiss)
             ) {
                 Box(
                     modifier = Modifier
@@ -336,5 +384,7 @@ fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
                 }
             }
         }
+    } else {
+        onDismiss()
     }
 }

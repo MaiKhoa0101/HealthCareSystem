@@ -25,6 +25,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
@@ -41,7 +42,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     _posts.value = result.body() ?: emptyList()
                     println("Kết qua getAllPosts: "+_posts.value)
                 } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
+                    Log.e("Lỗi API", "${result.errorBody()?.string()}")
                 }
 
             } catch (e: Exception) {
@@ -54,7 +55,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun getPostById(id:String) {
         viewModelScope.launch {
             try {
-                println("ID nhận được để lấy post: " + id)
                 val result = RetrofitInstance.postService.getPostById(id)
 
                 if (result.isSuccessful) {
@@ -77,7 +77,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun getPostByUserId(userId:String) {
         viewModelScope.launch {
             try {
-                println("UserId nhận được để lấy post: " + userId)
                 val result = RetrofitInstance.postService.getPostByUserId(userId)
 
                 if (result.isSuccessful) {
@@ -191,49 +190,64 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())
-    val commentsMap: StateFlow<Map<String, List<GetCommentPostResponse>>> get() = _commentsMap
 
-    fun fetchComments(postId: String) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.postService.getCommentByPostId(postId)
-                if (response.isSuccessful) {
-                    val comments = response.body() ?: emptyList()
-                    _commentsMap.value += (postId to comments)
+    private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())
+    val commentsMap: StateFlow<Map<String, List<GetCommentPostResponse>>> = _commentsMap
+
+    private val _hasMoreMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val hasMoreMap: StateFlow<Map<String, Boolean>> = _hasMoreMap
+
+    suspend fun fetchComments(postId: String, skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
+        return try {
+            val response = RetrofitInstance.postService.getCommentByPostId(postId, skip, limit)
+            if (response.isSuccessful) {
+                val result = response.body()
+                val comments = result?.comments ?: emptyList()
+                val hasMore = result?.hasMore ?: false
+
+                if (append) {
+                    val current = _commentsMap.value[postId] ?: emptyList()
+                    _commentsMap.value += (postId to (current + comments))
                 } else {
-                    Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                    _commentsMap.value += (postId to comments)
                 }
-            } catch (e: Exception) {
-                Log.e("PostViewModel", "Comment Fetch Error", e)
+                _hasMoreMap.value += (postId to hasMore)
+                true
+            } else {
+                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                false
             }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Comment Fetch Error", e)
+            false
         }
     }
+
+
+
+
 
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
+                Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
+
                 val response = RetrofitInstance.postService.createCommentByPostId(
                     postId,
                     CreateCommentPostRequest(userId, userModel, content)
                 )
+                Log.d("sendComment", "⬅ Response code: ${response.code()}")
+
                 if (response.isSuccessful) {
-                    fetchComments(postId) // refresh
+                    Log.d("sendComment", " Gửi comment thành công")
+                    fetchComments(postId)
+                } else {
+                    val errorMsg = response.errorBody()?.string()
+                    Log.e("sendComment", " Gửi comment thất bại: $errorMsg")
                 }
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Send Comment Error", e)
+                Log.e("sendComment", "Lỗi ngoại lệ khi gửi comment", e)
             }
-        }
-    }
-
-    suspend fun fetchCommentsForPost(postId: String): List<GetCommentPostResponse> {
-        return try {
-            val response = RetrofitInstance.postService.getCommentByPostId(postId)
-            if (response.isSuccessful) response.body() ?: emptyList()
-            else emptyList()
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Lỗi khi fetch comments", e)
-            emptyList()
         }
     }
 
@@ -318,11 +332,18 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private val _isUpdating = MutableStateFlow(false)
+    val isUpdating: StateFlow<Boolean> = _isUpdating
+
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess
+
     fun updatePost(postId: String, request: UpdatePostRequest, context: Context) {
         viewModelScope.launch {
             try {
-                val contentPart = MultipartBody.Part.createFormData("content", request.content)
+                _isUpdating.value = true
 
+                val contentPart = MultipartBody.Part.createFormData("content", request.content)
                 val imageParts = request.images.mapNotNull { uri ->
                     prepareFilePart(context, uri, "images")
                 }
@@ -334,13 +355,23 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 )
 
                 if (response.isSuccessful) {
-                    getAllPosts() // cập nhật lại toàn bộ post sau khi sửa
+                    _updateSuccess.value = true
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Update Post Exception", e)
+            } finally {
+                _isUpdating.value = false
+                println("Đổi biến trc")
             }
         }
     }
+
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
+
+
 
     private val _activePostMenuId = MutableStateFlow<String?>(null)
     val activePostMenuId: StateFlow<String?> get() = _activePostMenuId

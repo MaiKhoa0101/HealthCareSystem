@@ -46,9 +46,9 @@ fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
             Text("Danh sách lịch hẹn", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
-            CardAppointment(R.drawable.checkedbigicon, 3195, "Lịch hẹn mới được đặt")
+            CardAppointment(R.drawable.checkedbigicon, filteredAppointments.count { it.status == "pending"}, "Lịch hẹn chờ khám")
             Spacer(Modifier.height(16.dp))
-            CardAppointment(R.drawable.calendarbigicon, 3995, "Tổng lịch hẹn")
+            CardAppointment(R.drawable.calendarbigicon, filteredAppointments.size, "Tổng lịch hẹn")
 
             Spacer(Modifier.height(24.dp))
             Text("Quản lí lịch hẹn khám", style = MaterialTheme.typography.titleLarge)

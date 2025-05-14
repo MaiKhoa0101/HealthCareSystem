@@ -5,3 +5,11 @@ data class CreateNewsRequest(
     val title: String,
     val content: String
 )
+data class CreateNewsCommentRequest(
+    val userId: String,
+    val content: String
+)
+data class UpdateNewsFavoriteRequest(
+    val userId: String,
+    val userModel: String
+)

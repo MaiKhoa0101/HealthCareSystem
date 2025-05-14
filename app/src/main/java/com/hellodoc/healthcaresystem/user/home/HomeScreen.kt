@@ -1,14 +1,16 @@
 package com.hellodoc.healthcaresystem.user.home
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
-
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,215 +18,143 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
-import com.hellodoc.core.common.utils.PhoneCallUtils
+import coil.request.ImageRequest
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
-import com.hellodoc.healthcaresystem.responsemodel.ContentPost
-import com.hellodoc.healthcaresystem.responsemodel.FooterItem
-import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-//import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse2
-import com.hellodoc.healthcaresystem.responsemodel.GetFAQItemResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetMedicalOptionResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetRemoteMedicalOptionResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetSpecialtyResponse
-import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
+import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
-import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.ViewPostOwner
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
-
-import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
-import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
-import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
-import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
-import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
-import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
-import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
-import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
-import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
+import com.hellodoc.healthcaresystem.viewmodel.*
+import kotlinx.coroutines.delay
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
     onNavigateToDoctorList: (String, String, String) -> Unit,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    userViewModel: UserViewModel,
+    doctorViewModel: DoctorViewModel,
+    specialtyViewModel: SpecialtyViewModel,
+    medicalOptionViewModel: MedicalOptionViewModel,
+    remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
+    geminiViewModel: GeminiViewModel,
+    newsViewModel: NewsViewModel,
+    postViewModel: PostViewModel,
+    faqItemViewModel: FAQItemViewModel
 ) {
-
     val context = LocalContext.current
+    val listState = rememberLazyListState()
 
-    val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
-        initializer { FAQItemViewModel(sharedPreferences) }
-    })
-    val faqItems by faqItemViewModel.faqItems.collectAsState()
-
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
-    val doctors by doctorViewModel.doctors.collectAsState()
-
-    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
-    })
-    val specialties by specialtyViewModel.specialties.collectAsState()
-
-    val medicalOptionViewModel: MedicalOptionViewModel = viewModel(factory = viewModelFactory {
-        initializer { MedicalOptionViewModel(sharedPreferences) }
-    })
-    val medicalOptions by medicalOptionViewModel.medicalOptions.collectAsState()
-
-    val remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel = viewModel(factory = viewModelFactory {
-        initializer { RemoteMedicalOptionViewModel(sharedPreferences) }
-    })
-    val remoteMedicalOptions by remoteMedicalOptionViewModel.remoteMedicalOptions.collectAsState()
-
-    val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
-        initializer { GeminiViewModel(sharedPreferences) }
-    })
+    // Collect states with loading information
+    val faqState by faqItemViewModel.faqItems.collectAsState()
+    val doctorState by doctorViewModel.doctors.collectAsState()
+    val specialtyState by specialtyViewModel.specialties.collectAsState()
+    val medicalOptionState by medicalOptionViewModel.medicalOptions.collectAsState()
+    val remoteMedicalOptionState by remoteMedicalOptionViewModel.remoteMedicalOptions.collectAsState()
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
+    val newsState by newsViewModel.newsList.collectAsState()
+    val postState by postViewModel.posts.collectAsState()
+    val user by userViewModel.user.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
-    val newsViewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-        initializer { NewsViewModel(sharedPreferences) }
-    })
-    val newsList by newsViewModel.newsList.collectAsState()
-
-    val navEntry = navHostController.currentBackStackEntry
-
-
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
-    })
-    val posts by postViewModel.posts.collectAsState()
-
-
-    var shouldReloadPosts by remember { mutableStateOf(false) }
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-
-
-    LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
-    }
-
-
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
-    }
-
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
-    val user by userViewModel.user.collectAsState()
-
 
     LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        launch {
-            postViewModel.getAllPosts()
-            }
-        launch {
-            medicalOptionViewModel.fetchMedicalOptions()
-        }
-
-        launch {
-            remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
-        }
-
-        launch {
-            newsViewModel.getAllNews()
-        }
+        postViewModel.getAllPosts()
+        medicalOptionViewModel.fetchMedicalOptions()
+        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
+        newsViewModel.getAllNews()
+        faqItemViewModel.fetchFAQItems()
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures {
-                postViewModel.closeAllPostMenus()  //tắt menu post
-                showReportBox = false
+    if (selectedImageUrl != null) {
+        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    postViewModel.closeAllPostMenus()
+                    showReportBox = false
+                }
             }
-        }
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.White),
+            state = listState
         ) {
-            item {
+            item(key = "header") {
                 Column(
                     modifier = Modifier
                         .background(Color(0xFF00C5CB))
                         .padding(16.dp)
                 ) {
                     AssistantQueryRow(
-                        navHostController,
+                        navHostController = navHostController,
                         onSubmit = { query ->
                             geminiViewModel.askGemini(query)
                             showDialog = true
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    if (newsList.isEmpty()) {
+                    if (newsState.isEmpty()) {
                         EmptyList("tin mới")
                     } else {
-                        NewsItemList(newsList = newsList, navHostController = navHostController)
+                        MarqueeNewsTicker(newsList = newsState, navHostController = navHostController)
                     }
-
                 }
+                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
             }
 
-            // Dịch vụ toàn diện
-            item {
+            item(key = "services") {
                 SectionHeader(title = "Dịch vụ toàn diện")
-                if (medicalOptions.isEmpty()) {
+                if (medicalOptionState.isEmpty()) {
                     EmptyList("dịch vụ hệ thống")
                 } else {
-                    GridServiceList(medicalOptions) { medicalOption ->
+                    GridServiceList(medicalOptionState) { medicalOption ->
                         when (medicalOption.name) {
                             "Tính BMI" -> navHostController.navigate("bmi-checking")
                             else -> {
@@ -235,33 +165,31 @@ fun HealthMateHomeScreen(
                 }
             }
 
-            // Chuyên khoa
-            item {
+            item(key = "specialties") {
                 SectionHeader(title = "Chuyên khoa")
-                if (specialties.isEmpty()) {
+                if (specialtyState.isEmpty()) {
                     EmptyList("chuyên khoa")
                 } else {
-                    SpecialtyList(context,specialties = specialties, onNavigateToDoctorList = onNavigateToDoctorList)
+                    SpecialtyList(context,specialties = specialtyState, onNavigateToDoctorList = onNavigateToDoctorList)
                 }
             }
 
-            // Bác sĩ nổi bật
-            item {
+            item(key = "doctors") {
                 Spacer(modifier = Modifier.height(8.dp))
-                if (doctors.isEmpty()) {
+                if (doctorState.isEmpty()) {
                     EmptyList("bác sĩ")
                 } else {
                     println("ko co bi empty")
-                    DoctorList(navHostController = navHostController, doctors = doctors)
+                    DoctorList(navHostController = navHostController, doctors = doctorState)
                 }
             }
 
-            item {
+            item(key = "posts") {
                 Spacer(modifier = Modifier.height(8.dp))
                 OtherPostColumn(
                     userViewModel = userViewModel,
                     postViewModel = postViewModel,
-                    posts = posts,
+                    posts = postState,
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     onImageClick = { selectedImageUrl = it },
@@ -276,28 +204,23 @@ fun HealthMateHomeScreen(
                 )
             }
 
-            item {
+            item(key = "bottom_space") {
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
-        if ((showFullScreenComment && selectedPostIdForComment != null) ||
-            (showReportDialog && user != null)
-        ) {
+
+        if ((showFullScreenComment && selectedPostIdForComment != null) || (showReportDialog && user != null)) {
             InteractPostManager(
-                navHostController,
-                user,
-                postViewModel,
-                reportedPostId,
-                context,
-                showFullScreenComment,
-                selectedPostIdForComment,
-                showReportDialog,
-                onCloseComment = {
-                    showFullScreenComment = false
-                },
-                onHideReportDialog = {
-                    showReportDialog = false
-                }
+                navHostController = navHostController,
+                user = user,
+                postViewModel = postViewModel,
+                reportedPostId = reportedPostId,
+                context = context,
+                showFullScreenComment = showFullScreenComment,
+                selectedPostIdForComment = selectedPostIdForComment,
+                showReportDialog = showReportDialog,
+                onCloseComment = { showFullScreenComment = false },
+                onHideReportDialog = { showReportDialog = false }
             )
         }
 
@@ -308,12 +231,115 @@ fun HealthMateHomeScreen(
                 onDismiss = { showDialog = false }
             )
         }
-
+    }
+}
+//lặp lại title 3 lần nếu độ dài < N ký tự
+fun forceMarqueeText(title: String, repeatCount: Int = 3): String {
+    return if (title.length < 30) {
+        (title + "     ").repeat(repeatCount)
+    } else {
+        title
     }
 }
 
-// Hàm này đảm bảo Toast không vi phạm quy tắc của Compose
-fun showToast(context: android.content.Context, message: String) {
+fun calculateDynamicDelay(title: String, velocityDpPerSecond: Float = 50f, screenWidthDp: Float = 360f): Long {
+    val estimatedTextWidthDp = title.length * 8f  //giả sử mỗi ký tự khoảng 8dp (với font 16sp)
+    val scrollDistanceDp = maxOf(estimatedTextWidthDp, screenWidthDp)// Nếu text ngắn hơn screen → ép delay ngắn tối thiểu
+    val scrollTimeSec = scrollDistanceDp / velocityDpPerSecond
+    return (scrollTimeSec * 1000).toLong() + 2000L  //thêm 2s dừng nhẹ giữa các title
+}
+
+@Composable
+fun MarqueeNewsTicker(
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
+) {
+    if (newsList.isEmpty()) {
+        EmptyList("tin mới")
+    } else {
+        val firstHalf = newsList.take(newsList.size / 2)
+        val secondHalf = newsList.drop(newsList.size / 2)
+
+        var firstIndex by remember { mutableStateOf(0) }
+        var secondIndex by remember { mutableStateOf(0) }
+
+        // Auto next for first line
+        LaunchedEffect(firstIndex, firstHalf) {
+            if (firstHalf.isNotEmpty()) {
+                while (true) {
+                    val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                    val delayTime = calculateDynamicDelay(currentTitle)
+                    delay(delayTime)
+                    firstIndex = (firstIndex + 1) % firstHalf.size
+                }
+            }
+        }
+
+        // Auto next for second line
+        LaunchedEffect(secondIndex, secondHalf) {
+            if (secondHalf.isNotEmpty()) {
+                while (true) {
+                    val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                    val delayTime = calculateDynamicDelay(currentTitle)
+                    delay(delayTime)
+                    secondIndex = (secondIndex + 1) % secondHalf.size
+                }
+            }
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        firstHalf.getOrNull(firstIndex)?.let { news ->
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                            navHostController.navigate("news_detail")
+                        }
+                    }
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        animationMode = MarqueeAnimationMode.Immediately,
+                        spacing = MarqueeSpacing(50.dp),
+                        velocity = 50.dp,
+                    ),
+                fontSize = 16.sp,
+                color = Color.White,
+                maxLines = 1,
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Divider(color = Color.White, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        secondHalf.getOrNull(secondIndex)?.let { news ->
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                            navHostController.navigate("news_detail")
+                        }
+                    }
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        animationMode = MarqueeAnimationMode.Immediately,
+                        spacing = MarqueeSpacing(50.dp),
+                        velocity = 50.dp,
+                    ),
+                fontSize = 16.sp,
+                color = Color.White,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+
+
+fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
 
@@ -331,8 +357,7 @@ fun SectionHeader(title: String) {
 @Composable
 fun EmptyList(name: String) {
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -349,14 +374,11 @@ fun AssistantAnswerDialog(
     onDismiss: () -> Unit
 ) {
     val displayAnswer = answer.ifBlank { "Đang xử lý..." }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Trợ lý AI", fontWeight = FontWeight.Bold) },
         text = {
-            LazyColumn(
-                modifier = Modifier.heightIn(min = 100.dp, max = 300.dp)
-            ) {
+            LazyColumn(modifier = Modifier.heightIn(min = 100.dp, max = 300.dp)) {
                 item {
                     Text("Q: $question", fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -378,7 +400,6 @@ fun AssistantQueryRow(
     onSubmit: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -386,9 +407,7 @@ fun AssistantQueryRow(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(0.9f)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth(0.9f)) {
             TextField(
                 value = text,
                 onValueChange = { text = it },
@@ -399,12 +418,9 @@ fun AssistantQueryRow(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(4.dp))
         }
-
         Spacer(modifier = Modifier.width(8.dp))
-
         Image(
             painter = painterResource(id = R.drawable.submit_arrow),
             contentDescription = "submit question for AI",
@@ -412,29 +428,15 @@ fun AssistantQueryRow(
                 .size(20.dp)
                 .clickable {
                     if (text.isNotBlank()) {
-//                        onSubmit(text) // Gửi dữ liệu
                         navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
-                        text = "" // Xóa text sau khi gửi
+                        text = ""
                         navHostController.navigate("gemini_help")
                     }
                 }
         )
     }
 }
-@Composable
-fun NewsItemList(
-    newsList: List<NewsResponse>,
-    navHostController: NavHostController
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        newsList.forEach { news ->
-            NewsItem(news = news, onSelectNews = {
-                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                navHostController.navigate("news_detail")
-            })
-        }
-    }
-}
+
 
 @Composable
 fun NewsItem(
@@ -444,10 +446,12 @@ fun NewsItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSelectNews() },
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -457,81 +461,59 @@ fun NewsItem(
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Xem chi tiết",
-                tint = Color.Black,
-                modifier = Modifier.clickable { onSelectNews() }
+                tint = Color.Black
             )
         }
         Spacer(modifier = Modifier.height(5.dp))
         Divider(color = Color.White, thickness = 1.dp)
     }
 }
-
 @Composable
-fun FAQItemList(context: Context, faqItems: List<GetFAQItemResponse>) {
-    faqItems.forEach { faqItem ->
-        FAQItem(faqItem) {
-            showToast(context, "Clicked: ${faqItem.question}")
-        }
-    }
-}
-
-@Composable
-fun FAQItem(
-    faq: GetFAQItemResponse,
-    onSelectQuestion: () -> Unit
+fun NewsItemList(
+    newsList: List<NewsResponse>,
+    navHostController: NavHostController
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = faq.question,
-                fontSize = 16.sp,
-                color = Color.White,
-                modifier = Modifier.weight(1f) // Giữ khoảng cách với icon
-            )
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Expand",
-                tint = Color.Black,
-                modifier = Modifier.clickable { onSelectQuestion() }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        newsList.forEach { news ->
+            Log.d("NewsDebug", "News in list: ${news.title}, id: ${news.id}")
+            NewsItem(news = news,
+                onSelectNews = {
+                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                    Log.d("NewsSet", "News set to savedStateHandle: ${news.id}")
+                navHostController.navigate("news_detail")
+            }
             )
         }
-        Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = Color.White, thickness = 1.dp) // Đường kẻ ngang
     }
 }
 
 @Composable
 fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
-    Column (modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 rowItems.forEach { item ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-                            .padding(16.dp)
-                            .clickable { onClick(item) },
-                    ) {
-                        Row(verticalAlignment =  Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.doctor),
-                                contentDescription = item.name,
-                                modifier = Modifier.size(40.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(text = item.name, color = Color.Black)
+                    key(item.id) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
+                                .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                                .padding(16.dp)
+                                .clickable { onClick(item) }
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.doctor),
+                                    contentDescription = item.name,
+                                    modifier = Modifier.size(40.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(text = item.name, color = Color.Black)
+                            }
                         }
                     }
                 }
@@ -542,17 +524,19 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
 }
 
 @Composable
-fun SpecialtyList(context: Context, specialties: List<GetSpecialtyResponse>, onNavigateToDoctorList: (String, String, String) -> Unit) {
+fun SpecialtyList(
+    context: Context,
+    specialties: List<GetSpecialtyResponse>,
+    onNavigateToDoctorList: (String, String, String) -> Unit
+) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(start = 16.dp)
+        modifier = Modifier.padding(vertical = 16.dp)
     ) {
-        items(specialties) { specialty ->
+        items(specialties, key = { it.id }) { specialty ->
             SpecialtyItem(
                 specialty = specialty,
-                onClick = {
-                    showToast(context, "Đã chọn: ${specialty.name}")
-                },
+                onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
                 onNavigateToDoctorList = onNavigateToDoctorList
             )
         }
@@ -571,11 +555,7 @@ fun SpecialtyItem(
             .height(140.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .border(
-                width = 1.dp,
-                color = Color(0xFFCCCCCC), // Màu viền xám nhẹ
-                shape = RoundedCornerShape(16.dp)
-            )
+            .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
             .clickable {
                 onClick()
                 onNavigateToDoctorList(specialty.id, specialty.name, specialty.description)
@@ -589,24 +569,23 @@ fun SpecialtyItem(
         ) {
             if (!specialty.icon.isNullOrBlank()) {
                 AsyncImage(
-                    model = specialty.icon,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(specialty.icon)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = specialty.name,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(80.dp)
+                    modifier = Modifier.size(80.dp)
                 )
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.doctor),
                     contentDescription = specialty.name,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(80.dp)
+                    modifier = Modifier.size(80.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(10.dp))
-
             Text(
                 text = specialty.name,
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -623,13 +602,12 @@ fun SpecialtyItem(
 fun DoctorList(
     navHostController: NavHostController,
     doctors: List<GetDoctorResponse>,
-    onSeeMoreClick: () -> Unit = {} // callback cho "Xem thêm"
+    onSeeMoreClick: () -> Unit = {}
 ) {
+    HorizontalDivider(thickness = 2.dp, color = Color.Gray)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 14.dp)
             .background(Color(0xFF73E3E7))
     ) {
         Row(
@@ -645,18 +623,8 @@ fun DoctorList(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-
-//            Text(
-//                text = "Xem thêm",
-//                fontSize = 14.sp,
-//                color = Color(0xFF0085FF),
-//                modifier = Modifier
-//                    .clickable { onSeeMoreClick() }
-//            )
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -664,7 +632,7 @@ fun DoctorList(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            items(doctors) { doctor ->
+            items(doctors, key = { it.id }) { doctor ->
                 DoctorItem(doctor) {
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
@@ -674,6 +642,7 @@ fun DoctorList(
             }
         }
     }
+    HorizontalDivider(thickness = 2.dp, color = Color.Gray)
 }
 
 @Composable
@@ -687,7 +656,10 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
     ) {
         if (!doctor.avatarURL.isNullOrBlank()) {
             AsyncImage(
-                model = doctor.avatarURL,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(doctor.avatarURL)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = doctor.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -706,9 +678,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
                     .border(1.dp, Color.LightGray, CircleShape)
             )
         }
-
         Spacer(modifier = Modifier.height(6.dp))
-
         Text(
             text = doctor.name,
             fontSize = 13.sp,
@@ -718,7 +688,6 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-
         Text(
             text = doctor.specialty.name,
             fontSize = 12.sp,
@@ -736,7 +705,7 @@ fun RemoteMedicalOptionList(context: Context, remoteMedicalOptions: List<GetRemo
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(start = 16.dp)
     ) {
-        items(remoteMedicalOptions) { remoteMedicalOption ->
+        items(remoteMedicalOptions, key = { it.id }) { remoteMedicalOption ->
             RemoteMedicalOption(remoteMedicalOption) {
                 showToast(context, "Clicked: ${remoteMedicalOption.name}")
             }
@@ -754,12 +723,9 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clickable { onClick() }
             .padding(8.dp),
-
-        contentAlignment = Alignment.Center // Căn giữa nội dung trong Box
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = R.drawable.doctor),
                 contentDescription = service.name,
@@ -771,4 +737,3 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
         }
     }
 }
-

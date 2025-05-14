@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
@@ -77,6 +78,7 @@ import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherPostColumn(
     userViewModel: UserViewModel,
@@ -96,7 +98,7 @@ fun OtherPostColumn(
         }
     }
 
-
+    println("chay tut tren day")
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",
@@ -162,7 +164,6 @@ fun PostColumn(
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
-        println("San pham lay duoc post: "+posts)
 
         // Nếu không có bài viết thì hiển thị Empty
         if (posts.isEmpty()) {
@@ -233,19 +234,10 @@ fun ViewPostOwner(
     var editedCommentContent by remember { mutableStateOf("") }
     var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
 
-    println("Tao ra duoc post voi postId: "+ postId)
-    println("Tao ra duoc post voi currentUserId: "+ currentUserId)
 
-    LaunchedEffect(editingCommentId) {
-        println("fetch comment bai viet")
-        if (editingCommentId == null) {
-            // Sau khi lưu xong và thoát khỏi chế độ sửa, cập nhật lại UI
-            postViewModel.fetchComments(postId)
-        }
-    }
+
     LaunchedEffect(postId) {
         // Gọi API và cập nhật state khi dữ liệu được fetch về
-        println("fetch yeu thich bai viet")
         postViewModel.fetchFavoriteForPost(postId, currentUserId)
     }
 
@@ -253,14 +245,7 @@ fun ViewPostOwner(
     val pagerState = rememberPagerState()
     val mediaList = footerItem.imageUrl.split("|").filter { it.isNotBlank() }
 
-    LaunchedEffect(shouldFetchComments) {
-        if (shouldFetchComments) {
-            coroutineScope.launch {
-                postViewModel.fetchComments(postId)
-                shouldFetchComments = false
-            }
-        }
-    }
+
     var shouldShowSeeMore by remember { mutableStateOf(false) }
 
     Box(modifier = modifier
@@ -444,7 +429,6 @@ fun ViewPostOwner(
                     }
                 }
             }
-            println("postId: "+postId+"\ncurrentUserId: "+currentUserId+"\nuserModel: "+userModel)
             // ICON like & comment
             Row(
                 modifier = Modifier
@@ -533,7 +517,7 @@ fun ViewPostOwner(
                             .padding(8.dp)
                     ) {
                         Text("Xóa bài viết", fontWeight = FontWeight.Bold, color = Color.Red)
-                        Text("Xóa khỏi cuộc đời của bạn", fontSize = 13.sp, color = Color.Gray)
+                        Text("Xóa khỏi danh sách bài đăng cá nhân", fontSize = 13.sp, color = Color.Gray)
                     }
                     Divider(thickness = 3.dp, color = Color.LightGray, modifier = Modifier.padding(vertical = 8.dp))
                     Column(
@@ -548,12 +532,16 @@ fun ViewPostOwner(
                             .padding(8.dp)
                     ) {
                         Text("Sửa bài viết", fontWeight = FontWeight.Bold, color = Color.Blue)
-                        Text("Gáy xong rồi sửa", fontSize = 13.sp, color = Color.Gray)
+                        Text("Chỉnh sửa nội dung bài viết", fontSize = 13.sp, color = Color.Gray)
                     }
                 }
             }
         }
     }
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray
+    )
 }
 
 @Composable
@@ -581,7 +569,7 @@ fun InteractPostManager(
         )
     }
     println("showReportDialog lay duoc cho post menu: "+showReportDialog)
-
+    userId
     println("user lay duoc cho post menu: "+user)
     if (showReportDialog && user != null) {
         var selectedType by remember { mutableStateOf("Ứng dụng") }
@@ -668,10 +656,7 @@ fun InteractPostManager(
                         "Huỷ",
                         color = Color.Red,
                         modifier = Modifier
-                            .clickable {
-                                onHideReportDialog
-                                println("Da bam huy")
-                            }
+                            .clickable { onHideReportDialog()  }
                             .padding(8.dp),
                         fontWeight = FontWeight.Medium
                     )
@@ -715,7 +700,7 @@ fun InteractPostManager(
                                 e.printStackTrace()
                             }
                         }
-                        onHideReportDialog
+                        onHideReportDialog()
                     }) {
                         Text("Gửi báo cáo")
                     }
