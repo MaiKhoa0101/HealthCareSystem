@@ -18,8 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -308,32 +310,40 @@ fun NewsListScreen(
         if (newsList.isEmpty()) {
             EmptyPostList()
         } else {
-            NewsList(news = newsList)
+            NewsList(news = newsList, newsViewModel = viewModel)
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsList(news: List<NewsResponse>) {
+fun NewsList(news: List<NewsResponse>, newsViewModel: NewsViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
         itemsIndexed(news) { index, item ->
-            NewsItem(id = index + 1, news = item)
+            NewsItem(id = index + 1, news = item, newsViewModel = newsViewModel)
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsItem(id: Int, news: NewsResponse) {
+fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel) {
     var showDetail by remember { mutableStateOf(false) }
     var showImageDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var isCheckingComments by remember { mutableStateOf(false) }
+    var showCommentsDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("your_pref_name", Context.MODE_PRIVATE)
     val viewModel: NewsViewModel = viewModel(factory = viewModelFactory {
         initializer { NewsViewModel(sharedPreferences) }
     })
+    val commentsMap by newsViewModel.newsComments.collectAsState()
+    val comments = commentsMap[news.id] ?: emptyList()
+    val favoriteCountMap by newsViewModel.favoriteCountMap.collectAsState()
+    val totalFavorites = favoriteCountMap[news.id] ?: "0"
+    val commentsCount = comments.size
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -356,12 +366,44 @@ fun NewsItem(id: Int, news: NewsResponse) {
                 ),
                 elevation = CardDefaults.cardElevation(5.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("ID: $id", fontSize = 15.sp)
-                    Text("Tiêu đề: ${news.title}", fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("Người tạo: Admin", fontSize = 15.sp)
-                    Text("Số ảnh: ${news.media.size}", fontSize = 15.sp)
-                    Text("Ngày tạo: ${news.createdAt.timeInVietnam()}", fontSize = 15.sp)
+                Column(modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "ID: $id",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Tiêu đề: ${news.title}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Người tạo: Admin",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Số lượng ảnh: ${news.media.size}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Ngày tạo: ${news.createdAt.timeInVietnam()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
@@ -397,7 +439,12 @@ fun NewsItem(id: Int, news: NewsResponse) {
                     }
 
                     IconButton(
-                        onClick = { /* Hiển thị bình luận */ },
+                        onClick = {
+                            isCheckingComments = !isCheckingComments
+                            if (isCheckingComments) {
+                                newsViewModel.getComments(news.id)
+                            }
+                                  },
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
@@ -417,6 +464,128 @@ fun NewsItem(id: Int, news: NewsResponse) {
                             modifier = Modifier.size(30.dp)
                         )
                     }
+                }
+            }
+        }
+        if (isCheckingComments && comments.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            ) {
+                itemsIndexed(comments) { index, comment ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(29.dp.times(4))
+                                .clickable { showCommentsDialog = true },
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp) // Space between text items
+                            ) {
+                                Text(
+                                    text = "ID: ${index + 1}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 15.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "Tên người bình luận: ${comment.user.name}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 15.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "Nội dung: ${comment.content}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 15.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "Ngày tạo: ${comment.createdAt.timeInVietnam()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 15.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            }
+                        Card(
+                            modifier = Modifier
+                                .height(29.dp.times(4)) // Match the height of the first card
+                                .width(100.dp), // Fixed width for the buttons card
+                            shape = RoundedCornerShape(
+                                topStart = 0.dp,
+                                bottomStart = 0.dp,
+                                topEnd = 16.dp,
+                                bottomEnd = 16.dp
+                            ),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFE0F7FA) // Màu xanh nhạt dễ nhìn
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.Center, // Center the buttons
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    onClick = { viewModel.deleteComment(comment.id, news.id) },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.minus),
+                                        contentDescription = "Remove",
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (showCommentsDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showCommentsDialog = false },
+                            confirmButton = {
+                                TextButton(onClick = { showCommentsDialog = false }) {
+                                    Text("Đóng")
+                                }
+                            },
+                            title = { Text("Chi tiết bình luận") },
+                            text = {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.verticalScroll(rememberScrollState())
+                                ) {
+                                    Text("ID: ${index + 1}", fontSize = 15.sp)
+                                    Text("Tên người bình luận: ${comment.user.name}", fontSize = 15.sp)
+                                    Text("Nội dung: ${comment.content}", fontSize = 15.sp)
+                                    Text("Ngày tạo: ${comment.createdAt.timeInVietnam()}", fontSize = 15.sp)
+                                }
+                            }
+                        )
+                    }
+                }
+
                 }
             }
         }
@@ -486,6 +655,6 @@ fun NewsItem(id: Int, news: NewsResponse) {
             )
         }
     }
-}
+
 
 
