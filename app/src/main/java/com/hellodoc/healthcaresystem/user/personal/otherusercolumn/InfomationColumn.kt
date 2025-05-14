@@ -51,13 +51,13 @@ fun ViewIntroduce(
         contentTitle = ContentTitle(
             introduce = "Giới thiệu",
             certificate = "Bằng cấp & chứng chỉ",
-            workplace = "Nơi làm việc",
+            workplace = "Địa chỉ",
             service = "Dịch vụ & Giá cả",
         ),
         contents = Contents(
             introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
             certificate = doctor?.certificates ?: "Chưa cập nhật bằng cấp",
-            workplace = doctor?.hospital ?: "Chưa cập nhật nơi làm việc",
+            workplace = doctor?.address ?: "Chưa cập nhật nơi làm việc",
             services = doctor?.services ?: emptyList()
         ),
         images = Images(

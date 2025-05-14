@@ -160,7 +160,7 @@ fun DoctorScreen(
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userName = userViewModel.getUserAttributeString("name")
-
+        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         savedStateHandle?.get<String>("doctorId")?.let {
             doctorId = it
         }
@@ -191,11 +191,6 @@ fun DoctorScreen(
 
     hasHomeService = doctor?.hasHomeService ?: false
 
-
-    LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
-    }
     LaunchedEffect(reloadTrigger?.value) {
         if (reloadTrigger?.value == true) {
             postViewModel.fetchPosts() // gọi lại danh sách mới
@@ -255,7 +250,7 @@ fun DoctorScreen(
         bottomBar = {
             if (!showWriteReviewScreen.value) {
                 when (selectedTab) {
-                    0 -> BookingButton(navHostController)
+                    0 -> if (doctorId!=userId) {BookingButton(navHostController)}
                     1 -> WriteReviewButton { showWriteReviewScreen.value = true }
                 }
             }
@@ -327,35 +322,8 @@ fun DoctorScreen(
                             .clickable { selectedType = "Bác sĩ" }
                             .padding(end = 10.dp)
                     ) {
-//                        RadioButton(
-//                            selected = selectedType == "Bác sĩ",
-//                            onClick = null  // <- để dùng chung onClick bên ngoài
-//                        )
                         Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
                     }
-//
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier
-//                            .clickable { selectedType = "Ứng dụng" }
-//                            .padding(end = 10.dp)
-//                    ) {
-//                        RadioButton(
-//                            selected = selectedType == "Ứng dụng",
-//                            onClick = null
-//                        )
-//                        Text("Ứng dụng", modifier = Modifier.padding(start = 5.dp))
-//                    }
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier.clickable { selectedType = "Bài viết" }
-//                    ) {
-//                        RadioButton(
-//                            selected = selectedType == "Bài viết",
-//                            onClick = null
-//                        )
-//                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-//                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -452,7 +420,7 @@ fun UserInfo(
 
         val imageUrl = doctor?.avatarURL ?: ""
         val name = doctor?.name ?: "Tên bác sĩ"
-        val experience = doctor?.experience?.toString() ?: "69"
+        val experience = doctor?.experience?.toString() ?: "0"
         val patientsCount = doctor?.patientsCount?.toString() ?: "0"
         val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
 
