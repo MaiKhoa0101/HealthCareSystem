@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -45,13 +44,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,7 +82,6 @@ fun HealthMateHomeScreen(
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
-    val postState by postViewModel.posts.collectAsState()
     val user by userViewModel.user.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
@@ -93,18 +91,53 @@ fun HealthMateHomeScreen(
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
+    var postIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        postViewModel.getAllPosts()
         medicalOptionViewModel.fetchMedicalOptions()
         remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
     }
+
+
+    val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
+
+
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val navEntry = navHostController.currentBackStackEntry
+    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+
+    LaunchedEffect(reloadTrigger?.value) {
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+    }
+
+    LaunchedEffect(postIndex,hasMorePosts) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex >= totalItems - 1
+        }.distinctUntilChanged().collect { isAtEnd ->
+            println("Goij 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+                println("Gọi 3")
+                postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
+                postIndex+=10
+            }
+        }
+    }
+    val posts by postViewModel.posts.collectAsState()
+
+
+
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -166,7 +199,6 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "specialties") {
-                SectionHeader(title = "Chuyên khoa")
                 if (specialtyState.isEmpty()) {
                     EmptyList("chuyên khoa")
                 } else {
@@ -189,7 +221,7 @@ fun HealthMateHomeScreen(
                 OtherPostColumn(
                     userViewModel = userViewModel,
                     postViewModel = postViewModel,
-                    posts = postState,
+                    posts = posts,
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     onImageClick = { selectedImageUrl = it },
@@ -202,6 +234,25 @@ fun HealthMateHomeScreen(
                         showFullScreenComment = true
                     }
                 )
+            }
+            item {
+                if (isLoadingMorePosts && hasMorePosts) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                else{
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Đã hết bài viết")
+                    }                }
             }
 
             item(key = "bottom_space") {
@@ -546,16 +597,48 @@ fun SpecialtyList(
     specialties: List<GetSpecialtyResponse>,
     onNavigateToDoctorList: (String, String, String) -> Unit
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(vertical = 16.dp)
-    ) {
-        items(specialties, key = { it.id }) { specialty ->
-            SpecialtyItem(
-                specialty = specialty,
-                onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
-                onNavigateToDoctorList = onNavigateToDoctorList
+    var showAllSpecialties by remember { mutableStateOf(false) }
+    val displayedSpecialties = if (showAllSpecialties) specialties else specialties.take(6)
+
+    Column {
+        // Header row with title and "See more" button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Chuyên khoa",
+                fontSize = 20.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold
             )
+
+            if (specialties.size > 6) {
+                Text(
+                    text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
+                    color = Color(0xFF00C5CB),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { showAllSpecialties = !showAllSpecialties }
+                        .padding(start = 8.dp)
+                )
+            }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
+            items(displayedSpecialties, key = { it.id }) { specialty ->
+                SpecialtyItem(
+                    specialty = specialty,
+                    onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
+                    onNavigateToDoctorList = onNavigateToDoctorList
+                )
+            }
         }
     }
 }
@@ -618,9 +701,11 @@ fun SpecialtyItem(
 @Composable
 fun DoctorList(
     navHostController: NavHostController,
-    doctors: List<GetDoctorResponse>,
-    onSeeMoreClick: () -> Unit = {}
+    doctors: List<GetDoctorResponse>
 ) {
+    var showAllDoctors by remember { mutableStateOf(false) }
+    val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
+
     HorizontalDivider(thickness = 2.dp, color = Color.Gray)
     Column(
         modifier = Modifier
@@ -640,6 +725,15 @@ fun DoctorList(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+            if (doctors.size > 6) {
+                Text(
+                    text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { showAllDoctors = !showAllDoctors }
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
@@ -649,7 +743,7 @@ fun DoctorList(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            items(doctors, key = { it.id }) { doctor ->
+            items(displayedDoctors, key = { it.id }) { doctor ->
                 DoctorItem(doctor) {
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
