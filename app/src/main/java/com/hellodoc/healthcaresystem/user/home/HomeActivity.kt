@@ -252,7 +252,7 @@ class HomeActivity : BaseActivity() {
                 PostListScreen(sharedPreferences)
             }
             composable("userFavorite") {
-                PostListScreen2(sharedPreferences)
+                PostListScreen2(navHostController, sharedPreferences)
             }
             composable(
                 route = "edit_post/{postId}",
