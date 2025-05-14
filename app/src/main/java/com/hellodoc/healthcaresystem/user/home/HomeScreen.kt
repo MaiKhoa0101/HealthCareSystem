@@ -199,7 +199,6 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "specialties") {
-                SectionHeader(title = "Chuyên khoa")
                 if (specialtyState.isEmpty()) {
                     EmptyList("chuyên khoa")
                 } else {
@@ -598,16 +597,48 @@ fun SpecialtyList(
     specialties: List<GetSpecialtyResponse>,
     onNavigateToDoctorList: (String, String, String) -> Unit
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(vertical = 16.dp)
-    ) {
-        items(specialties, key = { it.id }) { specialty ->
-            SpecialtyItem(
-                specialty = specialty,
-                onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
-                onNavigateToDoctorList = onNavigateToDoctorList
+    var showAllSpecialties by remember { mutableStateOf(false) }
+    val displayedSpecialties = if (showAllSpecialties) specialties else specialties.take(6)
+
+    Column {
+        // Header row with title and "See more" button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Chuyên khoa",
+                fontSize = 20.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold
             )
+
+            if (specialties.size > 6) {
+                Text(
+                    text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
+                    color = Color(0xFF00C5CB),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { showAllSpecialties = !showAllSpecialties }
+                        .padding(start = 8.dp)
+                )
+            }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
+            items(displayedSpecialties, key = { it.id }) { specialty ->
+                SpecialtyItem(
+                    specialty = specialty,
+                    onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
+                    onNavigateToDoctorList = onNavigateToDoctorList
+                )
+            }
         }
     }
 }
@@ -670,9 +701,11 @@ fun SpecialtyItem(
 @Composable
 fun DoctorList(
     navHostController: NavHostController,
-    doctors: List<GetDoctorResponse>,
-    onSeeMoreClick: () -> Unit = {}
+    doctors: List<GetDoctorResponse>
 ) {
+    var showAllDoctors by remember { mutableStateOf(false) }
+    val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
+
     HorizontalDivider(thickness = 2.dp, color = Color.Gray)
     Column(
         modifier = Modifier
@@ -692,6 +725,15 @@ fun DoctorList(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+            if (doctors.size > 6) {
+                Text(
+                    text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { showAllDoctors = !showAllDoctors }
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
@@ -701,7 +743,7 @@ fun DoctorList(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            items(doctors, key = { it.id }) { doctor ->
+            items(displayedDoctors, key = { it.id }) { doctor ->
                 DoctorItem(doctor) {
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
