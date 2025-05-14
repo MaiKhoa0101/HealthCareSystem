@@ -341,8 +341,7 @@ fun MarqueeNewsTicker(
         // Nút xem thêm luôn nằm dưới cùng, tách riêng
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 8.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
