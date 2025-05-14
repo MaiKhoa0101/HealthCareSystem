@@ -8,6 +8,7 @@ import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPageResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
+import com.hellodoc.healthcaresystem.responsemodel.GetPostPageResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
@@ -27,7 +28,24 @@ import retrofit2.http.Query
 interface PostService {
     @Headers("Content-Type: application/json")
     @GET("/post")
-    suspend fun getAllPosts(): Response<List<PostResponse>>
+    suspend fun getAllPosts(
+        @Query("skip") skip: Int,
+        @Query("limit") limit: Int
+    ): Response<GetPostPageResponse>
+
+    @GET("post/{postId}/comment/get")
+    suspend fun getCommentByPostId(
+        @Path("postId") postId: String,
+        @Query("skip") skip: Int,
+        @Query("limit") limit: Int
+    ): Response<GetCommentPageResponse>
+
+    // comment
+    @POST("post/{postId}/comment/create")
+    suspend fun createCommentByPostId(
+        @Path("postId") postId: String,
+        @Body createCommentPostRequest: CreateCommentPostRequest
+    ): Response<CreateCommentPostResponse>
 
     @GET("post/{id}")
     suspend fun getPostById(@Path("id") id: String): Response<PostResponse>
@@ -56,22 +74,6 @@ interface PostService {
         @Path("postId") postId: String,
         @Query("userId") userId: String
     ): Response<GetFavoritePostResponse>
-
-    // comment
-    @POST("post/{postId}/comment/create")
-    suspend fun createCommentByPostId(
-        @Path("postId") postId: String,
-        @Body createCommentPostRequest: CreateCommentPostRequest
-    ): Response<CreateCommentPostResponse>
-
-    @GET("post/{postId}/comment/get")
-    suspend fun getCommentByPostId(
-        @Path("postId") postId: String,
-        @Query("skip") skip: Int,
-        @Query("limit") limit: Int
-    ): Response<GetCommentPageResponse>
-
-
 
     @PATCH("post/{commentId}/comment/update")
     suspend fun updateCommentById(
