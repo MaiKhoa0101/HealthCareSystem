@@ -600,10 +600,16 @@ fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel) {
                 },
                 title = { Text("Chi tiết tin tức") },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Tiêu đề: ${news.title}", fontSize = 15.sp)
-                        Text("Nội dung: ${news.content}", fontSize = 15.sp)
-                        Text("Ngày tạo: ${news.createdAt.timeInVietnam()}", fontSize = 15.sp)
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        item {
+                            Text("Tiêu đề: ${news.title}", fontSize = 15.sp)
+                        }
+                        item {
+                            Text("Nội dung: ${news.content}", fontSize = 15.sp)
+                        }
+                        item {
+                            Text("Ngày tạo: ${news.createdAt.timeInVietnam()}", fontSize = 15.sp)
+                        }
                     }
                 }
             )
