@@ -12,7 +12,7 @@
         android:id="@+id/icon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/doctor"
+        android:src="@drawable/logo"
         android:layout_marginEnd="12dp" />
 
     <!-- Text section -->

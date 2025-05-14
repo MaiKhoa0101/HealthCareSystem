@@ -8,6 +8,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -131,15 +133,16 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
             .padding(16.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.arrow_back),
-            contentDescription = "Back button",
+            imageVector = Icons.Filled.ArrowBack,
+            contentDescription = "Back Button",
+            tint = Color.White,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(28.dp)
                 .clickable { navHostController.navigate("personal") }
         )
         Text(
             text = "Chỉnh sửa hồ sơ",
+            color = Color.White,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()

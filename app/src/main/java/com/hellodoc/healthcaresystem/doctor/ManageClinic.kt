@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
@@ -71,15 +72,16 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
             .padding(16.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.arrow_back),
-            contentDescription = "Back button",
+            imageVector = Icons.Filled.ArrowBack,
+            contentDescription = "Back Button",
+            tint = Color.White,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(28.dp)
                 .clickable { navHostController.navigate("personal") }
         )
         Text(
             text = "Chỉnh sửa phòng khám",
+            color = Color.White,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
