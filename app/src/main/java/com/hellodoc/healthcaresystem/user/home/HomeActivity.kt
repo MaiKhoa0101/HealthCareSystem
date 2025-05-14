@@ -299,10 +299,10 @@ class HomeActivity : BaseActivity() {
                 ActivityManagerScreen(onBack = { navHostController.popBackStack() }, navHostController)
             }
             composable("userComment") {
-                PostListScreen(sharedPreferences)
+                PostListScreen(navHostController, sharedPreferences)
             }
             composable("userFavorite") {
-                PostListScreen2(sharedPreferences)
+                PostListScreen2(navHostController, sharedPreferences)
             }
             composable(
                 route = "edit_post/{postId}",

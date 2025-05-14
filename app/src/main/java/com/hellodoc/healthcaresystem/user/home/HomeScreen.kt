@@ -126,8 +126,8 @@ fun HealthMateHomeScreen(
             val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             lastVisibleItemIndex >= totalItems - 1
         }.distinctUntilChanged().collect { isAtEnd ->
-            println("Goij 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+            println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
                 println("Gọi 3")
                 postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
                 postIndex+=10
@@ -597,48 +597,16 @@ fun SpecialtyList(
     specialties: List<GetSpecialtyResponse>,
     onNavigateToDoctorList: (String, String, String) -> Unit
 ) {
-    var showAllSpecialties by remember { mutableStateOf(false) }
-    val displayedSpecialties = if (showAllSpecialties) specialties else specialties.take(6)
-
-    Column {
-        // Header row with title and "See more" button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Chuyên khoa",
-                fontSize = 20.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(vertical = 16.dp)
+    ) {
+        items(specialties, key = { it.id }) { specialty ->
+            SpecialtyItem(
+                specialty = specialty,
+                onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
+                onNavigateToDoctorList = onNavigateToDoctorList
             )
-
-            if (specialties.size > 6) {
-                Text(
-                    text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
-                    color = Color(0xFF00C5CB),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable { showAllSpecialties = !showAllSpecialties }
-                        .padding(start = 8.dp)
-                )
-            }
-        }
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(vertical = 16.dp)
-        ) {
-            items(displayedSpecialties, key = { it.id }) { specialty ->
-                SpecialtyItem(
-                    specialty = specialty,
-                    onClick = { showToast(context, "Đã chọn: ${specialty.name}") },
-                    onNavigateToDoctorList = onNavigateToDoctorList
-                )
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.user.personal
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -27,7 +29,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostListScreen2(sharedPreferences: SharedPreferences) {
+fun PostListScreen2(navHostController: NavHostController, sharedPreferences: SharedPreferences) {
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
@@ -49,11 +51,28 @@ fun PostListScreen2(sharedPreferences: SharedPreferences) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Bài viết đã thích",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+//                    Text(
+//                        "Bài viết đã thích",
+//                        fontSize = 20.sp,
+//                        fontWeight = FontWeight.Bold
+//                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Bài viết đã thích", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Trở lại",
+                            fontSize = 16.sp,
+                            color = Color.Blue,
+                            modifier = Modifier
+                                .padding(end = 20.dp)
+                                .clickable {
+                                    navHostController.popBackStack()
+                                }
+                        )
+                    }
                 }
             )
         }

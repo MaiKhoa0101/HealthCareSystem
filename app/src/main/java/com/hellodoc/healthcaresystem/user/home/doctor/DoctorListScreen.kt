@@ -169,8 +169,9 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF00BCD4))
-            .statusBarsPadding()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+//            .statusBarsPadding(),
+//        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
