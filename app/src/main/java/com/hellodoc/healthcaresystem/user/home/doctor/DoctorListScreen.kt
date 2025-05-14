@@ -15,11 +15,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,6 +52,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import androidx.compose.material3.*
 
 @Composable
 fun DoctorListScreen(
@@ -65,7 +71,7 @@ fun DoctorListScreen(
         viewModel.fetchSpecialtyDoctor(specialtyId)
     }
 
-    val doctors by viewModel.doctors.collectAsState()
+    val doctors by viewModel.filteredDoctors.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
 
     Column(
@@ -75,7 +81,7 @@ fun DoctorListScreen(
     ) {
         TopBar(onClick = {
             navHostController.popBackStack()
-        })
+        }, viewModel)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -112,6 +118,7 @@ fun DoctorListScreen(
                         .clickable { isExpanded = !isExpanded }
                 )
             }
+
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -139,7 +146,8 @@ fun DoctorListScreen(
                         doctor = doctor,
                         specialtyName = specialtyName,
                         specialtyId = specialtyId,
-                        specialtyDesc = specialtyDesc
+                        specialtyDesc = specialtyDesc,
+                        viewModel = viewModel
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -150,36 +158,71 @@ fun DoctorListScreen(
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(onClick: () -> Unit) {
+fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
     val context = LocalContext.current
     val activity = context as? Activity
+    var searchQuery by remember { mutableStateOf("") }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF00BCD4))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .statusBarsPadding(),
-        verticalAlignment = Alignment.CenterVertically
+            .statusBarsPadding()
+            .padding(16.dp)
     ) {
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "Back Button",
-            tint = Color.White,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Back Button",
+                tint = Color.White,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable {
+                        activity?.finish()
+                    }
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Text(
+                text = "Tìm bác sĩ",
+                style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        TextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                viewModel.filterDoctorsByLocation(searchQuery)
+            },
+            leadingIcon = {
+                Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+            },
+            placeholder = { Text("Nhập địa chỉ, ví dụ: HCM") },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.White, // Thay vì backgroundColor
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
             modifier = Modifier
-                .size(32.dp)
-                .padding(end = 8.dp)
-                .clickable {
-                    activity?.finish()
-                }
+                .fillMaxWidth()
+                .height(56.dp)
         )
     }
 }
 
+
 @Composable
-fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String, specialtyDesc: String) {
+fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyName: String, specialtyId: String, specialtyDesc: String, viewModel: SpecialtyViewModel) {
     val isClinicPaused = doctor.isClinicPaused ?: false
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
