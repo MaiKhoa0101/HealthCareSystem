@@ -131,7 +131,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF00BCD4))
-            .statusBarsPadding()
+//            .statusBarsPadding()
             .height(56.dp)
     ) {
         // Nút quay lại
