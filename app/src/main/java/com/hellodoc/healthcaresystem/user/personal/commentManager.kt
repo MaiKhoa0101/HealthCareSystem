@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -30,7 +31,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostListScreen(sharedPreferences: SharedPreferences) {
+fun PostListScreen(navHostController: NavHostController, sharedPreferences: SharedPreferences) {
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
@@ -51,7 +52,25 @@ fun PostListScreen(sharedPreferences: SharedPreferences) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Lịch sử bình luận", fontSize = 20.sp, fontWeight = FontWeight.Bold) }
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Lịch sử bình luận", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Trở lại",
+                            fontSize = 16.sp,
+                            color = Color.Blue,
+                            modifier = Modifier
+                                .padding(end = 20.dp)
+                                .clickable {
+                                    navHostController.popBackStack()
+                                }
+                        )
+                    }
+                }
             )
         }
     ) { padding ->

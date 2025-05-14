@@ -286,7 +286,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF00BCD4))
-            .statusBarsPadding()
+//            .statusBarsPadding()
             .height(56.dp)
     ) {
         // Nút quay lại
@@ -483,7 +483,7 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if(hasHomeService) {
+        if(hasHomeService && patientAddress != "Chưa có địa chỉ") {
             // Khám tại nhà
             Row(
                 modifier = Modifier

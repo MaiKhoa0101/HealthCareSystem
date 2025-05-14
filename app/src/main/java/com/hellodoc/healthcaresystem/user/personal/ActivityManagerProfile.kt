@@ -16,16 +16,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -72,62 +76,100 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        // Header
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    painter = painterResource(id = R.drawable.arrow_back), // hoặc dùng Icons.Default.ArrowBack
-                    contentDescription = "Back"
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Nhật ký hoạt động",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
-        }
+    Column {
+        TopBar(
+            title = "Nhật ký hoạt động",
+            onClick = { navHostController.popBackStack() })
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        //Đã bình luận
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { navHostController.navigate("userComment") }
+                .fillMaxSize()
+                .background(Color.White)
                 .padding(16.dp)
         ) {
-            Column {
-                Text("Bình luận & cảm xúc", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Xem lại bài viết bạn đã bình luận hoặc tương tác", fontSize = 14.sp)
-            }
-        }
+            // Header
+//        Row(verticalAlignment = Alignment.CenterVertically) {
+//            IconButton(onClick = onBack) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.arrow_back), // hoặc dùng Icons.Default.ArrowBack
+//                    contentDescription = "Back"
+//                )
+//            }
+//            Spacer(modifier = Modifier.width(8.dp))
+//            Text(
+//                "Nhật ký hoạt động",
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 20.sp
+//            )
+//        }
 
-        //Đã thích
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { navHostController.navigate("userFavorite") }
-                .padding(16.dp)
-        ) {
-            Column {
-                Text("Bài viết đã thích", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Danh sách bài viết bạn đã bày tỏ cảm xúc", fontSize = 14.sp)
+
+            //Đã bình luận
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                    .clickable { navHostController.navigate("userComment") }
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Text("Bình luận & cảm xúc", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Xem lại bài viết bạn đã bình luận hoặc tương tác", fontSize = 14.sp)
+                }
+            }
+
+            //Đã thích
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                    .clickable { navHostController.navigate("userFavorite") }
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Text("Bài viết đã thích", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Danh sách bài viết bạn đã bày tỏ cảm xúc", fontSize = 14.sp)
+                }
             }
         }
     }
 }
+
+ @Composable
+ fun TopBar(title: String,onClick: () -> Unit) {
+     println("top bar render duoc")
+     Box(
+         modifier = Modifier
+             .fillMaxWidth()
+             .background(Color(0xFF00BCD4))
+//             .statusBarsPadding()
+             .height(56.dp)
+     ) {
+         // Nút quay lại
+         Icon(
+             imageVector = Icons.Filled.ArrowBack,
+             contentDescription = "Back Button",
+             tint = Color.White,
+             modifier = Modifier
+                 .align(Alignment.CenterStart)
+                 .padding(start = 16.dp)
+                 .clickable { onClick() }
+         )
+
+         // Tiêu đề ở giữa
+         Text(
+             text = title,
+             color = Color.White,
+             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+             modifier = Modifier.align(Alignment.Center)
+         )
+     }
+ }
