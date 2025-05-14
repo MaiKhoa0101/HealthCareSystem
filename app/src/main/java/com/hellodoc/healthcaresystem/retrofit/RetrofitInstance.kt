@@ -22,7 +22,11 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
 //    private const val BASE_URL = "http://192.168.222.22:4000"
+<<<<<<< HEAD
     private const val BASE_URL = "http://192.168.100.5:3000"
+=======
+    private const val BASE_URL = "http://192.168.1.5:3000"
+>>>>>>> 9a404f7f9e7bc70ecf921997734b23b8850d7a56
     //private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 
     private val client = OkHttpClient.Builder()
