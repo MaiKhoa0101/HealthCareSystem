@@ -306,89 +306,106 @@ fun MarqueeNewsTicker(
     newsList: List<NewsResponse>,
     navHostController: NavHostController
 ) {
-    if (newsList.isEmpty()) {
-        EmptyList("tin mới")
-    } else {
-        val firstHalf = newsList.take(newsList.size / 2)
-        val secondHalf = newsList.drop(newsList.size / 2)
+    var showAllNews by remember { mutableStateOf(false) }
 
-        var firstIndex by remember { mutableStateOf(0) }
-        var secondIndex by remember { mutableStateOf(0) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (!showAllNews) {
+            val firstHalf = newsList.take(newsList.size / 2)
+            val secondHalf = newsList.drop(newsList.size / 2)
 
-        // Auto next for first line
-        LaunchedEffect(firstIndex, firstHalf) {
-            if (firstHalf.isNotEmpty()) {
-                while (true) {
-                    val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
-                    val delayTime = calculateDynamicDelay(currentTitle)
-                    delay(delayTime)
-                    firstIndex = (firstIndex + 1) % firstHalf.size
+            var firstIndex by remember { mutableStateOf(0) }
+            var secondIndex by remember { mutableStateOf(0) }
+
+            LaunchedEffect(firstIndex, firstHalf) {
+                if (firstHalf.isNotEmpty()) {
+                    while (!showAllNews) {
+                        val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                        val delayTime = calculateDynamicDelay(currentTitle)
+                        delay(delayTime)
+                        firstIndex = (firstIndex + 1) % firstHalf.size
+                    }
                 }
             }
-        }
 
-        // Auto next for second line
-        LaunchedEffect(secondIndex, secondHalf) {
-            if (secondHalf.isNotEmpty()) {
-                while (true) {
-                    val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
-                    val delayTime = calculateDynamicDelay(currentTitle)
-                    delay(delayTime)
-                    secondIndex = (secondIndex + 1) % secondHalf.size
+            LaunchedEffect(secondIndex, secondHalf) {
+                if (secondHalf.isNotEmpty()) {
+                    while (!showAllNews) {
+                        val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                        val delayTime = calculateDynamicDelay(currentTitle)
+                        delay(delayTime)
+                        secondIndex = (secondIndex + 1) % secondHalf.size
+                    }
                 }
             }
+
+            // Nội dung marquee
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            firstHalf.getOrNull(firstIndex)?.let { news ->
+                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                navHostController.navigate("news_detail")
+                            }
+                        }
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            spacing = MarqueeSpacing(50.dp),
+                            velocity = 50.dp,
+                        ),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Divider(color = Color.White, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            secondHalf.getOrNull(secondIndex)?.let { news ->
+                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                navHostController.navigate("news_detail")
+                            }
+                        }
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            spacing = MarqueeSpacing(50.dp),
+                            velocity = 50.dp,
+                        ),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                )
+            }
+        } else {
+            NewsItemList(newsList = newsList, navHostController = navHostController)
         }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+        // Nút xem thêm luôn nằm dưới cùng, tách riêng
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
             Text(
-                text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                text = if (showAllNews) "Thu gọn" else "Xem thêm",
+                color = Color.Yellow,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        firstHalf.getOrNull(firstIndex)?.let { news ->
-                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                            navHostController.navigate("news_detail")
-                        }
-                    }
-                    .basicMarquee(
-                        iterations = Int.MAX_VALUE,
-                        animationMode = MarqueeAnimationMode.Immediately,
-                        spacing = MarqueeSpacing(50.dp),
-                        velocity = 50.dp,
-                    ),
-                fontSize = 16.sp,
-                color = Color.White,
-                maxLines = 1,
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-            Divider(color = Color.White, thickness = 1.dp)
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        secondHalf.getOrNull(secondIndex)?.let { news ->
-                            navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                            navHostController.navigate("news_detail")
-                        }
-                    }
-                    .basicMarquee(
-                        iterations = Int.MAX_VALUE,
-                        animationMode = MarqueeAnimationMode.Immediately,
-                        spacing = MarqueeSpacing(50.dp),
-                        velocity = 50.dp,
-                    ),
-                fontSize = 16.sp,
-                color = Color.White,
-                maxLines = 1,
+                    .clickable { showAllNews = !showAllNews }
             )
         }
     }
 }
-
 
 
 fun showToast(context: Context, message: String) {

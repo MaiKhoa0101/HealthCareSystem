@@ -75,9 +75,9 @@ fun Headbar(
     ) {
         // Hình bác sĩ ở giữa
         Image(
-            painter = painterResource(id = R.drawable.doctor),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier.size(200.dp)
         )
 
         // Row for left icon and right user info
