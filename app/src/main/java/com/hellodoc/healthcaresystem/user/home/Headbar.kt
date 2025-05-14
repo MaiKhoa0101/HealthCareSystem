@@ -5,8 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -66,15 +68,13 @@ fun Headbar(
         role = viewModel.getUserRole()
     }
 
-    Box(
+    Column (
         modifier = Modifier
             .height(100.dp)
             .fillMaxWidth()
-            .background(color = Color(0xFFE0E0E0)).padding(vertical = 5.dp),
-        contentAlignment = Alignment.BottomCenter
+            .background(color = Color(0xFFE0E0E0)) ,
+        verticalArrangement = Arrangement.Bottom
     ) {
-
-
         // Row for left icon and right user info
         Row(
             modifier = Modifier
@@ -87,12 +87,13 @@ fun Headbar(
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(80.dp)
             )
-
             val shortName = truncateName(userName, 10)
             // Cột chứa Text và nút logout ở bên phải
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = "Xin chào \n$shortName",
                     fontSize = 15.sp,

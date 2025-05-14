@@ -126,8 +126,8 @@ fun HealthMateHomeScreen(
             val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             lastVisibleItemIndex >= totalItems - 1
         }.distinctUntilChanged().collect { isAtEnd ->
-            println("Goij 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+            println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
                 println("Gọi 3")
                 postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
                 postIndex+=10
