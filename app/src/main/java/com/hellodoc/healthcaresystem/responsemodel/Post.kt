@@ -78,3 +78,9 @@ data class GetCommentPageResponse(
     val comments: List<GetCommentPostResponse>,
     val hasMore: Boolean
 )
+
+
+data class GetPostPageResponse(
+    val posts: List<PostResponse>,
+    val hasMore: Boolean
+)

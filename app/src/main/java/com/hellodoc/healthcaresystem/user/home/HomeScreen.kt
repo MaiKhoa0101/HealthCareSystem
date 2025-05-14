@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -45,13 +44,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,7 +82,6 @@ fun HealthMateHomeScreen(
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
-    val postState by postViewModel.posts.collectAsState()
     val user by userViewModel.user.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
@@ -93,18 +91,53 @@ fun HealthMateHomeScreen(
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
+    var postIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        postViewModel.getAllPosts()
         medicalOptionViewModel.fetchMedicalOptions()
         remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
     }
+
+
+    val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
+
+
+    var shouldReloadPosts by remember { mutableStateOf(false) }
+    val navEntry = navHostController.currentBackStackEntry
+    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+
+    LaunchedEffect(reloadTrigger?.value) {
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+    }
+
+    LaunchedEffect(postIndex,hasMorePosts) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex >= totalItems - 1
+        }.distinctUntilChanged().collect { isAtEnd ->
+            println("Goij 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+                println("Gọi 3")
+                postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
+                postIndex+=10
+            }
+        }
+    }
+    val posts by postViewModel.posts.collectAsState()
+
+
+
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -189,7 +222,7 @@ fun HealthMateHomeScreen(
                 OtherPostColumn(
                     userViewModel = userViewModel,
                     postViewModel = postViewModel,
-                    posts = postState,
+                    posts = posts,
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     onImageClick = { selectedImageUrl = it },
@@ -202,6 +235,25 @@ fun HealthMateHomeScreen(
                         showFullScreenComment = true
                     }
                 )
+            }
+            item {
+                if (isLoadingMorePosts && hasMorePosts) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                else{
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Đã hết bài viết")
+                    }                }
             }
 
             item(key = "bottom_space") {

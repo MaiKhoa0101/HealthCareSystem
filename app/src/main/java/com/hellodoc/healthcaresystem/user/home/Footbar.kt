@@ -55,9 +55,9 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(110.dp)
+                .height(100.dp)
                 .background(Color.Cyan)
-                .padding(horizontal = 16.dp).padding(top=10.dp),
+                .padding(horizontal = 16.dp).padding(bottom = 15.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Top,
 
