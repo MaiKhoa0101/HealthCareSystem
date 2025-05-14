@@ -21,8 +21,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.5.16:4000"
+//    private const val BASE_URL = "http://192.168.222.22:4000"
+    private const val BASE_URL = "http://192.168.1.5:3000"
 //    private const val BASE_URL = "http://192.168.0.102:4000"
+
     //private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 
     private val client = OkHttpClient.Builder()
