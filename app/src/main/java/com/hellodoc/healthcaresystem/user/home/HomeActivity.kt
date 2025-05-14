@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +65,7 @@ import com.hellodoc.healthcaresystem.user.personal.PostListScreen2
 import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
-import com.hellodoc.healthcaresystem.user.post.PostScreen
+import com.hellodoc.healthcaresystem.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
@@ -252,7 +251,7 @@ class HomeActivity : BaseActivity() {
                 ProfileOtherUserPage(sharedPreferences, navHostController)
             }
             composable("create_post") {
-                PostScreen(context, navHostController)
+                CreatePostScreen(context, navHostController)
             }
             composable("editProfile") {
                 EditUserProfile(sharedPreferences, navHostController)
@@ -310,7 +309,7 @@ class HomeActivity : BaseActivity() {
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                PostScreen(context, navHostController, postId = postId)
+                CreatePostScreen(context, navHostController, postId = postId)
             }
             composable(
                 route = "post-detail/{postId}",

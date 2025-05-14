@@ -80,7 +80,7 @@ var userModel: String = ""
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostScreen(
+fun CreatePostScreen(
     context: Context,
     navController: NavHostController,
     postId: String? = null,
@@ -127,7 +127,7 @@ fun PostScreen(
             postViewModel.resetUpdateSuccess()
             navController.currentBackStackEntry?.savedStateHandle?.set("shouldReload", true)
             println("Chuyển màn trước")
-            navController.navigate("personal")
+            navController.navigate("home")
         }
     }
 
@@ -142,11 +142,6 @@ fun PostScreen(
         }
     }
 
-    LaunchedEffect(postId) {
-        if (postId != null) {
-            postViewModel.getAllPosts()
-        }
-    }
 
     LazyColumn(
         modifier = Modifier

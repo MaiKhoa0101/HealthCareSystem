@@ -196,7 +196,7 @@ fun DoctorScreen(
     }
     LaunchedEffect(reloadTrigger?.value) {
         if (reloadTrigger?.value == true) {
-            postViewModel.getAllPosts() // gọi lại danh sách mới
+            postViewModel.fetchPosts() // gọi lại danh sách mới
             navHostController.currentBackStackEntry
                 ?.savedStateHandle?.set("shouldReload", false)
         }
