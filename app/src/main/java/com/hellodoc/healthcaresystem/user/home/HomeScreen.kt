@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -39,19 +41,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.*
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
 import com.hellodoc.healthcaresystem.user.personal.userModel
+//import com.hellodoc.healthcaresystem.user.personal.userName
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
+
+var username = ""
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -94,6 +105,7 @@ fun HealthMateHomeScreen(
     var postIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
+        username = userViewModel.getUserAttributeString("name")
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         doctorViewModel.fetchDoctors()
@@ -112,6 +124,7 @@ fun HealthMateHomeScreen(
     var shouldReloadPosts by remember { mutableStateOf(false) }
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(reloadTrigger?.value) {
         postViewModel.fetchPosts()
@@ -260,7 +273,7 @@ fun HealthMateHomeScreen(
             }
         }
 
-        if ((showFullScreenComment && selectedPostIdForComment != null) || (showReportDialog && user != null)) {
+        if ((showFullScreenComment && selectedPostIdForComment != null)) {
             InteractPostManager(
                 navHostController = navHostController,
                 user = user,
@@ -273,6 +286,122 @@ fun HealthMateHomeScreen(
                 onCloseComment = { showFullScreenComment = false },
                 onHideReportDialog = { showReportDialog = false }
             )
+        }
+
+        if (showReportDialog && user != null) {
+            var selectedType by remember { mutableStateOf("Bài viết") }
+            var reportContent by remember { mutableStateOf("") }
+
+            val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
+                initializer { PostViewModel(sharedPreferences) }
+            })
+            reportedPostId?.let { postViewModel.getPostById(id = it) }
+            val posts by postViewModel.posts.collectAsState()
+            val firstPost = posts.firstOrNull()
+
+            if (firstPost != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable(enabled = true, onClick = {}),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .width(320.dp)
+                            .background(Color.White, shape = RoundedCornerShape(12.dp))
+                            .border(1.dp, Color.Gray)
+                            .padding(16.dp)
+                    ) {
+                        Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                        Text(username, color = Color.DarkGray)
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { selectedType = "Bài viết" }
+                            ) {
+                                Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                        TextField(
+                            value = reportContent,
+                            onValueChange = { reportContent = it },
+                            placeholder = { Text("Nhập nội dung...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Huỷ",
+                                color = Color.Red,
+                                modifier = Modifier
+                                    .clickable { showReportDialog = !showReportDialog  }
+                                    .padding(8.dp),
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            Button(onClick = {
+                                coroutineScope.launch {
+                                    try {
+                                        val response = RetrofitInstance.reportService.sendReport(
+                                            ReportRequest(
+                                                reporter = userId,
+                                                reporterModel = userModel,
+                                                content = reportContent,
+                                                type = selectedType,
+                                                reportedId = firstPost.user.id,
+                                                postId = null
+                                            )
+                                        )
+
+                                        if (response.isSuccessful) {
+                                            Toast.makeText(
+                                                context,
+                                                "Đã gửi báo cáo thành công",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            println(response)
+                                            Toast.makeText(
+                                                context,
+                                                "Gửi báo cáo thất bại",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Lỗi kết nối đến server",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        e.printStackTrace()
+                                    }
+                                }
+                                showReportDialog = !showReportDialog
+                            }) {
+                                Text("Gửi báo cáo")
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (showDialog) {
@@ -393,14 +522,16 @@ fun MarqueeNewsTicker(
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Text(
-                text = if (showAllNews) "Thu gọn" else "Xem thêm",
-                color = Color.Yellow,
-                fontWeight = FontWeight.Bold,
+            Icon(
+                imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
+                tint = Color.White,
                 modifier = Modifier
                     .clickable { showAllNews = !showAllNews }
+                    .size(30.dp)
             )
         }
     }
@@ -528,11 +659,11 @@ fun NewsItem(
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = "Xem chi tiết",
-                tint = Color.Black
-            )
+//            Icon(
+//                imageVector = Icons.AutoMirrored.Filled.Send,
+//                contentDescription = "Xem chi tiết",
+//                tint = Color.Black
+//            )
         }
         Spacer(modifier = Modifier.height(5.dp))
         Divider(color = Color.White, thickness = 1.dp)
