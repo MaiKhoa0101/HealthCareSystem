@@ -132,6 +132,7 @@ fun HealthMateHomeScreen(
         println("Gọi 1 voi index: "+ postIndex)
     }
 
+
     LaunchedEffect(postIndex,hasMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
@@ -148,9 +149,6 @@ fun HealthMateHomeScreen(
         }
     }
     val posts by postViewModel.posts.collectAsState()
-
-
-
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -208,6 +206,17 @@ fun HealthMateHomeScreen(
                             }
                         }
                     }
+                }
+                Button(
+                    onClick = {
+                        // Cố tình gây crash
+                        throw RuntimeException("Test Crash button clicked!")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(text = "Test Crash")
                 }
             }
 
