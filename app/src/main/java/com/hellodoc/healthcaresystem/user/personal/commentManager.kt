@@ -35,7 +35,13 @@ fun PostListScreen(navHostController: NavHostController, sharedPreferences: Shar
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
-   
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
+
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+    }
 
     val userComments by postViewModel.userComments.collectAsState()
 

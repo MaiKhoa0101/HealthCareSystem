@@ -114,10 +114,6 @@ fun HealthMateHomeScreen(
         remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-
     }
 
 
@@ -129,6 +125,12 @@ fun HealthMateHomeScreen(
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(reloadTrigger?.value) {
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+    }
 
 
     LaunchedEffect(postIndex,hasMorePosts) {
