@@ -98,7 +98,6 @@ fun OtherPostColumn(
         }
     }
 
-    println("chay tut tren day")
     if (posts.isEmpty()) {
         Text(
             text = "Chưa có bài viết nào.",
@@ -694,7 +693,7 @@ fun InteractPostManager(
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     context,
-                                    "Lỗi kết nối đến server",
+                                    "Lỗi kết nối đến server: ",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 e.printStackTrace()

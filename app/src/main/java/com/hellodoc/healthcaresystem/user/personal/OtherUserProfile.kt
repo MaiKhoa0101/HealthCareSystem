@@ -398,4 +398,3 @@ fun OtherUserIntroSection(
         }
     }
 }
-

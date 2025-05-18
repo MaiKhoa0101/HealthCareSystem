@@ -131,7 +131,7 @@ fun NewsDetailScreen(
                 Image(painter = rememberAsyncImagePainter(R.drawable.heart), contentDescription = null,
                     modifier = Modifier.size(48.dp).clip(CircleShape))
                 Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text("Admin đẹp trai ngầu lòi", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Admin:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = Color.Gray)
                 }
             }

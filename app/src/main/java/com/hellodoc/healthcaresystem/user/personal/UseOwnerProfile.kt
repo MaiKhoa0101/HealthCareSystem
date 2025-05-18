@@ -108,13 +108,7 @@ fun ProfileUserPage(
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
     }
-    LaunchedEffect(reloadTrigger?.value) {
-        if (reloadTrigger?.value == true) {
-            postViewModel.fetchPosts() // gọi lại danh sách mới
-            navHostController.currentBackStackEntry
-                ?.savedStateHandle?.set("shouldReload", false)
-        }
-    }
+
     // Gọi API để fetch user từ server
     LaunchedEffect(userId, shouldReloadPosts) {
         if (userId.isNotEmpty()) {
