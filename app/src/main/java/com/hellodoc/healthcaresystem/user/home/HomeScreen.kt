@@ -102,6 +102,10 @@ fun HealthMateHomeScreen(
         remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+
     }
 
 
@@ -113,11 +117,6 @@ fun HealthMateHomeScreen(
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
-    LaunchedEffect(reloadTrigger?.value) {
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-    }
 
     LaunchedEffect(postIndex,hasMorePosts) {
         snapshotFlow {
@@ -135,9 +134,6 @@ fun HealthMateHomeScreen(
         }
     }
     val posts by postViewModel.posts.collectAsState()
-
-
-
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
@@ -195,6 +191,17 @@ fun HealthMateHomeScreen(
                             }
                         }
                     }
+                }
+                Button(
+                    onClick = {
+                        // Cố tình gây crash
+                        throw RuntimeException("Test Crash button clicked!")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(text = "Test Crash")
                 }
             }
 

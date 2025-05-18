@@ -6,6 +6,7 @@ plugins {
 //    id("com.android.application")
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
+    id("com.google.firebase.crashlytics")
 }
 android {
     namespace = "com.hellodoc.healthcaresystem"
@@ -65,6 +66,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.2.0")//them
     implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
     dependencies {
         val nav_version = "2.8.9"
 
