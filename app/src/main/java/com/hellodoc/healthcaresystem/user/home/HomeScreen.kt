@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -187,7 +188,7 @@ fun HealthMateHomeScreen(
                     if (newsState.isEmpty()) {
                         EmptyList("tin mới")
                     } else {
-                        MarqueeNewsTicker(newsList = newsState, navHostController = navHostController)
+                        MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
                     }
                 }
                 HorizontalDivider(thickness = 2.dp, color = Color.Gray)
@@ -241,6 +242,7 @@ fun HealthMateHomeScreen(
             item(key = "posts") {
                 Spacer(modifier = Modifier.height(8.dp))
                 OtherPostColumn(
+                    user=user,
                     userViewModel = userViewModel,
                     postViewModel = postViewModel,
                     posts = posts,
@@ -440,6 +442,7 @@ fun calculateDynamicDelay(title: String, velocityDpPerSecond: Float = 50f, scree
 
 @Composable
 fun MarqueeNewsTicker(
+    user: User?,
     newsList: List<NewsResponse>,
     navHostController: NavHostController
 ) {
@@ -483,6 +486,11 @@ fun MarqueeNewsTicker(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clickable {
+                            firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                "Id_user" to user?.id,
+                                "name_user" to user?.name,
+                                "reading_new_id" to firstHalf[firstIndex].id
+                            ))
                             firstHalf.getOrNull(firstIndex)?.let { news ->
                                 navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
                                 navHostController.navigate("news_detail")
@@ -507,6 +515,11 @@ fun MarqueeNewsTicker(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clickable {
+                            firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                "Id_user" to user?.id,
+                                "name_user" to user?.name,
+                                "reading_new_id" to secondHalf[secondIndex].id
+                            ))
                             secondHalf.getOrNull(secondIndex)?.let { news ->
                                 navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
                                 navHostController.navigate("news_detail")
@@ -797,6 +810,10 @@ fun SpecialtyItem(
             .background(Color.White)
             .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
             .clickable {
+                firebaseAnalytics.logEvent("specialty_selected", bundleOf(
+                    "ID_specialty" to specialty.id,
+                    "Name_of_specialty" to specialty.name,
+                ))
                 onClick()
                 onNavigateToDoctorList(specialty.id, specialty.name, specialty.description)
             }
@@ -885,6 +902,10 @@ fun DoctorList(
         ) {
             items(displayedDoctors, key = { it.id }) { doctor ->
                 DoctorItem(doctor) {
+                    firebaseAnalytics.logEvent("doctor_selected", bundleOf(
+                        "doctor_id" to doctor.id,
+                        "doctor_name" to doctor.name,
+                    ))
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("doctorId", doctor.id)
                     }

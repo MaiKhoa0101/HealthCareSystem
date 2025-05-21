@@ -68,19 +68,19 @@ import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import com.google.accompanist.pager.*
 import com.hellodoc.healthcaresystem.user.home.HomeActivity
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.core.os.bundleOf
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.user.home.firebaseAnalytics
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OtherPostColumn(
+    user: User?,
     userViewModel: UserViewModel,
     postViewModel: PostViewModel,
     posts: List<PostResponse>,
@@ -91,7 +91,7 @@ fun OtherPostColumn(
     onShowComment: (String) -> Unit
 ) {
     val userId = userViewModel.getUserAttributeString("userId")
-
+    println(user)
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)
@@ -107,7 +107,7 @@ fun OtherPostColumn(
         )
     } else {
         posts.forEach { postItem ->
-            ViewPostOwner(
+            UserPost(
                 postId = postItem.id,
                 containerPost = ContainerPost(
                     id = postItem.user.id,
@@ -174,7 +174,7 @@ fun PostColumn(
             )
         } else {
             posts.forEach { postItem ->
-                ViewPostOwner(
+                UserPost(
                     postId = postItem.id,
                     containerPost = ContainerPost(
                         id = postItem.user.id,
@@ -201,7 +201,7 @@ fun PostColumn(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ViewPostOwner(
+fun UserPost(
     postId: String,
     containerPost: ContainerPost,
     contentPost: ContentPost,
@@ -440,6 +440,10 @@ fun ViewPostOwner(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
+                        firebaseAnalytics.logEvent("like_post", bundleOf(
+                            "post_id" to postId,
+                            "user_id" to currentUserId,
+                        ))
                         postViewModel.updateFavoriteForPost(
                             postId = postId,
                             userId = currentUserId,
@@ -461,6 +465,10 @@ fun ViewPostOwner(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable {
+                        firebaseAnalytics.logEvent("view_comment_post", bundleOf(
+                            "post_id" to postId,
+                            "user_id" to currentUserId,
+                        ))
                         onShowComment(postId)
                     }
                 ) {
@@ -567,9 +575,6 @@ fun InteractPostManager(
             currentUserId = user?.id ?: ""
         )
     }
-    println("showReportDialog lay duoc cho post menu: "+showReportDialog)
-    userId
-    println("user lay duoc cho post menu: "+user)
     if (showReportDialog && user != null) {
         var selectedType by remember { mutableStateOf("Ứng dụng") }
         var reportContent by remember { mutableStateOf("") }

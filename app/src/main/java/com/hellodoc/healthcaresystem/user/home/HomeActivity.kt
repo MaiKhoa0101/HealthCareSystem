@@ -34,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
+import androidx.core.os.bundleOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -45,6 +46,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.doctor.EditClinicServiceScreen
@@ -76,10 +80,14 @@ import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
+
+public lateinit var firebaseAnalytics: FirebaseAnalytics
 class HomeActivity : BaseActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Obtain the FirebaseAnalytics instance.
+        firebaseAnalytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
