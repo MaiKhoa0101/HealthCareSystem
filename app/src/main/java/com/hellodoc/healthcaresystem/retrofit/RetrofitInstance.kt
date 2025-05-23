@@ -21,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit 
 
 object RetrofitInstance {
-    //private const val BASE_URL = "http://172.20.10.3:3000"
+    //private const val BASE_URL = "http://192.168.5.90:3000"
     //private const val BASE_URL = "http://192.168.100.5:3000"
     private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
     //private const val BASE_URL = "http://192.168.5.44:3000"
@@ -30,6 +30,7 @@ object RetrofitInstance {
         .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệu
         .readTimeout(60, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
         .build()
+
     // Tạo instance Retrofit duy nhất
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
