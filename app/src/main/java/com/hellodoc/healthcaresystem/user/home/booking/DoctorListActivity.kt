@@ -22,6 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.local.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.MyApplication
 import com.hellodoc.healthcaresystem.user.home.booking.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.personal.DoctorScreen
@@ -31,6 +33,10 @@ class DoctorListActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val dao = (application as MyApplication).database.appointmentDao()
+
         val specialtyId = intent.getStringExtra("specialtyId") ?: "Chưa rõ chuyên khoa"
         val specialtyName = intent.getStringExtra("specialtyName") ?: "Chưa rõ chuyên khoa"
         val specialtyDesc = intent.getStringExtra("specialtyDesc") ?: "Chưa có mô tả"
@@ -54,7 +60,8 @@ class DoctorListActivity : BaseActivity() {
                             navHostController = navController,
                             specialtyId = specialtyId,
                             specialtyName = specialtyName,
-                            specialtyDesc = specialtyDesc
+                            specialtyDesc = specialtyDesc,
+                            dao = dao
                         )
                     }
                 }
@@ -71,7 +78,8 @@ class DoctorListActivity : BaseActivity() {
         navHostController: NavHostController,
         specialtyId: String,
         specialtyName: String,
-        specialtyDesc: String
+        specialtyDesc: String,
+        dao: AppointmentDao
     ) {
         NavHost(
             modifier = modifier,
@@ -79,7 +87,7 @@ class DoctorListActivity : BaseActivity() {
             startDestination = "doctorList/$specialtyId/$specialtyName/$specialtyDesc"
         ) {
             composable("appointment") {
-                AppointmentListScreen(sharedPreferences, navHostController)
+                AppointmentListScreen(sharedPreferences, navHostController, dao)
             }
             composable("personal") {
                 ProfileOtherUserPage(sharedPreferences,navHostController)
@@ -120,7 +128,8 @@ class DoctorListActivity : BaseActivity() {
                     AppointmentDetailScreen(
                         context = context,
                         onBack = { navHostController.popBackStack()},
-                        navHostController = navHostController
+                        navHostController = navHostController,
+                        dao
                     )
                 }
             }
@@ -139,7 +148,8 @@ class DoctorListActivity : BaseActivity() {
             composable("booking-confirm") {
                 ConfirmBookingScreen(
                     context = context,
-                    navHostController = navHostController
+                    navHostController = navHostController,
+                    dao
                 )
             }
 

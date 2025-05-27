@@ -22,14 +22,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.local.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
-fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
-    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
-    })
+fun AppointmentManagerScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao, appointViewModel: AppointmentViewModel) {
+
 
     val searchQuery = remember { mutableStateOf("") }
     val filteredAppointments by appointViewModel.filteredAppointments.collectAsState()
@@ -70,7 +69,8 @@ fun AppointmentManagerScreen(sharedPreferences: SharedPreferences) {
             // Gọi bảng danh sách đã lọc
             TableDesign(
                 sharedPreferences = sharedPreferences,
-                filteredAppointments = filteredAppointments
+                filteredAppointments = filteredAppointments,
+                dao
             )
         }
     }
@@ -112,9 +112,9 @@ fun SearchBar() {
 }
 
 @Composable
-fun TableDesign(sharedPreferences: SharedPreferences, filteredAppointments: List<AppointmentResponse>) {
+fun TableDesign(sharedPreferences: SharedPreferences, filteredAppointments: List<AppointmentResponse>, dao: AppointmentDao) {
     val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao) }
     })
 
     var appointmentToDelete by remember { mutableStateOf<String?>(null) }

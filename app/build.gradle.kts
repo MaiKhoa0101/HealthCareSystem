@@ -7,6 +7,7 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 android {
     namespace = "com.hellodoc.healthcaresystem"
@@ -66,6 +67,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.2.0")//them
     implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics")
     dependencies {
         val nav_version = "2.8.9"
@@ -98,11 +100,15 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:2.4.0")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
-
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
 
+    // Room dependencies - sử dụng KSP thay vì KAPT
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1") // Thay kapt bằng ksp
 
-
+    // Thêm explicit dependency để tránh xung đột metadata
 }
+

@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.user.home
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -47,15 +48,20 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.user.personal.doctorID
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.otherusercolumn.OtherPostColumn
 import com.hellodoc.healthcaresystem.user.personal.userModel
 //import com.hellodoc.healthcaresystem.user.personal.userName
 import com.hellodoc.healthcaresystem.user.post.userId
+import com.hellodoc.healthcaresystem.utils.AnalyticsHelper
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -659,7 +665,15 @@ fun NewsItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onSelectNews() },
+                .clickable {
+                    AnalyticsHelper.logNewsViewed(news.id, news.title )
+                    val bundle = Bundle().apply {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, news.id)
+                        putString(FirebaseAnalytics.Param.ITEM_NAME, news.title)
+                    }
+                    Firebase.analytics.logEvent("news_viewed", bundle)
+                    onSelectNews()
+                           },
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -688,10 +702,10 @@ fun NewsItemList(
             Log.d("NewsDebug", "News in list: ${news.title}, id: ${news.id}")
             NewsItem(news = news,
                 onSelectNews = {
-                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                    navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
                     Log.d("NewsSet", "News set to savedStateHandle: ${news.id}")
-                navHostController.navigate("news_detail")
-            }
+                    navHostController.navigate("news_detail")
+                }
             )
         }
     }
@@ -797,6 +811,11 @@ fun SpecialtyItem(
             .background(Color.White)
             .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
             .clickable {
+                val bundle = Bundle().apply {
+                    putString(FirebaseAnalytics.Param.ITEM_ID, specialty.id)
+                    putString(FirebaseAnalytics.Param.ITEM_NAME, specialty.name)
+                }
+                Firebase.analytics.logEvent("specialty_selected", bundle)
                 onClick()
                 onNavigateToDoctorList(specialty.id, specialty.name, specialty.description)
             }
@@ -901,7 +920,15 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .width(120.dp)
-            .clickable { onClick() }
+            .clickable {
+                Log.d("DoctorClick", "Logging doctor without specialty")
+                val bundle = Bundle().apply {
+                    putString(FirebaseAnalytics.Param.ITEM_ID, doctor.id)
+                    putString(FirebaseAnalytics.Param.ITEM_NAME, doctor.name)
+                }
+                Firebase.analytics.logEvent("doctor_selected", bundle)
+                onClick()
+            }
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

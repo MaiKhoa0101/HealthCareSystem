@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -35,7 +34,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
+import com.hellodoc.healthcaresystem.local.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -45,13 +44,13 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController, dao: AppointmentDao) {
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao) }
     })
 
     val appointmentsUser by appointmentViewModel.appointmentsUser.collectAsState()

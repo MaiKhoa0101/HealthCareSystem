@@ -40,17 +40,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.ViewModelProvider
 import coil.compose.rememberAsyncImagePainter
+import com.hellodoc.healthcaresystem.local.AppointmentViewModelFactory
+import com.hellodoc.healthcaresystem.local.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.MyApplication
+import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 class AdminRoot : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val dao = (application as MyApplication).database.appointmentDao()
+        val viewModelFactory = AppointmentViewModelFactory(sharedPreferences, dao)
+        val appointmentViewModel = ViewModelProvider(this, viewModelFactory)[AppointmentViewModel::class.java]
+
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             HealthCareSystemTheme {
-                AdminScreen(sharedPreferences)
+                AdminScreen(sharedPreferences, dao, appointmentViewModel)
             }
         }
     }
@@ -108,7 +119,7 @@ val sidebarItems = listOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AdminScreen(sharedPreferences: SharedPreferences) {
+fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao, appointmentViewModel: AppointmentViewModel) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -173,7 +184,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
                     composable("AppointmentManager") {
-                        AppointmentManagerScreen(sharedPreferences)
+                        AppointmentManagerScreen(sharedPreferences, dao = dao, appointmentViewModel)
                     }
                     composable("ClarifyManager") {
                         ClarifyManagerScreen(sharedPreferences, navController)
