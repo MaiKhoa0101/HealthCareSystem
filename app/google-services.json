@@ -9,6 +9,25 @@
       "client_info": {
         "mobilesdk_app_id": "1:285794153001:android:16f9ace6b976a6a6e2e238",
         "android_client_info": {
+          "package_name": "com.example.healthcaresystem"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyJkfhbiCG5rV5Cx7RzyU-2pqsM-ffKLs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285794153001:android:1542351f85eedccde2e238",
+        "android_client_info": {
           "package_name": "com.hellodoc.healthcaresystem"
         }
       },

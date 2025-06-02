@@ -50,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
+import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
@@ -222,6 +223,7 @@ fun DoctorScreen(
     }
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
+    var showPostReportDialog by remember { mutableStateOf(false) }
     var showFullScreenComment by remember { mutableStateOf(false) }
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
@@ -287,7 +289,8 @@ fun DoctorScreen(
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
                     showWriteReviewScreen = showWriteReviewScreen,
-                    onImageClick = { selectedImageUrl = it}
+                    onImageClick = { selectedImageUrl = it},
+                    onShowPostReportDialog = { showPostReportDialog = !showPostReportDialog }
                 )
             }
         }
@@ -393,6 +396,142 @@ fun DoctorScreen(
                             }
                         }
                         showReportDialog = !showReportDialog
+                    }) {
+                        Text("Gửi báo cáo")
+                    }
+                }
+            }
+        }
+    }
+
+    if (showPostReportDialog && userId != null) {
+        var selectedType by remember { mutableStateOf("Bài viết") }
+        var reportContent by remember { mutableStateOf("") }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .clickable(enabled = true, onClick = {}),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(320.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray)
+                    .padding(16.dp)
+            ) {
+                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text("Người báo cáo", fontWeight = FontWeight.Medium)
+                Text(userName, color = Color.DarkGray)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier
+//                            .clickable { selectedType = "Bác sĩ" }
+//                            .padding(end = 10.dp)
+//                    ) {
+////                        RadioButton(
+////                            selected = selectedType == "Bác sĩ",
+////                            onClick = null  // <- để dùng chung onClick bên ngoài
+////                        )
+//                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+//                    }
+//
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier
+//                            .clickable { selectedType = "Ứng dụng" }
+//                            .padding(end = 10.dp)
+//                    ) {
+//                        RadioButton(
+//                            selected = selectedType == "Ứng dụng",
+//                            onClick = null
+//                        )
+//                        Text("Ứng dụng", modifier = Modifier.padding(start = 5.dp))
+//                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedType = "Bài viết" }
+                    ) {
+//                        RadioButton(
+//                            selected = selectedType == "Bài viết",
+//                            onClick = null
+//                        )
+                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+                TextField(
+                    value = reportContent,
+                    onValueChange = { reportContent = it },
+                    placeholder = { Text("Nhập nội dung...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Huỷ",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .clickable { showPostReportDialog = !showPostReportDialog  }
+                            .padding(8.dp),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            try {
+                                val response = RetrofitInstance.reportService.sendReport(
+                                    ReportRequest(
+                                        reporter = userId,
+                                        reporterModel = userModel,
+                                        content = reportContent,
+                                        type = selectedType,
+                                        reportedId = doctor!!.id,
+                                        postId = null
+                                    )
+                                )
+
+                                if (response.isSuccessful) {
+                                    Toast.makeText(
+                                        context,
+                                        "Đã gửi báo cáo thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    println(response)
+                                    Toast.makeText(
+                                        context,
+                                        "Gửi báo cáo thất bại",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Lỗi kết nối đến server",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                        showPostReportDialog = !showPostReportDialog
                     }) {
                         Text("Gửi báo cáo")
                     }
@@ -618,7 +757,8 @@ fun DoctorProfileScreen(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     showWriteReviewScreen: MutableState<Boolean>,
-    onImageClick: (String) -> Unit
+    onImageClick: (String) -> Unit,
+    onShowPostReportDialog: () -> Unit,
 ) {
     println("Doctor lay duoc: "+doctor)
 
@@ -745,7 +885,8 @@ fun DoctorProfileScreen(
                 navController =  navHostController,
                 onClickReport = { postId ->
                     reportedPostId = postId
-                    showReportDialog = true
+//                    showReportDialog = true
+                    onShowPostReportDialog()
                 },
                 onShowComment = { postId ->
                     selectedPostIdForComment = postId
@@ -759,60 +900,61 @@ fun DoctorProfileScreen(
 @Composable
 fun BookingButton(navController: NavHostController) {
     var showReportBox by remember { mutableStateOf(false) }
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-    ) {
-        if (!isClinicPaused) {
-            Button(
-                onClick = {
-                    navController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("doctorId", doctorID)
-                        set("doctorName", doctorName)
-                        set("doctorAvatarUrl", doctorAvatarUrl)
-                        set("doctorAddress", doctorAddress)
-                        set("specialtyName", specialtyName)
-                        set("hasHomeService", hasHomeService)
-                    }
-                    navController.navigate("booking")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00C5CB),
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .align(Alignment.Center)
-            ) {
-                Text(
-                    text = "Đặt khám",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        } else {
-            Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFCDD2),
-                    contentColor = Color(0xFFD32F2F)
-                ),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .align(Alignment.Center)
-            ) {
-                Text(
-                    text = "Tạm ngưng nhận lịch",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+    if (doctorID != userId) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+        ) {
+            if (!isClinicPaused) {
+                Button(
+                    onClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.apply {
+                            set("doctorId", doctorID)
+                            set("doctorName", doctorName)
+                            set("doctorAddress", doctorAddress)
+                            set("specialtyName", specialtyName)
+                            set("hasHomeService", hasHomeService)
+                        }
+                        navController.navigate("booking")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF00C5CB),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(55.dp)
+                        .align(Alignment.Center)
+                ) {
+                    Text(
+                        text = "Đặt khám",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            } else {
+                Button(
+                    onClick = {},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFCDD2),
+                        contentColor = Color(0xFFD32F2F)
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(55.dp)
+                        .align(Alignment.Center)
+                ) {
+                    Text(
+                        text = "Tạm ngưng nhận lịch",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
             }
         }
     }

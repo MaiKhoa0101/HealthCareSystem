@@ -57,7 +57,7 @@ fun BoxPostCard(){
             .background(Color.Black.copy(alpha = 0.8f)), contentAlignment = Alignment.Center){
         PostCard(
             modifier = Modifier.fillMaxWidth(0.8f),
-            image = R.drawable.avarta,
+            image = R.drawable.personal,
             title = "Shadows & Lightnings",
             text = " Bla bla bla bla  Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla Bla bla bla bla",
             publisher = Publisher(
