@@ -1,14 +1,11 @@
 package com.hellodoc.healthcaresystem.user.home.startscreen
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.content.Intent
 import android.text.InputType
-import android.view.MotionEvent
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -25,8 +22,7 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.home.HomeActivity
-import androidx.core.content.edit
+import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 
 class SignIn : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

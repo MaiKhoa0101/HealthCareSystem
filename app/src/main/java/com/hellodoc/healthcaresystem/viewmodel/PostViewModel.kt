@@ -38,12 +38,12 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
 
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
-    val postResponse: LiveData<CreatePostResponse> get() = _createPostResponse
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
+                println("Capa nhat post moi: "+response.body())
                 val result = response.body()
                 val newPosts = result?.posts ?: emptyList()
                 val hasMore = result?.hasMore ?: false
@@ -66,12 +66,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    suspend fun resetPostsAndFetch(limit: Int = 10) {
-        _posts.value = emptyList()
-        _hasMorePosts.value = true
-        _isLoadingMorePosts.value = false
-        fetchPosts(skip = 0, limit = limit, append = false)
-    }
 
 
     private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())

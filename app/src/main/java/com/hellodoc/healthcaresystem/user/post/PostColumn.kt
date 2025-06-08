@@ -1,23 +1,28 @@
-package com.hellodoc.healthcaresystem.user.personal
+package com.hellodoc.healthcaresystem.user.post
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 
 
-//Trang nguoi dung khac
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProfileOtherUserPage(
+fun PostColumn(
 
-) {
-
+    ) {
 
 }
 
-//Phan thong tin cua nguoi dung khac
-@Composable
-fun OtherUserIntroSection(
 
-) {
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun UserPost(
+
+){
+
+}
+
+@Composable
+fun InteractPostManager(){
 
 }

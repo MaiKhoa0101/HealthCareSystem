@@ -7,7 +7,7 @@ data class PostResponse(
     @SerializedName("_id")
     val id: String,
     val content: String,
-    val media: List<String>,
+    val media: List<String> ,
     val user: User,
     val userModel: String,
     @SerializedName("createdAt")
