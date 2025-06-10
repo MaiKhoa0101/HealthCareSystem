@@ -52,6 +52,7 @@ import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
 import com.hellodoc.healthcaresystem.user.personal.userModel
 //import com.hellodoc.healthcaresystem.user.home.showFullScreenComment
 //import com.hellodoc.healthcaresystem.user.home.showReportDialog
@@ -124,6 +125,17 @@ fun UserInfoSkeleton() {
     }
 }
 
+@Composable
+fun LoadingScreen() {
+    LazyColumn {
+        item {
+            UserInfoSkeleton()
+        }
+        item {
+            PostSkeleton()
+        }
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -135,8 +147,6 @@ fun DoctorScreen(
     val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
     })
-
-
 
     val context = LocalContext.current
     var shouldReloadPosts by remember { mutableStateOf(false) }
@@ -150,9 +160,10 @@ fun DoctorScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
+    var currentDoctorId by remember { mutableStateOf("") }
+
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     val coroutineScope = rememberCoroutineScope()
-
 
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
@@ -161,8 +172,9 @@ fun DoctorScreen(
         userId = userViewModel.getUserAttributeString("userId")
         userName = userViewModel.getUserAttributeString("name")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
-        savedStateHandle?.get<String>("doctorId")?.let {
-            doctorId = it
+        savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
+            currentDoctorId = newDoctorId
+            doctorId = newDoctorId
         }
         savedStateHandle?.remove<String>("doctorId")
 
@@ -171,13 +183,41 @@ fun DoctorScreen(
         //viewModel.fetchDoctorById(doctorId)
     }
 
+    // Theo dõi thay đổi doctorId và reset state khi cần
+    LaunchedEffect(currentDoctorId) {
+        if (currentDoctorId.isNotEmpty()) {
+            // Reset loading states
+            viewModel.resetStates()
 
-    LaunchedEffect(doctorId) {
-        doctorId.let { viewModel.fetchDoctorWithStats(it) }
+            // Fetch doctor data
+            viewModel.fetchDoctorById(currentDoctorId)
+            viewModel.fetchDoctorWithStats(currentDoctorId)
+
+            // Reset tab về 0 khi chuyển sang bác sĩ khác
+            selectedTab = 0
+        }
+    }
+
+    // Fetch user data
+    LaunchedEffect(userId, shouldReloadPosts) {
+        if (userId.isNotEmpty()) {
+            userViewModel.getUser(userId)
+            postViewModel.getPostByUserId(userId)
+        }
+    }
+
+    LaunchedEffect(reloadTrigger?.value) {
+        if (reloadTrigger?.value == true) {
+            postViewModel.fetchPosts() // gọi lại danh sách mới
+            navHostController.currentBackStackEntry
+                ?.savedStateHandle?.set("shouldReload", false)
+        }
     }
 
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isLoadingStat by viewModel.isLoadingStats.collectAsState()
+    val user by userViewModel.user.collectAsState()
 
     doctorID = doctor?.id ?: ""
 
@@ -191,26 +231,11 @@ fun DoctorScreen(
 
     hasHomeService = doctor?.hasHomeService ?: false
 
-    LaunchedEffect(reloadTrigger?.value) {
-        if (reloadTrigger?.value == true) {
-            postViewModel.fetchPosts() // gọi lại danh sách mới
-            navHostController.currentBackStackEntry
-                ?.savedStateHandle?.set("shouldReload", false)
-        }
+    // Hiển thị loading skeleton nếu đang tải hoặc chưa có dữ liệu
+    if (isLoading || doctor == null) {
+        LoadingScreen()
+        return
     }
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId, shouldReloadPosts) {
-        if (userId.isNotEmpty()) {
-            userViewModel.getUser(userId)
-            postViewModel.getPostByUserId(userId)
-        }
-    }
-
-    // Lấy dữ liệu user từ StateFlow
-    val user by userViewModel.user.collectAsState()
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user==null) return
-
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
@@ -272,7 +297,8 @@ fun DoctorScreen(
                     onTabSelected = { selectedTab = it },
                     showWriteReviewScreen = showWriteReviewScreen,
                     onImageClick = { selectedImageUrl = it},
-                    onShowPostReportDialog = { showPostReportDialog = !showPostReportDialog }
+                    onShowPostReportDialog = { showPostReportDialog = !showPostReportDialog },
+                    isLoadingStats = isLoadingStat
                 )
             }
         }
@@ -741,6 +767,7 @@ fun DoctorProfileScreen(
     showWriteReviewScreen: MutableState<Boolean>,
     onImageClick: (String) -> Unit,
     onShowPostReportDialog: () -> Unit,
+    isLoadingStats: Boolean
 ) {
     println("Doctor lay duoc: "+doctor)
 
@@ -780,7 +807,6 @@ fun DoctorProfileScreen(
             postViewModel.getPostByUserId(it)
         }
     }
-
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
@@ -844,19 +870,25 @@ fun DoctorProfileScreen(
                             }
                         )
                     } else {
-                        ViewRating(
-                            doctorId = doctor?.id ?: "",
-                            refreshTrigger = refreshReviewsTrigger,
-                            onEditReview = { reviewId, rating, comment ->
-                                editingReviewId = reviewId
-                                editingRating = rating
-                                editingComment = comment
-                                showWriteReviewScreen.value = true
-                            },
-                            onDeleteReview = {
-                                refreshReviewsTrigger = !refreshReviewsTrigger
-                            }
-                        )
+                        if(isLoadingStats || doctor?.ratingsCount == null){
+                            RatingOverviewSkeleton()
+                        } else {
+                            ViewRating(
+                                doctorId = doctor?.id ?: "",
+                                refreshTrigger = refreshReviewsTrigger,
+                                onEditReview = { reviewId, rating, comment ->
+                                    editingReviewId = reviewId
+                                    editingRating = rating
+                                    editingComment = comment
+                                    showWriteReviewScreen.value = true
+                                },
+                                onDeleteReview = {
+                                    refreshReviewsTrigger = !refreshReviewsTrigger
+                                },
+                                //doctorAverageRating = doctor?.averageRating,
+                                doctorRatingsCount = doctor?.ratingsCount
+                            )
+                        }
                     }
                 }
 
@@ -962,6 +994,144 @@ fun WriteReviewButton(onClick: () -> Unit) {
                 .align(Alignment.Center)
         ) {
             Text("Viết đánh giá", fontSize = 16.sp, color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun RatingOverviewSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White)
+    ) {
+        // Rating score skeleton
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(40.dp)
+                    .background(Color.LightGray, RoundedCornerShape(4.dp))
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(20.dp)
+                    .background(Color.LightGray, RoundedCornerShape(4.dp))
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(16.dp)
+                    .background(Color.LightGray, RoundedCornerShape(4.dp))
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Rating filter buttons skeleton
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            repeat(5) { index ->
+                Box(
+                    modifier = Modifier
+                        .height(36.dp)
+                        .width(if (index == 0) 60.dp else 50.dp)
+                        .background(Color.LightGray, RoundedCornerShape(18.dp))
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Individual review skeletons
+        repeat(3) {
+            ReviewItemSkeleton()
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+fun ReviewItemSkeleton() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // User info skeleton
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.LightGray)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(16.dp)
+                            .background(Color.LightGray, RoundedCornerShape(4.dp))
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(12.dp)
+                            .background(Color.LightGray, RoundedCornerShape(4.dp))
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Rating stars skeleton
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(20.dp)
+                    .background(Color.LightGray, RoundedCornerShape(4.dp))
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Comment skeleton
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp)
+                        .background(Color.LightGray, RoundedCornerShape(4.dp))
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(16.dp)
+                        .background(Color.LightGray, RoundedCornerShape(4.dp))
+                )
+            }
         }
     }
 }

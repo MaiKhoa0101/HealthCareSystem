@@ -35,7 +35,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _thisuser = MutableStateFlow<User?>(null)
     val thisuser: StateFlow<User?> get() = _thisuser
 
-
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
@@ -67,8 +66,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-
-
 
     fun getUser(id: String) {
         viewModelScope.launch {
