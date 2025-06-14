@@ -33,6 +33,15 @@
             android:textStyle="bold"
             android:layout_marginTop="16dp"/>
 
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            android:indeterminateTint="@color/bluetheme" />
+
         <!-- Email -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -108,8 +117,6 @@
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
 
-
-
         <!-- Quên mật khẩu -->
         <TextView
             android:id="@+id/forgot_password"
@@ -132,10 +139,42 @@
             android:layout_height="wrap_content"
             android:text="ĐĂNG NHẬP"
             android:backgroundTint="@color/bluetheme"
+
             android:textColor="@color/white"
             android:textSize="18sp"
             android:layout_marginTop="24dp"
             android:paddingVertical="12dp" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingVertical="12dp"
+            android:paddingHorizontal="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:id="@+id/googleSignInButton">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/google_logo"
+                android:contentDescription="Google logo"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tiếp tục với Google"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="normal"
+                android:gravity="center"/>
+        </LinearLayout>
 
         <!-- Đăng ký -->
         <LinearLayout
@@ -160,6 +199,7 @@
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
+
 
     </LinearLayout>
 </ScrollView>
