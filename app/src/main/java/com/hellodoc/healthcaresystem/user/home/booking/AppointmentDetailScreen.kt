@@ -259,7 +259,8 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
 
                     appointmentViewModel.updateAppointment(
                         appointmentId = appointmentId,
-                        appointmentData = updateRequest
+                        appointmentData = updateRequest,
+                        patientID = patientID
                     )
                     navHostController.popBackStack("appointment", inclusive = false)
                 }

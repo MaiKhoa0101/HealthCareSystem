@@ -54,11 +54,9 @@ import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.PostColumn
-import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 
 
 var username = ""
@@ -102,10 +100,9 @@ fun HealthMateHomeScreen(
 
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
-        userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
 
-        userViewModel.getUser(userId)
+        userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()

@@ -31,7 +31,6 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.post.PostColumn
-import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -40,39 +39,23 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileOtherUserPage(
-    sharedPreferences: SharedPreferences,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    userViewModel: UserViewModel,
+    postViewModel: PostViewModel,
+    userOwnerID: String
 ) {
-    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
 
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
-    })
-//    val comments by postViewModel.comments.collectAsState()
     var shouldReloadPosts by remember { mutableStateOf(false) }
-    val navEntry = navHostController.currentBackStackEntry
-    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
-    LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
-    }
+    val user by userViewModel.user.collectAsState()
 
     // Gọi API để fetch user từ server
-    LaunchedEffect(userId, shouldReloadPosts) {
-        if (userId.isNotEmpty()) {
-            userViewModel.getUser(userId)
-            postViewModel.getPostByUserId(userId)
+    LaunchedEffect(Unit, shouldReloadPosts) {
+        if (userOwnerID.isNotEmpty()) {
+            userViewModel.getUser(userOwnerID)
+            postViewModel.getPostByUserId(userOwnerID)
         }
     }
-
-    // Lấy dữ liệu user từ StateFlow
-    val user by userViewModel.user.collectAsState()
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user==null) return
 
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
@@ -105,7 +88,7 @@ fun ProfileOtherUserPage(
                     )
                     PostColumn(
                         navHostController = navHostController,
-                        idUserOfPost = user!!.id,
+                        idUserOfPost = userOwnerID,
                         userWhoInteractWithThisPost = user!!,
                         postViewModel = postViewModel,
                     )

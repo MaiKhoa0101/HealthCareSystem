@@ -58,10 +58,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
-import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     navHostController: NavHostController,
@@ -146,11 +144,7 @@ fun Post(
 @Composable
 fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost: User,post: PostResponse){
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .clickable{
-                // Xử lý khi người dùng nhấn vào thông tin người đăng bài
-
-            },
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Ảnh avatar
@@ -163,7 +157,8 @@ fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost:
                 .border(1.dp, Color.Gray, CircleShape)
                 .clickable {
                     if (post.user.id !=userWhoInteractWithThisPost.id) {
-                        navHostController.navigate("otherUserProfile")
+                        println("Id user 1: "+post.user.id)
+                        navHostController.navigate("otherUserProfile/${post.user.id}")
                     }
                     else {
                         navHostController.navigate("personal")
@@ -178,7 +173,7 @@ fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost:
             modifier = Modifier
                 .clickable {
                 if (post.user.id !=userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile")
+                    navHostController.navigate("otherUserProfile/${post.user.id}")
                 }
                 else {
                     navHostController.navigate("personal")

@@ -52,17 +52,13 @@ import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
-import com.hellodoc.healthcaresystem.user.personal.userModel
-//import com.hellodoc.healthcaresystem.user.home.showFullScreenComment
-//import com.hellodoc.healthcaresystem.user.home.showReportDialog
 import com.hellodoc.healthcaresystem.user.post.FullScreenCommentUI
 import com.hellodoc.healthcaresystem.user.post.InteractPostManager
-import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-
+var userId = ""
+var userModel = ""
 var doctorID = ""
 
 var doctorName = ""
@@ -163,7 +159,7 @@ fun DoctorScreen(
         userName = userViewModel.getUserAttributeString("name")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
         savedStateHandle?.get<String>("doctorId")?.let {
-            doctorId = it
+            doctorID = it
         }
         savedStateHandle?.remove<String>("doctorId")
 
@@ -173,24 +169,14 @@ fun DoctorScreen(
     }
 
 
-    LaunchedEffect(doctorId) {
-        doctorId.let { viewModel.fetchDoctorWithStats(it) }
+    LaunchedEffect(doctorID) {
+        doctorID.let { viewModel.fetchDoctorWithStats(it) }
     }
 
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    doctorID = doctor?.id ?: ""
 
-    doctorName = doctor?.name ?: ""
-
-    doctorAddress = doctor?.address ?: ""
-
-    specialtyName = doctor?.specialty?.name ?: ""
-
-    isClinicPaused = doctor?.isClinicPaused ?: false
-
-    hasHomeService = doctor?.hasHomeService ?: false
 
     LaunchedEffect(reloadTrigger?.value) {
         if (reloadTrigger?.value == true) {
@@ -237,7 +223,7 @@ fun DoctorScreen(
             bottomBar = {
                 if (!showWriteReviewScreen.value) {
                     when (selectedTab) {
-                        0 -> if (doctorId != userId) {
+                        0 -> if (doctorID != userId) {
                             BookingButton(navHostController)
                         }
 
@@ -786,20 +772,6 @@ fun DoctorProfileScreen(
         }
     }
 
-
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
-    }
-    if (showFullScreenComment && selectedPostIdForComment != null) {
-        FullScreenCommentUI(
-            navHostController=navHostController,
-            postId = selectedPostIdForComment!!,
-            onClose = { showFullScreenComment = false },
-            postViewModel = postViewModel,
-            currentUserId = userId
-        )
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()

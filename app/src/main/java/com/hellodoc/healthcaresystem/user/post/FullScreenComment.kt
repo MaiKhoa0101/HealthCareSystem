@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,7 +70,7 @@ fun FullScreenCommentUI(
     postId: String,
     onClose: () -> Unit,
     postViewModel: PostViewModel,
-    currentUserId: String
+    currentUser: User
 ) {
     val uiState = rememberCommentUIState(postViewModel, postId)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -103,7 +102,7 @@ fun FullScreenCommentUI(
             uiState = uiState,
             postViewModel = postViewModel,
             postId = postId,
-            currentUserId = currentUserId,
+            currentUser = currentUser,
             navHostController = navHostController
         )
     }
@@ -145,7 +144,7 @@ private fun CommentScreenContent(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
-    currentUserId: String,
+    currentUser: User,
     navHostController: NavHostController
 ) {
     Column(
@@ -157,7 +156,7 @@ private fun CommentScreenContent(
             uiState = uiState,
             postViewModel = postViewModel,
             postId = postId,
-            currentUserId = currentUserId,
+            currentUser = currentUser,
             navHostController = navHostController,
             modifier = Modifier.weight(1f)
         )
@@ -166,7 +165,7 @@ private fun CommentScreenContent(
             uiState = uiState,
             postViewModel = postViewModel,
             postId = postId,
-            currentUserId = currentUserId
+            currentUser = currentUser
         )
     }
 }
@@ -176,7 +175,7 @@ private fun CommentList(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
-    currentUserId: String,
+    currentUser: User,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ) {
@@ -189,7 +188,7 @@ private fun CommentList(
                 comment = comment,
                 postId = postId,
                 postViewModel = postViewModel,
-                currentUserId = currentUserId,
+                currentUser = currentUser,
                 navHostController = navHostController,
                 uiState = uiState
             )
@@ -210,7 +209,7 @@ private fun CommentItem(
     comment: CommentPostResponse,
     postId: String,
     postViewModel: PostViewModel,
-    currentUserId: String,
+    currentUser: User,
     navHostController: NavHostController,
     uiState: CommentUIState
 ) {
@@ -225,7 +224,7 @@ private fun CommentItem(
         ) {
             CommentUserAvatar(
                 user = comment.user,
-                currentUserId = currentUserId,
+                currentUser = currentUser,
                 navHostController = navHostController
             )
 
@@ -244,7 +243,7 @@ private fun CommentItem(
 @Composable
 private fun CommentUserAvatar(
     user: CommentPostResponse.User?,
-    currentUserId: String,
+    currentUser: User,
     navHostController: NavHostController
 ) {
     AsyncImage(
@@ -256,7 +255,7 @@ private fun CommentUserAvatar(
             .clickable {
                 navigateToUserProfile(
                     user = user,
-                    currentUserId = currentUserId,
+                    currentUser = currentUser,
                     navHostController = navHostController
                 )
             }
@@ -318,7 +317,7 @@ private fun CommentInput(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
-    currentUserId: String
+    currentUser: User,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -387,7 +386,8 @@ class CommentUIState {
     suspend fun submitComment(
         postViewModel: PostViewModel,
         postId: String,
-        currentUserId: String
+        currentUserId: String,
+        userModel: String = ""
     ) {
         if (editingCommentId != null) {
             postViewModel.updateComment(
@@ -413,10 +413,10 @@ class CommentUIState {
 // Helper functions
 private fun navigateToUserProfile(
     user: CommentPostResponse.User?,
-    currentUserId: String,
+    currentUser: User,
     navHostController: NavHostController
 ) {
-    if (currentUserId != user?.id) {
+    if (currentUser.id != user?.id) {
         navHostController.currentBackStackEntry?.savedStateHandle?.apply {
             set("UserId", user?.id)
         }
