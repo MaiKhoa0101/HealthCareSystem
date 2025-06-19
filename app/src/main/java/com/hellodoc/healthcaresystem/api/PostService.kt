@@ -2,11 +2,9 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
-import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreateCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetCommentPageResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetPostPageResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse

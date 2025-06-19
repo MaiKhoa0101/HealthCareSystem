@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
+import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
@@ -137,7 +138,6 @@ fun DoctorScreen(
     })
 
 
-
     val context = LocalContext.current
     var shouldReloadPosts by remember { mutableStateOf(false) }
 
@@ -155,7 +155,8 @@ fun DoctorScreen(
 
 
     val navEntry = navHostController.currentBackStackEntry
-    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+    val reloadTrigger =
+        navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
@@ -207,14 +208,15 @@ fun DoctorScreen(
     }
 
     // Lấy dữ liệu user từ StateFlow
-    val user by userViewModel.user.collectAsState()
+    val youTheCurrentUserUseThisApp by userViewModel.user.collectAsState()
     // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user==null) return
 
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+        ZoomableImageDialog(
+            selectedImageUrl = selectedImageUrl,
+            onDismiss = { selectedImageUrl = null })
     }
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
@@ -225,55 +227,57 @@ fun DoctorScreen(
     val posts by postViewModel.posts.collectAsState()
 
     if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+        ZoomableImageDialog(
+            selectedImageUrl = selectedImageUrl,
+            onDismiss = { selectedImageUrl = null })
     }
-    if ((showFullScreenComment && selectedPostIdForComment != null) ||
-        (showReportDialog && user != null)
-    ) {
-        InteractPostManager(
+    if (youTheCurrentUserUseThisApp == null) {return}
+    else {
+        Scaffold(
+            bottomBar = {
+                if (!showWriteReviewScreen.value) {
+                    when (selectedTab) {
+                        0 -> if (doctorId != userId) {
+                            BookingButton(navHostController)
+                        }
 
-        )
-    }
-    Scaffold(
-        bottomBar = {
-            if (!showWriteReviewScreen.value) {
-                when (selectedTab) {
-                    0 -> if (doctorId!=userId) {BookingButton(navHostController)}
-                    1 -> WriteReviewButton { showWriteReviewScreen.value = true }
+                        1 -> WriteReviewButton { showWriteReviewScreen.value = true }
+                    }
                 }
             }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.padding(
-                start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-                bottom = innerPadding.calculateBottomPadding()
-            )
-        ) {
-            item {
-                if (isLoading) {
-                    UserInfoSkeleton()
-                } else {
-                    UserInfo(
-                        context = context,
-                        doctor = doctor,
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier.padding(
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+            ) {
+                item {
+                    if (isLoading) {
+                        UserInfoSkeleton()
+                    } else {
+                        UserInfo(
+                            context = context,
+                            doctor = doctor,
+                            navHostController = navHostController,
+                            onImageClick = { selectedImageUrl = it },
+                            onShowReportDialog = { showReportDialog = !showReportDialog }
+                        )
+                    }
+                }
+                item {
+                    DoctorProfileScreen(
                         navHostController = navHostController,
-                        onImageClick = { selectedImageUrl = it},
-                        onShowReportDialog = { showReportDialog = !showReportDialog }
+                        doctor = doctor,
+                        youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp!!,
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                        showWriteReviewScreen = showWriteReviewScreen,
+                        onImageClick = { selectedImageUrl = it },
+                        onShowPostReportDialog = { showPostReportDialog = !showPostReportDialog }
                     )
                 }
-            }
-            item {
-                DoctorProfileScreen(
-                    navHostController = navHostController,
-                    doctor = doctor,
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    showWriteReviewScreen = showWriteReviewScreen,
-                    onImageClick = { selectedImageUrl = it},
-                    onShowPostReportDialog = { showPostReportDialog = !showPostReportDialog }
-                )
             }
         }
     }
@@ -736,6 +740,7 @@ fun UserInfo(
 fun DoctorProfileScreen(
     navHostController: NavHostController,
     doctor: GetDoctorResponse?,
+    youTheCurrentUserUseThisApp: User,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     showWriteReviewScreen: MutableState<Boolean>,
@@ -861,7 +866,10 @@ fun DoctorProfileScreen(
                 }
 
             2 -> PostColumn(
-
+                navHostController = navHostController,
+                idUserOfPost = doctor?.id ?: "",
+                userWhoInteractWithThisPost = youTheCurrentUserUseThisApp,
+                postViewModel = postViewModel
             )
         }
     }

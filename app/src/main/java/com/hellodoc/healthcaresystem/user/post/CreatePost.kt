@@ -112,7 +112,7 @@ fun CreatePostScreen(
     var postText by remember { mutableStateOf("") }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
     ) { uris ->
         selectedImageUri += uris
     }
@@ -477,7 +477,7 @@ fun MultiFileUpload(){
     var selectedImageUri: List<Uri> by remember {
         mutableStateOf<List<Uri>>(emptyList())
     }
-    var MultiplePhotoPickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)) {
+    var MultiplePhotoPickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)) {
             uri ->
         selectedImageUri = uri
     }

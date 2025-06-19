@@ -53,6 +53,7 @@ import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.userModel
+import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
@@ -103,6 +104,8 @@ fun HealthMateHomeScreen(
         username = userViewModel.getUserAttributeString("name")
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+
+        userViewModel.getUser(userId)
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
@@ -238,8 +241,14 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "posts") {
-                Spacer(modifier = Modifier.height(8.dp))
-
+                if (user != null) {
+                    PostColumn(
+                        navHostController = navHostController,
+                        userWhoInteractWithThisPost = user!!,
+                        postViewModel = postViewModel,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
             item {
                 if (isLoadingMorePosts && hasMorePosts) {
@@ -266,11 +275,7 @@ fun HealthMateHomeScreen(
             }
         }
 
-        if ((showFullScreenComment && selectedPostIdForComment != null)) {
-            InteractPostManager(
 
-            )
-        }
 
         if (showReportDialog && user != null) {
             var selectedType by remember { mutableStateOf("Bài viết") }

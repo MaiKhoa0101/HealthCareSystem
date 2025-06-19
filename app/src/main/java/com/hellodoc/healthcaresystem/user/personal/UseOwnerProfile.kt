@@ -52,6 +52,7 @@ import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.user.post.userId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -66,7 +67,6 @@ fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
-    val context = LocalContext.current
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
@@ -124,14 +124,22 @@ fun ProfileUserPage(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                ProfileSection(
-                    navHostController = navHostController,
-                    user = user!!,
-                    onClickShowReport = { showReportDialog = true },
-                    onImageClick = { selectedImageUrl = it },
-                    showReportBox = showReportBox,
-                    onToggleReportBox = { showReportBox = !showReportBox }
-                )
+                if (user!=null) {
+                    ProfileSection(
+                        navHostController = navHostController,
+                        user = user!!,
+                        onClickShowReport = { showReportDialog = true },
+                        onImageClick = { selectedImageUrl = it },
+                        showReportBox = showReportBox,
+                        onToggleReportBox = { showReportBox = !showReportBox }
+                    )
+                    PostColumn(
+                        navHostController = navHostController,
+                        idUserOfPost = user!!.id,
+                        userWhoInteractWithThisPost = user!!,
+                        postViewModel = postViewModel,
+                    )
+                }
             }
         }
     }
