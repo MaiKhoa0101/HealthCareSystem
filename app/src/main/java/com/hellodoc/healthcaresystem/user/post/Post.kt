@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -57,6 +58,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -94,7 +96,7 @@ fun PostColumn(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(15.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -120,7 +122,8 @@ fun Post(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        PostHeader(post)
+        Spacer(modifier = Modifier.height(8.dp))
+        PostHeader(navHostController = navHostController,userWhoInteractWithThisPost,post)
         Spacer(modifier = Modifier.height(8.dp))
         PostBody(post)
         Spacer(modifier = Modifier.height(8.dp))
@@ -141,9 +144,13 @@ fun Post(
 }
 
 @Composable
-fun PostHeader(post: PostResponse){
+fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost: User,post: PostResponse){
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .clickable{
+                // Xử lý khi người dùng nhấn vào thông tin người đăng bài
+
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Ảnh avatar
@@ -153,13 +160,31 @@ fun PostHeader(post: PostResponse){
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .border(1.dp, Color.Gray, CircleShape),
+                .border(1.dp, Color.Gray, CircleShape)
+                .clickable {
+                    if (post.user.id !=userWhoInteractWithThisPost.id) {
+                        navHostController.navigate("otherUserProfile")
+                    }
+                    else {
+                        navHostController.navigate("personal")
+                    }
+                },
             contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Column {
+        Column (
+            modifier = Modifier
+                .clickable {
+                if (post.user.id !=userWhoInteractWithThisPost.id) {
+                    navHostController.navigate("otherUserProfile")
+                }
+                else {
+                    navHostController.navigate("personal")
+                }
+            },
+        ){
             Text(
                 text = post.user.name,
                 fontWeight = FontWeight.Bold,
@@ -229,7 +254,8 @@ fun ImageGrid(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = Color.Black, ambientColor = Color.Black)
+                    .clip(RoundedCornerShape(20.dp))
                     .clickable { onImageClick?.invoke(imageUrls[0], 0) }
             ) {
                 AsyncImage(

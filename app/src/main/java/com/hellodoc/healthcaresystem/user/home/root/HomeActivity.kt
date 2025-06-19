@@ -270,7 +270,7 @@ class HomeActivity : BaseActivity() {
                 ProfileUserPage(sharedPreferences, navHostController)
             }
             composable("otherUserProfile") {
-                ProfileOtherUserPage()
+                ProfileOtherUserPage(sharedPreferences,navHostController)
             }
             composable("create_post") {
                 CreatePostScreen(context, navHostController)

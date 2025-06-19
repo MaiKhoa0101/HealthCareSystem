@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun InteractPostManager(navHostController:NavHostController,postViewModel: PostViewModel, post: PostResponse, user: User) {
-    val sizeButton = 30.dp
+    val sizeButton = 25.dp
     val coroutineScope = rememberCoroutineScope()
     var showCommentSheet by remember { mutableStateOf(false) }
 
@@ -53,7 +53,7 @@ fun InteractPostManager(navHostController:NavHostController,postViewModel: PostV
     ) {
         Box (
             modifier = Modifier
-                .size(height = sizeButton, width = sizeButton*5)
+                .size(height = sizeButton*2, width = sizeButton*6)
                 .clip(RoundedCornerShape(20.dp))
                 .clickable{
                     coroutineScope.launch {
@@ -74,7 +74,7 @@ fun InteractPostManager(navHostController:NavHostController,postViewModel: PostV
 
         Box (
             modifier = Modifier
-                .size(height = sizeButton, width = sizeButton*5)
+                .size(height = sizeButton*2, width = sizeButton*6)
                 .clip(RoundedCornerShape(20.dp))
                 .clickable{
                     showCommentSheet = true

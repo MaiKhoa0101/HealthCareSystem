@@ -75,8 +75,7 @@ import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-var userId: String = ""
-var userModel: String = ""
+
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -98,7 +97,8 @@ fun CreatePostScreen(
     val user by userViewModel.user.collectAsState()
     var avatarUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-
+    var userId: String = ""
+    var userModel: String = ""
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
