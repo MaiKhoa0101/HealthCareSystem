@@ -18,7 +18,6 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
-import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import com.hellodoc.healthcaresystem.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.responsemodel.User
@@ -26,15 +25,12 @@ import com.hellodoc.healthcaresystem.responsemodel.UserResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.http.Part
 import java.io.File
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-
     //Bien lay 1 user
     private val _thisuser = MutableStateFlow<User?>(null)
     val thisuser: StateFlow<User?> get() = _thisuser
-
 
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
@@ -45,7 +41,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
-
 
     fun getAllUsers() {
         viewModelScope.launch {
@@ -67,8 +62,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-
-
 
     fun getUser(id: String) {
         viewModelScope.launch {
@@ -251,5 +244,4 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 }
-
 

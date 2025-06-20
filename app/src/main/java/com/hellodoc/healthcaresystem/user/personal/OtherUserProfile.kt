@@ -1,5 +1,5 @@
 package com.hellodoc.healthcaresystem.user.personal
-import android.content.SharedPreferences
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,16 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-
 
 //Trang nguoi dung khac
 @RequiresApi(Build.VERSION_CODES.O)
@@ -56,7 +51,6 @@ fun ProfileOtherUserPage(
             postViewModel.getPostByUserId(userOwnerID)
         }
     }
-
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {

@@ -49,4 +49,5 @@
     <string name="title_activity_doctor_list">DoctorList</string>
     <string name="title_activity_doctor_profile_screen">DoctorProfileScreen</string>
     <string name="title_activity_booking">BookingActivity</string>
+    <string name="web_client_id">285794153001-5poc0go62k2medpns13c69o98nrn345c.apps.googleusercontent.com</string>
 </resources>
