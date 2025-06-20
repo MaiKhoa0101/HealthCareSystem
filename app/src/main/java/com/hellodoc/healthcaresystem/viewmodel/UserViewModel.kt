@@ -28,11 +28,9 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-
     //Bien lay 1 user
     private val _thisuser = MutableStateFlow<User?>(null)
     val thisuser: StateFlow<User?> get() = _thisuser
-
 
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
@@ -43,7 +41,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
-
 
     fun getAllUsers() {
         viewModelScope.launch {
@@ -66,8 +63,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-
-
     fun getUser(id: String) {
         viewModelScope.launch {
             try {
@@ -80,17 +75,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun getCurrentUser(id: String) {
-        viewModelScope.launch {
-            try {
-                val result = RetrofitInstance.userService.getUser(id)
-                _thisuser.value = result
-                println("OK fetch user: $result")
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
-            }
-        }
-    }
 
     fun getUserNameFromToken(): String {
         val token = sharedPreferences.getString("access_token", null) ?: return "Người dùng"

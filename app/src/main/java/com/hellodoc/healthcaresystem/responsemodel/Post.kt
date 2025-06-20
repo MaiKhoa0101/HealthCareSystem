@@ -43,7 +43,7 @@ data class CreateCommentPostResponse(
     val content: String
 )
 
-data class GetCommentPostResponse(
+data class CommentPostResponse(
     @SerializedName("_id")
     val id: String,
     val user: User,
@@ -75,7 +75,7 @@ data class CommentPost(
 )
 
 data class GetCommentPageResponse(
-    val comments: List<GetCommentPostResponse>,
+    val comments: List<CommentPostResponse>,
     val hasMore: Boolean
 )
 

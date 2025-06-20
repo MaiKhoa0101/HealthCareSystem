@@ -52,13 +52,12 @@ import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
-import com.hellodoc.healthcaresystem.user.post.userId
+import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-var userId = ""
+var userId=""
 var userModel = ""
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -66,7 +65,6 @@ fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
-    val context = LocalContext.current
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
@@ -80,7 +78,8 @@ fun ProfileUserPage(
     var shouldReloadPosts by remember { mutableStateOf(false) }
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
-
+    var userId: String = ""
+    var userModel: String = ""
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
@@ -97,7 +96,6 @@ fun ProfileUserPage(
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
     val isUserLoading = user == null
-
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
@@ -133,6 +131,12 @@ fun ProfileUserPage(
                         onImageClick = { selectedImageUrl = it },
                         showReportBox = showReportBox,
                         onToggleReportBox = { showReportBox = !showReportBox }
+                    )
+                    PostColumn(
+                        navHostController = navHostController,
+                        idUserOfPost = user!!.id,
+                        userWhoInteractWithThisPost = user!!,
+                        postViewModel = postViewModel,
                     )
                 }
             }
@@ -353,7 +357,5 @@ fun PostSkeleton() {
         }
     }
 }
-
-
 
 

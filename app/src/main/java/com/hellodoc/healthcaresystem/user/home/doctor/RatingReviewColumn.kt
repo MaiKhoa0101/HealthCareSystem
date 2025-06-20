@@ -48,7 +48,6 @@ import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.responsemodel.ReviewResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.doctor.ReviewItemSkeleton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,18 +55,14 @@ fun ViewRating(
     doctorId: String,
     refreshTrigger: Boolean,
     onEditReview: (reviewId: String, rating: Int, comment: String) -> Unit,
-    onDeleteReview: () -> Unit,
-    doctorAverageRating: Double? = null,
-    doctorRatingsCount: Int? = null
+    onDeleteReview: () -> Unit
 ) {
     val reviews = remember { mutableStateOf<List<ReviewResponse>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
-    var isLoadingReviews by remember { mutableStateOf(true) }
 
     var selectedRating by remember { mutableStateOf(0) }
 
     LaunchedEffect(doctorId, refreshTrigger) {
-        isLoadingReviews = true
         coroutineScope.launch {
             try {
                 val response = RetrofitInstance.reviewService.getReviewsByDoctor(doctorId)
@@ -76,22 +71,13 @@ fun ViewRating(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-            } finally {
-                isLoadingReviews = false
             }
         }
     }
 
-    val averageRating = when {
-        doctorAverageRating != null -> doctorAverageRating
-        reviews.value.isNotEmpty() -> reviews.value.mapNotNull { it.rating }.average()
-        else -> 0.0
-    }
-
-    val ratingsCount = when {
-        doctorRatingsCount != null -> doctorRatingsCount
-        else -> reviews.value.size
-    }
+    val averageRating = if (reviews.value.isNotEmpty()) {
+        reviews.value.mapNotNull { it.rating }.average()
+    } else 0.0
 
     val filteredReviews = if (selectedRating == 0) {
         reviews.value
@@ -107,35 +93,29 @@ fun ViewRating(
     ) {
         RatingSummary(
             average = averageRating,
-            count = ratingsCount,
+            count = reviews.value.size,
             selectedRating = selectedRating,
             onRatingSelected = { selectedRating = it }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (isLoadingReviews) {
-            // Show skeleton for individual reviews while loading
-            repeat(3) {
-                ReviewItemSkeleton()
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                filteredReviews.forEach { review ->
-                    ReviewItem(
-                        review = review,
-                        onEditClick = { id, rating, comment ->
-                            onEditReview(id, rating, comment)
-                        },
-                        onDeleteClick = {
-                            onDeleteReview()
-                        }
-                    )
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+//                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            filteredReviews.forEach { review ->
+                ReviewItem(
+                    review = review,
+                    onEditClick = { id, rating, comment ->
+                        onEditReview(id, rating, comment)
+                    },
+                    onDeleteClick = {
+                        onDeleteReview()
+                    }
+                )
             }
         }
     }

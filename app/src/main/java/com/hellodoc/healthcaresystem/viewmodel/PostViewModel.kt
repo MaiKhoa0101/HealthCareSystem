@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,7 @@ import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
-import com.hellodoc.healthcaresystem.responsemodel.GetCommentPostResponse
+import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -35,11 +34,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
 
-
-
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
+        println("Post dc fetch")
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
@@ -66,10 +64,8 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-
-
-    private val _commentsMap = MutableStateFlow<Map<String, List<GetCommentPostResponse>>>(emptyMap())
-    val commentsMap: StateFlow<Map<String, List<GetCommentPostResponse>>> = _commentsMap
+    private val _commentsMap = MutableStateFlow<Map<String, List<CommentPostResponse>>>(emptyMap())
+    val commentsMap: StateFlow<Map<String, List<CommentPostResponse>>> = _commentsMap
 
     private val _hasMoreMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val hasMoreMap: StateFlow<Map<String, Boolean>> = _hasMoreMap
@@ -188,7 +184,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
 
     private val _isFavoritedMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
-    val isFavoritedMap: StateFlow<Map<String, Boolean>> get() = _isFavoritedMap
+    val isFavoritedMap: StateFlow<Map<String, Boolean>> = _isFavoritedMap
 
     private val _totalFavoritesMap = MutableStateFlow<Map<String, String>>(emptyMap())
     val totalFavoritesMap: StateFlow<Map<String, String>> get() = _totalFavoritesMap
@@ -200,6 +196,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 if (response.isSuccessful) {
                     val isFavorited = response.body()?.isFavorited ?: false
                     val totalFavorites = response.body()?.totalFavorites?.toString() ?: "0"
+                    println("isFavorited: $isFavorited"+ " totalFavorites: $totalFavorites")
                     _isFavoritedMap.value += (postId to isFavorited)
                     _totalFavoritesMap.value += (postId to totalFavorites)
                 }
@@ -209,15 +206,16 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun updateFavoriteForPost(postId: String, userId: String, userModel: String) {
+    fun updateFavoriteForPost(postId: String, userFavouriteId: String, userFavouriteModel: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userId, userModel))
+                val response = RetrofitInstance.postService.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userFavouriteId, userFavouriteModel))
                 if (response.isSuccessful) {
                     val isFavorited = response.body()?.isFavorited ?: false
                     val totalFavorites = response.body()?.totalFavorites?.toString() ?: "0"
                     _isFavoritedMap.value += (postId to isFavorited)
                     _totalFavoritesMap.value += (postId to totalFavorites)
+                    println("Cap nhat favourite thanh cong ")
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Error updateFavoriteForPost", e)

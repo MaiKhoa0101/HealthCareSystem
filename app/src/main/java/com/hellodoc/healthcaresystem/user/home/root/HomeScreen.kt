@@ -53,11 +53,10 @@ import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.post.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.userModel
-import com.hellodoc.healthcaresystem.user.post.userId
+import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 
 
 var username = ""
@@ -101,8 +100,9 @@ fun HealthMateHomeScreen(
 
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
-        userId = userViewModel.getUserAttributeString("userId")
         userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+
+        userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
@@ -238,8 +238,14 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "posts") {
-                Spacer(modifier = Modifier.height(8.dp))
-
+                if (user != null) {
+                    PostColumn(
+                        navHostController = navHostController,
+                        userWhoInteractWithThisPost = user!!,
+                        postViewModel = postViewModel,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
             item {
                 if (isLoadingMorePosts && hasMorePosts) {
@@ -263,128 +269,6 @@ fun HealthMateHomeScreen(
 
             item(key = "bottom_space") {
                 Spacer(modifier = Modifier.height(100.dp))
-            }
-        }
-
-        if ((showFullScreenComment && selectedPostIdForComment != null)) {
-            InteractPostManager(
-
-            )
-        }
-
-        if (showReportDialog && user != null) {
-            var selectedType by remember { mutableStateOf("Bài viết") }
-            var reportContent by remember { mutableStateOf("") }
-
-            val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-                initializer { PostViewModel(sharedPreferences) }
-            })
-            reportedPostId?.let { postViewModel.getPostById(id = it) }
-            val posts by postViewModel.posts.collectAsState()
-            val firstPost = posts.firstOrNull()
-
-            if (firstPost != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
-                        .clickable(enabled = true, onClick = {}),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(320.dp)
-                            .background(Color.White, shape = RoundedCornerShape(12.dp))
-                            .border(1.dp, Color.Gray)
-                            .padding(16.dp)
-                    ) {
-                        Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("Người báo cáo", fontWeight = FontWeight.Medium)
-                        Text(username, color = Color.DarkGray)
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable { selectedType = "Bài viết" }
-                            ) {
-                                Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
-                        TextField(
-                            value = reportContent,
-                            onValueChange = { reportContent = it },
-                            placeholder = { Text("Nhập nội dung...") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Huỷ",
-                                color = Color.Red,
-                                modifier = Modifier
-                                    .clickable { showReportDialog = !showReportDialog  }
-                                    .padding(8.dp),
-                                fontWeight = FontWeight.Medium
-                            )
-
-                            Button(onClick = {
-                                coroutineScope.launch {
-                                    try {
-                                        val response = RetrofitInstance.reportService.sendReport(
-                                            ReportRequest(
-                                                reporter = userId,
-                                                reporterModel = userModel,
-                                                content = reportContent,
-                                                type = selectedType,
-                                                reportedId = firstPost.user.id,
-                                                postId = null
-                                            )
-                                        )
-
-                                        if (response.isSuccessful) {
-                                            Toast.makeText(
-                                                context,
-                                                "Đã gửi báo cáo thành công",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else {
-                                            println(response)
-                                            Toast.makeText(
-                                                context,
-                                                "Gửi báo cáo thất bại",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Lỗi kết nối đến server",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        e.printStackTrace()
-                                    }
-                                }
-                                showReportDialog = !showReportDialog
-                            }) {
-                                Text("Gửi báo cáo")
-                            }
-                        }
-                    }
-                }
             }
         }
 
