@@ -35,8 +35,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
-import com.hellodoc.healthcaresystem.requestmodel.genToken
+import com.hellodoc.healthcaresystem.requestmodel.GoogleLoginRequest
 import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.user.home.root.showToast
 
@@ -208,108 +207,78 @@ class SignIn : BaseActivity() {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         auth.signInWithCredential(credential).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val isNewUser = task.result?.additionalUserInfo?.isNewUser == true
+                val idToken = account.idToken ?: ""
+                val phone = ""
 
-                if (isNewUser) {
-                    // Tài khoản mới -> Gọi API lưu vào database
-                    val signupRequest = SignUpRequest(
-                        email = account.email ?: "",
-                        name = account.displayName ?: "Google User",
-                        phone = "",
-                        password = ""
-                    )
+                val request = GoogleLoginRequest(idToken = idToken, phone = phone)
 
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            val response = RetrofitInstance.api.loginGoogle(signupRequest)
-                            withContext(Dispatchers.Main) {
-                                if (response.isSuccessful) {
-                                    val signupResponse = response.body()
-                                    startActivity(Intent(this@SignIn, HomeActivity::class.java))
-                                    finish()
-                                } else {
-                                    val errorBody = response.errorBody()?.string()
-                                    Toast.makeText(this@SignIn, "Tạo tài khoản thất bại: $errorBody", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                } else {
-                    val tokenReq = genToken(email = account.email ?: "")
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            val response = RetrofitInstance.api.generateToken(tokenReq)
-                            println("response $response")
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val response = RetrofitInstance.api.loginGoogle(request)
 
-                            withContext(Dispatchers.Main) {
-                                if (response.isSuccessful) {
-                                    val loginResponse = response.body()
-                                    println("login res $loginResponse")
-                                    val token = loginResponse?.accessToken
+                        withContext(Dispatchers.Main) {
+                            if (response.isSuccessful) {
+                                val loginResponse = response.body()
+                                val token = loginResponse?.accessToken
 
-                                    // Debug: In ra token để kiểm tra
-                                    Log.d("TOKEN_DEBUG", "Received token: $token")
+                                if (!token.isNullOrEmpty()) {
+                                    saveToken(token)
 
-                                    if (!token.isNullOrEmpty()) {
-                                        saveToken(token)
-
+                                    if (isValidJWTFormat(token)) {
                                         try {
-                                            // Kiểm tra token format trước khi parse
-                                            if (isValidJWTFormat(token)) {
-                                                val jwt = JWT(token)
-                                                val role = jwt.getClaim("role").asString()
+                                            val jwt = JWT(token)
+                                            val role = jwt.getClaim("role").asString()
 
-                                                // Debug: In ra role
-                                                Log.d("ROLE_DEBUG", "User role: $role")
-
-                                                val intent = when (role) {
-                                                    "admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                                    "user" -> Intent(this@SignIn, HomeActivity::class.java)
-                                                    "doctor" -> Intent(this@SignIn, HomeActivity::class.java)
-                                                    else -> {
-                                                        Toast.makeText(this@SignIn, "Vai trò không hợp lệ: $role", Toast.LENGTH_SHORT).show()
-                                                        return@withContext
-                                                    }
+                                            val intent = when (role) {
+                                                "admin" -> Intent(this@SignIn, AdminRoot::class.java)
+                                                "user", "doctor" -> Intent(this@SignIn, HomeActivity::class.java)
+                                                else -> {
+                                                    Toast.makeText(
+                                                        this@SignIn,
+                                                        "Vai trò không hợp lệ: $role",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    return@withContext
                                                 }
-
-                                                Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                                                startActivity(intent)
-                                                finish()
-                                            } else {
-                                                Toast.makeText(this@SignIn, "Token không đúng định dạng JWT", Toast.LENGTH_SHORT).show()
-                                                Log.e("JWT_ERROR", "Invalid JWT format: $token")
                                             }
+
+                                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                                            startActivity(intent)
+                                            finish()
                                         } catch (e: Exception) {
                                             Toast.makeText(this@SignIn, "Lỗi đọc token: ${e.message}", Toast.LENGTH_SHORT).show()
                                             Log.e("JWT_ERROR", "JWT parsing error", e)
                                         }
                                     } else {
-                                        Toast.makeText(this@SignIn, "Token rỗng hoặc null!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@SignIn, "Token không đúng định dạng JWT", Toast.LENGTH_SHORT).show()
+                                        Log.e("JWT_ERROR", "Invalid JWT format: $token")
                                     }
                                 } else {
-                                    val errorBody = response.errorBody()?.string()
-                                    Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
-                                    Log.e("API_ERROR", "Generate token failed: $errorBody")
+                                    Toast.makeText(this@SignIn, "Token rỗng hoặc null!", Toast.LENGTH_SHORT).show()
                                 }
+                            } else {
+                                val errorBody = response.errorBody()?.string()
+                                Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
+                                Log.e("API_ERROR", "Login failed: $errorBody")
                             }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
-                                Log.e("NETWORK_ERROR", "Connection error", e)
-                            }
+
+                            hideProgressBar()
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Log.e("NETWORK_ERROR", "Connection error", e)
+                            hideProgressBar()
                         }
                     }
                 }
             } else {
                 hideProgressBar()
-                showToast(this, "Can't login currently. Try after sometime")
+                Toast.makeText(this, "Không thể đăng nhập. Vui lòng thử lại sau.", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     // Thêm function helper để validate JWT format
     private fun isValidJWTFormat(token: String): Boolean {

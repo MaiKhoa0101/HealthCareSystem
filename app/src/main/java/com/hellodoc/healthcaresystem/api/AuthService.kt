@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.api
 
 
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
+import com.hellodoc.healthcaresystem.requestmodel.GoogleLoginRequest
 import com.hellodoc.healthcaresystem.requestmodel.LoginRequest
 import com.hellodoc.healthcaresystem.requestmodel.OtpVerifyRequest
 import com.hellodoc.healthcaresystem.requestmodel.ResetPasswordRequest
@@ -23,7 +24,7 @@ interface AuthService {
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @POST("auth/login-google")
-    suspend fun loginGoogle(@Body request: SignUpRequest): Response<LoginResponse>
+    suspend fun loginGoogle(@Body request: GoogleLoginRequest): Response<LoginResponse>
 
     @POST("auth/generate-token")
     suspend fun generateToken(@Body request: genToken): Response<LoginResponse>
