@@ -150,7 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/white"
+            android:background="@drawable/google_button_border"
             android:orientation="horizontal"
             android:gravity="center"
             android:paddingVertical="12dp"
@@ -175,6 +175,7 @@
                 android:textStyle="normal"
                 android:gravity="center"/>
         </LinearLayout>
+
 
         <!-- Đăng ký -->
         <LinearLayout

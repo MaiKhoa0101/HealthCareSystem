@@ -21,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit 
 
 object RetrofitInstance {
-    //private const val BASE_URL = "http://192.168.5.90:3000"
+    private const val THIRD_URL = "http://192.168.1.216:4000"
     private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
     private const val SECOND_URL = "http://192.168.1.8:3000"
     private val client = OkHttpClient.Builder()
@@ -34,6 +34,7 @@ object RetrofitInstance {
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(SECOND_URL)
+            //.baseUrl(THIRD_URL)
             .client(client) // Sử dụng client có logging
             .addConverterFactory(GsonConverterFactory.create()) // Dùng gson để chuyển JSON thành obj
             .build()
