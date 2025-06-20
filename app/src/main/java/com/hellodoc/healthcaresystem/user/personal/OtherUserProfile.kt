@@ -65,7 +65,7 @@ fun ProfileOtherUserPage(
     var showReportBox by remember { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }
 
-// Nếu có user rồi thì hiển thị UI
+
     Box(modifier = Modifier
         .fillMaxSize()
         .pointerInput(Unit) {
