@@ -82,17 +82,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun getCurrentUser(id: String) {
-        viewModelScope.launch {
-            try {
-                val result = RetrofitInstance.userService.getUser(id)
-                _thisuser.value = result
-                println("OK fetch user: $result")
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
-            }
-        }
-    }
 
     fun getUserNameFromToken(): String {
         val token = sharedPreferences.getString("access_token", null) ?: return "Người dùng"

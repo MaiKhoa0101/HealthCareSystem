@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.admin
 
 import android.content.SharedPreferences
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +25,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 
 @Composable

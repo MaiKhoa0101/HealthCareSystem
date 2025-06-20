@@ -53,19 +53,41 @@ import com.hellodoc.healthcaresystem.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import androidx.compose.material3.*
+import com.hellodoc.healthcaresystem.user.home.booking.appointmentId
 
 @Composable
 fun DoctorListScreen(
     context: Context,
-    specialtyId: String,
-    specialtyName: String,
-    specialtyDesc: String,
     navHostController: NavHostController
 ) {
+    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+//    var specialtyId = ""
+//    var specialtyName = ""
+//    var specialtyDesc = ""
+    var specialtyId by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
+    var specialtyDesc by remember { mutableStateOf("") }
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val viewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
         initializer { SpecialtyViewModel(sharedPreferences) }
     })
+
+    var isDataLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        savedStateHandle?.get<String>("specialtyId")?.let {
+            specialtyId = it
+        }
+        savedStateHandle?.get<String>("specialtyName")?.let {
+            specialtyName = it
+        }
+        savedStateHandle?.get<String>("specialtyDesc")?.let {
+            specialtyDesc = it
+        }
+        isDataLoaded = true
+        println(specialtyId + " " + specialtyName + " " + specialtyDesc)
+    }
+
 
     LaunchedEffect(specialtyId) {
         viewModel.fetchSpecialtyDoctor(specialtyId)
@@ -74,82 +96,89 @@ fun DoctorListScreen(
     val doctors by viewModel.filteredDoctors.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        TopBar(onClick = {
-            navHostController.popBackStack()
-        }, viewModel)
+    if (isDataLoaded) {
+        println(specialtyId + " " + specialtyName + " " + specialtyDesc)
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
-                .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
-                .padding(16.dp)
+                .fillMaxSize()
+                .background(Color.White)
         ) {
-            Text(
-                text = specialtyName,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF00796B)
-            )
+            TopBar(onClick = {
+                navHostController.popBackStack()
+            }, viewModel)
 
-            Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = specialtyDesc,
-                fontSize = 14.sp,
-                color = Color.DarkGray,
-                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            if (specialtyDesc.length > 100) { // Ngưỡng để hiển thị nút Xem thêm
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
+                    .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                println(specialtyName)
                 Text(
-                    text = if (isExpanded) "Thu gọn" else "Xem thêm",
-                    fontSize = 14.sp,
-                    color = Color(0xFF0288D1),
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clickable { isExpanded = !isExpanded }
+                    text = specialtyName,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00796B)
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+
+                Text(
+                    text = specialtyDesc,
+                    fontSize = 14.sp,
+                    color = Color.DarkGray,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                if (specialtyDesc.length > 100) { // Ngưỡng để hiển thị nút Xem thêm
+                    Text(
+                        text = if (isExpanded) "Thu gọn" else "Xem thêm",
+                        fontSize = 14.sp,
+                        color = Color(0xFF0288D1),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable { isExpanded = !isExpanded }
+                    )
+                }
+
             }
 
-        }
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            if (doctors.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Không tìm thấy bác sĩ trong chuyên khoa này",
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                if (doctors.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Không tìm thấy bác sĩ trong chuyên khoa này",
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
-                }
-            } else {
-                items(doctors) { doctor ->
-                    DoctorItem(
-                        navHostController = navHostController,
-                        doctor = doctor,
-                        specialtyName = specialtyName,
-                        specialtyId = specialtyId,
-                        specialtyDesc = specialtyDesc,
-                        viewModel = viewModel
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                } else {
+                    items(doctors) { doctor ->
+                        DoctorItem(
+                            navHostController = navHostController,
+                            doctor = doctor,
+                            specialtyName = specialtyName,
+                            specialtyId = specialtyId,
+                            specialtyDesc = specialtyDesc,
+                            viewModel = viewModel
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
@@ -181,7 +210,7 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
                 modifier = Modifier
                     .size(32.dp)
                     .clickable {
-                        activity?.finish()
+                        onClick()
                     }
             )
 
