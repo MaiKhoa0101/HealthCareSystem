@@ -226,6 +226,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
+                print("DATA truyen tu send comment $userId, $userModel, $content")
                 Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
 
                 val response = RetrofitInstance.postService.createCommentByPostId(
