@@ -60,6 +60,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     navHostController: NavHostController,

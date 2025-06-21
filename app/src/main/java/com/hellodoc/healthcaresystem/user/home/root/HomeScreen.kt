@@ -89,6 +89,7 @@ fun HealthMateHomeScreen(
     val newsState by newsViewModel.newsList.collectAsState()
     val user by userViewModel.user.collectAsState()
 
+
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var reportedPostId by remember { mutableStateOf<String?>(null) }
