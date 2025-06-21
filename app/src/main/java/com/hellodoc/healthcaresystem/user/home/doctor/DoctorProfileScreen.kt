@@ -127,7 +127,7 @@ fun IntroSection(description: String?) {
 //fun DoctorProfileScreenPreview() {
 //    val fakeDoctor = GetDoctorResponse(
 //        id = "1",
-//        role = "doctor",
+//        role = "Doctor",
 //        email = "doctor@example.com",
 //        name = "Bác sĩ Nguyễn Văn A",
 //        phone = "0123456789",

@@ -101,7 +101,7 @@ fun CreatePostScreen(
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
         userViewModel.getUser(userId)
         avatarUrl = user?.avatarURL ?: ""
 
