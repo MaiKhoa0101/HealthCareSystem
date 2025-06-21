@@ -181,11 +181,7 @@ class HomeActivity : BaseActivity() {
                     val token = task.result
                     Log.d("FCM", "FCM Token: $token")
                     val userId = userViewModel.getUserAttributeString("userId")
-                    val userModel = when (userViewModel.getUserAttributeString("role")) {
-                        "user" -> "User"
-                        "doctor" -> "Doctor"
-                        else -> ""
-                    }
+                    val userModel = userViewModel.getUserAttributeString("role")
                     if (userId.isNotEmpty() && userModel.isNotEmpty()) {
                         userViewModel.sendFcmToken(userId, userModel, token)
                     }

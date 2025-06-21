@@ -94,7 +94,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         println("patientAddress" + patientAddress)
         patientID = userViewModel.getUserAttributeString("userId")
         println("patientId" + patientID)
-        patientModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        patientModel = userViewModel.getUserAttributeString("role")
     }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle

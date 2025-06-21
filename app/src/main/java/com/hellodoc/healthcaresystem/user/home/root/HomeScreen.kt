@@ -110,7 +110,7 @@ fun HealthMateHomeScreen(
 
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
         doctorViewModel.fetchDoctors()

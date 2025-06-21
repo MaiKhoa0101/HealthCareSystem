@@ -126,9 +126,9 @@ fun AppointmentScreenUI(
             null
         }
     }
-    val userRole = jwt?.getClaim("role")?.asString() ?: "user"
-    val isPatient = userRole == "user" || userRole == "patient"
-    val isDoctor = userRole == "doctor"
+    val userRole = jwt?.getClaim("role")?.asString() ?: "User"
+    val isPatient = userRole == "User"
+    val isDoctor = userRole == "Doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
     val appointmentUpdated by appointmentViewModel.appointmentUpdated.collectAsState()
     val isLoading by appointmentViewModel.isLoading.collectAsState()
