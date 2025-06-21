@@ -358,10 +358,13 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private val _isLoadingStats = MutableStateFlow(false)
+    val isLoadingStats: StateFlow<Boolean> get() = _isLoadingStats
+
     fun fetchDoctorWithStats(doctorId: String) {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
+                _isLoadingStats.value = true
 
                 val doctorRes = RetrofitInstance.doctor.getDoctorById(doctorId)
                 val statsRes = RetrofitInstance.appointment.getDoctorStats(doctorId)
@@ -380,11 +383,14 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                _isLoading.value = false
+                _isLoadingStats.value = false
             }
         }
     }
 
+    fun resetStates() {
+        _isLoading.value = false
+    }
 
 }
 

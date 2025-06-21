@@ -1,7 +1,9 @@
 package com.hellodoc.healthcaresystem.user.home.root
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -62,7 +64,7 @@ import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
-import com.hellodoc.healthcaresystem.user.doctor.DoctorScreen
+import com.hellodoc.healthcaresystem.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.user.personal.FavouriteHistoryScreen
@@ -83,12 +85,37 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 class HomeActivity : BaseActivity() {
+    private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun checkAndRequestNotificationPermission() {
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(permission), NOTIFICATION_PERMISSION_REQUEST_CODE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                Log.d("Permission", "Notification permission granted")
+            } else {
+                Log.d("Permission", "Notification permission denied")
+            }
+        }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         // Obtain the FirebaseAnalytics instance.
         firebaseAnalytics = Firebase.analytics
         super.onCreate(savedInstanceState)
+        checkAndRequestNotificationPermission() //kiem tra quyen thong bao
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)

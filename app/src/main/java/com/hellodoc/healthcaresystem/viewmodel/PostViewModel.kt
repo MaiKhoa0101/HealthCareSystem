@@ -34,8 +34,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
 
-
-
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
@@ -65,8 +63,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             false
         }
     }
-
-
 
     private val _commentsMap = MutableStateFlow<Map<String, List<CommentPostResponse>>>(emptyMap())
     val commentsMap: StateFlow<Map<String, List<CommentPostResponse>>> = _commentsMap
@@ -230,6 +226,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
+                print("DATA truyen tu send comment $userId, $userModel, $content")
                 Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
 
                 val response = RetrofitInstance.postService.createCommentByPostId(

@@ -95,9 +95,7 @@ fun ProfileUserPage(
 
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user==null) return
-
+    val isUserLoading = user == null
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
@@ -123,7 +121,9 @@ fun ProfileUserPage(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                if (user!=null) {
+                if (isUserLoading) {
+                    UserSkeleton()
+                } else {
                     ProfileSection(
                         navHostController = navHostController,
                         user = user!!,
@@ -302,6 +302,60 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
     }
 }
 
+@Composable
+fun UserSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(Color.LightGray)
+                .align(Alignment.CenterHorizontally)
+        )
 
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(
+            modifier = Modifier
+                .height(20.dp)
+                .width(100.dp)
+                .align(Alignment.CenterHorizontally)
+                .background(Color.LightGray)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Box(
+            modifier = Modifier
+                .height(14.dp)
+                .width(180.dp)
+                .align(Alignment.CenterHorizontally)
+                .background(Color.LightGray)
+        )
+    }
+}
+
+@Composable
+fun PostSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        repeat(2) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .padding(vertical = 8.dp)
+                    .background(Color.LightGray, RoundedCornerShape(10.dp))
+            )
+        }
+    }
+}
 
 
