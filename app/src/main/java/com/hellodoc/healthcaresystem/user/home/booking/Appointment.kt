@@ -42,6 +42,8 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.animation.core.*
+import com.hellodoc.core.common.skeletonloading.SkeletonBox
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -129,6 +131,7 @@ fun AppointmentScreenUI(
     val isDoctor = userRole == "doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
     val appointmentUpdated by appointmentViewModel.appointmentUpdated.collectAsState()
+    val isLoading by appointmentViewModel.isLoading.collectAsState()
 
     LaunchedEffect(appointmentUpdated, appointmentsDoc) {
         if (appointmentUpdated && appointmentsDoc.any { it.status == "done" }) {
@@ -226,19 +229,29 @@ fun AppointmentScreenUI(
                 else -> appointmentsRole
             }
 
-            // ✅ Hiển thị
-            LazyColumn {
-                items(filteredAppointments) { appointment ->
-                    AppointmentCard(
-                        appointment,
-                        userID,
-                        selectedTab = selectedTab,
-                        roleSelectedTab = roleSelectedTab,
-                        sharedPreferences = sharedPreferences,
-                        navHostController = navHostController,
-                        appointmentViewModel = appointmentViewModel,
-                        onDoneConfirmed = { selectedTab = 1 }
-                    )
+
+            if (isLoading) {
+                // Hiển thị skeleton giả lập 5 item
+                LazyColumn {
+                    items(5) {
+                        AppointmentSkeletonItem()
+                    }
+                }
+            } else {
+                // ✅ Hiển thị
+                LazyColumn {
+                    items(filteredAppointments) { appointment ->
+                        AppointmentCard(
+                            appointment,
+                            userID,
+                            selectedTab = selectedTab,
+                            roleSelectedTab = roleSelectedTab,
+                            sharedPreferences = sharedPreferences,
+                            navHostController = navHostController,
+                            appointmentViewModel = appointmentViewModel,
+                            onDoneConfirmed = { selectedTab = 1 }
+                        )
+                    }
                 }
             }
         }
@@ -256,7 +269,7 @@ fun AppointmentCard(
     navHostController: NavHostController,
     appointmentViewModel: AppointmentViewModel,
     onDoneConfirmed: () -> Unit
-    ) {
+) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1
     val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
@@ -436,3 +449,84 @@ fun AppointmentCard(
         }
     }
 }
+
+@Composable
+fun AppointmentSkeletonItem() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White, RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        // ngày giờ
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.4f),
+            height = 20.dp,
+            shape = RoundedCornerShape(4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // avatar tròn
+            SkeletonBox(
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(CircleShape),
+                height = 90.dp,
+                shape = CircleShape
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                // tên
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(150.dp),
+                    height = 20.dp,
+                    shape = RoundedCornerShape(4.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                // ghi chú
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(180.dp),
+                    height = 16.dp,
+                    shape = RoundedCornerShape(4.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                // địa điểm
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(120.dp),
+                    height = 16.dp,
+                    shape = RoundedCornerShape(4.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2 nút
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(100.dp),
+                height = 36.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .width(100.dp),
+                height = 36.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
+    }
+}
+
+

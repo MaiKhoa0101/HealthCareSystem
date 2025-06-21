@@ -15,6 +15,9 @@ import com.hellodoc.healthcaresystem.user.post.userId
 import kotlinx.coroutines.launch
 
 class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     private val _appointmentsUser = MutableStateFlow<List<AppointmentResponse>>(emptyList())
     val appointmentsUser: StateFlow<List<AppointmentResponse>> get() = _appointmentsUser
 
@@ -63,6 +66,7 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
     fun getAppointmentUser(id: String) {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 println("ID nhan duoc để lấy appointment: "+id)
                 val result = RetrofitInstance.appointment.getAppointmentUser(id)
                 if(result.isSuccessful){
@@ -74,6 +78,8 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
             } catch (e: Exception) {
                 println("Lỗi ở getappointment")
                 Log.e("Appointment", "Lỗi khi lấy appointmentUser: ${e.message}")
+            } finally {
+                _isLoading.value = false  // Kết thúc loading dù thành công hay lỗi
             }
         }
     }
