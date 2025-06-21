@@ -6,3 +6,8 @@ data class SignUpRequest (
     val phone: String,
     val password: String
 )
+
+data class GoogleLoginRequest (
+    val idToken: String,
+    val phone: String? = null
+)

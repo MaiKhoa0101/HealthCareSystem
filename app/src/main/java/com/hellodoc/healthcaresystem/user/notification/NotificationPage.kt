@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.user.notification
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -39,9 +38,6 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.NotificationResponse
 import com.hellodoc.healthcaresystem.ui.theme.*
-import com.hellodoc.healthcaresystem.user.home.SpecialtyItem
-import com.hellodoc.healthcaresystem.user.home.SpecialtyList
-import com.hellodoc.healthcaresystem.user.home.showToast
 import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import java.time.Instant

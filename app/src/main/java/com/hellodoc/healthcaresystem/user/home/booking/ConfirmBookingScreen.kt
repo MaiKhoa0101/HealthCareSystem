@@ -31,8 +31,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
-import com.hellodoc.healthcaresystem.user.home.HomeActivity
-import com.hellodoc.healthcaresystem.user.post.userId
+import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
 import java.time.LocalDate

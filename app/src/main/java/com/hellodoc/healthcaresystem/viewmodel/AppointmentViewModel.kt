@@ -11,7 +11,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.post.userId
 import kotlinx.coroutines.launch
 
 class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -159,7 +158,7 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
         }
     }
 
-    fun updateAppointment(appointmentId: String, appointmentData: UpdateAppointmentRequest){
+    fun updateAppointment(patientID: String, appointmentId: String, appointmentData: UpdateAppointmentRequest){
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.appointment.updateAppointment(appointmentId, appointmentData)
@@ -168,8 +167,8 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
                     Log.d("Update", "Thành công: ${result?.message}")
 
                     //gọi lại api để load lại ds
-                    getAppointmentUser(userId)
-                    getAppointmentDoctor(userId)
+                    getAppointmentUser(patientID)
+                    getAppointmentDoctor(com.hellodoc.healthcaresystem.user.home.booking.patientID)
                 } else {
                     Log.e("Update", "Lỗi mạng/API: ${response.errorBody()?.string()}")
                 }

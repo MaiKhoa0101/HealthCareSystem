@@ -2,11 +2,13 @@ package com.hellodoc.healthcaresystem.api
 
 
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
+import com.hellodoc.healthcaresystem.requestmodel.GoogleLoginRequest
 import com.hellodoc.healthcaresystem.requestmodel.LoginRequest
 import com.hellodoc.healthcaresystem.requestmodel.OtpVerifyRequest
 import com.hellodoc.healthcaresystem.requestmodel.ResetPasswordRequest
 import com.hellodoc.healthcaresystem.responsemodel.LoginResponse
 import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
+import com.hellodoc.healthcaresystem.requestmodel.genToken
 import com.hellodoc.healthcaresystem.responsemodel.GenericResponse
 import com.hellodoc.healthcaresystem.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.responsemodel.SignUpResponse
@@ -20,6 +22,12 @@ interface AuthService {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    @POST("auth/login-google")
+    suspend fun loginGoogle(@Body request: GoogleLoginRequest): Response<LoginResponse>
+
+    @POST("auth/generate-token")
+    suspend fun generateToken(@Body request: genToken): Response<LoginResponse>
 
     @POST("auth/request-otp")
     suspend fun requestOtp(@Body request: EmailRequest): Response<OtpResponse>

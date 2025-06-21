@@ -2,15 +2,13 @@ package com.hellodoc.healthcaresystem.user.home.startscreen
 
 import android.content.Context
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
-import android.content.SharedPreferences
 import androidx.lifecycle.lifecycleScope
 import com.auth0.android.jwt.JWT
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.AdminRoot
-import com.hellodoc.healthcaresystem.user.home.HomeActivity
+import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
