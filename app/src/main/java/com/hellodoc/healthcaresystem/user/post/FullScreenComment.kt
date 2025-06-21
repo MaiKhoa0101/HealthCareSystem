@@ -339,13 +339,17 @@ private fun CommentInput(
             modifier = Modifier.weight(1f)
         )
 
+        val userModel = currentUser.role
+        val currentUserId = currentUser.id
+
         Button(
             onClick = {
                 coroutineScope.launch {
                     uiState.submitComment(
                         postViewModel = postViewModel,
                         postId = postId,
-                        currentUserId = currentUserId
+                        currentUserId = currentUserId,
+                        userModel = userModel
                     )
                 }
             }

@@ -55,7 +55,7 @@ fun NewsDetailScreen(
         runCatching { JWT(token ?: "") }.getOrNull()
     }
     val currentUserId = jwt?.getClaim("userId")?.asString() ?: ""
-    val currentUserModel = if (sharedPreferences.getString("role", "") == "user") "User" else "Doctor"
+    val currentUserModel: String = sharedPreferences.getString("role", "") ?: "User"
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     val news = savedStateHandle?.get<NewsResponse>("selectedNews")

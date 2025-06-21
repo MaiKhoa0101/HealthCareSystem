@@ -148,9 +148,9 @@ class SignIn : BaseActivity() {
                                 val role = jwt.getClaim("role").asString()
 
                                 val intent = when (role) {
-                                    "admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                    "user" -> Intent(this@SignIn, HomeActivity::class.java)
-                                    "doctor" -> Intent(this@SignIn, HomeActivity::class.java)
+                                    "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
+                                    "User" -> Intent(this@SignIn, HomeActivity::class.java)
+                                    "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)
                                     else -> {
                                         Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
                                         return@withContext
@@ -230,8 +230,8 @@ class SignIn : BaseActivity() {
                                             val role = jwt.getClaim("role").asString()
 
                                             val intent = when (role) {
-                                                "admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                                "user", "doctor" -> Intent(this@SignIn, HomeActivity::class.java)
+                                                "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
+                                                "User", "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)
                                                 else -> {
                                                     Toast.makeText(
                                                         this@SignIn,

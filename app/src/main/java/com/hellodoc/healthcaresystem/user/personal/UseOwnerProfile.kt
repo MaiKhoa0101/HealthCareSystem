@@ -82,7 +82,7 @@ fun ProfileUserPage(
     var userModel: String = ""
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
     }
 
     // Gọi API để fetch user từ server
@@ -279,7 +279,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 if (user == null) {
                     return@Button
                 }
-                else if (user.role=="user"){
+                else if (user.role=="User"){
                     navHostController.navigate("doctorRegister")
                 }
                 else{
