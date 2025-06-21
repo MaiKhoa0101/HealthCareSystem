@@ -459,48 +459,44 @@ fun AppointmentSkeletonItem() {
             .background(Color.White, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
-        // ngày giờ
         SkeletonBox(
             modifier = Modifier
-                .fillMaxWidth(0.4f),
-            height = 20.dp,
+                .fillMaxWidth(0.4f)
+                .height(20.dp),
             shape = RoundedCornerShape(4.dp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // avatar tròn
             SkeletonBox(
                 modifier = Modifier
                     .size(90.dp)
                     .clip(CircleShape),
-                height = 90.dp,
                 shape = CircleShape
             )
+
             Spacer(modifier = Modifier.width(12.dp))
+
             Column {
-                // tên
                 SkeletonBox(
                     modifier = Modifier
-                        .width(150.dp),
-                    height = 20.dp,
+                        .width(150.dp)
+                        .height(20.dp),
                     shape = RoundedCornerShape(4.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                // ghi chú
                 SkeletonBox(
                     modifier = Modifier
-                        .width(180.dp),
-                    height = 16.dp,
+                        .width(180.dp)
+                        .height(16.dp),
                     shape = RoundedCornerShape(4.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                // địa điểm
                 SkeletonBox(
                     modifier = Modifier
-                        .width(120.dp),
-                    height = 16.dp,
+                        .width(120.dp)
+                        .height(16.dp),
                     shape = RoundedCornerShape(4.dp)
                 )
             }
@@ -508,25 +504,22 @@ fun AppointmentSkeletonItem() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 2 nút
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             SkeletonBox(
                 modifier = Modifier
-                    .width(100.dp),
-                height = 36.dp,
+                    .width(100.dp)
+                    .height(36.dp),
                 shape = RoundedCornerShape(8.dp)
             )
             SkeletonBox(
                 modifier = Modifier
-                    .width(100.dp),
-                height = 36.dp,
+                    .width(100.dp)
+                    .height(36.dp),
                 shape = RoundedCornerShape(8.dp)
             )
         }
     }
 }
-
-

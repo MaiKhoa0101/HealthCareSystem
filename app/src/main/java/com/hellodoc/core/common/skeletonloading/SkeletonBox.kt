@@ -23,13 +23,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SkeletonBox(
     modifier: Modifier = Modifier,
-    height: Dp,
     shape: Shape = RoundedCornerShape(8.dp)
 ) {
     val shimmerColors = listOf(
-        Color(0xFFE0F7FA), // nhạt xanh cyan
-        Color(0xFFB2EBF2), // cyan hơi đậm
-        Color(0xFFE0F7FA)  // nhạt trở lại
+        Color(0xFFE0F7FA),
+        Color(0xFFB2EBF2),
+        Color(0xFFE0F7FA)
     )
 
     val transition = rememberInfiniteTransition(label = "Shimmer")
@@ -50,7 +49,6 @@ fun SkeletonBox(
 
     Box(
         modifier = modifier
-            .height(height)
             .background(brush = brush, shape = shape)
     )
 }

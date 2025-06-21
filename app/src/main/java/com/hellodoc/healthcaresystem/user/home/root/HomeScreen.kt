@@ -209,7 +209,6 @@ fun HealthMateHomeScreen(
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(0.4f)
                                 .height(24.dp),
-                            height = 24.dp,
                             shape = RoundedCornerShape(4.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -558,7 +557,6 @@ fun NewsSkeletonItem() {
                 .fillMaxWidth()
                 .height(16.dp)
                 .padding(end = 32.dp),
-            height = 16.dp
         )
         Spacer(modifier = Modifier.height(5.dp))
         Divider(color = Color.White, thickness = 1.dp)
@@ -641,7 +639,6 @@ fun ServiceSkeletonGrid() {
                             .weight(1f)
                             .height(60.dp)
                             .clip(RoundedCornerShape(8.dp)),
-                        height = 60.dp,
                         shape = RoundedCornerShape(8.dp)
                     )
                 }
@@ -698,14 +695,16 @@ fun SpecialtySkeletonList() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             SkeletonBox(
-                modifier = Modifier.width(100.dp),
-                height = 20.dp,
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(20.dp),
                 shape = RoundedCornerShape(4.dp)
             )
 
             SkeletonBox(
-                modifier = Modifier.width(60.dp),
-                height = 16.dp,
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(16.dp),
                 shape = RoundedCornerShape(4.dp)
             )
         }
@@ -731,8 +730,9 @@ fun SpecialtySkeletonList() {
                         verticalArrangement = Arrangement.Center
                     ) {
                         SkeletonBox(
-                            modifier = Modifier.size(80.dp),
-                            height = 80.dp,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .height(80.dp),
                             shape = RoundedCornerShape(8.dp)
                         )
 
@@ -742,7 +742,6 @@ fun SpecialtySkeletonList() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(14.dp),
-                            height = 14.dp,
                             shape = RoundedCornerShape(4.dp)
                         )
                     }
@@ -888,13 +887,15 @@ fun DoctorSkeletonList() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             SkeletonBox(
-                modifier = Modifier.width(120.dp),
-                height = 20.dp,
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(20.dp),
                 shape = RoundedCornerShape(4.dp)
             )
             SkeletonBox(
-                modifier = Modifier.width(60.dp),
-                height = 16.dp,
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(16.dp),
                 shape = RoundedCornerShape(4.dp)
             )
         }
@@ -918,7 +919,6 @@ fun DoctorSkeletonList() {
                         modifier = Modifier
                             .size(90.dp)
                             .clip(CircleShape),
-                        height = 90.dp,
                         shape = CircleShape
                     )
 
@@ -929,7 +929,6 @@ fun DoctorSkeletonList() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(14.dp),
-                        height = 14.dp,
                         shape = RoundedCornerShape(4.dp)
                     )
 
@@ -940,7 +939,6 @@ fun DoctorSkeletonList() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(12.dp),
-                        height = 12.dp,
                         shape = RoundedCornerShape(4.dp)
                     )
                 }
@@ -1120,20 +1118,21 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .size(45.dp)
                     .clip(CircleShape),
-                height = 45.dp,
                 shape = CircleShape
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 SkeletonBox(
-                    modifier = Modifier.width(120.dp),
-                    height = 16.dp,
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(16.dp),
                     shape = RoundedCornerShape(4.dp)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 SkeletonBox(
-                    modifier = Modifier.width(60.dp),
-                    height = 12.dp,
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(12.dp),
                     shape = RoundedCornerShape(4.dp)
                 )
             }
@@ -1145,8 +1144,8 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
             SkeletonBox(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                height = 16.dp,
+                    .padding(vertical = 4.dp)
+                    .height(16.dp),
                 shape = RoundedCornerShape(4.dp)
             )
         }
@@ -1156,8 +1155,8 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
         SkeletonBox(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp)),
-            height = 250.dp,
+                .clip(RoundedCornerShape(10.dp))
+                .height(250.dp),
             shape = RoundedCornerShape(10.dp)
         )
 
@@ -1168,13 +1167,15 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         ) {
             SkeletonBox(
-                modifier = Modifier.width(80.dp),
-                height = 24.dp,
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(24.dp),
                 shape = RoundedCornerShape(6.dp)
             )
             SkeletonBox(
-                modifier = Modifier.width(80.dp),
-                height = 24.dp,
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(24.dp),
                 shape = RoundedCornerShape(6.dp)
             )
         }
