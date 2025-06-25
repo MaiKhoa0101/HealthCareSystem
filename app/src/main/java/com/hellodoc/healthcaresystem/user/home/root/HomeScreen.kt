@@ -41,17 +41,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
+import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.post.InteractPostManager
 import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
@@ -88,7 +84,6 @@ fun HealthMateHomeScreen(
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
     val user by userViewModel.user.collectAsState()
-
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
@@ -182,7 +177,8 @@ fun HealthMateHomeScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     if (newsState.isEmpty()) {
-                        EmptyList("tin mới")
+//                        EmptyList("tin mới")
+                        NewsSkeletonList()
                     } else {
                         MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
                     }
@@ -191,10 +187,21 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "services") {
-                SectionHeader(title = "Dịch vụ toàn diện")
                 if (medicalOptionState.isEmpty()) {
-                    EmptyList("dịch vụ hệ thống")
+//                    EmptyList("dịch vụ hệ thống")
+                    Column {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxWidth(0.4f)
+                                .height(24.dp),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        ServiceSkeletonGrid()
+                    }
                 } else {
+                    SectionHeader(title = "Dịch vụ toàn diện")
                     GridServiceList(medicalOptionState) { medicalOption ->
                         when (medicalOption.name) {
                             "Tính BMI" -> navHostController.navigate("bmi-checking")
@@ -219,7 +226,8 @@ fun HealthMateHomeScreen(
 
             item(key = "specialties") {
                 if (specialtyState.isEmpty()) {
-                    EmptyList("chuyên khoa")
+//                    EmptyList("chuyên khoa")
+                    SpecialtySkeletonList()
                 } else {
                     SpecialtyList(
                         navHostController = navHostController,
@@ -231,7 +239,8 @@ fun HealthMateHomeScreen(
             item(key = "doctors") {
                 Spacer(modifier = Modifier.height(8.dp))
                 if (doctorState.isEmpty()) {
-                    EmptyList("bác sĩ")
+//                    EmptyList("bác sĩ")
+                    DoctorSkeletonList()
                 } else {
                     println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctorState)
@@ -256,7 +265,11 @@ fun HealthMateHomeScreen(
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+//                        CircularProgressIndicator()
+                        repeat(3) { // Hiển thị 3 skeleton post giả
+                            UserPostSkeleton()
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
                     }
                 }
                 else{
@@ -265,7 +278,8 @@ fun HealthMateHomeScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text("Đã hết bài viết")
-                    }                }
+                    }
+                }
             }
 
             item(key = "bottom_space") {
@@ -282,6 +296,7 @@ fun HealthMateHomeScreen(
         }
     }
 }
+
 //lặp lại title 3 lần nếu độ dài < N ký tự
 fun forceMarqueeText(title: String, repeatCount: Int = 3): String {
     return if (title.length < 30) {
@@ -516,6 +531,33 @@ fun AssistantQueryRow(
     }
 }
 
+@Composable
+fun NewsSkeletonItem() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .padding(end = 32.dp),
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Divider(color = Color.White, thickness = 1.dp)
+    }
+}
+
+@Composable
+fun NewsSkeletonList(count: Int = 2) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        repeat(count) {
+            NewsSkeletonItem()
+        }
+    }
+}
+
 
 @Composable
 fun NewsItem(
@@ -569,6 +611,31 @@ fun NewsItemList(
 }
 
 @Composable
+fun ServiceSkeletonGrid() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        repeat(1) { // 1 hàng, mỗi hàng 1 ô
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                repeat(1) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+
+@Composable
 fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
@@ -601,6 +668,75 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
         }
     }
 }
+
+@Composable
+fun SpecialtySkeletonList() {
+    Column {
+        // Header skeleton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(20.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+
+            SkeletonBox(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(16.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
+            items(6) {
+                Box(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .height(80.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        SkeletonBox(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(14.dp),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun SpecialtyList(
@@ -718,6 +854,81 @@ fun SpecialtyItem(
                 ),
                 maxLines = 2
             )
+        }
+    }
+}
+
+@Composable
+fun DoctorSkeletonList() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF73E3E7)) // cùng tone với phần real content
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(20.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(16.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+        ) {
+            items(6) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(120.dp)
+                ) {
+                    // Avatar circle
+                    SkeletonBox(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape),
+                        shape = CircleShape
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Name line
+                    SkeletonBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(14.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Specialty line
+                    SkeletonBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -875,4 +1086,90 @@ fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> 
             Text(text = service.name, fontSize = 14.sp, color = Color.Black, textAlign = TextAlign.Center)
         }
     }
+}
+
+@Composable
+fun UserPostSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(10.dp)
+    ) {
+        // Header: Avatar + Name
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(CircleShape),
+                shape = CircleShape
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(16.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(12.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+            }
+        }
+
+        // Nội dung bài viết (text)
+        Spacer(modifier = Modifier.height(16.dp))
+        repeat(2) {
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .height(16.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+        }
+
+        // Ảnh bài viết
+        Spacer(modifier = Modifier.height(10.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .height(250.dp),
+            shape = RoundedCornerShape(10.dp)
+        )
+
+        // Like - Comment buttons
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(24.dp),
+                shape = RoundedCornerShape(6.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(24.dp),
+                shape = RoundedCornerShape(6.dp)
+            )
+        }
+    }
+
+    HorizontalDivider(
+        thickness = 2.dp,
+        color = Color.Gray,
+        modifier = Modifier.padding(top = 12.dp)
+    )
 }

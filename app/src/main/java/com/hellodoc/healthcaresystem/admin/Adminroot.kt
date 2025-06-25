@@ -21,6 +21,8 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.responsemodel.SidebarItem
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.root.MainApplication
 import kotlinx.coroutines.launch
 
 class AdminRoot : BaseActivity() {
@@ -30,8 +32,9 @@ class AdminRoot : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val dao = (application as MainApplication).database.appointmentDao()
             HealthCareSystemTheme {
-                AdminScreen(sharedPreferences)
+                AdminScreen(sharedPreferences, dao = dao)
             }
         }
     }
@@ -89,7 +92,7 @@ val sidebarItems = listOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AdminScreen(sharedPreferences: SharedPreferences) {
+fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -154,7 +157,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
                     composable("AppointmentManager") {
-                        AppointmentManagerScreen(sharedPreferences)
+                        AppointmentManagerScreen(sharedPreferences, dao = dao)
                     }
                     composable("ClarifyManager") {
                         ClarifyManagerScreen(sharedPreferences, navController)

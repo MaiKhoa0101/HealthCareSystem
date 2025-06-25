@@ -51,6 +51,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -109,13 +110,14 @@ class HomeActivity : BaseActivity() {
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         // Obtain the FirebaseAnalytics instance.
         firebaseAnalytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
+        val dao = (application as MainApplication).database.appointmentDao()
+
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
@@ -167,7 +169,8 @@ class HomeActivity : BaseActivity() {
                     geminiViewModel = geminiViewModel,
                     newsViewModel = newsViewModel,
                     postViewModel = postViewModel,
-                    faqItemViewModel = faqItemViewModel
+                    faqItemViewModel = faqItemViewModel,
+                    dao = dao
                 )
             }
         }
@@ -208,7 +211,8 @@ class HomeActivity : BaseActivity() {
         newsViewModel: NewsViewModel,
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        dao: AppointmentDao
     ) {
         GetFcmInstance(sharedPreferences, userViewModel)
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -240,7 +244,8 @@ class HomeActivity : BaseActivity() {
                 newsViewModel = newsViewModel,
                 postViewModel = postViewModel,
                 faqItemViewModel = faqItemViewModel,
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues),
+                dao
             )
         }
     }
@@ -260,7 +265,8 @@ class HomeActivity : BaseActivity() {
         newsViewModel: NewsViewModel,
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        dao: AppointmentDao
     ) {
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
@@ -288,7 +294,7 @@ class HomeActivity : BaseActivity() {
                 NewsDetailScreen(navHostController, viewModel = newsViewModel)
             }
             composable("appointment") {
-                AppointmentListScreen(sharedPreferences, navHostController)
+                AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
@@ -335,7 +341,8 @@ class HomeActivity : BaseActivity() {
                 AppointmentDetailScreen(
                     context = context,
                     onBack = { navHostController.popBackStack() },
-                    navHostController = navHostController
+                    navHostController = navHostController,
+                    dao
                 )
             }
             composable("doctor_list") {
@@ -358,12 +365,13 @@ class HomeActivity : BaseActivity() {
                     AppointmentDetailScreen(
                         context = context,
                         onBack = { navHostController.popBackStack() },
-                        navHostController = navHostController
+                        navHostController = navHostController,
+                        dao
                     )
                 }
             }
             composable("booking-confirm") {
-                ConfirmBookingScreen(context = context, navHostController = navHostController)
+                ConfirmBookingScreen(context = context, navHostController = navHostController, dao)
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)

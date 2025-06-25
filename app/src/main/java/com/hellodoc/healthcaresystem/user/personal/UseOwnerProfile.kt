@@ -35,10 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,8 +50,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
-import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.user.home.doctor.ShimmerEffect
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -74,6 +75,7 @@ fun ProfileUserPage(
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
+
 //    val comments by postViewModel.comments.collectAsState()
     var shouldReloadPosts by remember { mutableStateOf(false) }
     val navEntry = navHostController.currentBackStackEntry
@@ -95,6 +97,7 @@ fun ProfileUserPage(
 
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
+    println("USER: $user")
     val isUserLoading = user == null
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
@@ -107,7 +110,6 @@ fun ProfileUserPage(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     val posts by postViewModel.posts.collectAsState()
-
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier
@@ -136,7 +138,7 @@ fun ProfileUserPage(
                         navHostController = navHostController,
                         idUserOfPost = user!!.id,
                         userWhoInteractWithThisPost = user!!,
-                        postViewModel = postViewModel,
+                        postViewModel = postViewModel
                     )
                 }
             }
@@ -307,55 +309,92 @@ fun UserSkeleton() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF00E5FF),
+                        Color(0xFF00C5CB)
+                    )
+                )
+            )
+            .padding(10.dp)
     ) {
+        // Skeleton for UserIntroSection
         Box(
             modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(Color.LightGray)
-                .align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier
-                .height(20.dp)
-                .width(100.dp)
-                .align(Alignment.CenterHorizontally)
-                .background(Color.LightGray)
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Box(
-            modifier = Modifier
-                .height(14.dp)
-                .width(180.dp)
-                .align(Alignment.CenterHorizontally)
-                .background(Color.LightGray)
-        )
-    }
-}
-
-@Composable
-fun PostSkeleton() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        repeat(2) {
-            Box(
+                .fillMaxWidth()
+                .height(250.dp)
+                .padding(16.dp)
+        ) {
+            // Skeleton for more button (3 dots icon)
+            ShimmerEffect(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .padding(vertical = 8.dp)
-                    .background(Color.LightGray, RoundedCornerShape(10.dp))
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            )
+
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                // Skeleton for avatar
+                ShimmerEffect(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                // Skeleton for name
+                ShimmerEffect(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .width(160.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                // Skeleton for email
+                ShimmerEffect(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(120.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(26.dp))
+
+        // Skeleton for UserProfileModifierSection
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            // Skeleton for "Chỉnh sửa hồ sơ" button
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(60.dp)
+                    .width(128.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            // Skeleton for "Quản lý phòng khám" button
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(60.dp)
+                    .width(128.dp)
+                    .clip(RoundedCornerShape(10.dp))
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
+
+
 
 

@@ -60,7 +60,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     navHostController: NavHostController,
@@ -173,13 +172,13 @@ fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost:
         Column (
             modifier = Modifier
                 .clickable {
-                if (post.user.id !=userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile/${post.user.id}")
-                }
-                else {
-                    navHostController.navigate("personal")
-                }
-            },
+                    if (post.user.id !=userWhoInteractWithThisPost.id) {
+                        navHostController.navigate("otherUserProfile/${post.user.id}")
+                    }
+                    else {
+                        navHostController.navigate("personal")
+                    }
+                },
         ){
             Text(
                 text = post.user.name,

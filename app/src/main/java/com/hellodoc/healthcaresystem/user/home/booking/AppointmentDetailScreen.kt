@@ -40,6 +40,7 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -72,7 +73,7 @@ fun formatDateForServer(input: String): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
+fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController, dao: AppointmentDao) {
 
     println(" appointment detail render duoc")
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -151,7 +152,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
             hasHomeService = it
         }
 
-        println("test nhaa")
+        println("TEST LAN 2")
         println("doctorID" + doctorId)
         println("doctorName" + doctorName)
         println("doctorAddress" + doctorAddress)
@@ -206,7 +207,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
                 item {
                     if (isEditing) {
-                        UpdateButton(navHostController, sharedPreferences, examinationMethod, notes)
+                        UpdateButton(navHostController, sharedPreferences, examinationMethod, notes, dao)
                     } else {
                         BookButton(navHostController, sharedPreferences, examinationMethod, notes)
                     }
@@ -218,10 +219,10 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
+fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String, dao: AppointmentDao) {
     println(" update btn render duoc")
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao) }
     })
 
     var showDialog by remember { mutableStateOf(false) }
@@ -747,15 +748,16 @@ fun InfoRow(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(name = "Light Mode")
-@Composable
-fun PreviewAppointmentDetailScreen() {
-    val context = LocalContext.current
-    val fakeNavController = rememberNavController()
-    AppointmentDetailScreen(
-        context = context,
-        onBack = {},
-        navHostController = fakeNavController,
-    )
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Preview(name = "Light Mode")
+//@Composable
+//fun PreviewAppointmentDetailScreen() {
+//    val context = LocalContext.current
+//    val fakeNavController = rememberNavController()
+//    AppointmentDetailScreen(
+//        context = context,
+//        onBack = {},
+//        navHostController = fakeNavController,
+//
+//    )
+//}
