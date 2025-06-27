@@ -57,8 +57,6 @@ import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.home.booking.doctorAddress
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
-import com.hellodoc.healthcaresystem.user.home.booking.doctorName
-import com.hellodoc.healthcaresystem.user.home.booking.specialtyName
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -67,11 +65,11 @@ var userId = ""
 
 var userModel = ""
 
-var doctorId = ""
+var doctorID = ""
 
 var doctorName = ""
 
-var doctorAddress = ""
+var doctorAvatar = ""
 
 var specialtyName = ""
 
@@ -320,6 +318,19 @@ fun DoctorScreen(
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingStat by viewModel.isLoadingStats.collectAsState()
+    doctorID = doctor?.id ?: ""
+
+    doctorName = doctor?.name ?: ""
+
+    doctorAddress = doctor?.address ?: ""
+
+    doctorAvatar = doctor?.avatarURL ?: ""
+
+    specialtyName = doctor?.specialty?.name ?: ""
+
+    isClinicPaused = doctor?.isClinicPaused ?: false
+
+    hasHomeService = doctor?.hasHomeService ?: false
 
     LaunchedEffect(reloadTrigger?.value) {
         if (reloadTrigger?.value == true) {
@@ -1036,14 +1047,9 @@ fun BookingButton(navController: NavHostController) {
                             set("doctorId", doctorId)
                             set("doctorName", doctorName)
                             set("doctorAddress", doctorAddress)
+                            set("doctorAvatar", doctorAvatar)
                             set("specialtyName", specialtyName)
                             set("hasHomeService", hasHomeService)
-
-                            println("PRINT O DOCTOR PROFILE")
-                            println("doctorID" + doctorId)
-                            println("doctorName" + doctorName)
-                            println("doctorAddress" + doctorAddress)
-                            println("specialtyName" + specialtyName)
                         }
                         navController.navigate("booking")
                     },

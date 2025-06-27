@@ -211,17 +211,6 @@ fun HealthMateHomeScreen(
                         }
                     }
                 }
-                Button(
-                    onClick = {
-                        // Cố tình gây crash
-                        throw RuntimeException("Test Crash button clicked!")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Text(text = "Test Crash")
-                }
             }
 
             item(key = "specialties") {

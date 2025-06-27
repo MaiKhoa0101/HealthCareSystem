@@ -12,6 +12,7 @@ data class AppointmentEntity(
     val specialtyId: String,
     val appointmentDate: String,
     val appointmentTime: String,
+    val location: String,
     val status: String,
     val reason: String?,
     val notes: String?,
@@ -24,3 +25,4 @@ data class AppointmentEntity(
     val patientName: String?,
     val specialtyName: String?
 )
+

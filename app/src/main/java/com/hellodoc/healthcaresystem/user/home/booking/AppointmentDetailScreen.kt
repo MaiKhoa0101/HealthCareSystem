@@ -40,15 +40,20 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
+import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
+import com.hellodoc.healthcaresystem.user.home.doctor.specialtyName
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
 var doctorId: String = ""
-var doctorName: String = ""
+//var doctorName: String = "phuong"
 var doctorAddress: String = ""
-var specialtyName: String = ""
+//var specialtyName: String = "boc phet"
 var patientID: String = ""
 var patientName: String = ""
 var patientPhone: String = ""
@@ -139,6 +144,9 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<String>("doctorAddress")?.let {
             doctorAddress = it
         }
+        savedStateHandle?.get<String>("doctorAvatar")?.let {
+            doctorAvatar = it
+        }
         savedStateHandle?.get<String>("specialtyName")?.let {
             specialtyName = it
         }
@@ -151,12 +159,6 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<Boolean>("hasHomeService")?.let {
             hasHomeService = it
         }
-
-        println("TEST LAN 2")
-        println("doctorID" + doctorId)
-        println("doctorName" + doctorName)
-        println("doctorAddress" + doctorAddress)
-        println("specialtyName" + specialtyName)
 
         isDataLoaded = true
     }
@@ -283,7 +285,6 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
 
 @Composable
 fun TopBar(title: String,onClick: () -> Unit) {
-    println("top bar render duoc")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -314,7 +315,6 @@ fun TopBar(title: String,onClick: () -> Unit) {
 
 @Composable
 fun DoctorInfoSection() {
-    println("doctor info render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -325,11 +325,12 @@ fun DoctorInfoSection() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.doctor), // thay bằng ảnh thực tế
-                contentDescription = "Doctor",
+                painter = rememberAsyncImagePainter(doctorAvatar),
+                contentDescription = "anh bac si",
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
+                    .padding(end = 8.dp)
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -444,7 +445,6 @@ fun PatientInfoSection() {
 
 @Composable
 fun VisitMethodSection(examinationMethod:  MutableState<String>) {
-    println("visit method render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -631,14 +631,6 @@ fun FeeSummarySection() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
-//    val appointmentViewModel: AppointmentViewModel = viewModel(
-//        factory = viewModelFactory {
-//            initializer {
-//                AppointmentViewModel(sharedPreferences)
-//            }
-//        }
-//    )
-    println(" book btn render duoc")
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 
@@ -654,10 +646,6 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
             text = { Text(dialogMessage) }
         )
     }
-
-
-
-//    FeeSummarySection()
 
     Button(
         onClick = {
@@ -685,8 +673,8 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF00C5CB), // Màu nền
-            contentColor = Color.White          // Màu chữ
+            containerColor = Color(0xFF00C5CB),
+            contentColor = Color.White
         )
     ) {
         Text(
@@ -700,7 +688,6 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
 
 @Composable
 fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    println(" card render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -721,7 +708,6 @@ fun InfoRow(
     valueColor: Color = Color.Black,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
-    println("info row render duoc")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -748,16 +734,3 @@ fun InfoRow(
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
-//@Preview(name = "Light Mode")
-//@Composable
-//fun PreviewAppointmentDetailScreen() {
-//    val context = LocalContext.current
-//    val fakeNavController = rememberNavController()
-//    AppointmentDetailScreen(
-//        context = context,
-//        onBack = {},
-//        navHostController = fakeNavController,
-//
-//    )
-//}

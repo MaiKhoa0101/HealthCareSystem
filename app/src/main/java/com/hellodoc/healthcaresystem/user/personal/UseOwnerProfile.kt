@@ -281,7 +281,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 if (user == null) {
                     return@Button
                 }
-                else if (user.role=="user"){
+                else if (user.role=="User"){
                     navHostController.navigate("doctorRegister")
                 }
                 else{
@@ -295,7 +295,11 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 .width(128.dp)
         ) {
             Text(
-                text = "Quản lý phòng khám",
+                text =  if (user?.role == "User") {
+                    "Đăng kí phòng khám"
+                } else {
+                    "Quản lý phòng khám"
+                },
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center

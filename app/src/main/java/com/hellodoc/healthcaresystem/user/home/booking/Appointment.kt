@@ -127,9 +127,9 @@ fun AppointmentScreenUI(
             null
         }
     }
-    val userRole = jwt?.getClaim("role")?.asString() ?: "user"
-    val isPatient = userRole == "user" || userRole == "patient"
-    val isDoctor = userRole == "doctor"
+    val userRole = jwt?.getClaim("role")?.asString() ?: "User"
+    val isPatient = userRole == "User"
+    val isDoctor = userRole == "Doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
     val appointmentUpdated by appointmentViewModel.appointmentUpdated.collectAsState()
     val isLoading by appointmentViewModel.isLoading.collectAsState()
@@ -215,14 +215,12 @@ fun AppointmentScreenUI(
                 }
             }
 
-            // ✅ Chọn lịch theo VAI TRÒ
             val appointmentsRole = when (roleSelectedTab) {
                 0 -> appointmentsUser // Vai trò "Đã đặt" (User đặt lịch)
                 1 -> appointmentsDoc  // Vai trò "Được đặt" (Doctor được đặt lịch)
                 else -> appointmentsUser
             }
 
-            // ✅ Lọc theo TRẠNG THÁI
             val filteredAppointments = when (selectedTab) {
                 0 -> appointmentsRole.filter { it.status == "pending" }
                 1 -> appointmentsRole.filter { it.status == "done" }
@@ -239,7 +237,6 @@ fun AppointmentScreenUI(
                     }
                 }
             } else {
-                // ✅ Hiển thị
                 LazyColumn {
                     items(filteredAppointments) { appointment ->
                         AppointmentCard(
