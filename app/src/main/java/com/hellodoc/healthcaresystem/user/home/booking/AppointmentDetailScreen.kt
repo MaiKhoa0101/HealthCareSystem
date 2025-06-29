@@ -44,24 +44,24 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-var doctorId: String = ""
-var doctorName: String = ""
-var doctorAddress: String = ""
-var specialtyName: String = ""
-var patientID: String = ""
-var patientName: String = ""
-var patientPhone: String = ""
-var patientAddress: String = ""
-var date: String = "" // Ví dụ: "20/04/2025"
-var time: String = "" // Ví dụ: "14:30"
-//var status: String = "pending" // pending/confirmed/cancelled
-//var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
-var totalCost: String = "0"
-var reason: String = "hello"
-var location: String = ""
-var patientModel = ""
-var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
-var hasHomeService = false
+//var doctorId: String = ""
+//var doctorName: String = ""
+//var doctorAddress: String = ""
+//var specialtyName: String = ""
+//var patientID: String = ""
+//var patientName: String = ""
+//var patientPhone: String = ""
+//var patientAddress: String = ""
+//var date: String = "" // Ví dụ: "20/04/2025"
+//var time: String = "" // Ví dụ: "14:30"
+////var status: String = "pending" // pending/confirmed/cancelled
+////var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
+//var totalCost: String = "0"
+//var reason: String = "hello"
+//var location: String = ""
+//var patientModel = ""
+//var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
+//var hasHomeService = false
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateForServer(input: String): String {
@@ -85,6 +85,24 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     // Biến kiểm tra xem đang ở chế độ chỉnh sửa hay tạo mới
     var isEditing by remember { mutableStateOf(false)}
 
+    // All moved state variables
+        var doctorId by remember { mutableStateOf("") }
+        var doctorName by remember { mutableStateOf("") }
+        var doctorAddress by remember { mutableStateOf("") }
+        var specialtyName by remember { mutableStateOf("") }
+    var patientID by remember { mutableStateOf("") }
+    var patientName by remember { mutableStateOf("") }
+    var patientPhone by remember { mutableStateOf("") }
+    var patientAddress by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
+    var time by remember { mutableStateOf("") }
+    var totalCost by remember { mutableStateOf("0") }
+    var reason by remember { mutableStateOf("hello") }
+    var location by remember { mutableStateOf("") }
+    var patientModel by remember { mutableStateOf("") }
+    var appointmentId by remember { mutableStateOf("") }
+    var hasHomeService by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         patientName = userViewModel.getUserAttributeString("name")
         println("patientName" + patientName)
@@ -97,59 +115,55 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         patientModel = userViewModel.getUserAttributeString("role")
     }
 
+//    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
+//    val selectedDateLiveData = navHostController.currentBackStackEntry
+//        ?.savedStateHandle
+//        ?.getLiveData<String>("selected_date")
+//
+//    val selectedDateState = selectedDateLiveData?.observeAsState()
+//    val selectedDate = selectedDateState?.value ?: remember { mutableStateOf("") }.value
+//
+//    val selectedTimeLiveData = navHostController.currentBackStackEntry
+//        ?.savedStateHandle
+//        ?.getLiveData<String>("selected_time")
+//
+//    val selectedTimeState = selectedTimeLiveData?.observeAsState()
+//    val selectedTime = selectedTimeState?.value ?: ""
+//
+//    LaunchedEffect(selectedDate, selectedTime) {
+//        if (selectedDate.isNotEmpty()) date = selectedDate
+//        if (selectedTime.isNotEmpty()) time = selectedTime
+//    }
+
+    // Lấy ngày giờ từ backstack
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    val selectedDateLiveData = navHostController.currentBackStackEntry
+    val selectedDateState = navHostController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<String>("selected_date")
-
-    val selectedDateState = selectedDateLiveData?.observeAsState()
-    val selectedDate = selectedDateState?.value ?: remember { mutableStateOf("") }.value
-
-    val selectedTimeLiveData = navHostController.currentBackStackEntry
+        ?.observeAsState()
+    val selectedTimeState = navHostController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<String>("selected_time")
+        ?.observeAsState()
+    savedStateHandle?.get<String>("doctorId")?.let { doctorId = it }
+    println("doctorID: " + doctorId)
 
-    val selectedTimeState = selectedTimeLiveData?.observeAsState()
-    val selectedTime = selectedTimeState?.value ?: ""
-
-    LaunchedEffect(selectedDate, selectedTime) {
-        if (selectedDate.isNotEmpty()) date = selectedDate
-        if (selectedTime.isNotEmpty()) time = selectedTime
+    LaunchedEffect(selectedDateState?.value, selectedTimeState?.value) {
+        selectedDateState?.value?.let { date = it }
+        selectedTimeState?.value?.let { time = it }
     }
 
     LaunchedEffect(Unit) {
         // Kiểm tra xem có đang ở chế độ chỉnh sửa không
-        savedStateHandle?.get<Boolean>("isEditing")?.let {
-            isEditing = it
-            if (isEditing) {
-                // Nếu đang chỉnh sửa, lấy ID của lịch hẹn
-                savedStateHandle.get<String>("appointmentId")?.let {
-                    appointmentId = it
-                }
-            }
-        }
-
-        savedStateHandle?.get<String>("doctorId")?.let {
-            doctorId = it
-        }
-        savedStateHandle?.get<String>("doctorName")?.let {
-            doctorName = it
-        }
-        savedStateHandle?.get<String>("doctorAddress")?.let {
-            doctorAddress = it
-        }
-        savedStateHandle?.get<String>("specialtyName")?.let {
-            specialtyName = it
-        }
-        savedStateHandle?.get<String>("notes")?.let {
-            reason = it
-        }
-        savedStateHandle?.get<String>("location")?.let {
-            location = it
-        }
-        savedStateHandle?.get<Boolean>("hasHomeService")?.let {
-            hasHomeService = it
-        }
+        savedStateHandle?.get<Boolean>("isEditing")?.let { isEditing = it }
+        savedStateHandle?.get<String>("appointmentId")?.let { appointmentId = it }
+        savedStateHandle?.get<String>("doctorId")?.let { doctorId = it }
+        savedStateHandle?.get<String>("doctorName")?.let { doctorName = it }
+        savedStateHandle?.get<String>("doctorAddress")?.let { doctorAddress = it }
+        savedStateHandle?.get<String>("specialtyName")?.let { specialtyName = it }
+        savedStateHandle?.get<String>("notes")?.let { reason = it }
+        savedStateHandle?.get<String>("location")?.let { location = it }
+        savedStateHandle?.get<Boolean>("hasHomeService")?.let { hasHomeService = it }
 
         println("test nhaa")
         println("doctorID" + doctorId)
@@ -162,13 +176,13 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
     if (isDataLoaded && patientID.isNotBlank() && doctorId.isNotBlank()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             val examinationMethod = remember { mutableStateOf("") }
-            var notes by remember {
-                mutableStateOf(savedStateHandle?.get<String>("notes") ?: "")
-            }
+//            var notes by remember {
+//                mutableStateOf(savedStateHandle?.get<String>("notes") ?: "")
+//            }
+            var notes by remember { mutableStateOf(reason) }
 
             val title = if (isEditing) "Chỉnh sửa lịch hẹn khám" else "Chi tiết lịch hẹn khám"
 
@@ -181,20 +195,37 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    DoctorInfoSection()
+                    DoctorInfoSection(
+                        doctorName = doctorName,
+                        specialtyName = specialtyName
+                    )
+                }
+                item {
+                    PatientInfoSection(
+                        patientName = patientName,
+                        patientPhone = patientPhone
+                    )
                 }
 
                 item {
-                    PatientInfoSection()
+                    VisitMethodSection(
+                        examinationMethod = examinationMethod,
+                        doctorAddress = doctorAddress,
+                        patientAddress = patientAddress,
+                        hasHomeService = hasHomeService
+                    )
+                }
+                item {
+                    AppointmentDateSection(
+                        navHostController = navHostController,
+                        doctorId = doctorId,
+                        date = date,
+                        time = time,
+                        isEditing = isEditing,
+                        appointmentId = appointmentId
+                    )
                 }
 
-                item {
-                    VisitMethodSection(examinationMethod)
-                }
-
-                item {
-                    AppointmentDateSection(navHostController)
-                }
 
                 item {
                     NoteToDoctorSection(notes, onNoteChange = { notes = it })
@@ -206,9 +237,37 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
                 item {
                     if (isEditing) {
-                        UpdateButton(navHostController, sharedPreferences, examinationMethod, notes)
+                        UpdateButton(
+                            navHostController = navHostController,
+                            sharedPreferences = sharedPreferences,
+                            examinationMethod = examinationMethod,
+                            notes = notes,
+                            appointmentId = appointmentId,
+                            patientID = patientID,
+                            date = date,
+                            time = time
+                        )
                     } else {
-                        BookButton(navHostController, sharedPreferences, examinationMethod, notes)
+                        BookButton(
+                            navHostController = navHostController,
+                            sharedPreferences = sharedPreferences,
+                            examinationMethod = examinationMethod,
+                            notes = notes,
+                            date = date,
+                            time = time,
+                            doctorId = doctorId,
+                            doctorName = doctorName,
+                            doctorAddress = doctorAddress,
+                            specialtyName = specialtyName,
+                            patientID = patientID,
+                            patientName = patientName,
+                            patientPhone = patientPhone,
+                            patientAddress = patientAddress,
+                            patientModel = patientModel,
+                            totalCost = totalCost,
+                            location = location,
+                            hasHomeService = hasHomeService
+                        )
                     }
                 }
             }
@@ -218,8 +277,16 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UpdateButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
-    println(" update btn render duoc")
+fun UpdateButton(
+    navHostController: NavHostController,
+    sharedPreferences: SharedPreferences,
+    examinationMethod: MutableState<String>,
+    notes: String,
+    appointmentId: String,
+    patientID: String,
+    date: String,
+    time: String
+) {
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
         initializer { AppointmentViewModel(sharedPreferences) }
     })
@@ -254,7 +321,7 @@ fun UpdateButton(navHostController: NavHostController, sharedPreferences: Shared
                 else -> {
                     val updateRequest = UpdateAppointmentRequest(
                         date = formatDateForServer(date),
-                        time = time,
+                        time = time
                     )
 
                     appointmentViewModel.updateAppointment(
@@ -312,7 +379,10 @@ fun TopBar(title: String,onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorInfoSection() {
+fun DoctorInfoSection(
+    doctorName: String,
+    specialtyName: String
+) {
     println("doctor info render duoc")
     Column(
         modifier = Modifier
@@ -337,17 +407,16 @@ fun DoctorInfoSection() {
                 Text(doctorName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(specialtyName, color = Color.Gray)
-
-//                Spacer(modifier = Modifier.height(20.dp))
-//
-//                Text("0 đ / giờ")
             }
         }
     }
 }
 
 @Composable
-fun PatientInfoSection() {
+fun PatientInfoSection(
+    patientName: String,
+    patientPhone: String
+) {
     var showDetailDialog by remember { mutableStateOf(false) }
 
     Box(
@@ -355,7 +424,7 @@ fun PatientInfoSection() {
             .fillMaxWidth()
             .padding(top = 40.dp)
     ) {
-        // Phần nền dưới: Xem chi tiết & Sửa hồ sơ
+        // Phần nền dưới
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -380,28 +449,16 @@ fun PatientInfoSection() {
                         showDetailDialog = true
                     }
                 )
-
-//                TextButton(
-//                    onClick = { /* TODO */ },
-//                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-//                    colors = ButtonDefaults.textButtonColors(
-//                        containerColor = Color(0xFFDCF5F9),
-//                        contentColor = Color.Black
-//                    ),
-//                    shape = RoundedCornerShape(6.dp),
-//                ) {
-//                    Text("Sửa hồ sơ", fontSize = 13.sp)
-//                }
             }
         }
 
-        // Box trắng nằm đè lên trên
+        // Box thông tin
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .offset(y = (-50).dp)
-                .padding(vertical = 16.dp) // 👈 padding cho cả shadow + nội dung
+                .padding(vertical = 16.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -442,8 +499,14 @@ fun PatientInfoSection() {
 }
 
 @Composable
-fun VisitMethodSection(examinationMethod:  MutableState<String>) {
+fun VisitMethodSection(
+    examinationMethod: MutableState<String>,
+    doctorAddress: String,
+    patientAddress: String,
+    hasHomeService: Boolean
+) {
     println("visit method render duoc")
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -470,30 +533,22 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
         ) {
             Text("Khám tại phòng khám", fontWeight = FontWeight.Bold)
             Row {
-                Text(
-                    "Địa chỉ:",
-                    fontSize = 13.sp
-                )
+                Text("Địa chỉ:", fontSize = 13.sp)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    doctorAddress,
-                    fontSize = 13.sp
-                )
+                Text(doctorAddress, fontSize = 13.sp)
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if(hasHomeService && patientAddress != "Chưa có địa chỉ") {
+        if (hasHomeService && patientAddress != "Chưa có địa chỉ") {
             // Khám tại nhà
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(
-                        if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(
-                            0xFFDDFDFF
-                        )
+                        if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
                     )
                     .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
                     .clickable { examinationMethod.value = "at_home" }
@@ -501,22 +556,12 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier
-
-                        .weight(1f)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text("Khám tại nhà", fontWeight = FontWeight.Bold)
                     Row {
-                        Text(
-                            "Địa chỉ:",
-                            fontSize = 13.sp
-                        )
+                        Text("Địa chỉ:", fontSize = 13.sp)
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            patientAddress,
-                            fontSize = 13.sp
-                        )
+                        Text(patientAddress, fontSize = 13.sp)
                     }
                 }
                 Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
@@ -525,12 +570,16 @@ fun VisitMethodSection(examinationMethod:  MutableState<String>) {
     }
 }
 
-
 @Composable
-fun AppointmentDateSection(navHostController: NavHostController) {
+fun AppointmentDateSection(
+    navHostController: NavHostController,
+    doctorId: String,
+    date: String,
+    time: String,
+    isEditing: Boolean,
+    appointmentId: String
+) {
     println("appointment date render duoc")
-    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    val isEditing = savedStateHandle?.get<Boolean>("isEditing") ?: false
 
     Column(
         modifier = Modifier
@@ -549,20 +598,17 @@ fun AppointmentDateSection(navHostController: NavHostController) {
                 .background(Color(0xFFE0E0E0))
                 .padding(horizontal = 12.dp, vertical = 14.dp)
                 .clickable {
-                    // Lưu trạng thái chỉnh sửa và các thông tin cần thiết
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                         set("isEditing", isEditing)
-                        if (isEditing) {
-                            set("appointmentId", appointmentId)
-                        }
+                        if (isEditing) set("appointmentId", appointmentId)
+                    }
+                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("doctorId", doctorId)
                     }
                     navHostController.navigate("booking-calendar") {
-                        // Save necessary data to previous back stack entry
                         navHostController.previousBackStackEntry?.savedStateHandle?.apply {
                             set("isEditing", isEditing)
-                            if (isEditing) {
-                                set("appointmentId", appointmentId)
-                            }
+                            if (isEditing) set("appointmentId", appointmentId)
                         }
                     }
                 },
@@ -582,7 +628,6 @@ fun AppointmentDateSection(navHostController: NavHostController) {
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -629,15 +674,27 @@ fun FeeSummarySection() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPreferences, examinationMethod: MutableState<String>, notes: String) {
-//    val appointmentViewModel: AppointmentViewModel = viewModel(
-//        factory = viewModelFactory {
-//            initializer {
-//                AppointmentViewModel(sharedPreferences)
-//            }
-//        }
-//    )
-    println(" book btn render duoc")
+fun BookButton(
+    navHostController: NavHostController,
+    sharedPreferences: SharedPreferences,
+    examinationMethod: MutableState<String>,
+    notes: String,
+    date: String,
+    time: String,
+    doctorId: String,
+    doctorName: String,
+    doctorAddress: String,
+    specialtyName: String,
+    patientID: String,
+    patientName: String,
+    patientPhone: String,
+    patientAddress: String,
+    patientModel: String,
+    totalCost: String,
+    location: String,
+    hasHomeService: Boolean
+) {
+    println("book btn render duoc")
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 
@@ -654,10 +711,6 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
         )
     }
 
-
-
-//    FeeSummarySection()
-
     Button(
         onClick = {
             when {
@@ -670,10 +723,30 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
                     showDialog = true
                 }
                 else -> {
-
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                        // Thông tin lịch hẹn
                         set("examinationMethod", examinationMethod.value)
                         set("notes", notes)
+                        set("date", date)
+                        set("time", time)
+
+                        // Thông tin bác sĩ
+                        set("doctorId", doctorId)
+                        set("doctorName", doctorName)
+                        set("doctorAddress", doctorAddress)
+                        set("specialtyName", specialtyName)
+
+                        // Thông tin bệnh nhân
+                        set("patientID", patientID)
+                        set("patientName", patientName)
+                        set("patientPhone", patientPhone)
+                        set("patientAddress", patientAddress)
+                        set("patientModel", patientModel)
+
+                        // Thông tin khác
+                        set("totalCost", totalCost)
+                        set("location", location)
+                        set("hasHomeService", hasHomeService)
                     }
                     navHostController.navigate("booking-confirm")
                 }
@@ -684,8 +757,8 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF00C5CB), // Màu nền
-            contentColor = Color.White          // Màu chữ
+            containerColor = Color(0xFF00C5CB),
+            contentColor = Color.White
         )
     ) {
         Text(
@@ -696,6 +769,7 @@ fun BookButton(navHostController: NavHostController, sharedPreferences: SharedPr
     }
     Spacer(modifier = Modifier.height(60.dp))
 }
+
 
 @Composable
 fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {

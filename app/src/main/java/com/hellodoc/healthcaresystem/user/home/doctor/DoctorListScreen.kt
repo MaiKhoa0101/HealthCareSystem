@@ -50,10 +50,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.Doctor
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import androidx.compose.material3.*
-import com.hellodoc.healthcaresystem.user.home.booking.appointmentId
 
 @Composable
 fun DoctorListScreen(

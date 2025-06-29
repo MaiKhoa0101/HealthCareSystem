@@ -52,6 +52,7 @@ fun BookingCalendarScreen(
     })
 
     // Lấy thông tin chỉnh sửa từ màn hình trước đó
+    val doctorId = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("doctorId") ?: ""
     val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
     val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
 
@@ -64,7 +65,7 @@ fun BookingCalendarScreen(
 
 
     LaunchedEffect(doctorId) {
-        doctorId.let { doctorViewModel.fetchDoctorById(it) }
+        doctorId.let { doctorViewModel.fetchDoctorById(it.toString()) }
     }
     val doctor by doctorViewModel.doctor.collectAsState()
     val workHours = doctor?.workHour

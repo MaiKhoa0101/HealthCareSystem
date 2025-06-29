@@ -48,7 +48,6 @@ import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -162,6 +161,8 @@ fun DoctorScreen(
     val reloadTrigger =
         navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
+    var doctorId by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userName = userViewModel.getUserAttributeString("name")
@@ -175,6 +176,7 @@ fun DoctorScreen(
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
         //viewModel.fetchDoctorById(doctorId)
+        println("doctorID: " + doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
@@ -904,6 +906,7 @@ fun BookingButton(navController: NavHostController) {
             if (!isClinicPaused) {
                 Button(
                     onClick = {
+                        println("doctorID: " + doctorID)
                         navController.currentBackStackEntry?.savedStateHandle?.apply {
                             set("doctorId", doctorID)
                             set("doctorName", doctorName)
