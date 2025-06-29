@@ -55,29 +55,15 @@ import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.home.booking.doctorAddress
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+//import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+import com.hellodoc.healthcaresystem.user.home.report.ReportDoctor
+import com.hellodoc.healthcaresystem.user.home.report.ReportPostDoctor
+//import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+//import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-
-var userId = ""
-
-var userModel = ""
-
-var doctorID = ""
-
-var doctorName = ""
-
-var doctorAvatar = ""
-
-var specialtyName = ""
-
-var isClinicPaused = false
-
-var hasHomeService = false
-
-var userName = ""
 
 @Composable
 fun ShimmerEffect(
@@ -273,31 +259,48 @@ fun DoctorScreen(
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
+    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
+        initializer { DoctorViewModel(sharedPreferences) }
+    })
     var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    val coroutineScope = rememberCoroutineScope()
 
     var currentDoctorId by remember { mutableStateOf("") }
 
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger =
         navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
+    val youTheCurrentUserUseThisApp by userViewModel.user.collectAsState()
+    val doctor by viewModel.doctor.collectAsState()
+
+    var userId by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var userModel by remember { mutableStateOf("") }
+
+    var doctorId by remember { mutableStateOf("") }
+    var doctorName by remember { mutableStateOf("") }
+    var doctorAddress by remember { mutableStateOf("") }
+    var doctorAvatar by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
+    var isClinicPaused by remember { mutableStateOf(false) }
+    var hasHomeService by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userName = userViewModel.getUserAttributeString("name")
-        userModel = userViewModel.getUserAttributeString("role")
+        val userId = userViewModel.getUserAttributeString("userId")
+        userViewModel.getUser(userId)
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
-            doctorId = newDoctorId
         }
+        doctorViewModel.fetchDoctorById(currentDoctorId)
         savedStateHandle?.remove<String>("doctorId")
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
         //viewModel.fetchDoctorById(doctorId)
+        println("doctorId: " + doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
@@ -315,10 +318,9 @@ fun DoctorScreen(
         }
     }
 
-    val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingStat by viewModel.isLoadingStats.collectAsState()
-    doctorID = doctor?.id ?: ""
+    doctorId = doctor?.id ?: ""
 
     doctorName = doctor?.name ?: ""
 
@@ -339,16 +341,9 @@ fun DoctorScreen(
                 ?.savedStateHandle?.set("shouldReload", false)
         }
     }
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId, shouldReloadPosts) {
-        if (userId.isNotEmpty()) {
-            userViewModel.getUser(userId)
-            postViewModel.getPostByUserId(userId)
-        }
-    }
+
 
     // Lấy dữ liệu user từ StateFlow
-    val youTheCurrentUserUseThisApp by userViewModel.user.collectAsState()
     // Nếu chưa có user (null) thì không hiển thị giao diện
 
     // Hiển thị loading skeleton nếu đang tải hoặc chưa có dữ liệu
@@ -376,14 +371,23 @@ fun DoctorScreen(
             selectedImageUrl = selectedImageUrl,
             onDismiss = { selectedImageUrl = null })
     }
-    if (youTheCurrentUserUseThisApp == null) {return}
-    else {
+    if (youTheCurrentUserUseThisApp == null) {
+        return
+    } else {
         Scaffold(
             bottomBar = {
                 if (!showWriteReviewScreen.value) {
                     when (selectedTab) {
                         0 -> if (doctorId != userId) {
-                            BookingButton(navHostController)
+                            BookingButton(userId,
+                                doctorId,
+                                doctorName,
+                                doctorAddress,
+                                doctorAvatar,
+                                specialtyName,
+                                hasHomeService,
+                                isClinicPaused,
+                                navHostController)
                         }
 
                         1 -> WriteReviewButton { showWriteReviewScreen.value = true }
@@ -428,252 +432,25 @@ fun DoctorScreen(
             }
         }
     }
-    if (showReportDialog && userId != null) {
-        var selectedType by remember { mutableStateOf("Bác sĩ") }
-        var reportContent by remember { mutableStateOf("") }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-                .clickable(enabled = true, onClick = {}),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier
-                    .width(320.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.Gray)
-                    .padding(16.dp)
-            ) {
-                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text("Người báo cáo", fontWeight = FontWeight.Medium)
-                Text(userName, color = Color.DarkGray)
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clickable { selectedType = "Bác sĩ" }
-                            .padding(end = 10.dp)
-                    ) {
-                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
-                TextField(
-                    value = reportContent,
-                    onValueChange = { reportContent = it },
-                    placeholder = { Text("Nhập nội dung...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Huỷ",
-                        color = Color.Red,
-                        modifier = Modifier
-                            .clickable { showReportDialog = !showReportDialog  }
-                            .padding(8.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Button(onClick = {
-                        coroutineScope.launch {
-                            try {
-                                val response = RetrofitInstance.reportService.sendReport(
-                                    ReportRequest(
-                                        reporter = userId,
-                                        reporterModel = userModel,
-                                        content = reportContent,
-                                        type = selectedType,
-                                        reportedId = doctor!!.id,
-                                        postId = null
-                                    )
-                                )
-
-                                if (response.isSuccessful) {
-                                    Toast.makeText(
-                                        context,
-                                        "Đã gửi báo cáo thành công",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    println(response)
-                                    Toast.makeText(
-                                        context,
-                                        "Gửi báo cáo thất bại",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    context,
-                                    "Lỗi kết nối đến server",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                e.printStackTrace()
-                            }
-                        }
-                        showReportDialog = !showReportDialog
-                    }) {
-                        Text("Gửi báo cáo")
-                    }
-                }
-            }
-        }
+    if (showReportDialog && youTheCurrentUserUseThisApp != null) {
+        ReportDoctor(
+            context,
+            youTheCurrentUserUseThisApp,
+            doctor,
+            onClickShowReportDialog = { showReportDialog = !showReportDialog },
+            sharedPreferences,
+        )
     }
-
-    if (showPostReportDialog && userId != null) {
-        var selectedType by remember { mutableStateOf("Bài viết") }
-        var reportContent by remember { mutableStateOf("") }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-                .clickable(enabled = true, onClick = {}),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier
-                    .width(320.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.Gray)
-                    .padding(16.dp)
-            ) {
-                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text("Người báo cáo", fontWeight = FontWeight.Medium)
-                Text(userName, color = Color.DarkGray)
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier
-//                            .clickable { selectedType = "Bác sĩ" }
-//                            .padding(end = 10.dp)
-//                    ) {
-////                        RadioButton(
-////                            selected = selectedType == "Bác sĩ",
-////                            onClick = null  // <- để dùng chung onClick bên ngoài
-////                        )
-//                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
-//                    }
-//
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier
-//                            .clickable { selectedType = "Ứng dụng" }
-//                            .padding(end = 10.dp)
-//                    ) {
-//                        RadioButton(
-//                            selected = selectedType == "Ứng dụng",
-//                            onClick = null
-//                        )
-//                        Text("Ứng dụng", modifier = Modifier.padding(start = 5.dp))
-//                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedType = "Bài viết" }
-                    ) {
-//                        RadioButton(
-//                            selected = selectedType == "Bài viết",
-//                            onClick = null
-//                        )
-                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
-                TextField(
-                    value = reportContent,
-                    onValueChange = { reportContent = it },
-                    placeholder = { Text("Nhập nội dung...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Huỷ",
-                        color = Color.Red,
-                        modifier = Modifier
-                            .clickable { showPostReportDialog = !showPostReportDialog  }
-                            .padding(8.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Button(onClick = {
-                        coroutineScope.launch {
-                            try {
-                                val response = RetrofitInstance.reportService.sendReport(
-                                    ReportRequest(
-                                        reporter = userId,
-                                        reporterModel = userModel,
-                                        content = reportContent,
-                                        type = selectedType,
-                                        reportedId = doctor!!.id,
-                                        postId = null
-                                    )
-                                )
-
-                                if (response.isSuccessful) {
-                                    Toast.makeText(
-                                        context,
-                                        "Đã gửi báo cáo thành công",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    println(response)
-                                    Toast.makeText(
-                                        context,
-                                        "Gửi báo cáo thất bại",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    context,
-                                    "Lỗi kết nối đến server",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                e.printStackTrace()
-                            }
-                        }
-                        showPostReportDialog = !showPostReportDialog
-                    }) {
-                        Text("Gửi báo cáo")
-                    }
-                }
-            }
-        }
+    if (showPostReportDialog && youTheCurrentUserUseThisApp != null) {
+        ReportPostDoctor(
+            context,
+            youTheCurrentUserUseThisApp,
+            doctor,
+            onClickShowPostReportDialog = { showPostReportDialog = !showPostReportDialog },
+            sharedPreferences,
+        )
     }
 }
-
 @Composable
 fun UserInfo(
     context: Context,
@@ -1032,7 +809,16 @@ fun DoctorProfileScreen(
 }
 
 @Composable
-fun BookingButton(navController: NavHostController) {
+fun BookingButton(
+    userId: String,
+    doctorId: String,
+    doctorName: String,
+    doctorAddress: String,
+    doctorAvatar: String,
+    specialtyName: String,
+    hasHomeService: Boolean,
+    isClinicPaused: Boolean,
+    navController: NavHostController) {
     var showReportBox by remember { mutableStateOf(false) }
     if (doctorId != userId) {
         Box(
@@ -1043,6 +829,7 @@ fun BookingButton(navController: NavHostController) {
             if (!isClinicPaused) {
                 Button(
                     onClick = {
+                        println("doctorId: " + doctorId)
                         navController.currentBackStackEntry?.savedStateHandle?.apply {
                             set("doctorId", doctorId)
                             set("doctorName", doctorName)
