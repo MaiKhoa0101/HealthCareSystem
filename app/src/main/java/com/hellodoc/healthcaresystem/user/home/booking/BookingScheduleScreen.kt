@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
+import com.hellodoc.healthcaresystem.responsemodel.AvailableSlot
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import java.time.format.DateTimeFormatter
 
@@ -56,18 +57,38 @@ fun BookingCalendarScreen(
     val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
     val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
 
-//    val availableTimes = listOf(
-//        "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-//        "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
-//    )
-
     var availableTimes by remember { mutableStateOf<List<String>>(emptyList()) }
 
+    // Thêm state để lưu trữ available slots data
+    var availableSlots: List<AvailableSlot> by remember { mutableStateOf<List<AvailableSlot>>(emptyList()) }
+    var availableDates by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
 
     LaunchedEffect(doctorId) {
-        doctorId.let { doctorViewModel.fetchDoctorById(it.toString()) }
+        doctorId.let {
+            doctorViewModel.fetchDoctorById(it.toString())
+            // Gọi API để lấy available slots
+            doctorViewModel.fetchAvailableSlots(it.toString())
+        }
     }
+
     val doctor by doctorViewModel.doctor.collectAsState()
+    val availableSlotsData by doctorViewModel.availableWorkingHours.collectAsState()
+
+    // Cập nhật available dates từ API response
+    LaunchedEffect(availableSlotsData) {
+        availableSlotsData?.let { response ->
+            val slots = response.availableSlots // ✅ Lấy từ trường này
+            availableSlots = slots
+            availableDates = slots.mapNotNull { slot ->
+                try {
+                    LocalDate.parse(slot.date) // date dạng "2025-06-28"
+                } catch (e: Exception) {
+                    null
+                }
+            }.toSet()
+        }
+    }
+
     val workHours = doctor?.workHour
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -154,20 +175,21 @@ fun BookingCalendarScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = if (!isLastRow || nonNullDays == 7) Arrangement.SpaceBetween else Arrangement.Start
                             ) {
-                                week.forEachIndexed { index, day ->
+                                week.forEachIndexed { dayIndex, day ->
                                     val isPast = day != null && day.isBefore(LocalDate.now())
                                     val isSelected = day == selectedDate
+                                    // Kiểm tra xem ngày có available slots hay không
+                                    val isAvailable = day != null && availableDates.contains(day)
+                                    val isClickable = day != null && !isPast && isAvailable
 
-                                    if (isSelected) {
-                                        val selectedDayOfWeek = (index + 2) // vì DayOfWeek.MONDAY = 1
-
-                                        val times = workHours
-                                            ?.filter { wh -> wh.dayOfWeek == selectedDayOfWeek }
-                                            ?.map { wh -> "%02d:%02d".format(wh.hour, wh.minute) }
-
-                                        if (times != null) {
-                                            availableTimes = times
+                                    if (isSelected && isAvailable) {
+                                        // Tìm available times cho ngày được chọn
+                                        val selectedSlot = availableSlots.find { slot ->
+                                            LocalDate.parse(slot.date) == selectedDate
                                         }
+                                        availableTimes = selectedSlot?.slots?.map { slot ->
+                                            slot.displayTime
+                                        } ?: emptyList()
                                     }
 
                                     Box(
@@ -179,21 +201,14 @@ fun BookingCalendarScreen(
                                             .background(
                                                 when {
                                                     isSelected -> Color(0xFF00BCD4)
+                                                    !isAvailable && day != null && !isPast -> Color(0xFFE0E0E0) // Màu xám cho ngày không available
                                                     else -> Color.Transparent
                                                 }
                                             )
-                                            .clickable(enabled = day != null && !isPast) {
+                                            .clickable(enabled = isClickable) {
                                                 day?.let {
                                                     selectedDate = it
-//                                                    val selectedDayOfWeek = (index + 2) // vì DayOfWeek.MONDAY = 1
-//
-//                                                    val times = workHours
-//                                                        ?.filter { wh -> wh.dayOfWeek == selectedDayOfWeek }
-//                                                        ?.map { wh -> "%02d:%02d".format(wh.hour, wh.minute) }
-//
-//                                                    if (times != null) {
-//                                                        availableTimes = times
-//                                                    }
+                                                    selectedTime = "" // Reset selected time khi chọn ngày mới
                                                 }
                                             },
                                         contentAlignment = Alignment.Center
@@ -203,8 +218,10 @@ fun BookingCalendarScreen(
                                             color = when {
                                                 isPast -> Color.Gray
                                                 isSelected -> Color.White
+                                                !isAvailable && day != null && !isPast -> Color.Gray // Màu xám cho ngày không available
                                                 else -> Color.Black
-                                            }
+                                            },
+                                            fontSize = 14.sp
                                         )
                                     }
                                 }
@@ -233,7 +250,14 @@ fun BookingCalendarScreen(
                             .padding(vertical = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Không có giờ phù hợp cho ngày này", fontSize = 13.sp)
+                        Text(
+                            text = if (availableDates.contains(selectedDate))
+                                "Không có giờ phù hợp cho ngày này"
+                            else
+                                "Vui lòng chọn ngày có lịch khám",
+                            fontSize = 13.sp,
+                            color = Color.Gray
+                        )
                     }
                 }
             } else {
@@ -279,13 +303,16 @@ fun BookingCalendarScreen(
                         }
                         navHostController.popBackStack()
                     },
+                    enabled = selectedTime.isNotEmpty() && availableDates.contains(selectedDate),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF00BCD4),
-                        contentColor = Color.White
+                        contentColor = Color.White,
+                        disabledContainerColor = Color.Gray,
+                        disabledContentColor = Color.White
                     )
                 ) {
                     Text(
@@ -298,57 +325,4 @@ fun BookingCalendarScreen(
             }
         }
     }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun CalendarView(
-    selectedDate: LocalDate,
-    onDateSelected: (LocalDate) -> Unit
-) {
-    val daysInMonth = remember(selectedDate) {
-        val yearMonth = YearMonth.of(selectedDate.year, selectedDate.month)
-        (1..yearMonth.lengthOfMonth()).toList()
-    }
-
-    val startDayOfWeek = remember(selectedDate) {
-        LocalDate.of(selectedDate.year, selectedDate.month, 1).dayOfWeek.value
-    }
-
-    LazyVerticalGrid(columns = GridCells.Fixed(7)) {
-        items(startDayOfWeek - 1) {
-            Box(modifier = Modifier.height(40.dp))
-        }
-        items(daysInMonth) { day ->
-            val date = LocalDate.of(selectedDate.year, selectedDate.month, day)
-            val isSelected = date == selectedDate
-            Box(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) Color(0xFF00BCD4) else Color.Transparent)
-                    .clickable { onDateSelected(date) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = day.toString(), color = if (isSelected) Color.White else Color.Black)
-            }
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true, name = "Booking Calendar Preview")
-@Composable
-fun BookingCalendarScreenPreview() {
-    val context = LocalContext.current
-    val fakeNavController = rememberNavController()
-    BookingCalendarScreen(
-        context = context,
-        navHostController = fakeNavController,
-//        onDateTimeSelected = { date, time ->
-//            // Cho preview thì mình không cần xử lý gì ở đây
-//        }
-    )
 }

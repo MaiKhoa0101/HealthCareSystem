@@ -118,9 +118,13 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private var _isLoadingPost = MutableStateFlow(false)
+    val isLoadingPost: StateFlow<Boolean> get() = _isLoadingPost
+
     fun getPostByUserId(userId:String) {
         viewModelScope.launch {
             try {
+                _isLoadingPost.value = true
                 val result = RetrofitInstance.postService.getPostByUserId(userId)
 
                 if (result.isSuccessful) {
@@ -132,7 +136,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             } catch (e: Exception) {
                 println("Lỗi ở getPostByUserId")
-                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
+                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")
+            } finally {
+                _isLoadingPost.value = false
+            }
         }
     }
 

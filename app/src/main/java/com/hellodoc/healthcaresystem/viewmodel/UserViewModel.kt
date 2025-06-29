@@ -42,6 +42,8 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
 
+
+
     fun getAllUsers() {
         viewModelScope.launch {
             try {
@@ -63,14 +65,20 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private var _isUserLoading = MutableStateFlow(false)
+    val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
+
     fun getUser(id: String) {
         viewModelScope.launch {
             try {
+                _isUserLoading.value = true
                 val result = RetrofitInstance.userService.getUser(id)
                 _user.value = result
                 println("OK fetch user: $result")
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
+            } finally {
+                _isUserLoading.value = false
             }
         }
     }

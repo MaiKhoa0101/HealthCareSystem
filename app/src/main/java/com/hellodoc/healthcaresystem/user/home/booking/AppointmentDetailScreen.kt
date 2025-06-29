@@ -40,6 +40,12 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
+import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
+import com.hellodoc.healthcaresystem.user.home.doctor.specialtyName
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -72,7 +78,7 @@ fun formatDateForServer(input: String): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController) {
+fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController, dao: AppointmentDao) {
 
     println(" appointment detail render duoc")
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -170,6 +176,40 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         println("doctorName" + doctorName)
         println("doctorAddress" + doctorAddress)
         println("specialtyName" + specialtyName)
+        savedStateHandle?.get<Boolean>("isEditing")?.let {
+            isEditing = it
+            if (isEditing) {
+                // Nếu đang chỉnh sửa, lấy ID của lịch hẹn
+                savedStateHandle.get<String>("appointmentId")?.let {
+                    appointmentId = it
+                }
+            }
+        }
+
+        savedStateHandle?.get<String>("doctorId")?.let {
+            doctorId = it
+        }
+        savedStateHandle?.get<String>("doctorName")?.let {
+            doctorName = it
+        }
+        savedStateHandle?.get<String>("doctorAddress")?.let {
+            doctorAddress = it
+        }
+        savedStateHandle?.get<String>("doctorAvatar")?.let {
+            doctorAvatar = it
+        }
+        savedStateHandle?.get<String>("specialtyName")?.let {
+            specialtyName = it
+        }
+        savedStateHandle?.get<String>("notes")?.let {
+            reason = it
+        }
+        savedStateHandle?.get<String>("location")?.let {
+            location = it
+        }
+        savedStateHandle?.get<Boolean>("hasHomeService")?.let {
+            hasHomeService = it
+        }
 
         isDataLoaded = true
     }
@@ -245,7 +285,8 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
                             appointmentId = appointmentId,
                             patientID = patientID,
                             date = date,
-                            time = time
+                            time = time,
+                            dao = dao
                         )
                     } else {
                         BookButton(
@@ -285,10 +326,11 @@ fun UpdateButton(
     appointmentId: String,
     patientID: String,
     date: String,
-    time: String
+    time: String,
+    dao: AppointmentDao
 ) {
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao) }
     })
 
     var showDialog by remember { mutableStateOf(false) }
@@ -349,7 +391,6 @@ fun UpdateButton(
 
 @Composable
 fun TopBar(title: String,onClick: () -> Unit) {
-    println("top bar render duoc")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -394,11 +435,12 @@ fun DoctorInfoSection(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.doctor), // thay bằng ảnh thực tế
-                contentDescription = "Doctor",
+                painter = rememberAsyncImagePainter(doctorAvatar),
+                contentDescription = "anh bac si",
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
+                    .padding(end = 8.dp)
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -773,7 +815,6 @@ fun BookButton(
 
 @Composable
 fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    println(" card render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -794,7 +835,6 @@ fun InfoRow(
     valueColor: Color = Color.Black,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
-    println("info row render duoc")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -821,15 +861,3 @@ fun InfoRow(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(name = "Light Mode")
-@Composable
-fun PreviewAppointmentDetailScreen() {
-    val context = LocalContext.current
-    val fakeNavController = rememberNavController()
-    AppointmentDetailScreen(
-        context = context,
-        onBack = {},
-        navHostController = fakeNavController,
-    )
-}

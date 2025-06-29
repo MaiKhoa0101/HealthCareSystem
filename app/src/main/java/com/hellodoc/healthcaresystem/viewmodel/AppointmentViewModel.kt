@@ -11,9 +11,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.roomDb.mapper.isValid
+import com.hellodoc.healthcaresystem.roomDb.mapper.toEntity
+import com.hellodoc.healthcaresystem.roomDb.mapper.toEntitySafe
+import com.hellodoc.healthcaresystem.roomDb.mapper.toResponse
 import kotlinx.coroutines.launch
 
-class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+class AppointmentViewModel(
+    private val sharedPreferences: SharedPreferences,
+    private val appointmentDao: AppointmentDao
+) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -46,57 +54,202 @@ class AppointmentViewModel(private val sharedPreferences: SharedPreferences) : V
         }
     }
 
-    fun fetchAppointments(){
-        viewModelScope.launch{
-            try{
+    fun fetchAppointments() {
+        viewModelScope.launch {
+            try {
+                println("Bắt đầu fetch appointments...")
                 val response = RetrofitInstance.appointment.getAllAppointments()
-                if(response.isSuccessful){
-                    _appointmentsUser.value = response.body() ?: emptyList()
-                    filterAppointmentsByDoctorName(currentSearchQuery)
+
+                if (response.isSuccessful) {
+                    val appointments = response.body() ?: emptyList()
+                    println("API thành công, nhận ${appointments.size} appointments")
+
+                    try {
+                        println("Bắt đầu lưu vào database...")
+
+                        // Clear database
+                        appointmentDao.clearAppointments()
+                        println("Đã xóa dữ liệu cũ")
+
+                        // Convert và insert
+                        val entities = appointments.map {
+                            println("Converting: ${it.id}")
+                            it.toEntity()
+                        }
+                        appointmentDao.insertAppointments(entities)
+                        println("Đã lưu ${entities.size} entities vào database")
+
+                        // Update StateFlow
+                        _appointmentsUser.value = appointments
+                        println("Đã cập nhật StateFlow với ${appointments.size} items")
+
+                        // Filter
+                        filterAppointmentsByDoctorName(currentSearchQuery)
+                        println("Đã filter với query: '$currentSearchQuery'")
+
+                    } catch (dbError: Exception) {
+                        println("Lỗi database: ${dbError.message}")
+                        dbError.printStackTrace()
+
+                        // chỉ update StateFlow mà không lưu database
+                        _appointmentsUser.value = appointments
+                        filterAppointmentsByDoctorName(currentSearchQuery)
+                    }
+
                 } else {
-                    println("Lỗi API: ${response.errorBody()?.string()}")
+                    println("API không thành công: ${response.code()}")
+                    println("Error body: ${response.errorBody()?.string()}")
+
+                    try {
+                        val localData = appointmentDao.getAllAppointments().map { it.toResponse() }
+                        println("Lấy từ local: ${localData.size} items")
+                        _appointmentsUser.value = localData
+                        filterAppointmentsByDoctorName(currentSearchQuery)
+                    } catch (localError: Exception) {
+                        println("Lỗi lấy dữ liệu local: ${localError.message}")
+                        localError.printStackTrace()
+                    }
                 }
-            } catch (e: Exception){
+            } catch (e: Exception) {
+                println("Exception trong fetchAppointments: ${e.message}")
                 e.printStackTrace()
+
+                try {
+                    val localData = appointmentDao.getAllAppointments().map { it.toResponse() }
+                    println("Fallback local data: ${localData.size} items")
+                    _appointmentsUser.value = localData
+                    filterAppointmentsByDoctorName(currentSearchQuery)
+                } catch (fallbackError: Exception) {
+                    println("Fallback cũng lỗi: ${fallbackError.message}")
+                    fallbackError.printStackTrace()
+                }
             }
         }
     }
 
-    fun getAppointmentUser(id: String) {
+    fun getAppointmentUser(patientId: String) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                println("ID nhan duoc để lấy appointment: "+id)
-                val result = RetrofitInstance.appointment.getAppointmentUser(id)
-                if(result.isSuccessful){
-                    _appointmentsUser.value = result.body() ?: emptyList()
+                val response = RetrofitInstance.appointment.getAppointmentUser(patientId)
+                if(response.isSuccessful){
+                    val apiData = response.body() ?: emptyList()
+                    _appointmentsUser.value = apiData
+
+                    try {
+                        println("Bắt đầu lưu vào database")
+
+                        // Chỉ xóa dữ liệu của user hiện tại, không xóa hết
+                        appointmentDao.clearPatientAppointments(patientId)
+                        println("Đã xóa dữ liệu cũ của patient: $patientId")
+
+                        // Convert và insert
+                        val entities = apiData.mapNotNull { response ->
+                            if (response.isValid()) {
+                                response.toEntitySafe()
+                            } else {
+                                println("Skipping invalid appointment: ${response.id}")
+                                null
+                            }
+                        }
+                        appointmentDao.insertAppointments(entities)
+                        println("Đã lưu ${entities.size} appointments vào database")
+
+                    } catch (dbError: Exception) {
+                        println("Lỗi lưu database: ${dbError.message}")
+                        dbError.printStackTrace()
+                    }
+
                 } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
+                    println("API không thành công: ${response.code()}")
+                    println("Error body: ${response.errorBody()?.string()}")
+
+                    println("lấy data từ ROOM")
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getappointment")
-                Log.e("Appointment", "Lỗi khi lấy appointmentUser: ${e.message}")
+                println("Lỗi khi gọi API: ${e.message}")
+                e.printStackTrace()
+
+                try {
+                    val localData = appointmentDao.getPatientAppointments(patientId)
+                    println("Dữ liệu local: ${localData.size} items")
+
+                    if (localData.isNotEmpty()) {
+                        val responseData = localData.map { it.toResponse() }
+                        _appointmentsUser.value = responseData
+                        println("Đã load ${responseData.size} appointments từ local")
+                    } else {
+                        println("Không có dữ liệu local")
+                    }
+                } catch (localError: Exception) {
+                    println("Lỗi load dữ liệu local: ${localError.message}")
+                    localError.printStackTrace()
+                }
             } finally {
-                _isLoading.value = false  // Kết thúc loading dù thành công hay lỗi
+                _isLoading.value = false
             }
         }
     }
 
-    fun getAppointmentDoctor(id: String) {
+    fun getAppointmentDoctor(doctorId: String) {
         viewModelScope.launch {
             try {
-                println("ID nhan duoc để lấy appointment: "+id)
-                val result = RetrofitInstance.appointment.getAppointmentDoctor(id)
-                if(result.isSuccessful){
-                    _appointmentsDoctor.value = result.body() ?: emptyList()
+                val response  = RetrofitInstance.appointment.getAppointmentDoctor(doctorId)
+                if(response .isSuccessful){
+                    val apiData = response.body() ?: emptyList()
+                    _appointmentsDoctor.value = apiData
+
+                    try {
+                        println("Bắt đầu lưu vào database")
+
+                        // Chỉ xóa dữ liệu của user hiện tại, không xóa hết
+                        appointmentDao.clearDoctorAppointments(doctorId)
+                        println("Đã xóa dữ liệu cũ của patient: $doctorId")
+
+                        // Convert và insert
+                        val entities = apiData.mapNotNull { response ->
+                            if (response.isValid()) {
+                                response.toEntitySafe()
+                            } else {
+                                println("Skipping invalid appointment: ${response.id}")
+                                null
+                            }
+                        }
+                        appointmentDao.insertAppointments(entities)
+                        println("Đã lưu ${entities.size} appointments vào database")
+
+                    } catch (dbError: Exception) {
+                        println("Lỗi lưu database: ${dbError.message}")
+                        dbError.printStackTrace()
+                    }
+
                 } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
+                    println("API không thành công: ${response.code()}")
+                    println("Error body: ${response.errorBody()?.string()}")
+
+                    println("lấy data từ ROOM")
                 }
 
             } catch (e: Exception) {
-                println("Lỗi ở getappointment")
-                Log.e("Appointment", "Lỗi khi lấy appointmentDoc: ${e.message}")
+                println("Lỗi khi gọi API: ${e.message}")
+                e.printStackTrace()
+
+                try {
+                    val localData = appointmentDao.getDoctorAppointments(doctorId)
+                    println("Dữ liệu local: ${localData.size} items")
+
+                    if (localData.isNotEmpty()) {
+                        val responseData = localData.map { it.toResponse() }
+                        _appointmentsDoctor.value = responseData
+                        println("Đã load ${responseData.size} appointments từ local")
+                    } else {
+                        println("Không có dữ liệu local")
+                    }
+                } catch (localError: Exception) {
+                    println("Lỗi load dữ liệu local: ${localError.message}")
+                    localError.printStackTrace()
+                }
             }
         }
     }

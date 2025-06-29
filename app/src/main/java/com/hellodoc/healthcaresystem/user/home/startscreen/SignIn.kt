@@ -133,12 +133,18 @@ class SignIn : BaseActivity() {
     private fun userLogin(email: String, password: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                Log.d("LOGIN", "Starting login for email: $email")
                 val response = RetrofitInstance.api.login(LoginRequest(email, password))
 
                 withContext(Dispatchers.Main) {
+                    Log.d("LOGIN", "Response code: ${response.code()}")
+                    Log.d("LOGIN", "Response successful: ${response.isSuccessful}")
+
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         val token = loginResponse?.accessToken
+
+                        Log.d("LOGIN", "Token received: ${!token.isNullOrEmpty()}")
 
                         if (!token.isNullOrEmpty()) {
                             saveToken(token)
@@ -164,14 +170,17 @@ class SignIn : BaseActivity() {
                                 Toast.makeText(this@SignIn, "Không thể đọc thông tin người dùng từ token", Toast.LENGTH_SHORT).show()
                             }
                         } else {
+                            Log.e("LOGIN", "Token is null or empty")
                             Toast.makeText(this@SignIn, "Token không hợp lệ!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
+                        Log.e("LOGIN", "Login failed: $errorBody")
                         Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
+                Log.e("LOGIN", "Exception occurred: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
                 }

@@ -1,7 +1,13 @@
 package com.hellodoc.healthcaresystem.user.personal
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -23,6 +29,7 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -148,23 +155,63 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
 fun ChangeAvatar(
     user: User,
     imageUri: Uri?,
-    onImageSelected: (Uri) -> Unit)
-{
-    val launcher = rememberLauncherForActivityResult(
+    onImageSelected: (Uri) -> Unit
+) {
+    val context = LocalContext.current
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showRationaleDialog by remember { mutableStateOf(false) }
+
+    // Launcher để chọn ảnh
+    val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { onImageSelected(it) }
     }
+
+    // Launcher để xin quyền
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Quyền được cấp, mở image picker
+            imagePickerLauncher.launch("image/*")
+        } else {
+            // Quyền bị từ chối, hiển thị dialog thông báo
+            showPermissionDialog = true
+        }
+    }
+
+    // Function để kiểm tra và xin quyền
+    fun checkAndRequestPermission() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        when {
+            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+                // Đã có quyền, mở image picker
+                imagePickerLauncher.launch("image/*")
+            }
+            else -> {
+                // Chưa có quyền, xin quyền
+                permissionLauncher.launch(permission)
+            }
+        }
+    }
+
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
-
     ) {
-        Box(contentAlignment = Alignment.Center,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier.clickable {
-                launcher.launch("image/*")
+                checkAndRequestPermission()
             }
         ) {
             if (imageUri != null) {
@@ -200,7 +247,38 @@ fun ChangeAvatar(
             )
         }
     }
+
+    // Dialog thông báo khi quyền bị từ chối
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Cần quyền truy cập") },
+            text = { Text("Ứng dụng cần quyền truy cập ảnh để thay đổi avatar. Vui lòng cấp quyền trong Cài đặt.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        openAppSettings(context)
+                    }
+                ) {
+                    Text("Đồng ý")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
 }
+private fun openAppSettings(context: android.content.Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.fromParts("package", context.packageName, null)
+    }
+    context.startActivity(intent)
+}
+
 
 @Composable
 fun ContentEditUser(

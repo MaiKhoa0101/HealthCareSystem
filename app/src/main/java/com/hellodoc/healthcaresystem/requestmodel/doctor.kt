@@ -8,6 +8,7 @@ import com.hellodoc.healthcaresystem.responsemodel.WorkHour
 data class ApplyDoctorRequest(
     val license: String,
     val specialty: String,
+    val address: String,
     val CCCD: String,
     val licenseUrl: Uri?,
     val faceUrl: Uri?,

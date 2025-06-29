@@ -1,3 +1,4 @@
+
 package com.hellodoc.healthcaresystem.user.post
 
 import android.content.Context
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +81,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 var userId=""
 var userModel= ""
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CreatePostScreen(
@@ -86,6 +90,16 @@ fun CreatePostScreen(
     postId: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val storagePermissionState: PermissionState = rememberPermissionState(
+        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            android.Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+    )
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
@@ -104,7 +118,6 @@ fun CreatePostScreen(
         userModel = userViewModel.getUserAttributeString("role")
         userViewModel.getUser(userId)
         avatarUrl = user?.avatarURL ?: ""
-
         username = user?.name ?: ""
     }
 
@@ -116,9 +129,8 @@ fun CreatePostScreen(
     ) { uris ->
         selectedImageUri += uris
     }
-    val posts by postViewModel.posts.collectAsState()
-    val mediaUrls = selectedImageUri.map { it.toString() }
 
+    val posts by postViewModel.posts.collectAsState()
     val updateSuccess by postViewModel.updateSuccess.collectAsState()
     val isUpdating by postViewModel.isUpdating.collectAsState()
 
@@ -131,8 +143,6 @@ fun CreatePostScreen(
         }
     }
 
-
-
     // Nếu là chỉnh sửa thì gọi API để load dữ liệu bài viết
     LaunchedEffect(postId, posts) {
         if (postId != null) {
@@ -142,11 +152,29 @@ fun CreatePostScreen(
         }
     }
 
+    fun handleImageSelection() {
+        when {
+            storagePermissionState.status.isGranted -> {
+                // Đã có quyền, mở image picker
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                )
+            }
+            storagePermissionState.status.shouldShowRationale -> {
+                // Hiển thị dialog giải thích tại sao cần quyền
+                showPermissionDialog = true
+            }
+            else -> {
+                // Yêu cầu quyền lần đầu
+                storagePermissionState.launchPermissionRequest()
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.LightGray) // Đổi màu background ở đây
+            .background(Color.LightGray)
     ) {
         item {
             Header(
@@ -163,8 +191,7 @@ fun CreatePostScreen(
                             ),
                             context = context
                         )
-                    }
-                    else {
+                    } else {
                         postViewModel.createPost(
                             request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
                             context = context
@@ -172,9 +199,9 @@ fun CreatePostScreen(
                         navController.navigate("personal")
                     }
                 }
-
             )
         }
+
         item {
             PostBody(
                 containerPost = ContainerPost(
@@ -186,6 +213,7 @@ fun CreatePostScreen(
                 onTextChange = { postText = it }
             )
         }
+
         item {
             if (selectedImageUri.isNotEmpty()) {
                 LazyRow(
@@ -197,18 +225,16 @@ fun CreatePostScreen(
                 ) {
                     items(selectedImageUri) { uri ->
                         Box(
-                            modifier = Modifier
-                                .size(200.dp)
+                            modifier = Modifier.size(200.dp)
                         ) {
                             Image(
                                 painter = rememberAsyncImagePainter(uri),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
 
                             IconButton(
                                 onClick = {
@@ -220,7 +246,6 @@ fun CreatePostScreen(
                                     .align(Alignment.TopEnd)
                                     .size(21.dp)
                                     .background(Color.Black.copy(alpha = 0.5f), shape = CircleShape),
-
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
@@ -234,15 +259,14 @@ fun CreatePostScreen(
                 }
             }
 
-            Footer(
-                onImageClick = {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
-                    )
-                }
+            // Sử dụng FooterWithPermission để kiểm tra quyền
+            FooterWithPermission(
+                permissionState = storagePermissionState,
+                onImageClick = { handleImageSelection() }
             )
         }
-        item{
+
+        item {
             if (isUpdating) {
                 Box(
                     modifier = Modifier
@@ -253,8 +277,33 @@ fun CreatePostScreen(
                     CircularProgressIndicator(color = Color.White)
                 }
             }
-
         }
+    }
+
+    // Dialog thông báo khi cần giải thích quyền
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Cần quyền truy cập thư viện") },
+            text = {
+                Text("Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn hình ảnh cho bài viết.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        storagePermissionState.launchPermissionRequest()
+                    }
+                ) {
+                    Text("Cấp quyền")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
     }
 }
 
@@ -347,14 +396,11 @@ fun PostBody(
             model = containerPost.imageUrl,
             contentDescription = "Avatar",
             modifier = Modifier
-//                .height(140.dp)
-//                .padding(10.dp)
                 .clip(CircleShape)
                 .size(45.dp)
                 .constrainAs(iconImage){
                     start.linkTo(parent.start, margin = 20.dp)
                     top.linkTo(horizontalGuideLine50)
-//                height = Dimension.fillToConstraints //keo anh dai het height
                 },
             contentScale = ContentScale.Crop
         )
@@ -382,12 +428,15 @@ fun PostBody(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Footer(
+fun FooterWithPermission(
     modifier: Modifier = Modifier,
+    permissionState: PermissionState,
     onImageClick: () -> Unit
-){
+) {
     val backgroundColor = Color.White
+
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
@@ -395,7 +444,7 @@ fun Footer(
             .height(250.dp)
     ) {
         val horizontalGuideLine30 = createGuidelineFromTop(0.3f)
-        val (iconImage, tvTitle, topLine) = createRefs()
+        val (iconImage, tvTitle, topLine, permissionText) = createRefs()
 
         Box(
             modifier = Modifier
@@ -408,32 +457,70 @@ fun Footer(
                     end.linkTo(parent.end)
                 }
         )
-        Image(
-            painter = painterResource(id = R.drawable.ic_attach_file),
-            contentDescription = null,
-            modifier = Modifier
-                .size(70.dp)
-                .clickable { onImageClick() }
-                .constrainAs(iconImage){
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(horizontalGuideLine30)
-//                height = Dimension.fillToConstraints //keo anh dai het height
-                },
-        )
-        Text(
-            text = "Thêm hình ảnh",
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                color = Color.Gray
-            ),
-            modifier = Modifier.constrainAs(tvTitle){
-                top.linkTo(iconImage.bottom, margin = 5.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+
+        when {
+            permissionState.status.isGranted -> {
+                // Hiển thị button bình thường khi đã có quyền
+                Image(
+                    painter = painterResource(id = R.drawable.ic_attach_file),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clickable { onImageClick() }
+                        .constrainAs(iconImage) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            top.linkTo(horizontalGuideLine30)
+                        },
+                )
+                Text(
+                    text = "Thêm hình ảnh",
+                    style = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 20.sp,
+                        color = Color.Gray
+                    ),
+                    modifier = Modifier.constrainAs(tvTitle) {
+                        top.linkTo(iconImage.bottom, margin = 5.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                )
             }
-        )
+
+            else -> {
+                // Hiển thị button yêu cầu quyền
+                Image(
+                    painter = painterResource(id = R.drawable.ic_attach_file),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clickable { onImageClick() }
+                        .constrainAs(iconImage) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            top.linkTo(horizontalGuideLine30)
+                        },
+                )
+                Text(
+                    text = if (permissionState.status.shouldShowRationale) {
+                        "Cấp quyền để thêm ảnh"
+                    } else {
+                        "Yêu cầu quyền truy cập"
+                    },
+                    style = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
+                        color = Color.Red
+                    ),
+                    modifier = Modifier.constrainAs(tvTitle) {
+                        top.linkTo(iconImage.bottom, margin = 5.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -472,6 +559,61 @@ fun OutlineTextField(
     )
 }
 
+// Các function không được sử dụng - có thể xóa hoặc giữ lại để tham khảo
+@Composable
+fun Footer(
+    modifier: Modifier = Modifier,
+    onImageClick: () -> Unit
+){
+    val backgroundColor = Color.White
+    ConstraintLayout(
+        modifier = modifier
+            .background(color = backgroundColor, shape = RectangleShape)
+            .fillMaxSize()
+            .height(250.dp)
+    ) {
+        val horizontalGuideLine30 = createGuidelineFromTop(0.3f)
+        val (iconImage, tvTitle, topLine) = createRefs()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+                .background(Color.LightGray)
+                .constrainAs(topLine) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+        )
+        Image(
+            painter = painterResource(id = R.drawable.ic_attach_file),
+            contentDescription = null,
+            modifier = Modifier
+                .size(70.dp)
+                .clickable { onImageClick() }
+                .constrainAs(iconImage){
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(horizontalGuideLine30)
+                },
+        )
+        Text(
+            text = "Thêm hình ảnh",
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                color = Color.Gray
+            ),
+            modifier = Modifier.constrainAs(tvTitle){
+                top.linkTo(iconImage.bottom, margin = 5.dp)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }
+        )
+    }
+}
+
 @Composable
 fun MultiFileUpload(){
     var selectedImageUri: List<Uri> by remember {
@@ -503,7 +645,6 @@ fun MultiFileUpload(){
             Text("Chọn Ảnh")
         }
     }
-
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -556,5 +697,3 @@ fun FileUpload(){
         }
     }
 }
-
-
