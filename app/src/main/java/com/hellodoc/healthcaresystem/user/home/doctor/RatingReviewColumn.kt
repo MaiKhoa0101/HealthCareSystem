@@ -48,6 +48,7 @@ import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.responsemodel.ReviewResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.skeleton.SkeletonReviewItem
 import kotlinx.coroutines.launch
 
 @Composable
@@ -129,109 +130,6 @@ fun ViewRating(
     }
 }
 
-@Composable
-fun SkeletonReviewItem() {
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
-    ) {
-        val (avatar, name, time, stars, comment, menuIcon) = createRefs()
-
-        // Skeleton Avatar
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.LightGray.copy(alpha = 0.2f))
-                .constrainAs(avatar) {
-                    start.linkTo(parent.start)
-                    top.linkTo(parent.top)
-                }
-        )
-
-        // Skeleton Name
-        Box(
-            modifier = Modifier
-                .size(width = 100.dp, height = 16.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.LightGray.copy(alpha = 0.2f))
-                .constrainAs(name) {
-                    start.linkTo(avatar.end, margin = 12.dp)
-                    top.linkTo(avatar.top)
-                }
-        )
-
-        // Skeleton Time
-        Box(
-            modifier = Modifier
-                .size(width = 60.dp, height = 13.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.LightGray.copy(alpha = 0.2f))
-                .constrainAs(time) {
-                    end.linkTo(parent.end)
-                    top.linkTo(name.top)
-                    bottom.linkTo(name.bottom)
-                }
-        )
-
-        // Skeleton Stars
-        Row(
-            modifier = Modifier.constrainAs(stars) {
-                top.linkTo(name.bottom, margin = 4.dp)
-                start.linkTo(name.start)
-            }
-        ) {
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray.copy(alpha = 0.2f))
-                        .padding(2.dp)
-                )
-            }
-        }
-
-        // Skeleton Comment
-        Column(
-            modifier = Modifier.constrainAs(comment) {
-                top.linkTo(avatar.bottom, margin = 12.dp)
-                start.linkTo(parent.start)
-                end.linkTo(menuIcon.start, margin = 8.dp)
-                width = Dimension.fillToConstraints
-            }
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.LightGray.copy(alpha = 0.2f))
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.LightGray.copy(alpha = 0.2f))
-            )
-        }
-
-        // Skeleton Menu Icon
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(Color.LightGray.copy(alpha = 0.2f))
-                .constrainAs(menuIcon) {
-                    top.linkTo(comment.top)
-                    end.linkTo(parent.end)
-                }
-        )
-    }
-}
 
 @Composable
 fun RatingSummary(
