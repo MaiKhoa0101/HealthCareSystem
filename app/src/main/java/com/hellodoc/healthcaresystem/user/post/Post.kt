@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.post
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -58,8 +60,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     navHostController: NavHostController,
@@ -143,50 +147,80 @@ fun Post(
 
 @Composable
 fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost: User,post: PostResponse){
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Ảnh avatar
-        AsyncImage(
-            model = post.user.avatarURL,
-            contentDescription = "Avatar of ${post.user.name}",
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .border(1.dp, Color.Gray, CircleShape)
-                .clickable {
-                    if (post.user.id !=userWhoInteractWithThisPost.id) {
-                        println("Id user 1: "+post.user.id)
-                        navHostController.navigate("otherUserProfile/${post.user.id}")
-                    }
-                    else {
-                        navHostController.navigate("personal")
-                    }
-                },
-            contentScale = ContentScale.Crop
-        )
+    var showPostReportDialog by remember { mutableStateOf(false) }
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column (
-            modifier = Modifier
-                .clickable {
-                if (post.user.id !=userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile/${post.user.id}")
-                }
-                else {
-                    navHostController.navigate("personal")
-                }
-            },
-        ){
-            Text(
-                text = post.user.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+    ){
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Ảnh avatar
+            AsyncImage(
+                model = post.user.avatarURL,
+                contentDescription = "Avatar of ${post.user.name}",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, Color.Gray, CircleShape)
+                    .clickable {
+                        if (post.user.id != userWhoInteractWithThisPost.id) {
+                            println("Id user 1: " + post.user.id)
+                            navHostController.navigate("otherUserProfile/${post.user.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    },
+                contentScale = ContentScale.Crop
             )
-            // Có thể thêm thông tin khác như thời gian đăng
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .clickable {
+                        if (post.user.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    },
+            ) {
+                Text(
+                    text = post.user.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                // Có thể thêm thông tin khác như thời gian đăng
+            }
+            IconButton(
+                onClick = {
+                    showPostReportDialog = !showPostReportDialog
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Close",
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
+    if (showPostReportDialog) {
+        ReportPostUser(
+            context = navHostController.context,
+            youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
+            userReported = post.user,
+            onClickShowPostReportDialog = { showPostReportDialog = false },
+            sharedPreferences = navHostController.context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        )
+    }
+
     }
 }
 

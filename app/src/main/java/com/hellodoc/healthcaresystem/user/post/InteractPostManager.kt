@@ -66,6 +66,7 @@ fun InteractPostManager(
                 .clip(RoundedCornerShape(20.dp))
                 .clickable{
                     coroutineScope.launch {
+                        println("Nut like dc nhan")
                         postViewModel.updateFavoriteForPost(
                             postId = post.id,
                             userFavouriteId = user.id,

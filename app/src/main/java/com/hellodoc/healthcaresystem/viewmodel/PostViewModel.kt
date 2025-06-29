@@ -41,7 +41,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
-                println("Capa nhat post moi: "+response.body())
+                println("Get post: "+response.body())
                 val result = response.body()
                 val newPosts = result?.posts ?: emptyList()
                 val hasMore = result?.hasMore ?: false
@@ -209,8 +209,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun updateFavoriteForPost(postId: String, userFavouriteId: String, userFavouriteModel: String) {
         viewModelScope.launch {
             try {
+                println("updateFavoriteForPost: $postId, $userFavouriteId, $userFavouriteModel")
                 val response = RetrofitInstance.postService.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userFavouriteId, userFavouriteModel))
                 if (response.isSuccessful) {
+                    println("updateFavoriteForPost thanh cong")
                     val isFavorited = response.body()?.isFavorited ?: false
                     val totalFavorites = response.body()?.totalFavorites?.toString() ?: "0"
                     _isFavoritedMap.value += (postId to isFavorited)
