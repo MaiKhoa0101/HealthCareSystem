@@ -25,7 +25,7 @@ class Intro1 : BaseActivity() {
             } else {
                 val jwt = JWT(token)
                 val role = jwt.getClaim("role").asString() ?: "unknown"
-                if (role == "admin") {
+                if (role == "Admin") {
                     startActivity(Intent(this@Intro1, AdminRoot::class.java))
                 } else {
                     startActivity(Intent(this@Intro1, HomeActivity::class.java))

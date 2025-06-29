@@ -84,7 +84,7 @@ fun ProfileUserPage(
     var userModel: String = ""
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
     }
 
     // Gọi API để fetch user từ server

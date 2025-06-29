@@ -288,7 +288,7 @@ fun DoctorScreen(
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userName = userViewModel.getUserAttributeString("name")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
             doctorId = newDoctorId
