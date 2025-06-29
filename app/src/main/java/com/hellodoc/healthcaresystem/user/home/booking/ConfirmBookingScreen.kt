@@ -31,6 +31,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
 import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
@@ -40,10 +42,10 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
+fun ConfirmBookingScreen(context: Context, navHostController: NavHostController, dao: AppointmentDao) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val appointmentViewModel: AppointmentViewModel = viewModel( factory = viewModelFactory {
-            initializer { AppointmentViewModel(sharedPreferences) }
+            initializer { AppointmentViewModel(sharedPreferences, dao) }
         })
 
     val notificationViewModel: NotificationViewModel = viewModel(factory = viewModelFactory {
@@ -68,7 +70,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController)
 
     LaunchedEffect(appointmentSuccess) {
         if (appointmentSuccess) {
-            showDialog = true // ✅ khi thành công thì hiển thị dialog
+            showDialog = true
             notificationViewModel.createNotification(userId = patientID, userModel = patientModel, type = "ForAppointment", content = "Bạn đã đặt lịch khám thành công với bác sĩ $doctorName", navigatePath = "appointment")
             notificationViewModel.createNotification(userId = doctorId, userModel = "Doctor", type = "ForAppointment", content = "Bạn có lịch khám mới với bệnh nhân $patientName", navigatePath = "appointment")
         }
@@ -283,12 +285,12 @@ fun InfoText(label: String, value: String) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun ConfirmBookingScreenPreview() {
-    val context = LocalContext.current
-    val fakeNavController = rememberNavController()
-    ConfirmBookingScreen(context, fakeNavController)
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Preview(showBackground = true)
+//@Composable
+//fun ConfirmBookingScreenPreview() {
+//    val context = LocalContext.current
+//    val fakeNavController = rememberNavController()
+//    ConfirmBookingScreen(context, fakeNavController)
+//}
 

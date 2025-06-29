@@ -7,6 +7,7 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 android {
     namespace = "com.hellodoc.healthcaresystem"
@@ -109,6 +110,8 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
 
-
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
 }

@@ -126,6 +126,7 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
 
     var CCCDText by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
+    var clinicAddress by remember { mutableStateOf("") }
     var specialtyId by remember { mutableStateOf("") }
 
     var expanded by remember { mutableStateOf(false) }
@@ -277,6 +278,13 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
             "Nhập mã giấy phép hành nghề"
         )
 
+        InputEditField(
+            "Địa chỉ phòng khám",
+            clinicAddress,
+            { clinicAddress = it },
+            "Nhập địa chỉ phòng khám"
+        )
+
         Column {
             Text(
                 "Ảnh giấy phép hành nghề",
@@ -312,6 +320,7 @@ fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: Share
                         license = licenseNumber,
                         CCCD = CCCDText,
                         specialty = specialtyId,
+                        address = clinicAddress,
                         licenseUrl = licenseUri,
                         faceUrl = faceUri,
                         avatarURL = avatarUri,

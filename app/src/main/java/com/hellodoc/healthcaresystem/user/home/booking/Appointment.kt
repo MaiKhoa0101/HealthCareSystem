@@ -44,16 +44,17 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.animation.core.*
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController, dao: AppointmentDao) {
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao ) }
     })
 
     val appointmentsUser by appointmentViewModel.appointmentsUser.collectAsState()
@@ -214,14 +215,12 @@ fun AppointmentScreenUI(
                 }
             }
 
-            // ✅ Chọn lịch theo VAI TRÒ
             val appointmentsRole = when (roleSelectedTab) {
                 0 -> appointmentsUser // Vai trò "Đã đặt" (User đặt lịch)
                 1 -> appointmentsDoc  // Vai trò "Được đặt" (Doctor được đặt lịch)
                 else -> appointmentsUser
             }
 
-            // ✅ Lọc theo TRẠNG THÁI
             val filteredAppointments = when (selectedTab) {
                 0 -> appointmentsRole.filter { it.status == "pending" }
                 1 -> appointmentsRole.filter { it.status == "done" }
@@ -238,7 +237,6 @@ fun AppointmentScreenUI(
                     }
                 }
             } else {
-                // ✅ Hiển thị
                 LazyColumn {
                     items(filteredAppointments) { appointment ->
                         AppointmentCard(

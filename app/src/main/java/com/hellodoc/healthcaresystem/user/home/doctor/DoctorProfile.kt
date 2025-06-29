@@ -4,6 +4,11 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -45,22 +51,25 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
+import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.user.home.booking.doctorAddress
 import com.hellodoc.healthcaresystem.user.home.booking.doctorId
-import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
-import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+
 var userId = ""
+
 var userModel = ""
+
 var doctorID = ""
 
 var doctorName = ""
 
-var doctorAddress = ""
+var doctorAvatar = ""
 
 var specialtyName = ""
 
@@ -71,61 +80,175 @@ var hasHomeService = false
 var userName = ""
 
 @Composable
+fun ShimmerEffect(
+    modifier: Modifier = Modifier,
+    durationMillis: Int = 1000
+) {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by transition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = modifier
+            .background(
+                Color.LightGray.copy(alpha = alpha),
+                RoundedCornerShape(8.dp)
+            )
+    )
+}
+
+@Composable
 fun UserInfoSkeleton() {
     ConstraintLayout(
         modifier = Modifier
-            .background(Color.Cyan)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF00E5FF),
+                        Color(0xFF00C5CB)
+                    )
+                )
+            )
             .height(330.dp)
             .fillMaxWidth()
     ) {
-        val (imgPlaceholder, line1, line2) = createRefs()
+        val (
+            backButton, moreButton, avatarPlaceholder,
+            titleLine, nameLine, statRow1, statRow2, statRow3
+        ) = createRefs()
 
-        Box(
+        // Back button skeleton
+        ShimmerEffect(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .constrainAs(backButton) {
+                    top.linkTo(parent.top, margin = 30.dp)
+                    start.linkTo(parent.start, margin = 30.dp)
+                }
+        )
+
+        // More button skeleton
+        ShimmerEffect(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .constrainAs(moreButton) {
+                    top.linkTo(parent.top, margin = 30.dp)
+                    end.linkTo(parent.end, margin = 30.dp)
+                }
+        )
+
+        // Avatar skeleton
+        ShimmerEffect(
             modifier = Modifier
                 .size(110.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray)
-                .constrainAs(imgPlaceholder) {
+                .constrainAs(avatarPlaceholder) {
                     top.linkTo(parent.top, margin = 45.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
         )
 
-        Box(
+        // Title line skeleton
+        ShimmerEffect(
+            modifier = Modifier
+                .height(28.dp)
+                .width(80.dp)
+                .constrainAs(titleLine) {
+                    top.linkTo(avatarPlaceholder.bottom, margin = 15.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+        )
+
+        // Name line skeleton
+        ShimmerEffect(
             modifier = Modifier
                 .height(24.dp)
-                .width(120.dp)
-                .background(Color.LightGray)
-                .constrainAs(line1) {
-                    top.linkTo(imgPlaceholder.bottom, margin = 15.dp)
+                .width(160.dp)
+                .constrainAs(nameLine) {
+                    top.linkTo(titleLine.bottom, margin = 10.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
         )
 
-        Box(
-            modifier = Modifier
-                .height(20.dp)
-                .width(180.dp)
-                .background(Color.LightGray)
-                .constrainAs(line2) {
-                    top.linkTo(line1.bottom, margin = 10.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-        )
-    }
-}
+        // Stats row skeletons
+        val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
+        val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
+        val horizontalGuideLine20Bot = createGuidelineFromBottom(0.2f)
 
-@Composable
-fun LoadingScreen() {
-    LazyColumn {
-        item {
-            UserInfoSkeleton()
+        // Experience stat
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.constrainAs(statRow1) {
+                top.linkTo(horizontalGuideLine20Bot)
+                end.linkTo(verticalGuideLine30Start)
+            }
+        ) {
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(60.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(16.dp)
+                    .width(80.dp)
+            )
         }
-        item {
-            PostSkeleton()
+
+        // Patients stat
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.constrainAs(statRow2) {
+                top.linkTo(horizontalGuideLine20Bot)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }
+        ) {
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(50.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(16.dp)
+                    .width(70.dp)
+            )
+        }
+
+        // Ratings stat
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.constrainAs(statRow3) {
+                top.linkTo(horizontalGuideLine20Bot)
+                start.linkTo(verticalGuideLine30End, margin = 20.dp)
+            }
+        ) {
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(45.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(16.dp)
+                    .width(65.dp)
+            )
         }
     }
 }
@@ -195,6 +318,19 @@ fun DoctorScreen(
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingStat by viewModel.isLoadingStats.collectAsState()
+    doctorID = doctor?.id ?: ""
+
+    doctorName = doctor?.name ?: ""
+
+    doctorAddress = doctor?.address ?: ""
+
+    doctorAvatar = doctor?.avatarURL ?: ""
+
+    specialtyName = doctor?.specialty?.name ?: ""
+
+    isClinicPaused = doctor?.isClinicPaused ?: false
+
+    hasHomeService = doctor?.hasHomeService ?: false
 
     LaunchedEffect(reloadTrigger?.value) {
         if (reloadTrigger?.value == true) {
@@ -217,7 +353,7 @@ fun DoctorScreen(
 
     // Hiển thị loading skeleton nếu đang tải hoặc chưa có dữ liệu
     if (isLoading || doctor == null) {
-        LoadingScreen()
+        UserInfoSkeleton()
         return
     }
 
@@ -246,7 +382,7 @@ fun DoctorScreen(
             bottomBar = {
                 if (!showWriteReviewScreen.value) {
                     when (selectedTab) {
-                        0 -> if (doctorID != userId) {
+                        0 -> if (doctorId != userId) {
                             BookingButton(navHostController)
                         }
 
@@ -276,6 +412,7 @@ fun DoctorScreen(
                     }
                 }
                 item {
+
                     DoctorProfileScreen(
                         navHostController = navHostController,
                         doctor = doctor,
@@ -823,7 +960,13 @@ fun DoctorProfileScreen(
         }
         println("Vao dươc toi trang user khác")
             when (selectedTab) {
-                0 -> ViewIntroduce(doctor = doctor,onImageClick)
+                0 -> {
+                    if( doctor == null || isLoadingStat ) {
+                        RatingOverviewSkeleton()
+                    } else{
+                        ViewIntroduce(doctor = doctor,onImageClick)
+                    }
+                }
                 1 -> {
                     if (showWriteReviewScreen.value) {
                         WriteReviewScreen(
@@ -847,23 +990,19 @@ fun DoctorProfileScreen(
                             }
                         )
                     } else {
-                        if(isLoadingStat || doctor?.ratingsCount == null){
-                            RatingOverviewSkeleton()
-                        } else {
-                            ViewRating(
-                                doctorId = doctor.id,
-                                refreshTrigger = refreshReviewsTrigger,
-                                onEditReview = { reviewId, rating, comment ->
-                                    editingReviewId = reviewId
-                                    editingRating = rating
-                                    editingComment = comment
-                                    showWriteReviewScreen.value = true
-                                },
-                                onDeleteReview = {
-                                    refreshReviewsTrigger = !refreshReviewsTrigger
-                                }
-                            )
-                        }
+                        ViewRating(
+                            doctorId = doctor?.id ?: "",
+                            refreshTrigger = refreshReviewsTrigger,
+                            onEditReview = { reviewId, rating, comment ->
+                                editingReviewId = reviewId
+                                editingRating = rating
+                                editingComment = comment
+                                showWriteReviewScreen.value = true
+                            },
+                            onDeleteReview = {
+                                refreshReviewsTrigger = !refreshReviewsTrigger
+                            }
+                        )
                     }
                 }
 
@@ -895,7 +1034,7 @@ fun DoctorProfileScreen(
 @Composable
 fun BookingButton(navController: NavHostController) {
     var showReportBox by remember { mutableStateOf(false) }
-    if (doctorID != userId) {
+    if (doctorId != userId) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -905,9 +1044,10 @@ fun BookingButton(navController: NavHostController) {
                 Button(
                     onClick = {
                         navController.currentBackStackEntry?.savedStateHandle?.apply {
-                            set("doctorId", doctorID)
+                            set("doctorId", doctorId)
                             set("doctorName", doctorName)
                             set("doctorAddress", doctorAddress)
+                            set("doctorAvatar", doctorAvatar)
                             set("specialtyName", specialtyName)
                             set("hasHomeService", hasHomeService)
                         }
@@ -984,56 +1124,80 @@ fun RatingOverviewSkeleton() {
             .padding(16.dp)
             .background(Color.White)
     ) {
-        // Rating score skeleton
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier.fillMaxWidth()
+        // Rating header section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(40.dp)
-                    .background(Color.LightGray, RoundedCornerShape(4.dp))
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(20.dp)
-                    .background(Color.LightGray, RoundedCornerShape(4.dp))
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(16.dp)
-                    .background(Color.LightGray, RoundedCornerShape(4.dp))
-            )
-        }
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Main rating score
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(48.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .width(60.dp)
+                            .height(24.dp)
+                    )
+                }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        // Rating filter buttons skeleton
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            repeat(5) { index ->
-                Box(
+                // Total reviews count
+                ShimmerEffect(
                     modifier = Modifier
-                        .height(36.dp)
-                        .width(if (index == 0) 60.dp else 50.dp)
-                        .background(Color.LightGray, RoundedCornerShape(18.dp))
+                        .width(120.dp)
+                        .height(16.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Individual review skeletons
-        repeat(3) {
+        // Filter buttons row
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // "Tất cả" button
+            ShimmerEffect(
+                modifier = Modifier
+                    .height(40.dp)
+                    .width(70.dp)
+                    .clip(RoundedCornerShape(20.dp))
+            )
+
+            // Star filter buttons
+            repeat(5) { index ->
+                ShimmerEffect(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(50.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Review items
+        repeat(4) { index ->
             ReviewItemSkeleton()
-            Spacer(modifier = Modifier.height(12.dp))
+            if (index < 3) {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
@@ -1041,74 +1205,202 @@ fun RatingOverviewSkeleton() {
 @Composable
 fun ReviewItemSkeleton() {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // User info skeleton
+            // User profile section
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
+                // Avatar
+                ShimmerEffect(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray)
                 )
+
                 Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Box(
+
+                Column(modifier = Modifier.weight(1f)) {
+                    // User name
+                    ShimmerEffect(
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(16.dp)
-                            .background(Color.LightGray, RoundedCornerShape(4.dp))
+                            .width(140.dp)
+                            .height(18.dp)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Date
+                    ShimmerEffect(
                         modifier = Modifier
-                            .width(80.dp)
-                            .height(12.dp)
-                            .background(Color.LightGray, RoundedCornerShape(4.dp))
+                            .width(100.dp)
+                            .height(14.dp)
+                    )
+                }
+
+                // Menu button
+                ShimmerEffect(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Rating stars
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                repeat(5) {
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Rating stars skeleton
-            Box(
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(20.dp)
-                    .background(Color.LightGray, RoundedCornerShape(4.dp))
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Comment skeleton
-            Column {
-                Box(
+            // Comment text lines
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ShimmerEffect(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(16.dp)
-                        .background(Color.LightGray, RoundedCornerShape(4.dp))
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
+                ShimmerEffect(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(16.dp)
+                )
+                ShimmerEffect(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PostSkeleton() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Post header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ShimmerEffect(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(18.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(14.dp)
+                    )
+                }
+
+                ShimmerEffect(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Post content
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ShimmerEffect(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp)
+                )
+                ShimmerEffect(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(16.dp)
+                )
+                ShimmerEffect(
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
                         .height(16.dp)
-                        .background(Color.LightGray, RoundedCornerShape(4.dp))
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Post image placeholder
+            ShimmerEffect(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                repeat(3) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ShimmerEffect(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ShimmerEffect(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(16.dp)
+                        )
+                    }
+                }
             }
         }
     }
