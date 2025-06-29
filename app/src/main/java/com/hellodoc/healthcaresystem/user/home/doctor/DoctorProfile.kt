@@ -55,11 +55,11 @@ import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+//import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.user.home.report.ReportDoctor
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostDoctor
-import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
-import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
+//import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+//import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel

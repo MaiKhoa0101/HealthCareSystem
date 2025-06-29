@@ -64,7 +64,6 @@ import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostColumn(
     navHostController: NavHostController,

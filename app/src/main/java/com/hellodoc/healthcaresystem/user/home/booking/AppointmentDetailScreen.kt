@@ -132,7 +132,6 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         ?.savedStateHandle
         ?.getLiveData<String>("selected_time")
         ?.observeAsState()
-    savedStateHandle?.get<String>("doctorId")?.let { doctorId = it }
     println("doctorID: " + doctorId)
 
     LaunchedEffect(selectedDateState?.value, selectedTimeState?.value) {
