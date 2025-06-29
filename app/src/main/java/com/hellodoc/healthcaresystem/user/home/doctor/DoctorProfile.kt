@@ -55,31 +55,13 @@ import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
-import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
-import com.hellodoc.healthcaresystem.user.home.booking.doctorAddress
-import com.hellodoc.healthcaresystem.user.home.booking.doctorId
+//import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+//import com.hellodoc.healthcaresystem.user.personal.PostSkeleton
+//import com.hellodoc.healthcaresystem.user.home.booking.doctorAddress
+//import com.hellodoc.healthcaresystem.user.home.booking.doctorId
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-
-var userId = ""
-
-var userModel = ""
-
-var doctorID = ""
-
-var doctorName = ""
-
-var doctorAvatar = ""
-
-var specialtyName = ""
-
-var isClinicPaused = false
-
-var hasHomeService = false
-
-var userName = ""
 
 @Composable
 fun ShimmerEffect(
@@ -287,7 +269,18 @@ fun DoctorScreen(
     val reloadTrigger =
         navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
+    var userId by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var userModel by remember { mutableStateOf("") }
+
     var doctorId by remember { mutableStateOf("") }
+    var doctorName by remember { mutableStateOf("") }
+    var doctorAddress by remember { mutableStateOf("") }
+    var doctorAvatar by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
+    var isClinicPaused by remember { mutableStateOf(false) }
+    var hasHomeService by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
@@ -302,7 +295,7 @@ fun DoctorScreen(
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
         //viewModel.fetchDoctorById(doctorId)
-        println("doctorID: " + doctorId)
+        println("doctorId: " + doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
@@ -323,7 +316,7 @@ fun DoctorScreen(
     val doctor by viewModel.doctor.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingStat by viewModel.isLoadingStats.collectAsState()
-    doctorID = doctor?.id ?: ""
+    doctorId = doctor?.id ?: ""
 
     doctorName = doctor?.name ?: ""
 
@@ -388,7 +381,15 @@ fun DoctorScreen(
                 if (!showWriteReviewScreen.value) {
                     when (selectedTab) {
                         0 -> if (doctorId != userId) {
-                            BookingButton(navHostController)
+                            BookingButton(userId,
+                                doctorId,
+                                doctorName,
+                                doctorAddress,
+                                doctorAvatar,
+                                specialtyName,
+                                hasHomeService,
+                                isClinicPaused,
+                                navHostController)
                         }
 
                         1 -> WriteReviewButton { showWriteReviewScreen.value = true }
@@ -1037,7 +1038,16 @@ fun DoctorProfileScreen(
 }
 
 @Composable
-fun BookingButton(navController: NavHostController) {
+fun BookingButton(
+    userId: String,
+    doctorId: String,
+    doctorName: String,
+    doctorAddress: String,
+    doctorAvatar: String,
+    specialtyName: String,
+    hasHomeService: Boolean,
+    isClinicPaused: Boolean,
+    navController: NavHostController) {
     var showReportBox by remember { mutableStateOf(false) }
     if (doctorId != userId) {
         Box(
@@ -1048,7 +1058,7 @@ fun BookingButton(navController: NavHostController) {
             if (!isClinicPaused) {
                 Button(
                     onClick = {
-                        println("doctorID: " + doctorID)
+                        println("doctorId: " + doctorId)
                         navController.currentBackStackEntry?.savedStateHandle?.apply {
                             set("doctorId", doctorId)
                             set("doctorName", doctorName)

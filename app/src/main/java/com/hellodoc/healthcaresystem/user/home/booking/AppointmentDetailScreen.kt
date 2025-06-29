@@ -43,31 +43,11 @@ import androidx.compose.runtime.livedata.observeAsState
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
-import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
-import com.hellodoc.healthcaresystem.user.home.doctor.specialtyName
+//import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
+//import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
+//import com.hellodoc.healthcaresystem.user.home.doctor.specialtyName
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
-
-//var doctorId: String = ""
-//var doctorName: String = ""
-//var doctorAddress: String = ""
-//var specialtyName: String = ""
-//var patientID: String = ""
-//var patientName: String = ""
-//var patientPhone: String = ""
-//var patientAddress: String = ""
-//var date: String = "" // Ví dụ: "20/04/2025"
-//var time: String = "" // Ví dụ: "14:30"
-////var status: String = "pending" // pending/confirmed/cancelled
-////var examinationMethod: String = "" // "at_clinic" hoặc "at_home"
-//var totalCost: String = "0"
-//var reason: String = "hello"
-//var location: String = ""
-//var patientModel = ""
-//var appointmentId: String = "" // Thêm biến để lưu ID của lịch hẹn cần sửa
-//var hasHomeService = false
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateForServer(input: String): String {
@@ -92,10 +72,11 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     var isEditing by remember { mutableStateOf(false)}
 
     // All moved state variables
-        var doctorId by remember { mutableStateOf("") }
-        var doctorName by remember { mutableStateOf("") }
-        var doctorAddress by remember { mutableStateOf("") }
-        var specialtyName by remember { mutableStateOf("") }
+    var doctorId by remember { mutableStateOf("") }
+    var doctorName by remember { mutableStateOf("") }
+    var doctorAddress by remember { mutableStateOf("") }
+    var doctorAvatar by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
     var patientID by remember { mutableStateOf("") }
     var patientName by remember { mutableStateOf("") }
     var patientPhone by remember { mutableStateOf("") }
@@ -103,7 +84,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var totalCost by remember { mutableStateOf("0") }
-    var reason by remember { mutableStateOf("hello") }
+    var reason by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var patientModel by remember { mutableStateOf("") }
     var appointmentId by remember { mutableStateOf("") }
@@ -237,6 +218,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
                 item {
                     DoctorInfoSection(
                         doctorName = doctorName,
+                        doctorAvatar = doctorAvatar,
                         specialtyName = specialtyName
                     )
                 }
@@ -422,6 +404,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
 @Composable
 fun DoctorInfoSection(
     doctorName: String,
+    doctorAvatar: String,
     specialtyName: String
 ) {
     println("doctor info render duoc")

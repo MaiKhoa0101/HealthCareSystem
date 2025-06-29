@@ -32,7 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
+//import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
 import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
@@ -65,7 +65,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var totalCost by remember { mutableStateOf("0") }
-    var reason by remember { mutableStateOf("hello") }
+    var reason by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var patientModel by remember { mutableStateOf("") }
     var appointmentId by remember { mutableStateOf("") }
