@@ -33,7 +33,7 @@ object RetrofitInstance {
     // Tạo instance Retrofit duy nhất
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(THIRD_URL)
+            .baseUrl(SECOND_URL)
 //            .baseUrl(THIRD_URL)
             .client(client) // Sử dụng client có logging
             .addConverterFactory(GsonConverterFactory.create()) // Dùng gson để chuyển JSON thành obj
