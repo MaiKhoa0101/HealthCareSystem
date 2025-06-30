@@ -321,7 +321,7 @@ class AppointmentViewModel(
 
                     //gọi lại api để load lại ds
                     getAppointmentUser(patientID)
-                    getAppointmentDoctor(com.hellodoc.healthcaresystem.user.home.booking.patientID)
+                    getAppointmentDoctor(patientID)
                 } else {
                     Log.e("Update", "Lỗi mạng/API: ${response.errorBody()?.string()}")
                 }

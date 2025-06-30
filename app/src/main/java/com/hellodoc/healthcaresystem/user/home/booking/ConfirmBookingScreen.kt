@@ -32,7 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
+//import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
 import com.hellodoc.healthcaresystem.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.NotificationViewModel
@@ -54,15 +54,88 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
 
     var notes by remember { mutableStateOf("") }
     var examinationMethod by remember { mutableStateOf("") }
+    var doctorId by remember { mutableStateOf("") }
+    var doctorName by remember { mutableStateOf("") }
+    var doctorAddress by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
+    var patientID by remember { mutableStateOf("") }
+    var patientName by remember { mutableStateOf("") }
+    var patientPhone by remember { mutableStateOf("") }
+    var patientAddress by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
+    var time by remember { mutableStateOf("") }
+    var totalCost by remember { mutableStateOf("0") }
+    var reason by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var patientModel by remember { mutableStateOf("") }
+    var appointmentId by remember { mutableStateOf("") }
+    var hasHomeService by remember { mutableStateOf(false) }
+
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
     LaunchedEffect(savedStateHandle) {
         savedStateHandle?.get<String>("notes")?.let {
-            notes = it
+            reason = it
         }
+
         savedStateHandle?.get<String>("examinationMethod")?.let {
             examinationMethod = it
         }
 
+        savedStateHandle?.get<String>("date")?.let {
+            date = it
+        }
+
+        savedStateHandle?.get<String>("time")?.let {
+            time = it
+        }
+
+        savedStateHandle?.get<String>("doctorId")?.let {
+            doctorId = it
+        }
+
+        savedStateHandle?.get<String>("doctorName")?.let {
+            doctorName = it
+        }
+
+        savedStateHandle?.get<String>("doctorAddress")?.let {
+            doctorAddress = it
+        }
+
+        savedStateHandle?.get<String>("specialtyName")?.let {
+            specialtyName = it
+        }
+
+        savedStateHandle?.get<String>("patientID")?.let {
+            patientID = it
+        }
+
+        savedStateHandle?.get<String>("patientName")?.let {
+            patientName = it
+        }
+
+        savedStateHandle?.get<String>("patientPhone")?.let {
+            patientPhone = it
+        }
+
+        savedStateHandle?.get<String>("patientAddress")?.let {
+            patientAddress = it
+        }
+
+        savedStateHandle?.get<String>("patientModel")?.let {
+            patientModel = it
+        }
+
+        savedStateHandle?.get<String>("totalCost")?.let {
+            totalCost = it
+        }
+
+        savedStateHandle?.get<String>("location")?.let {
+            location = it
+        }
+
+        savedStateHandle?.get<Boolean>("hasHomeService")?.let {
+            hasHomeService = it
+        }
     }
 
     var showDialog by remember { mutableStateOf(false) }
@@ -142,8 +215,12 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                 val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-                val date = LocalDate.parse(date, inputFormatter)
-                val formattedDate = date.format(outputFormatter)
+                val formattedDate = if (date.isNotBlank()) {
+                    val parsedDate = LocalDate.parse(date, inputFormatter)
+                    parsedDate.format(outputFormatter)
+                } else {
+                    ""
+                }
 
                 Button(
                     onClick = {
@@ -154,7 +231,6 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 patientModel = patientModel,
                                 date = formattedDate,
                                 time = time,
-//                                status = status,
                                 examinationMethod = examinationMethod,
                                 notes = notes,
                                 reason = reason,
@@ -162,7 +238,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 location = location
                             )
                         )
-                              },
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                     modifier = Modifier
                         .weight(1f)
@@ -171,7 +247,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                     Text("Xác nhận", color = Color.White)
                 }
             }
-            // Hiển thị Dialog khi bấm nút
+                // Hiển thị Dialog khi bấm nút
             if (showDialog) {
                 Dialog(onDismissRequest = {
                     showDialog = false

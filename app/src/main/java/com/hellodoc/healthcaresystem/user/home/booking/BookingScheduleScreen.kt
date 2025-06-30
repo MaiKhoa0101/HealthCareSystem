@@ -53,6 +53,7 @@ fun BookingCalendarScreen(
     })
 
     // Lấy thông tin chỉnh sửa từ màn hình trước đó
+    val doctorId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("doctorId") ?: ""
     val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
     val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
 
@@ -76,7 +77,7 @@ fun BookingCalendarScreen(
     // Cập nhật available dates từ API response
     LaunchedEffect(availableSlotsData) {
         availableSlotsData?.let { response ->
-            val slots = response.availableSlots // ✅ Lấy từ trường này
+            val slots = response.availableSlots
             availableSlots = slots
             availableDates = slots.mapNotNull { slot ->
                 try {
