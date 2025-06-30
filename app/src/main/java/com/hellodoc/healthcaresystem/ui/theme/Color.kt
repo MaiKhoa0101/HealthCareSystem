@@ -7,7 +7,7 @@ val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
 
 
-val MainTheme = Color(0XFF00AEFF)
+val MainTheme = Color(0xFF4DFBF2)
 val LightDarkTheme = Color(0xFF0098DA)
 
 val LightTheme = Color(0x4000AEFF)

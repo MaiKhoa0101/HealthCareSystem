@@ -616,21 +616,6 @@ fun DoctorProfileScreen(
             )
         }
     }
-
-//    if (showReportDialog) {
-//        InteractPostManager(
-//            navHostController = navHostController,
-//            user = user,
-//            postViewModel = postViewModel,
-//            reportedPostId = reportedPostId,
-//            context = context,
-//            showFullScreenComment = showFullScreenComment,
-//            selectedPostIdForComment = selectedPostIdForComment,
-//            showReportDialog = showReportDialog,
-//            onCloseComment = { showFullScreenComment = false },
-//            onHideReportDialog = { showReportDialog = false }
-//        )
-//    }
 }
 
 @Composable

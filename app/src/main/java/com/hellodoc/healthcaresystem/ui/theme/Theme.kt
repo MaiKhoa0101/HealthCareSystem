@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-
 private val DarkColorScheme = darkColorScheme(
     //Màu chủ đạo app chế độ tối (xám đen)
     primaryContainer = BoxGrey,
@@ -53,14 +52,13 @@ private val LightColorScheme = lightColorScheme(
     onSecondaryContainer = Color.DarkGray,
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
     tertiaryContainer = LightTheme
-
 )
 
 @Composable
 fun HealthCareSystemTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
