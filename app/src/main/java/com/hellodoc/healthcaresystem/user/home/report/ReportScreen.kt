@@ -84,10 +84,10 @@ fun ReportDoctor(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clickable { selectedType = "Bác sĩ" }
+                            .clickable { selectedType = "Người dùng" }
                             .padding(end = 10.dp)
                     ) {
-                        Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+                        Text("Người dùng", modifier = Modifier.padding(start = 5.dp))
                     }
                 }
 
@@ -170,10 +170,10 @@ fun ReportUser(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clickable { selectedType = "Bác sĩ" }
+                        .clickable { selectedType = "Người dùng" }
                         .padding(end = 10.dp)
                 ) {
-                    Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+                    Text("Người dùng", modifier = Modifier.padding(start = 5.dp))
                 }
             }
 
@@ -226,7 +226,7 @@ fun ReportPostDoctor(
     })
 
 
-    var selectedType by remember { mutableStateOf("Bác sĩ") }
+    var selectedType by remember { mutableStateOf("Bài viết") }
     var reportContent by remember { mutableStateOf("") }
 
 
@@ -244,7 +244,7 @@ fun ReportPostDoctor(
                     .border(1.dp, Color.Gray)
                     .padding(16.dp)
             ) {
-                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text("Người báo cáo", fontWeight = FontWeight.Medium)

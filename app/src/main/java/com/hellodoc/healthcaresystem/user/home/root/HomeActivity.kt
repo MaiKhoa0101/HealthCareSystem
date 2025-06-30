@@ -319,6 +319,7 @@ class HomeActivity : BaseActivity() {
                 val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
                 ProfileOtherUserPage(
                     navHostController,
+                    sharedPreferences,
                     userViewModel,
                     postViewModel,
                     userOwnerID

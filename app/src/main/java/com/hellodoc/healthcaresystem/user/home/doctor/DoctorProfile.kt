@@ -167,10 +167,6 @@ fun DoctorScreen(
         }
     }
 
-
-    // Lấy dữ liệu user từ StateFlow
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-
     // Hiển thị loading skeleton nếu đang tải hoặc chưa có dữ liệu
     if (isLoading || doctor == null) {
         UserInfoSkeleton()

@@ -27,6 +27,11 @@ class ReportViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     ) {
         viewModelScope.launch {
             try {
+                println("Cac tham so duoc truyen vao ham bao cao:" +
+                        "\nReportContent: $reportContent" +
+                        "\nSelectedType: $selectedType" +
+                        "\nReporterId:$reporterId" +
+                        "\nReportedId: $reportedId"+"\nReporterModel: $reporterModel"+"\npostId: $postId")
                 val response = RetrofitInstance.reportService.sendReport(
                     ReportRequest(
                         reporter = reportedId,
@@ -45,7 +50,7 @@ class ReportViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    println(response)
+                    println("Ket qua bao cao nguoi dung"+response)
                     Toast.makeText(
                         context,
                         "Gửi báo cáo thất bại",
