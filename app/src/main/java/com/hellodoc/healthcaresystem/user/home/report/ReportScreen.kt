@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -230,18 +232,14 @@ fun ReportPostUser(
     var reportContent by remember { mutableStateOf("") }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.3f))
-            .clickable(enabled = true, onClick = {}),
-        contentAlignment = Alignment.Center
+    Dialog (
+        onDismissRequest = { onClickShowPostReportDialog() },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray)
+                .background(Color.White, shape = RoundedCornerShape(20.dp))
                 .padding(16.dp)
         ) {
             Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
