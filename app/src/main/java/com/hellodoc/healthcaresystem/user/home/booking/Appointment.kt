@@ -42,16 +42,19 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.animation.core.*
+import com.hellodoc.core.common.skeletonloading.SkeletonBox
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController, dao: AppointmentDao) {
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
     val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences) }
+        initializer { AppointmentViewModel(sharedPreferences, dao ) }
     })
 
     val appointmentsUser by appointmentViewModel.appointmentsUser.collectAsState()
@@ -124,11 +127,12 @@ fun AppointmentScreenUI(
             null
         }
     }
-    val userRole = jwt?.getClaim("role")?.asString() ?: "user"
-    val isPatient = userRole == "user" || userRole == "patient"
-    val isDoctor = userRole == "doctor"
+    val userRole = jwt?.getClaim("role")?.asString() ?: "User"
+    val isPatient = userRole == "User"
+    val isDoctor = userRole == "Doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
     val appointmentUpdated by appointmentViewModel.appointmentUpdated.collectAsState()
+    val isLoading by appointmentViewModel.isLoading.collectAsState()
 
     LaunchedEffect(appointmentUpdated, appointmentsDoc) {
         if (appointmentUpdated && appointmentsDoc.any { it.status == "done" }) {
@@ -211,14 +215,12 @@ fun AppointmentScreenUI(
                 }
             }
 
-            // ✅ Chọn lịch theo VAI TRÒ
             val appointmentsRole = when (roleSelectedTab) {
                 0 -> appointmentsUser // Vai trò "Đã đặt" (User đặt lịch)
                 1 -> appointmentsDoc  // Vai trò "Được đặt" (Doctor được đặt lịch)
                 else -> appointmentsUser
             }
 
-            // ✅ Lọc theo TRẠNG THÁI
             val filteredAppointments = when (selectedTab) {
                 0 -> appointmentsRole.filter { it.status == "pending" }
                 1 -> appointmentsRole.filter { it.status == "done" }
@@ -226,19 +228,28 @@ fun AppointmentScreenUI(
                 else -> appointmentsRole
             }
 
-            // ✅ Hiển thị
-            LazyColumn {
-                items(filteredAppointments) { appointment ->
-                    AppointmentCard(
-                        appointment,
-                        userID,
-                        selectedTab = selectedTab,
-                        roleSelectedTab = roleSelectedTab,
-                        sharedPreferences = sharedPreferences,
-                        navHostController = navHostController,
-                        appointmentViewModel = appointmentViewModel,
-                        onDoneConfirmed = { selectedTab = 1 }
-                    )
+
+            if (isLoading) {
+                // Hiển thị skeleton giả lập 5 item
+                LazyColumn {
+                    items(5) {
+                        AppointmentSkeletonItem()
+                    }
+                }
+            } else {
+                LazyColumn {
+                    items(filteredAppointments) { appointment ->
+                        AppointmentCard(
+                            appointment,
+                            userID,
+                            selectedTab = selectedTab,
+                            roleSelectedTab = roleSelectedTab,
+                            sharedPreferences = sharedPreferences,
+                            navHostController = navHostController,
+                            appointmentViewModel = appointmentViewModel,
+                            onDoneConfirmed = { selectedTab = 1 }
+                        )
+                    }
                 }
             }
         }
@@ -256,7 +267,7 @@ fun AppointmentCard(
     navHostController: NavHostController,
     appointmentViewModel: AppointmentViewModel,
     onDoneConfirmed: () -> Unit
-    ) {
+) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1
     val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
@@ -433,6 +444,80 @@ fun AppointmentCard(
                 }
 
             }
+        }
+    }
+}
+
+@Composable
+fun AppointmentSkeletonItem() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White, RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.4f)
+                .height(20.dp),
+            shape = RoundedCornerShape(4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SkeletonBox(
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(CircleShape),
+                shape = CircleShape
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(20.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(180.dp)
+                        .height(16.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(16.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(36.dp),
+                shape = RoundedCornerShape(8.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(36.dp),
+                shape = RoundedCornerShape(8.dp)
+            )
         }
     }
 }

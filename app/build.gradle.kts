@@ -7,6 +7,7 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 android {
     namespace = "com.hellodoc.healthcaresystem"
@@ -68,6 +69,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     dependencies {
         val nav_version = "2.8.9"
 
@@ -79,6 +84,7 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.room.runtime.android)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -104,6 +110,8 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
 
-
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
 }

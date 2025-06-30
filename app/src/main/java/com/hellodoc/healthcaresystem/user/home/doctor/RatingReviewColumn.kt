@@ -48,6 +48,7 @@ import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.responsemodel.ReviewResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.skeleton.SkeletonReviewItem
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,18 +60,21 @@ fun ViewRating(
 ) {
     val reviews = remember { mutableStateOf<List<ReviewResponse>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
-
     var selectedRating by remember { mutableStateOf(0) }
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(doctorId, refreshTrigger) {
         coroutineScope.launch {
             try {
+                isLoading = true
                 val response = RetrofitInstance.reviewService.getReviewsByDoctor(doctorId)
                 if (response.isSuccessful) {
                     reviews.value = response.body()?.sortedByDescending { it.createdAt } ?: emptyList()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                isLoading = false
             }
         }
     }
@@ -103,23 +107,29 @@ fun ViewRating(
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-//                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            filteredReviews.forEach { review ->
-                ReviewItem(
-                    review = review,
-                    onEditClick = { id, rating, comment ->
-                        onEditReview(id, rating, comment)
-                    },
-                    onDeleteClick = {
-                        onDeleteReview()
-                    }
-                )
+            if (isLoading) {
+                repeat(3) { // Show 3 skeleton items while loading
+                    SkeletonReviewItem()
+                }
+            } else {
+                filteredReviews.forEach { review ->
+                    ReviewItem(
+                        review = review,
+                        onEditClick = { id, rating, comment ->
+                            onEditReview(id, rating, comment)
+                        },
+                        onDeleteClick = {
+                            onDeleteReview()
+                        }
+                    )
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun RatingSummary(

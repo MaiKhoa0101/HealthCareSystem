@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
 import com.hellodoc.healthcaresystem.responsemodel.ApplyDoctor
+import com.hellodoc.healthcaresystem.responsemodel.DoctorAvailableSlotsResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.ReturnPendingDoctorResponse
@@ -33,6 +34,7 @@ interface DoctorService {
         @Part license: MultipartBody.Part,
         @Part specialty: MultipartBody.Part,
         @Part CCCD: MultipartBody.Part,
+        @Part address: MultipartBody.Part,
         @Part licenseUrl: MultipartBody.Part?,
         @Part faceUrl: MultipartBody.Part?,
         @Part avatarURL: MultipartBody.Part?,
@@ -66,5 +68,8 @@ interface DoctorService {
 
     @PATCH("doctor/verify-doctor/{id}")
     suspend fun verifyDoctor(@Path("id") id: String): Response<ReturnPendingDoctorResponse>
+
+    @GET("doctor/getAvailableWorkingTime/{id}")
+    suspend fun fetchAvailableSlots(@Path("id") id: String): Response<DoctorAvailableSlotsResponse>
 
 }

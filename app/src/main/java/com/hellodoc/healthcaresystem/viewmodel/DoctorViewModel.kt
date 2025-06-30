@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
+import com.hellodoc.healthcaresystem.responsemodel.DoctorAvailableSlotsResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
@@ -36,6 +37,24 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    private val _availableWorkingHours = MutableStateFlow<DoctorAvailableSlotsResponse?>(null)
+    val availableWorkingHours: StateFlow<DoctorAvailableSlotsResponse?> get() = _availableWorkingHours
+
+    fun fetchAvailableSlots(doctorId: String){
+        viewModelScope.launch {
+            try{
+                val response = RetrofitInstance.doctor.fetchAvailableSlots(doctorId)
+                if(response.isSuccessful){
+                    _availableWorkingHours.value = response.body()
+                } else {
+                    println("Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch(e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun fetchDoctors(forceRefresh: Boolean = false) {
 
@@ -112,6 +131,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val license = MultipartBody.Part.createFormData("license", request.license)
                 val specialty = MultipartBody.Part.createFormData("specialty", request.specialty)
                 val CCCD = MultipartBody.Part.createFormData("CCCD", request.CCCD)
+                val address = MultipartBody.Part.createFormData("address", request.address)
 
                 // Tạo multipart từ các file nếu có
                 val licenseUrl = request.licenseUrl?.let {
@@ -135,6 +155,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                     userId,
                     license,
                     specialty,
+                    address,
                     CCCD,
                     licenseUrl,
                     faceUrl,
@@ -358,10 +379,13 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private val _isLoadingStats = MutableStateFlow(false)
+    val isLoadingStats: StateFlow<Boolean> get() = _isLoadingStats
+
     fun fetchDoctorWithStats(doctorId: String) {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
+                _isLoadingStats.value = true
 
                 val doctorRes = RetrofitInstance.doctor.getDoctorById(doctorId)
                 val statsRes = RetrofitInstance.appointment.getDoctorStats(doctorId)
@@ -380,11 +404,14 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                _isLoading.value = false
+                _isLoadingStats.value = false
             }
         }
     }
 
+    fun resetStates() {
+        _isLoading.value = false
+    }
 
 }
 

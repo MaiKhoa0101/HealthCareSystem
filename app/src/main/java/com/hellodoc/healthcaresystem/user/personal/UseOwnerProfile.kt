@@ -35,10 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,8 +50,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
-import com.hellodoc.healthcaresystem.user.home.root.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.skeleton.ShimmerEffect
+import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -74,6 +76,7 @@ fun ProfileUserPage(
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
         initializer { PostViewModel(sharedPreferences) }
     })
+
 //    val comments by postViewModel.comments.collectAsState()
     var shouldReloadPosts by remember { mutableStateOf(false) }
     val navEntry = navHostController.currentBackStackEntry
@@ -82,7 +85,7 @@ fun ProfileUserPage(
     var userModel: String = ""
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
-        userModel = if (userViewModel.getUserAttributeString("role") == "user") "User" else "Doctor"
+        userModel = userViewModel.getUserAttributeString("role")
     }
 
     // Gọi API để fetch user từ server
@@ -95,9 +98,8 @@ fun ProfileUserPage(
 
     // Lấy dữ liệu user từ StateFlow
     val user by userViewModel.user.collectAsState()
-    // Nếu chưa có user (null) thì không hiển thị giao diện
-    if (user==null) return
-
+    println("USER: $user")
+    val isUserLoading = user == null
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     if (selectedImageUrl != null) {
@@ -109,7 +111,6 @@ fun ProfileUserPage(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     val posts by postViewModel.posts.collectAsState()
-
 
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier
@@ -123,7 +124,9 @@ fun ProfileUserPage(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                if (user!=null) {
+                if (isUserLoading) {
+                    UserSkeleton()
+                } else {
                     ProfileSection(
                         navHostController = navHostController,
                         user = user!!,
@@ -136,7 +139,7 @@ fun ProfileUserPage(
                         navHostController = navHostController,
                         idUserOfPost = user!!.id,
                         userWhoInteractWithThisPost = user!!,
-                        postViewModel = postViewModel,
+                        postViewModel = postViewModel
                     )
                 }
             }
@@ -279,7 +282,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 if (user == null) {
                     return@Button
                 }
-                else if (user.role=="user"){
+                else if (user.role=="User"){
                     navHostController.navigate("doctorRegister")
                 }
                 else{
@@ -293,7 +296,11 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 .width(128.dp)
         ) {
             Text(
-                text = "Quản lý phòng khám",
+                text =  if (user?.role == "User") {
+                    "Đăng kí phòng khám"
+                } else {
+                    "Quản lý phòng khám"
+                },
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -301,6 +308,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
         }
     }
 }
+
 
 
 

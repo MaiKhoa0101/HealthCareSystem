@@ -60,9 +60,9 @@ import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.GetNewsCommentResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullScreenCommentUI(
@@ -339,13 +339,17 @@ private fun CommentInput(
             modifier = Modifier.weight(1f)
         )
 
+        val userModel = currentUser.role
+        val currentUserId = currentUser.id
+
         Button(
             onClick = {
                 coroutineScope.launch {
                     uiState.submitComment(
                         postViewModel = postViewModel,
                         postId = postId,
-                        currentUserId = currentUserId
+                        currentUserId = currentUserId,
+                        userModel = userModel
                     )
                 }
             }

@@ -34,8 +34,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
 
-
-
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
@@ -43,7 +41,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
-                println("Capa nhat post moi: "+response.body())
+                println("Get post: "+response.body())
                 val result = response.body()
                 val newPosts = result?.posts ?: emptyList()
                 val hasMore = result?.hasMore ?: false
@@ -65,8 +63,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             false
         }
     }
-
-
 
     private val _commentsMap = MutableStateFlow<Map<String, List<CommentPostResponse>>>(emptyMap())
     val commentsMap: StateFlow<Map<String, List<CommentPostResponse>>> = _commentsMap
@@ -122,9 +118,13 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private var _isLoadingPost = MutableStateFlow(false)
+    val isLoadingPost: StateFlow<Boolean> get() = _isLoadingPost
+
     fun getPostByUserId(userId:String) {
         viewModelScope.launch {
             try {
+                _isLoadingPost.value = true
                 val result = RetrofitInstance.postService.getPostByUserId(userId)
 
                 if (result.isSuccessful) {
@@ -136,7 +136,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             } catch (e: Exception) {
                 println("Lỗi ở getPostByUserId")
-                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
+                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")
+            } finally {
+                _isLoadingPost.value = false
+            }
         }
     }
 
@@ -213,8 +216,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun updateFavoriteForPost(postId: String, userFavouriteId: String, userFavouriteModel: String) {
         viewModelScope.launch {
             try {
+                println("updateFavoriteForPost: $postId, $userFavouriteId, $userFavouriteModel")
                 val response = RetrofitInstance.postService.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userFavouriteId, userFavouriteModel))
                 if (response.isSuccessful) {
+                    println("updateFavoriteForPost thanh cong")
                     val isFavorited = response.body()?.isFavorited ?: false
                     val totalFavorites = response.body()?.totalFavorites?.toString() ?: "0"
                     _isFavoritedMap.value += (postId to isFavorited)
@@ -230,6 +235,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun sendComment(postId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
+                print("DATA truyen tu send comment $userId, $userModel, $content")
                 Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
 
                 val response = RetrofitInstance.postService.createCommentByPostId(

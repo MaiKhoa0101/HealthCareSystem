@@ -1,7 +1,9 @@
 package com.hellodoc.healthcaresystem.user.home.root
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -49,6 +51,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -62,7 +65,7 @@ import com.hellodoc.healthcaresystem.user.home.booking.ConfirmBookingScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
-import com.hellodoc.healthcaresystem.user.doctor.DoctorScreen
+import com.hellodoc.healthcaresystem.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.user.personal.FavouriteHistoryScreen
@@ -83,12 +86,38 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 class HomeActivity : BaseActivity() {
+    private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun checkAndRequestNotificationPermission() {
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(permission), NOTIFICATION_PERMISSION_REQUEST_CODE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                Log.d("Permission", "Notification permission granted")
+            } else {
+                Log.d("Permission", "Notification permission denied")
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         // Obtain the FirebaseAnalytics instance.
         firebaseAnalytics = Firebase.analytics
         super.onCreate(savedInstanceState)
+        checkAndRequestNotificationPermission() //kiem tra quyen thong bao
+        val dao = (application as MainApplication).database.appointmentDao()
+
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
@@ -140,7 +169,8 @@ class HomeActivity : BaseActivity() {
                     geminiViewModel = geminiViewModel,
                     newsViewModel = newsViewModel,
                     postViewModel = postViewModel,
-                    faqItemViewModel = faqItemViewModel
+                    faqItemViewModel = faqItemViewModel,
+                    dao = dao
                 )
             }
         }
@@ -154,11 +184,7 @@ class HomeActivity : BaseActivity() {
                     val token = task.result
                     Log.d("FCM", "FCM Token: $token")
                     val userId = userViewModel.getUserAttributeString("userId")
-                    val userModel = when (userViewModel.getUserAttributeString("role")) {
-                        "user" -> "User"
-                        "doctor" -> "Doctor"
-                        else -> ""
-                    }
+                    val userModel = userViewModel.getUserAttributeString("role")
                     if (userId.isNotEmpty() && userModel.isNotEmpty()) {
                         userViewModel.sendFcmToken(userId, userModel, token)
                     }
@@ -181,7 +207,8 @@ class HomeActivity : BaseActivity() {
         newsViewModel: NewsViewModel,
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        dao: AppointmentDao
     ) {
         GetFcmInstance(sharedPreferences, userViewModel)
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -213,7 +240,8 @@ class HomeActivity : BaseActivity() {
                 newsViewModel = newsViewModel,
                 postViewModel = postViewModel,
                 faqItemViewModel = faqItemViewModel,
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues),
+                dao
             )
         }
     }
@@ -233,7 +261,8 @@ class HomeActivity : BaseActivity() {
         newsViewModel: NewsViewModel,
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        dao: AppointmentDao
     ) {
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
@@ -261,7 +290,7 @@ class HomeActivity : BaseActivity() {
                 NewsDetailScreen(navHostController, viewModel = newsViewModel)
             }
             composable("appointment") {
-                AppointmentListScreen(sharedPreferences, navHostController)
+                AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
@@ -278,7 +307,6 @@ class HomeActivity : BaseActivity() {
                 )
             ) { backStackEntry ->
                 val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
-                println("Id user 2: "+userOwnerID)
                 ProfileOtherUserPage(
                     navHostController,
                     userViewModel,
@@ -308,7 +336,8 @@ class HomeActivity : BaseActivity() {
                 AppointmentDetailScreen(
                     context = context,
                     onBack = { navHostController.popBackStack() },
-                    navHostController = navHostController
+                    navHostController = navHostController,
+                    dao
                 )
             }
             composable("doctor_list") {
@@ -331,12 +360,13 @@ class HomeActivity : BaseActivity() {
                     AppointmentDetailScreen(
                         context = context,
                         onBack = { navHostController.popBackStack() },
-                        navHostController = navHostController
+                        navHostController = navHostController,
+                        dao
                     )
                 }
             }
             composable("booking-confirm") {
-                ConfirmBookingScreen(context = context, navHostController = navHostController)
+                ConfirmBookingScreen(context = context, navHostController = navHostController, dao)
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)
