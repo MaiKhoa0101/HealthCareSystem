@@ -272,6 +272,7 @@ fun AppointmentCard(
     val isDoctor = roleSelectedTab == 1
     val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
     val displayName = if (isDoctor) appointment.patient.name else appointment.doctor.name
+    val noteForDoctor = appointment.notes
 
 
     val formattedDate = try {
@@ -334,7 +335,7 @@ fun AppointmentCard(
 
                 Column {
                     Text(displayName, fontWeight = FontWeight.Bold)
-                    Text(appointment.notes ?: "Không có ghi chú")
+                    Text(noteForDoctor ?: "Không có ghi chú")
 
                     Row {
                         Icon(
@@ -393,11 +394,13 @@ fun AppointmentCard(
                                     set("appointmentId", appointment.id)
                                     set("doctorId", appointment.doctor.id)
                                     set("doctorName", appointment.doctor.name)
+                                    set("doctorAddress", appointment.location )
+                                    set("doctorAvatar", appointment.doctor.avatarURL)
                                     set("specialtyName", appointment.doctor.specialty ?: "")
                                     set("selected_date", formattedDate)
                                     set("selected_time", appointment.time)
                                     set("notes", appointment.notes ?: "")
-                                    set("location", appointment.location ?: "")
+                                    set("location", appointment.location)
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
@@ -406,7 +409,7 @@ fun AppointmentCard(
                             Text("Chỉnh sửa", color = Color.White)
                         }
                     }
-                    else if (selectedTab == 1 || selectedTab == 2) { // Khám xong hoặc Đã huỷ
+                    else if (selectedTab == 1 ) { // Khám xong hoặc Đã huỷ
                         OutlinedButton(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
@@ -419,8 +422,11 @@ fun AppointmentCard(
                                     set("isEditing", false)
                                     set("doctorId", appointment.doctor.id)
                                     set("doctorName", appointment.doctor.name)
+                                    set("doctorAvatar", appointment.doctor.avatarURL)
+                                    set("doctorAddress", appointment.location)
+                                    set("notes", appointment.notes)
                                     set("specialtyName", appointment.doctor.specialty ?: "")
-                                    set("location", appointment.location ?: "")
+                                    set("location", appointment.location )
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
@@ -432,6 +438,7 @@ fun AppointmentCard(
                             onClick = {
                                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                                     set("doctorId", appointment.doctor.id)
+                                    set("isRating", true)
                                     set("selectedTab", 1)
                                 }
                                 navHostController.navigate("other_user_profile")
@@ -439,6 +446,31 @@ fun AppointmentCard(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242760))
                         ) {
                             Text("Đánh giá", color = Color.White)
+                        }
+                    }
+                    else if ( selectedTab == 2){
+                        OutlinedButton(
+                            onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                        ) {
+                            Text("Xóa")
+                        }
+                        Button(
+                            onClick = {
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("isEditing", false)
+                                    set("doctorId", appointment.doctor.id)
+                                    set("doctorName", appointment.doctor.name)
+                                    set("doctorAvatar", appointment.doctor.avatarURL)
+                                    set("doctorAddress", appointment.location)
+                                    set("specialtyName", appointment.doctor.specialty ?: "")
+                                    set("location", appointment.location )
+                                }
+                                navHostController.navigate("appointment-detail")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                        ) {
+                            Text("Đặt lại", color = Color.White)
                         }
                     }
                 }
