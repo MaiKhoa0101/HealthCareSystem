@@ -176,6 +176,8 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                 Spacer(modifier = Modifier.height(24.dp))
                 InfoText(label = "Giờ đặt khám:", value = time)
                 Spacer(modifier = Modifier.height(24.dp))
+                InfoText(label = "Lời nhắn cho bác sĩ:", value = reason)
+                Spacer(modifier = Modifier.height(24.dp))
                 var method = ""
                 if (examinationMethod == "at_clinic") {
                     method = "Khám tại phòng khám"
@@ -232,7 +234,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 date = formattedDate,
                                 time = time,
                                 examinationMethod = examinationMethod,
-                                notes = notes,
+                                notes = reason,
                                 reason = reason,
                                 totalCost = totalCost,
                                 location = location

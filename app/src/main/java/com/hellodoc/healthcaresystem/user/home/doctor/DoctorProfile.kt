@@ -104,6 +104,8 @@ fun DoctorScreen(
     var userName by remember { mutableStateOf("") }
     var userModel by remember { mutableStateOf("") }
 
+    var isRating by remember { mutableStateOf(false) }
+
     var doctorId by remember { mutableStateOf("") }
     var doctorName by remember { mutableStateOf("") }
     var doctorAddress by remember { mutableStateOf("") }
@@ -124,6 +126,7 @@ fun DoctorScreen(
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
+        isRating = savedStateHandle?.get<Boolean>("isRating") ?: false
         //viewModel.fetchDoctorById(doctorId)
         println("doctorId: " + doctorId)
     }
@@ -215,7 +218,9 @@ fun DoctorScreen(
                                 navHostController)
                         }
 
-                        1 -> WriteReviewButton { showWriteReviewScreen.value = true }
+                        1 -> if(isRating) {
+                            WriteReviewButton { showWriteReviewScreen.value = true }
+                        }
                     }
                 }
             }

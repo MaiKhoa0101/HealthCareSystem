@@ -16,5 +16,6 @@ data class CreateAppointmentRequest(
 
 data class UpdateAppointmentRequest(
     val time: String,
-    val date: String
+    val date: String,
+    val notes: String
 )
