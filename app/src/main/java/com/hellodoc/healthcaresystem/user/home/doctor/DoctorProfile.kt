@@ -241,7 +241,6 @@ fun DoctorScreen(
                     }
                 }
                 item {
-
                     DoctorProfileScreen(
                         navHostController = navHostController,
                         doctor = doctor,

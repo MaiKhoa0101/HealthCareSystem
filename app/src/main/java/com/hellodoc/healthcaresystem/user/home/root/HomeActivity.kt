@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -120,10 +121,11 @@ class HomeActivity : BaseActivity() {
 
         enableEdgeToEdge()
         setContent {
+            var darkTheme by rememberSaveable { mutableStateOf(false) }
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            HealthCareSystemTheme {
+            HealthCareSystemTheme(darkTheme=darkTheme) {
                 val context = LocalContext.current
 
                 // Initialize ViewModels at activity scope
@@ -170,7 +172,9 @@ class HomeActivity : BaseActivity() {
                     newsViewModel = newsViewModel,
                     postViewModel = postViewModel,
                     faqItemViewModel = faqItemViewModel,
-                    dao = dao
+                    dao = dao,
+                    onToggleTheme = { darkTheme = !darkTheme },
+                    darkTheme = darkTheme
                 )
             }
         }
@@ -208,7 +212,9 @@ class HomeActivity : BaseActivity() {
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao
+        dao: AppointmentDao,
+        onToggleTheme: () -> Unit,
+        darkTheme: Boolean
     ) {
         GetFcmInstance(sharedPreferences, userViewModel)
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -241,7 +247,9 @@ class HomeActivity : BaseActivity() {
                 postViewModel = postViewModel,
                 faqItemViewModel = faqItemViewModel,
                 modifier = Modifier.padding(paddingValues),
-                dao
+                dao,
+                onToggleTheme = onToggleTheme,
+                darkTheme = darkTheme
             )
         }
     }
@@ -262,7 +270,9 @@ class HomeActivity : BaseActivity() {
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao
+        dao: AppointmentDao,
+        onToggleTheme: () -> Unit,
+        darkTheme: Boolean
     ) {
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
@@ -296,7 +306,7 @@ class HomeActivity : BaseActivity() {
                 NotificationPage(context, navHostController)
             }
             composable("personal") {
-                ProfileUserPage(sharedPreferences, navHostController)
+                ProfileUserPage(sharedPreferences, navHostController, onToggleTheme = onToggleTheme, darkTheme = darkTheme)
             }
             composable(
                 "otherUserProfile/{userOwnerID}",

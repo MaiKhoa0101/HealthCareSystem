@@ -54,7 +54,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
-import com.hellodoc.healthcaresystem.user.personal.userId
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -114,7 +113,12 @@ fun HeadbarResClinic(navHostController: NavHostController) {
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun ContentRegistrationForm(viewModel: DoctorViewModel, sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+fun ContentRegistrationForm(
+    viewModel: DoctorViewModel,
+    sharedPreferences: SharedPreferences,
+    navHostController: NavHostController
+) {
+    var userId by remember { mutableStateOf("") }
     val context = LocalContext.current
 
     val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {

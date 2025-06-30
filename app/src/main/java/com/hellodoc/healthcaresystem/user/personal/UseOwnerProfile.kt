@@ -44,11 +44,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.itforum.user.setting.Setting
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
@@ -58,14 +60,14 @@ import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
-var userId=""
-var userModel = ""
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileUserPage(
     sharedPreferences: SharedPreferences,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    onToggleTheme: () -> Unit,
+    darkTheme: Boolean
 ) {
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
@@ -83,6 +85,7 @@ fun ProfileUserPage(
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
     var userId: String = ""
     var userModel: String = ""
+
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = userViewModel.getUserAttributeString("role")
@@ -111,7 +114,7 @@ fun ProfileUserPage(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     val posts by postViewModel.posts.collectAsState()
-
+    var showSetting by remember { mutableStateOf(false) }
     // Nếu có user rồi thì hiển thị UI
     Box(modifier = Modifier
         .fillMaxSize()
@@ -133,7 +136,8 @@ fun ProfileUserPage(
                         onClickShowReport = { showReportDialog = true },
                         onImageClick = { selectedImageUrl = it },
                         showReportBox = showReportBox,
-                        onToggleReportBox = { showReportBox = !showReportBox }
+                        onToggleReportBox = { showReportBox = !showReportBox },
+                        onClickSetting = { showSetting = true }
                     )
                     PostColumn(
                         navHostController = navHostController,
@@ -144,6 +148,18 @@ fun ProfileUserPage(
                 }
             }
         }
+        if (showSetting) {
+            println("SHOW SETTING")
+            Setting(
+                navHostController,
+                sharedPreferences,
+                onToggleTheme = onToggleTheme,
+                onExitSetting = {
+                    showSetting = false
+                },
+                darkTheme = darkTheme
+            )
+        }
     }
 }
 
@@ -153,7 +169,8 @@ fun ProfileSection(
     user: User, onClickShowReport: () -> Unit,
     onImageClick: (String) -> Unit,
     showReportBox: Boolean,
-    onToggleReportBox: () -> Unit
+    onToggleReportBox: () -> Unit,
+    onClickSetting: () -> Unit
 )
 {
     Column(
@@ -170,7 +187,8 @@ fun ProfileSection(
                 navController = navHostController,
                 onImageClick = onImageClick,
                 showReportBox = showReportBox,
-                onToggleReportBox = onToggleReportBox
+                onToggleReportBox = onToggleReportBox,
+                onClickSetting = onClickSetting
             )
             Spacer(modifier = Modifier.height(26.dp))
             UserProfileModifierSection(navHostController, user)
@@ -186,7 +204,8 @@ fun UserIntroSection(
     navController: NavHostController,
     onImageClick: (String) -> Unit,
     showReportBox: Boolean,
-    onToggleReportBox: () -> Unit
+    onToggleReportBox: () -> Unit,
+    onClickSetting: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -236,13 +255,13 @@ fun UserIntroSection(
 
         // Icon 3 chấm
         IconButton(
-            onClick = { onToggleReportBox() },
+            onClick = { onClickSetting() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_more),
+                painter = painterResource(id = R.drawable.settingbtn),
                 contentDescription = "Menu",
                 tint = Color.Black
             )
