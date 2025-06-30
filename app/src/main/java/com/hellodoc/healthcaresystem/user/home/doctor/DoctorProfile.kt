@@ -104,6 +104,8 @@ fun DoctorScreen(
     var userName by remember { mutableStateOf("") }
     var userModel by remember { mutableStateOf("") }
 
+    var isRating by remember { mutableStateOf(false) }
+
     var doctorId by remember { mutableStateOf("") }
     var doctorName by remember { mutableStateOf("") }
     var doctorAddress by remember { mutableStateOf("") }
@@ -124,6 +126,7 @@ fun DoctorScreen(
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
+        isRating = savedStateHandle?.get<Boolean>("isRating") ?: false
         //viewModel.fetchDoctorById(doctorId)
         println("doctorId: " + doctorId)
     }
@@ -166,10 +169,6 @@ fun DoctorScreen(
                 ?.savedStateHandle?.set("shouldReload", false)
         }
     }
-
-
-    // Lấy dữ liệu user từ StateFlow
-    // Nếu chưa có user (null) thì không hiển thị giao diện
 
     // Hiển thị loading skeleton nếu đang tải hoặc chưa có dữ liệu
     if (isLoading || doctor == null) {
@@ -215,7 +214,9 @@ fun DoctorScreen(
                                 navHostController)
                         }
 
-                        1 -> WriteReviewButton { showWriteReviewScreen.value = true }
+                        1 -> if(isRating) {
+                            WriteReviewButton { showWriteReviewScreen.value = true }
+                        }
                     }
                 }
             }
@@ -241,7 +242,6 @@ fun DoctorScreen(
                     }
                 }
                 item {
-
                     DoctorProfileScreen(
                         navHostController = navHostController,
                         doctor = doctor,

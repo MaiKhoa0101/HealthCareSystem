@@ -186,7 +186,7 @@ fun NotificationSection(
 ){
     Column (
         modifier = Modifier
-            .background(if (notification.isRead) Color.LightGray else CyanNot)
+            .background(if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer)
             .fillMaxWidth()
             .clickable {
                 if (!notification.isRead) notificationViewModel.markAsRead(notification.id)

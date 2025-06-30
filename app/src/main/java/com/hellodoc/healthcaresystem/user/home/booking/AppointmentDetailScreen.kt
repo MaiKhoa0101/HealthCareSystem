@@ -132,7 +132,6 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         ?.savedStateHandle
         ?.getLiveData<String>("selected_time")
         ?.observeAsState()
-    println("doctorID: " + doctorId)
 
     LaunchedEffect(selectedDateState?.value, selectedTimeState?.value) {
         selectedDateState?.value?.let { date = it }
@@ -146,16 +145,12 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
         savedStateHandle?.get<String>("doctorId")?.let { doctorId = it }
         savedStateHandle?.get<String>("doctorName")?.let { doctorName = it }
         savedStateHandle?.get<String>("doctorAddress")?.let { doctorAddress = it }
+        savedStateHandle?.get<String>("doctorAvatar")?.let { doctorAvatar = it }
         savedStateHandle?.get<String>("specialtyName")?.let { specialtyName = it }
         savedStateHandle?.get<String>("notes")?.let { reason = it }
         savedStateHandle?.get<String>("location")?.let { location = it }
         savedStateHandle?.get<Boolean>("hasHomeService")?.let { hasHomeService = it }
 
-        println("test nhaa")
-        println("doctorID" + doctorId)
-        println("doctorName" + doctorName)
-        println("doctorAddress" + doctorAddress)
-        println("specialtyName" + specialtyName)
         savedStateHandle?.get<Boolean>("isEditing")?.let {
             isEditing = it
             if (isEditing) {
@@ -344,7 +339,8 @@ fun UpdateButton(
                 else -> {
                     val updateRequest = UpdateAppointmentRequest(
                         date = formatDateForServer(date),
-                        time = time
+                        time = time,
+                        notes = notes
                     )
 
                     appointmentViewModel.updateAppointment(

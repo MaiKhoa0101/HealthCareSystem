@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,7 +78,7 @@ fun Headbar(
         modifier = Modifier
             .height(100.dp)
             .fillMaxWidth()
-            .background(color = Color(0xFFE0E0E0)) ,
+            .background(MaterialTheme.colorScheme.tertiaryContainer) ,
         verticalArrangement = Arrangement.Bottom
     ) {
         // Row for left icon and right user info
@@ -104,7 +105,7 @@ fun Headbar(
                     fontSize = 15.sp,
                     textAlign = TextAlign.Left,
                     lineHeight = 20.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
@@ -116,7 +117,7 @@ fun Headbar(
                     Icon(
                         painter = painterResource(id = R.drawable.logout),
                         contentDescription = "Logout",
-                        tint = Color.Unspecified,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(30.dp)
                     )
                 }

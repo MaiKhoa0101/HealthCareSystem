@@ -48,7 +48,6 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
@@ -93,7 +92,7 @@ fun HealthMateHomeScreen(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
-
+    var userModel by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
@@ -159,13 +158,13 @@ fun HealthMateHomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
             item(key = "header") {
                 Column(
                     modifier = Modifier
-                        .background(Color(0xFF00C5CB))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(16.dp)
                 ) {
                     AssistantQueryRow(
@@ -183,7 +182,7 @@ fun HealthMateHomeScreen(
                         MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
                     }
                 }
-                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
             }
 
             item(key = "services") {
@@ -365,11 +364,11 @@ fun MarqueeNewsTicker(
                             velocity = 50.dp,
                         ),
                     fontSize = 16.sp,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
-                Divider(color = Color.White, thickness = 1.dp)
+                Divider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
@@ -394,7 +393,7 @@ fun MarqueeNewsTicker(
                             velocity = 50.dp,
                         ),
                     fontSize = 16.sp,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                 )
             }
@@ -412,7 +411,7 @@ fun MarqueeNewsTicker(
             Icon(
                 imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                 contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier
                     .clickable { showAllNews = !showAllNews }
                     .size(30.dp)
@@ -431,7 +430,7 @@ fun SectionHeader(title: String) {
     Text(
         text = title,
         fontSize = 20.sp,
-        color = Color.Black,
+        color = MaterialTheme.colorScheme.onBackground,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(8.dp)
     )
@@ -486,7 +485,7 @@ fun AssistantQueryRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White, shape = RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -494,10 +493,10 @@ fun AssistantQueryRow(
             TextField(
                 value = text,
                 onValueChange = { text = it },
-                placeholder = { Text("Đặt câu hỏi cho Trợ lý AI", color = Color.Gray) },
+                placeholder = { Text("Đặt câu hỏi cho Trợ lý AI", color = MaterialTheme.colorScheme.onBackground) },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -534,7 +533,7 @@ fun NewsSkeletonItem() {
                 .padding(end = 32.dp),
         )
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = Color.White, thickness = 1.dp)
+        Divider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
     }
 }
 
@@ -567,17 +566,12 @@ fun NewsItem(
             Text(
                 text = news.title,
                 fontSize = 16.sp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.weight(1f)
             )
-//            Icon(
-//                imageVector = Icons.AutoMirrored.Filled.Send,
-//                contentDescription = "Xem chi tiết",
-//                tint = Color.Black
-//            )
         }
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = Color.White, thickness = 1.dp)
+        Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
     }
 }
 @Composable

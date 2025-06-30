@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -120,10 +121,11 @@ class HomeActivity : BaseActivity() {
 
         enableEdgeToEdge()
         setContent {
+            var darkTheme by rememberSaveable { mutableStateOf(false) }
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            HealthCareSystemTheme {
+            HealthCareSystemTheme(darkTheme=darkTheme) {
                 val context = LocalContext.current
 
                 // Initialize ViewModels at activity scope
@@ -170,7 +172,9 @@ class HomeActivity : BaseActivity() {
                     newsViewModel = newsViewModel,
                     postViewModel = postViewModel,
                     faqItemViewModel = faqItemViewModel,
-                    dao = dao
+                    dao = dao,
+                    onToggleTheme = { darkTheme = !darkTheme },
+                    darkTheme = darkTheme
                 )
             }
         }
@@ -208,7 +212,9 @@ class HomeActivity : BaseActivity() {
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao
+        dao: AppointmentDao,
+        onToggleTheme: () -> Unit,
+        darkTheme: Boolean
     ) {
         GetFcmInstance(sharedPreferences, userViewModel)
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -241,7 +247,9 @@ class HomeActivity : BaseActivity() {
                 postViewModel = postViewModel,
                 faqItemViewModel = faqItemViewModel,
                 modifier = Modifier.padding(paddingValues),
-                dao
+                dao,
+                onToggleTheme = onToggleTheme,
+                darkTheme = darkTheme
             )
         }
     }
@@ -262,7 +270,9 @@ class HomeActivity : BaseActivity() {
         postViewModel: PostViewModel,
         faqItemViewModel: FAQItemViewModel,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao
+        dao: AppointmentDao,
+        onToggleTheme: () -> Unit,
+        darkTheme: Boolean
     ) {
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
@@ -296,7 +306,7 @@ class HomeActivity : BaseActivity() {
                 NotificationPage(context, navHostController)
             }
             composable("personal") {
-                ProfileUserPage(sharedPreferences, navHostController)
+                ProfileUserPage(sharedPreferences, navHostController, onToggleTheme = onToggleTheme, darkTheme = darkTheme)
             }
             composable(
                 "otherUserProfile/{userOwnerID}",
@@ -309,6 +319,7 @@ class HomeActivity : BaseActivity() {
                 val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
                 ProfileOtherUserPage(
                     navHostController,
+                    sharedPreferences,
                     userViewModel,
                     postViewModel,
                     userOwnerID
@@ -401,49 +412,4 @@ class HomeActivity : BaseActivity() {
 
     }
 
-}
-
-@Composable
-fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-
-    if (selectedImageUrl != null) {
-        Dialog(onDismissRequest = onDismiss) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable(onClick = onDismiss)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                scale = (scale * zoom).coerceIn(1f, 5f)
-                                offset += pan
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(selectedImageUrl),
-                        contentDescription = "Zoomable Image",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                translationX = offset.x,
-                                translationY = offset.y
-                            )
-                    )
-                }
-            }
-        }
-    } else {
-        onDismiss()
-    }
 }
