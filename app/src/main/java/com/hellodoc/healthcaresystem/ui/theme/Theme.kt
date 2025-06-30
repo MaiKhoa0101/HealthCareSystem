@@ -8,28 +8,52 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+    //Màu chủ đạo app chế độ tối (xám đen)
+    primaryContainer = BoxGrey,
+    //Đối tượng trên nền màu chủ đạo
+    onPrimaryContainer = Color.White,
+    //Màu nền phần nội dung (xám đen tối)
+    background = Color(0xFF2A2A2A),
+    //Đối tượng trên background (trắng)
+    onBackground = Color(0xFFFFFFFF),
+    //Màu nền nội dung cấp 2
+    secondary = LightDarkTheme,
+//    onSecondary = Color.DarkGray,
+    //Màu nền nội dung cấp 2 (xám tối) thường dùng cho các card nằm trên background
+    secondaryContainer = BoxLightGrey,
+    // Nội dung trên card
+    onSecondaryContainer = onSecondDarkContainer,
+    //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
+    tertiaryContainer = LightDarkTheme,
+
+
+    )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    //Màu chủ đạo app xanh
+    primaryContainer = MainTheme,
+    //Đối tượng trên nền màu chủ đạo
+    onPrimaryContainer = Color.Black,
+    //Màu nền phần nội dung (trắng)
+    background = Color.White,
+    //Đối tượng trên background (đen)
+    onBackground = Color.Black,
+    //Màu nền nội dung cấp 2 (xám sáng) thường dùng cho các card nằm trên background
+    secondary = ButtonTheme,
+//    // Nội dung trên card
+//    onSecondary = Color.Gray,
+    //Màu nền nội dung cấp 2 (xám sáng) thường dùng cho các card nằm trên background
+    secondaryContainer = secondContainer,
+    // Nội dung trên card
+    onSecondaryContainer = Color.DarkGray,
+    //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
+    tertiaryContainer = LightTheme
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable

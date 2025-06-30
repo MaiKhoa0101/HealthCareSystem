@@ -48,7 +48,6 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.*
-import com.hellodoc.healthcaresystem.user.personal.userModel
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
@@ -93,7 +92,7 @@ fun HealthMateHomeScreen(
     var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
-
+    var userModel by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
