@@ -52,7 +52,8 @@ import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
-import com.hellodoc.healthcaresystem.user.home.doctor.ShimmerEffect
+import com.hellodoc.healthcaresystem.skeleton.ShimmerEffect
+import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -308,96 +309,6 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
     }
 }
 
-@Composable
-fun UserSkeleton() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF00E5FF),
-                        Color(0xFF00C5CB)
-                    )
-                )
-            )
-            .padding(10.dp)
-    ) {
-        // Skeleton for UserIntroSection
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .padding(16.dp)
-        ) {
-            // Skeleton for more button (3 dots icon)
-            ShimmerEffect(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            )
-
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(20.dp))
-                // Skeleton for avatar
-                ShimmerEffect(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                // Skeleton for name
-                ShimmerEffect(
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width(160.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                // Skeleton for email
-                ShimmerEffect(
-                    modifier = Modifier
-                        .height(14.dp)
-                        .width(120.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(26.dp))
-
-        // Skeleton for UserProfileModifierSection
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            // Skeleton for "Chỉnh sửa hồ sơ" button
-            ShimmerEffect(
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(128.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            // Skeleton for "Quản lý phòng khám" button
-            ShimmerEffect(
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(128.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-    }
-}
 
 
 

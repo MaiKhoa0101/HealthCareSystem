@@ -215,8 +215,12 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                 val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-                val date = LocalDate.parse(date, inputFormatter)
-                val formattedDate = date.format(outputFormatter)
+                val formattedDate = if (date.isNotBlank()) {
+                    val parsedDate = LocalDate.parse(date, inputFormatter)
+                    parsedDate.format(outputFormatter)
+                } else {
+                    ""
+                }
 
                 Button(
                     onClick = {
@@ -227,7 +231,6 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 patientModel = patientModel,
                                 date = formattedDate,
                                 time = time,
-//                                status = status,
                                 examinationMethod = examinationMethod,
                                 notes = notes,
                                 reason = reason,
@@ -235,7 +238,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 location = location
                             )
                         )
-                              },
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
                     modifier = Modifier
                         .weight(1f)
@@ -244,7 +247,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                     Text("Xác nhận", color = Color.White)
                 }
             }
-            // Hiển thị Dialog khi bấm nút
+                // Hiển thị Dialog khi bấm nút
             if (showDialog) {
                 Dialog(onDismissRequest = {
                     showDialog = false

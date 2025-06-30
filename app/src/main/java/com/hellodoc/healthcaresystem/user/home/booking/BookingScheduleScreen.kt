@@ -77,7 +77,7 @@ fun BookingCalendarScreen(
     // Cập nhật available dates từ API response
     LaunchedEffect(availableSlotsData) {
         availableSlotsData?.let { response ->
-            val slots = response.availableSlots // ✅ Lấy từ trường này
+            val slots = response.availableSlots
             availableSlots = slots
             availableDates = slots.mapNotNull { slot ->
                 try {
@@ -201,14 +201,15 @@ fun BookingCalendarScreen(
                                             .background(
                                                 when {
                                                     isSelected -> Color(0xFF00BCD4)
-                                                    !isAvailable && day != null && !isPast -> Color(0xFFE0E0E0) // Màu xám cho ngày không available
+                                                    isAvailable && !isPast -> Color(0xFFB2EBF2)
+                                                    !isAvailable && day != null && !isPast -> Color(0xFFE0E0E0)
                                                     else -> Color.Transparent
                                                 }
                                             )
                                             .clickable(enabled = isClickable) {
                                                 day?.let {
                                                     selectedDate = it
-                                                    selectedTime = "" // Reset selected time khi chọn ngày mới
+                                                    selectedTime = ""
                                                 }
                                             },
                                         contentAlignment = Alignment.Center
@@ -218,12 +219,14 @@ fun BookingCalendarScreen(
                                             color = when {
                                                 isPast -> Color.Gray
                                                 isSelected -> Color.White
-                                                !isAvailable && day != null && !isPast -> Color.Gray // Màu xám cho ngày không available
-                                                else -> Color.Black
+                                                isAvailable && !isPast -> Color.Black
+                                                else -> Color.Gray
                                             },
-                                            fontSize = 14.sp
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                         )
                                     }
+
                                 }
 
                                 if (isLastRow && week.size < 7) {

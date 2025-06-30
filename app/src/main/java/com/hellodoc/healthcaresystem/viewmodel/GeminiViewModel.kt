@@ -32,9 +32,15 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         // Thêm câu hỏi của user vào chat
         _chatMessages.update { it + ChatMessage(query, isUser = true) }
 
+        val customPrompt = """
+            Bạn là một trợ lý y tế AI. Bạn chỉ được phép trả lời những câu hỏi liên quan đến y tế, sức khỏe, bệnh lý, thuốc, hoặc tư vấn y khoa. 
+            Nếu câu hỏi không liên quan đến y tế, hãy trả lời: "Xin lỗi, tôi chỉ hỗ trợ các câu hỏi liên quan đến y tế."
+            Đây là câu hỏi của người dùng: $query
+        """.trimIndent()
+
         val request = GeminiRequest(
             contents = listOf(
-                Content(parts = listOf(Part(text = query)))
+                Content(parts = listOf(Part(text = customPrompt)))
             )
         )
 
