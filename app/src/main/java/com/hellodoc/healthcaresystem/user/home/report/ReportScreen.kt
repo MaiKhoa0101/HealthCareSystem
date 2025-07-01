@@ -67,7 +67,8 @@ fun ReportDoctor(
                 .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
                 .padding(16.dp)
         ) {
-            Text("Báo cáo bác sĩ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            if (doctor != null)
+                Text("Báo cáo bác sĩ ${doctor.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
@@ -153,7 +154,9 @@ fun ReportUser(
                 .border(1.dp, Color.Gray)
                 .padding(16.dp)
         ) {
-            Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            if (reportedUser != null)
+                Text("Báo cáo người dùng ${reportedUser.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
@@ -161,17 +164,7 @@ fun ReportUser(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable { selectedType = "Người dùng" }
-                        .padding(end = 10.dp)
-                ) {
-                    Text("Người dùng", modifier = Modifier.padding(start = 5.dp))
-                }
-            }
+            Text("Người dùng", color = Color.DarkGray)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
@@ -240,25 +233,19 @@ fun ReportPostDoctor(
                 .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
                 .padding(16.dp)
         ) {
-            Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            if (userReported != null)
+                Text("Báo cáo bài viết của ${userReported.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
-            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
-
+            if (youTheCurrentUserUseThisApp != null)
+                Text(youTheCurrentUserUseThisApp.name, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
+
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedType = "Bài viết" }
-                ) {
-                    Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-                }
-            }
-
+            Text("Bài viết", color = Color.DarkGray)
             Spacer(modifier = Modifier.height(8.dp))
+
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
             TextField(
                 value = reportContent,
@@ -284,14 +271,15 @@ fun ReportPostDoctor(
                 )
 
                 Button(onClick = {
-                    reportViewModel.createReport(
-                        context,
-                        reportContent,
-                        selectedType,
-                        youTheCurrentUserUseThisApp.id,
-                        userReported!!.id,
-                        youTheCurrentUserUseThisApp.role
-                    )
+                    if (youTheCurrentUserUseThisApp != null)
+                        reportViewModel.createReport(
+                            context,
+                            reportContent,
+                            selectedType,
+                            youTheCurrentUserUseThisApp.id,
+                            userReported!!.id,
+                            youTheCurrentUserUseThisApp.role
+                        )
                     onClickShowPostReportDialog()
                 }) {
                     Text("Gửi báo cáo")
@@ -329,7 +317,7 @@ fun ReportPostUser(
                 .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(20.dp))
                 .padding(16.dp)
         ) {
-            Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Báo cáo bài viết của ${userReported.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
@@ -337,15 +325,7 @@ fun ReportPostUser(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedType = "Bài viết" }
-                ) {
-                    Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-                }
-            }
+            Text("Bài viết", color = Color.DarkGray)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
