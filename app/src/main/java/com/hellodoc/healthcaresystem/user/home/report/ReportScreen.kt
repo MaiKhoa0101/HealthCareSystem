@@ -282,7 +282,7 @@ fun ReportPostDoctor(
                         "Huỷ",
                         color = Color.Red,
                         modifier = Modifier
-                            .clickable { onClickShowPostReportDialog  }
+                            .clickable { onClickShowPostReportDialog()  }
                             .padding(8.dp),
                         fontWeight = FontWeight.Medium
                     )
@@ -363,7 +363,7 @@ fun ReportPostUser(
                     "Huỷ",
                     color = Color.Red,
                     modifier = Modifier
-                        .clickable { onClickShowPostReportDialog  }
+                        .clickable { onClickShowPostReportDialog() }
                         .padding(8.dp),
                     fontWeight = FontWeight.Medium
                 )

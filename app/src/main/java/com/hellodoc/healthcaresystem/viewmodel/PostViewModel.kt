@@ -28,6 +28,9 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
 
+    private val _post = MutableStateFlow<PostResponse?>(null) // nullable
+    val post: StateFlow<PostResponse?> = _post
+
     private val _hasMorePosts = MutableStateFlow(true)
     val hasMorePosts: StateFlow<Boolean> = _hasMorePosts
 
@@ -102,12 +105,8 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val result = RetrofitInstance.postService.getPostById(id)
 
                 if (result.isSuccessful) {
-                    result.body()?.let {
-                        _posts.value = listOf(it)
-                    } ?: run {
-                        _posts.value = emptyList()
-                    }
-                    println("Kết qua getPostById: "+_posts.value)
+                    _post.value = result.body()
+                    println("Kết qua getPostById: "+_post.value)
                 } else {
                     println("Lỗi API: ${result.errorBody()?.string()}")
                 }
