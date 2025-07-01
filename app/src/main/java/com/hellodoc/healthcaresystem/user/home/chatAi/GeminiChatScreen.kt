@@ -73,14 +73,14 @@ fun GeminiChatScreen(
                         modifier = Modifier
                             .widthIn(max = 250.dp) // <- Giới hạn chiều rộng tối đa của hộp chat
                             .background(
-                                if (msg.isUser) Color(0xFFBBDEFB) else Color(0xFFC8E6C9),
+                                if (msg.isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .padding(12.dp)
                     ) {
                         Text(
                             text = msg.message,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -125,7 +125,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
 //            .statusBarsPadding()
             .height(56.dp)
     ) {
@@ -143,7 +143,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         // Tiêu đề ở giữa
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.background,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )

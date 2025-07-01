@@ -92,7 +92,7 @@ fun ViewRating(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         RatingSummary(
@@ -143,7 +143,7 @@ fun RatingSummary(
 
         Text(
             text = String.format("%.1f", average),
-            style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF242760)),
+            style = MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.secondary),
             modifier = Modifier.constrainAs(tvAvg) {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
@@ -152,7 +152,7 @@ fun RatingSummary(
 
         Text(
             text = "/5",
-            style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray),
+            style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier.constrainAs(tvMax) {
                 baseline.linkTo(tvAvg.baseline)
                 start.linkTo(tvAvg.end, margin = 4.dp)
@@ -161,7 +161,7 @@ fun RatingSummary(
 
         Text(
             text = "$count đánh giá",
-            style = MaterialTheme.typography.labelMedium.copy(color = Color.Gray),
+            style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier.constrainAs(tvCount) {
                 top.linkTo(tvAvg.bottom)
                 start.linkTo(tvAvg.start)
@@ -180,8 +180,8 @@ fun RatingSummary(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (selectedRating == i) Color(0xFFDADADA) else Color.White)
-                        .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                        .background(if (selectedRating == i) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.background)
+                        .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
                         .clickable { onRatingSelected(i) }
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
@@ -237,7 +237,7 @@ fun ReviewItem(
         Text(
             text = review.createdAt?.substring(0, 10) ?: "",
             fontSize = 13.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.constrainAs(time) {
                 end.linkTo(parent.end)
                 top.linkTo(name.top)
@@ -255,7 +255,7 @@ fun ReviewItem(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = "Star",
-                    tint = Color(0xFFFFC107),
+                    tint = MaterialTheme.colorScheme.outlineVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -274,7 +274,7 @@ fun ReviewItem(
 
         Box(
             modifier = Modifier.constrainAs(menuIcon) {
-                top.linkTo(comment.top)
+                bottom.linkTo(comment.top, margin = (-8).dp)
                 end.linkTo(parent.end)
             }
         ) {
@@ -308,7 +308,7 @@ fun ReviewItem(
                         }
                     }
                 )
-                Divider(thickness = 1.dp, color = Color.LightGray)
+                Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
                 DropdownMenuItem(
                     text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Sửa") }},
                     onClick = {
