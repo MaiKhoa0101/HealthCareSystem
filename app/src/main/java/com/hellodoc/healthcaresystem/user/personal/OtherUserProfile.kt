@@ -135,7 +135,7 @@ fun OtherUserIntroSection(
     onToggleReportBox: () -> Unit
 ) {
     Column(
-        modifier = Modifier.background(Color.Cyan)
+        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column(
             modifier = Modifier
@@ -183,7 +183,7 @@ fun OtherUserIntroSection(
                         modifier = Modifier
                             .size(120.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray.copy(alpha = 0.2f))
+                            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
                     ) {
                         AsyncImage(
                             model = user.avatarURL,
@@ -203,13 +203,13 @@ fun OtherUserIntroSection(
                         user.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         user.email,
                         fontSize = 14.sp,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }

@@ -47,14 +47,14 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
                     .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
                     .clickable { navHostController.navigate("userComment") }
                     .padding(16.dp)
@@ -71,8 +71,8 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(12.dp))
                     .clickable { navHostController.navigate("userFavorite") }
                     .padding(16.dp)
             ) {
@@ -92,14 +92,14 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
      Box(
          modifier = Modifier
              .fillMaxWidth()
-             .background(Color(0xFF00BCD4))
+             .background(MaterialTheme.colorScheme.primaryContainer)
              .height(56.dp)
      ) {
          // Nút quay lại
          Icon(
              imageVector = Icons.Filled.ArrowBack,
              contentDescription = "Back Button",
-             tint = Color.White,
+             tint = MaterialTheme.colorScheme.background,
              modifier = Modifier
                  .align(Alignment.CenterStart)
                  .padding(start = 16.dp)
@@ -109,7 +109,7 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
          // Tiêu đề ở giữa
          Text(
              text = title,
-             color = Color.White,
+             color = MaterialTheme.colorScheme.background,
              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
              modifier = Modifier.align(Alignment.Center)
          )
