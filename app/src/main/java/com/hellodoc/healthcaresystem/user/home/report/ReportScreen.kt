@@ -51,83 +51,83 @@ fun ReportDoctor(
     doctor: GetDoctorResponse?,
     onClickShowReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
-){
+) {
     val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
         initializer { ReportViewModel(sharedPreferences) }
     })
 
+    var selectedType by remember { mutableStateOf("Bác sĩ") }
+    var reportContent by remember { mutableStateOf("") }
 
-        var selectedType by remember { mutableStateOf("Bác sĩ") }
-        var reportContent by remember { mutableStateOf("") }
-
-        Box(
+    Dialog(onDismissRequest = { onClickShowReportDialog() }) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f))
-                .clickable(enabled = true, onClick = {}),
-            contentAlignment = Alignment.Center
+                .width(320.dp)
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .width(320.dp)
-                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
-                    .padding(16.dp)
-            ) {
-                Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(8.dp))
+            Text("Báo cáo bác sĩ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Người báo cáo", fontWeight = FontWeight.Medium)
-                Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
+            Text("Người báo cáo", fontWeight = FontWeight.Medium)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Loại báo cáo", fontWeight = FontWeight.Medium)
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clickable { selectedType = "Người dùng" }
-                            .padding(end = 10.dp)
-                    ) {
-                        Text("Người dùng", modifier = Modifier.padding(start = 5.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
-                TextField(
-                    value = reportContent,
-                    onValueChange = { reportContent = it },
-                    placeholder = { Text("Nhập nội dung...") },
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
+                        .clickable { selectedType = "Bác sĩ" }
+                        .padding(end = 10.dp)
+                ) {
+                    Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+            TextField(
+                value = reportContent,
+                onValueChange = { reportContent = it },
+                placeholder = { Text("Nhập nội dung...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Huỷ",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .clickable { onClickShowReportDialog() }
+                        .padding(8.dp),
+                    fontWeight = FontWeight.Medium
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Huỷ",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .clickable { onClickShowReportDialog()  }
-                            .padding(8.dp),
-                        fontWeight = FontWeight.Medium
+                Button(onClick = {
+                    reportViewModel.createReport(
+                        context,
+                        reportContent,
+                        selectedType,
+                        youTheCurrentUserUseThisApp.id,
+                        doctor!!.id,
+                        youTheCurrentUserUseThisApp.role
                     )
-
-                    Button(onClick = {
-                        reportViewModel.createReport(context, reportContent, selectedType, youTheCurrentUserUseThisApp!!.id, doctor!!.id, youTheCurrentUserUseThisApp!!.role)
-                        onClickShowReportDialog()
-                    }) {
-                        Text("Gửi báo cáo")
-                    }
+                    onClickShowReportDialog()
+                }) {
+                    Text("Gửi báo cáo")
                 }
             }
         }
+    }
 }
 
 @Composable
@@ -137,22 +137,15 @@ fun ReportUser(
     reportedUser: User?,
     onClickShowReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
-){
+) {
     val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
         initializer { ReportViewModel(sharedPreferences) }
     })
 
-
     var selectedType by remember { mutableStateOf("Người dùng") }
     var reportContent by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f))
-            .clickable(enabled = true, onClick = {}),
-        contentAlignment = Alignment.Center
-    ) {
+    Dialog(onDismissRequest = { onClickShowReportDialog() }) {
         Column(
             modifier = Modifier
                 .width(320.dp)
@@ -200,13 +193,20 @@ fun ReportUser(
                     "Huỷ",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
-                        .clickable { onClickShowReportDialog()  }
+                        .clickable { onClickShowReportDialog() }
                         .padding(8.dp),
                     fontWeight = FontWeight.Medium
                 )
 
                 Button(onClick = {
-                    reportViewModel.createReport(context, reportContent, selectedType, youTheCurrentUserUseThisApp!!.id, reportedUser!!.id, youTheCurrentUserUseThisApp!!.role)
+                    reportViewModel.createReport(
+                        context,
+                        reportContent,
+                        selectedType,
+                        youTheCurrentUserUseThisApp!!.id,
+                        reportedUser!!.id,
+                        youTheCurrentUserUseThisApp.role
+                    )
                     onClickShowReportDialog()
                 }) {
                     Text("Gửi báo cáo")
@@ -215,91 +215,91 @@ fun ReportUser(
         }
     }
 }
+
 @Composable
 fun ReportPostDoctor(
     context: Context,
     youTheCurrentUserUseThisApp: User?,
     userReported: GetDoctorResponse?,
-    onClickShowPostReportDialog: () ->Unit,
+    onClickShowPostReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
-
 ) {
     val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
         initializer { ReportViewModel(sharedPreferences) }
     })
 
-
     var selectedType by remember { mutableStateOf("Bài viết") }
     var reportContent by remember { mutableStateOf("") }
 
-
-        Box(
+    Dialog(onDismissRequest = { onClickShowPostReportDialog() }) {
+        // Nội dung hộp báo cáo
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f))
-                .clickable(enabled = true, onClick = {}),
-            contentAlignment = Alignment.Center
+                .width(320.dp)
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .width(320.dp)
-                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
-                    .padding(16.dp)
-            ) {
-                Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(8.dp))
+            Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Người báo cáo", fontWeight = FontWeight.Medium)
-                Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
+            Text("Người báo cáo", fontWeight = FontWeight.Medium)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Loại báo cáo", fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Loại báo cáo", fontWeight = FontWeight.Medium)
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedType = "Bài viết" }
-                    ) {
-                        Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { selectedType = "Bài viết" }
+                ) {
+                    Text("Bài viết", modifier = Modifier.padding(start = 5.dp))
                 }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
-                TextField(
-                    value = reportContent,
-                    onValueChange = { reportContent = it },
-                    placeholder = { Text("Nhập nội dung...") },
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
+            TextField(
+                value = reportContent,
+                onValueChange = { reportContent = it },
+                placeholder = { Text("Nhập nội dung...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Huỷ",
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
+                        .clickable { onClickShowPostReportDialog() }
+                        .padding(8.dp),
+                    fontWeight = FontWeight.Medium
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Huỷ",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .clickable { onClickShowPostReportDialog  }
-                            .padding(8.dp),
-                        fontWeight = FontWeight.Medium
+                Button(onClick = {
+                    reportViewModel.createReport(
+                        context,
+                        reportContent,
+                        selectedType,
+                        youTheCurrentUserUseThisApp.id,
+                        userReported!!.id,
+                        youTheCurrentUserUseThisApp.role
                     )
-
-                    Button(onClick = {
-                        reportViewModel.createReport(context, reportContent, selectedType, youTheCurrentUserUseThisApp!!.id, userReported!!.id, youTheCurrentUserUseThisApp!!.role)
-                        onClickShowPostReportDialog()
-                    }) {
-                        Text("Gửi báo cáo")
-                    }
+                    onClickShowPostReportDialog()
+                }) {
+                    Text("Gửi báo cáo")
                 }
             }
         }
     }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -374,7 +374,7 @@ fun ReportPostUser(
                     "Huỷ",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
-                        .clickable { onClickShowPostReportDialog  }
+                        .clickable { onClickShowPostReportDialog()  }
                         .padding(8.dp),
                     fontWeight = FontWeight.Medium
                 )
