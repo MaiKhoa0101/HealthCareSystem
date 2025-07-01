@@ -31,6 +31,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.skeleton.discordClick
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
 
@@ -64,9 +65,9 @@ fun InteractPostManager(
             modifier = Modifier
                 .size(height = sizeButton*2, width = sizeButton*6)
                 .clip(RoundedCornerShape(20.dp))
-                .clickable{
+                .discordClick {
                     coroutineScope.launch {
-                        println("Nut like dc nhan")
+                        println("Nút like được nhấn")
                         postViewModel.updateFavoriteForPost(
                             postId = post.id,
                             userFavouriteId = user.id,
