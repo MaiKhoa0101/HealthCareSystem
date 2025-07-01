@@ -84,7 +84,7 @@ fun BMICheckerScreen(navHostController: NavHostController) {
             onClick = {
                 val weightVal = weight.toDoubleOrNull()
                 val heightVal = height.toDoubleOrNull()
-                if (weightVal != null && heightVal != null && heightVal > 0) {
+                if (weightVal != null && weightVal > 0 && heightVal != null && heightVal > 0) {
                     val heightMeters = heightVal / 100
                     bmi = weightVal / (heightMeters * heightMeters)
                 }
@@ -157,7 +157,13 @@ fun CapsuleInput(label: String, value: String, onValueChange: (String) -> Unit) 
         ) {
             TextField(
                 value = value,
-                onValueChange = onValueChange,
+                onValueChange = {
+                    // Chỉ cho phép nhập số dương (số thực hoặc nguyên)
+                    val filtered = it.filter { ch -> ch.isDigit() || ch == '.' }
+                    if (!filtered.startsWith("-")) {
+                        onValueChange(filtered)
+                    }
+                },
                 placeholder = { Text("Nhập số") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -165,10 +171,10 @@ fun CapsuleInput(label: String, value: String, onValueChange: (String) -> Unit) 
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(label)
-
         }
     }
 }
+
 
 @Composable
 fun CapsuleResult(label: String, value: String) {
