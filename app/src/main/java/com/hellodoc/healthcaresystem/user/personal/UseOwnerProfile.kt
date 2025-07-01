@@ -50,7 +50,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.itforum.user.setting.Setting
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
@@ -253,17 +252,19 @@ fun UserIntroSection(
             )
         }
 
-        // Icon 3 chấm
+        // Icon setting
         IconButton(
             onClick = { onClickSetting() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(8.dp)
+                .padding(4.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.settingbtn),
-                contentDescription = "Menu",
-                tint = Color.Black
+                contentDescription = "Setting",
+                tint = Color.Black,
+                modifier = Modifier
+                    .height(20.dp)
             )
         }
     }

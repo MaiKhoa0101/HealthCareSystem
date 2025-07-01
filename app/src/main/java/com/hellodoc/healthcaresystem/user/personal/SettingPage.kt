@@ -1,15 +1,12 @@
-package com.example.itforum.user.setting
+package com.hellodoc.healthcaresystem.user.personal
 
-import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,33 +14,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import com.google.firebase.auth.FirebaseAuth
-
 
 @Composable
 fun Setting(
@@ -76,9 +66,9 @@ fun Setting(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Settings",
+                    contentDescription = "backIcon",
                     modifier = Modifier
-                        .size(35.dp)
+                        .size(25.dp)
                         .clickable {
                             onExitSetting()
                         }
@@ -94,7 +84,8 @@ fun Setting(
             ) {
                 Text(
                     "Cài đặt",
-                    fontSize = 30.sp,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -135,7 +126,7 @@ fun Setting(
 
 
 @Composable
-fun SectionSetting(nameField:String,iconVector:ImageVector,onPress:()->Unit, ){
+fun SectionSetting(nameField:String, iconVector:ImageVector, onPress:()->Unit, ){
     Divider(
         color = MaterialTheme.colorScheme.secondaryContainer
     )
@@ -145,7 +136,6 @@ fun SectionSetting(nameField:String,iconVector:ImageVector,onPress:()->Unit, ){
             .clickable {
                 onPress()
             },
-
         ) {
         Row (
             modifier = Modifier
