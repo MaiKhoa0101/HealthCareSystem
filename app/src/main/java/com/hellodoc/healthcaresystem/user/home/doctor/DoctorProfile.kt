@@ -290,7 +290,7 @@ fun UserInfo(
 
     ConstraintLayout(
         modifier = modifier
-            .background(Color.Cyan)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .height(330.dp)
             .fillMaxWidth()
     ) {
@@ -324,7 +324,7 @@ fun UserInfo(
             text = "Bác sĩ",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.constrainAs(tvTitle) {
                 top.linkTo(imgIcon.bottom, margin = 15.dp)
                 start.linkTo(parent.start)
@@ -336,7 +336,7 @@ fun UserInfo(
             text = name,
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.constrainAs(tvName) {
                 top.linkTo(tvTitle.bottom, margin = 10.dp)
                 start.linkTo(parent.start)
@@ -350,7 +350,7 @@ fun UserInfo(
 
         Text(
             text = "$experience năm",
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = Color.Blue),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
             modifier = Modifier.constrainAs(tvNFollower) {
                 top.linkTo(horizontalGuideLine20Bot)
                 end.linkTo(verticalGuideLine30Start)
@@ -359,7 +359,7 @@ fun UserInfo(
 
         Text(
             text = "Kinh nghiệm",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color.Black),
+            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier.constrainAs(tvFollowers) {
                 top.linkTo(tvNFollower.bottom, margin = 5.dp)
                 end.linkTo(verticalGuideLine30Start)
@@ -368,7 +368,7 @@ fun UserInfo(
 
         Text(
             text = patientsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = Color.Blue),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
             modifier = Modifier.constrainAs(tvNFollowing) {
                 top.linkTo(horizontalGuideLine20Bot)
                 start.linkTo(parent.start)
@@ -378,7 +378,7 @@ fun UserInfo(
 
         Text(
             text = "Bệnh nhân",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color.Black),
+            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier.constrainAs(tvFollowing) {
                 top.linkTo(tvNFollowing.bottom, margin = 5.dp)
                 start.linkTo(parent.start)
@@ -388,7 +388,7 @@ fun UserInfo(
 
         Text(
             text = ratingsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = Color.Blue),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
             modifier = Modifier.constrainAs(tvNLike) {
                 top.linkTo(horizontalGuideLine20Bot)
                 start.linkTo(verticalGuideLine30End, margin = 20.dp)
@@ -397,31 +397,17 @@ fun UserInfo(
 
         Text(
             text = "Đánh giá",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color.Black),
+            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier.constrainAs(tvLikes) {
                 top.linkTo(tvNLike.bottom, margin = 5.dp)
                 start.linkTo(verticalGuideLine30End, margin = 10.dp)
             }
         )
 
-//        Image(
-//            painter = painterResource(id = R.drawable.arrow_back),
-//            contentDescription = "Back Icon",
-//            modifier = Modifier
-//                .clip(CircleShape)
-//                .size(40.dp)
-//                .clickable { navHostController.popBackStack() }
-//                .constrainAs(backIcon) {
-//                    top.linkTo(parent.top, margin = 16.dp)
-//                    start.linkTo(parent.start, margin = 16.dp)
-//                },
-//            contentScale = ContentScale.Crop
-//        )
-
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .size(32.dp)
                 .padding(end = 8.dp)
@@ -446,7 +432,7 @@ fun UserInfo(
             Icon(
                 painter = painterResource(id = R.drawable.ic_more),
                 contentDescription = "Menu",
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -454,8 +440,8 @@ fun UserInfo(
             Column(
                 modifier = Modifier
                     .width(250.dp)
-                    .background(Color.White, shape = RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
                     .shadow(4.dp, RoundedCornerShape(8.dp))
                     .padding(12.dp)
                     .constrainAs(optionDialog) {
@@ -544,13 +530,14 @@ fun DoctorProfileScreen(
     ) {
         TabRow(
             selectedTabIndex = selectedTab,
-            containerColor = Color.Cyan,
-            contentColor = Color.Black
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { onTabSelected(index) },
+                    selectedContentColor = MaterialTheme.colorScheme.secondary,
                     text = {
                         Text(
                             text = title,
@@ -651,8 +638,8 @@ fun BookingButton(
                         navController.navigate("booking")
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00C5CB),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier
@@ -671,8 +658,8 @@ fun BookingButton(
                 Button(
                     onClick = {},
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFCDD2),
-                        contentColor = Color(0xFFD32F2F)
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error
                     ),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier
@@ -701,14 +688,14 @@ fun WriteReviewButton(onClick: () -> Unit) {
     ) {
         Button(
             onClick = onClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
                 .align(Alignment.Center)
         ) {
-            Text("Viết đánh giá", fontSize = 16.sp, color = Color.White)
+            Text("Viết đánh giá", fontSize = 16.sp, color = MaterialTheme.colorScheme.background)
         }
     }
 }

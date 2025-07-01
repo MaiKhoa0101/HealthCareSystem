@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import coil.compose.rememberAsyncImagePainter
@@ -77,7 +78,7 @@ fun Introduce(
     onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color.White
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     Column(
         modifier = modifier
@@ -90,7 +91,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
-                color = Color(0xFF242760)
+                color = MaterialTheme.colorScheme.secondary
             )
         )
 
@@ -101,7 +102,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         )
 
@@ -112,7 +113,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
-                color = Color(0xFF242760)
+                color = MaterialTheme.colorScheme.secondary
             )
         )
 
@@ -130,7 +131,7 @@ fun Introduce(
                 style = TextStyle(
                     fontWeight = FontWeight.Medium,
                     fontSize = 15.sp,
-                    color = Color(0xFF242760)
+                    color = MaterialTheme.colorScheme.secondary
                 )
             )
         }
@@ -149,7 +150,7 @@ fun Introduce(
                 style = TextStyle(
                     fontWeight = FontWeight.Medium,
                     fontSize = 15.sp,
-                    color = Color(0xFF242760)
+                    color = MaterialTheme.colorScheme.secondary
                 )
             )
         }
@@ -161,7 +162,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
-                color = Color(0xFF242760)
+                color = MaterialTheme.colorScheme.secondary
             )
         )
 
@@ -172,7 +173,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Justify
             )
         )
@@ -184,7 +185,7 @@ fun Introduce(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
-                color = Color(0xFF242760)
+                color = MaterialTheme.colorScheme.secondary
             )
         )
 
@@ -213,14 +214,14 @@ fun Introduce(
                             style = TextStyle(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                color = Color(0xFF242760)
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         )
                     }
 
                     Text(
                         text = "Giá: ${formatPrice(service.minprice.toInt())} - ${formatPrice(service.maxprice.toInt())}",
-                        style = TextStyle(fontSize = 14.sp, color = Color.DarkGray)
+                        style = TextStyle(fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     )
                 }
 
