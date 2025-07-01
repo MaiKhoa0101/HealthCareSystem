@@ -59,9 +59,6 @@ fun DoctorListScreen(
     navHostController: NavHostController
 ) {
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-//    var specialtyId = ""
-//    var specialtyName = ""
-//    var specialtyDesc = ""
     var specialtyId by remember { mutableStateOf("") }
     var specialtyName by remember { mutableStateOf("") }
     var specialtyDesc by remember { mutableStateOf("") }
@@ -99,7 +96,7 @@ fun DoctorListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             TopBar(onClick = {
                 navHostController.popBackStack()
@@ -110,8 +107,8 @@ fun DoctorListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .border(1.dp, Color(0xFFB2EBF2), RoundedCornerShape(12.dp))
-                    .background(Color(0xFFE0F7FA), RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 println(specialtyName)
@@ -119,7 +116,7 @@ fun DoctorListScreen(
                     text = specialtyName,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00796B)
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -128,7 +125,7 @@ fun DoctorListScreen(
                 Text(
                     text = specialtyDesc,
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -137,7 +134,7 @@ fun DoctorListScreen(
                     Text(
                         text = if (isExpanded) "Thu gọn" else "Xem thêm",
                         fontSize = 14.sp,
-                        color = Color(0xFF0288D1),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
                             .padding(top = 4.dp)
@@ -161,7 +158,7 @@ fun DoctorListScreen(
                             Text(
                                 text = "Không tìm thấy bác sĩ trong chuyên khoa này",
                                 fontSize = 16.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -195,7 +192,7 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(horizontal = 16.dp, vertical = 8.dp),
 //            .statusBarsPadding(),
 //        verticalAlignment = Alignment.CenterVertically
@@ -204,7 +201,7 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
             Icon(
                 imageVector = Icons.Filled.ArrowBack,
                 contentDescription = "Back Button",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier
                     .size(32.dp)
                     .clickable {
@@ -216,7 +213,7 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
 
             Text(
                 text = "Tìm bác sĩ",
-                style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onPrimaryContainer)
             )
         }
 
@@ -229,15 +226,15 @@ fun TopBar(onClick: () -> Unit, viewModel: SpecialtyViewModel) {
                 viewModel.filterDoctorsByLocation(searchQuery)
             },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
             },
             placeholder = { Text("Nhập địa chỉ, ví dụ: HCM") },
             shape = RoundedCornerShape(12.dp),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.White, // Thay vì backgroundColor
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
+                containerColor = MaterialTheme.colorScheme.background, // Thay vì backgroundColor
+                focusedIndicatorColor = MaterialTheme.colorScheme.background,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.background,
+                disabledIndicatorColor = MaterialTheme.colorScheme.background
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -257,10 +254,10 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             .padding(horizontal = 16.dp)
             .border(
                 width = 1.dp,
-                color = Color(0xFFB2EBF2),
+                color = MaterialTheme.colorScheme.tertiaryContainer,
                 shape = RoundedCornerShape(12.dp)
             )
-            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         // Dòng thông tin chính
@@ -273,7 +270,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     modifier = Modifier
                         .size(90.dp)
                         .clip(CircleShape)
-                        .border(1.dp, Color.LightGray, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                 )
             } else {
                 Image(
@@ -283,7 +280,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     modifier = Modifier
                         .size(72.dp)
                         .clip(CircleShape)
-                        .border(1.dp, Color.LightGray, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                 )
             }
 
@@ -294,12 +291,12 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Bác sĩ", fontSize = 16.sp, color = Color.Gray)
+                    Text("Bác sĩ", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     if (isClinicPaused) {
                         Spacer(modifier = Modifier.width(12.dp))
                         Box(
                             modifier = Modifier
-                                .background(color = Color(0xFFFFCDD2), shape = RoundedCornerShape(8.dp))
+                                .background(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(8.dp))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
@@ -312,7 +309,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     }
                 }
                 Text(doctor.name, fontSize = 26.sp, fontWeight = FontWeight.Medium)
-                Text(specialtyName, fontSize = 16.sp, color = Color(0xFF0097A7))
+                Text(specialtyName, fontSize = 16.sp, color = MaterialTheme.colorScheme.secondary)
             }
         }
 
@@ -326,7 +323,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             Icon(
                 imageVector = Icons.Filled.LocationOn,
                 contentDescription = null,
-                tint = Color(0xFF00BCD4),
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
                     .size(18.dp)
                     .padding(top = 2.dp)
@@ -337,7 +334,7 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
             Text(
                 text = doctor.address ?: "Chưa cập nhật địa chỉ",
                 fontSize = 13.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -357,14 +354,14 @@ fun DoctorItem(navHostController: NavHostController, doctor: Doctor, specialtyNa
                     }
                     navHostController.navigate("other_user_profile")
                   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = "Đặt lịch khám",
                     fontSize = 12.sp,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }

@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.user.post
 
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -16,14 +17,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -39,9 +46,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
@@ -140,7 +153,8 @@ fun PostDetailScreen(
     }
 }
 
-
+//Khu vực dưới là code customize từ code bài post, có tái sử dụng phần lớn,
+// 1 số chức năng sẽ bị loại bỏ là xoá bài viết
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -161,7 +175,7 @@ fun PostDetailSection(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Spacer(modifier = Modifier.height(8.dp))
-        PostHeader(
+        PostDetailHeader(
             navHostController = navHostController,
             userWhoInteractWithThisPost,
             post,
@@ -188,6 +202,107 @@ fun PostDetailSection(
             post = post,
             user = userWhoInteractWithThisPost
         )
+    }
+}
+
+
+@Composable
+fun PostDetailHeader(
+    navHostController: NavHostController,
+    userWhoInteractWithThisPost: User,
+    post: PostResponse,
+    onClickReport: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Avatar + tên
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = post.user.avatarURL,
+                    contentDescription = "Avatar of ${post.user.name}",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            if (post.user.id != userWhoInteractWithThisPost.id) {
+                                navHostController.navigate("otherUserProfile/${post.user.id}")
+                            } else {
+                                navHostController.navigate("personal")
+                            }
+                        },
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.clickable {
+                        if (post.user.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    }
+                ) {
+                    Text(
+                        text = post.user.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+            // Nút 3 chấm và Dropdown gắn liền
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    offset = DpOffset(x = (-110).dp, y = (-40).dp)
+                ) {
+                    if (userWhoInteractWithThisPost.id == post.user.id) {
+                        // Người đăng bài == người hiện tại → chỉ cho xoá
+                        DropdownMenuItem(
+                            text = { Text("Xoá bài viết") },
+                            onClick = {
+                                showMenu = false
+                                Toast.makeText(context, "Không thể thực hiện thao tác xoá bài viết trong đây do chúng tôi quên làm chức năng này",
+                                    Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    } else {
+                        // Người khác → chỉ cho báo cáo
+                        DropdownMenuItem(
+                            text = { Text("Báo cáo bài viết") },
+                            onClick = {
+                                showMenu = false
+                                onClickReport()
+                            }
+                        )
+                    }
+                }
+
+            }
+        }
     }
 }
 

@@ -30,7 +30,10 @@ private val DarkColorScheme = darkColorScheme(
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
     tertiaryContainer = LightDarkTheme,
     error = CustomRed,
-
+    tertiary = LightBlueCustom,
+    surfaceVariant = LightGreenCustom,
+    errorContainer = LightRedCustom,
+    outlineVariant = AmberCustom,
     )
 
 private val LightColorScheme = lightColorScheme(
@@ -53,6 +56,10 @@ private val LightColorScheme = lightColorScheme(
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
     tertiaryContainer = LightTheme,
     error = CustomRed,
+    tertiary = LightBlueCustom,
+    surfaceVariant = LightGreenCustom,
+    errorContainer = LightRedCustom,
+    outlineVariant = AmberCustom,
 )
 
 @Composable

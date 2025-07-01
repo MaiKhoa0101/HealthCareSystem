@@ -50,7 +50,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
@@ -218,7 +220,7 @@ private fun CommentItem(
             verticalAlignment = Alignment.Top,
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
                 .padding(10.dp)
         ) {
             CommentUserAvatar(
@@ -311,6 +313,7 @@ private fun CommentListFooter(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CommentInput(
     uiState: CommentUIState,
@@ -334,8 +337,19 @@ private fun CommentInput(
                     uiState.newComment = value
                 }
             },
-            placeholder = { Text("Nhập bình luận...") },
-            modifier = Modifier.weight(1f)
+            placeholder = {
+                Text("Nhập bình luận...", color = MaterialTheme.colorScheme.onBackground) // Màu placeholder
+            },
+            modifier = Modifier.weight(1f),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = MaterialTheme.colorScheme.background,               // Màu nền ô nhập
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi focus
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,                 // Màu chữ khi không focus
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,             // Màu placeholder khi focus
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,           // Màu placeholder khi không focus
+                focusedIndicatorColor = Color.Transparent,        // Xóa viền khi focus
+                unfocusedIndicatorColor = Color.Transparent       // Xóa viền khi không focus
+            )
         )
 
         val userModel = currentUser.role
@@ -505,7 +519,7 @@ fun FullScreenCommentNews(
                         verticalAlignment = Alignment.Top,
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.LightGray)
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
                             .padding(10.dp)
                     ) {
                         AsyncImage(
@@ -552,8 +566,19 @@ fun FullScreenCommentNews(
                     onValueChange = {
                         if (editingCommentId != null) editedCommentContent = it else newComment = it
                     },
-                    placeholder = { Text("Nhập bình luận...") },
-                    modifier = Modifier.weight(1f)
+                    placeholder = {
+                        Text("Nhập bình luận...", color = MaterialTheme.colorScheme.onBackground) // Màu placeholder
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = MaterialTheme.colorScheme.background,               // Màu nền ô nhập
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi focus
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,                 // Màu chữ khi không focus
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,             // Màu placeholder khi focus
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,           // Màu placeholder khi không focus
+                        focusedIndicatorColor = Color.Transparent,        // Xóa viền khi focus
+                        unfocusedIndicatorColor = Color.Transparent       // Xóa viền khi không focus
+                    )
                 )
                 Button(onClick = {
                     coroutineScope.launch {

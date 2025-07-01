@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,7 +54,7 @@ fun ProfileContent(doctor: GetDoctorResponse) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         item {
             HeaderSection(doctor)
@@ -76,7 +77,7 @@ fun HeaderSection(doctor: GetDoctorResponse) {
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
             contentScale = ContentScale.Crop
         )
 
@@ -85,7 +86,7 @@ fun HeaderSection(doctor: GetDoctorResponse) {
         Text(
             text = doctor.name ?: "null",
             fontSize = 22.sp,
-            color = Color.White
+            color = MaterialTheme.colorScheme.background
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -93,7 +94,7 @@ fun HeaderSection(doctor: GetDoctorResponse) {
         Text(
             text = "${doctor.experience?.toString() ?: "null"} năm kinh nghiệm",
             fontSize = 16.sp,
-            color = Color.White
+            color = MaterialTheme.colorScheme.background
         )
     }
 }
@@ -104,42 +105,19 @@ fun IntroSection(description: String?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(
             text = "Giới thiệu",
             fontSize = 18.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = description ?: "null",
             fontSize = 14.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
-
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DoctorProfileScreenPreview() {
-//    val fakeDoctor = GetDoctorResponse(
-//        id = "1",
-//        role = "Doctor",
-//        email = "doctor@example.com",
-//        name = "Bác sĩ Nguyễn Văn A",
-//        phone = "0123456789",
-//        password = "",
-//        specialty = com.hellodoc.healthcaresystem.responsemodel.Specialty(
-//            id = "1",
-//            name = "Tim mạch"
-//        ),
-//        experience = 10,
-//        description = "Bác sĩ chuyên về tim mạch, tận tâm với bệnh nhân.",
-//        imageUrl = "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" // ảnh demo
-//    )
-//
-//    ProfileContent(doctor = fakeDoctor)
-//}

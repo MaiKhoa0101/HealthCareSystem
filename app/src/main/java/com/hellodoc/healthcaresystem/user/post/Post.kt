@@ -30,9 +30,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,12 +57,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 
 
@@ -90,6 +95,8 @@ fun PostColumn(
         // Hiển thị danh sách bài viết
         posts.forEach { post ->
             var showPostReportDialog by remember { mutableStateOf(false) }
+            var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+
             Box (modifier = Modifier.fillMaxWidth()) {
                 Post(
                     navHostController = navHostController,
@@ -97,9 +104,15 @@ fun PostColumn(
                     post = post,
                     userWhoInteractWithThisPost = userWhoInteractWithThisPost,
                     onClickReport = {
+//                        showOptionsMenu = true
                         showPostReportDialog = !showPostReportDialog
-                    })
-                Spacer(modifier = Modifier.height(8.dp))
+                    },
+                    onClickDelete = {
+//                        showOptionsMenu = true
+                        showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                    },
+                )
+
                 if (showPostReportDialog) {
                     ReportPostUser(
                         context = navHostController.context,
@@ -110,6 +123,18 @@ fun PostColumn(
                             "MyPrefs",
                             Context.MODE_PRIVATE
                         )
+                    )
+                }
+
+                if (showPostDeleteConfirmDialog) {
+                    ConfirmDeletePostModal(
+                        postId = post.id,
+                        postViewModel = postViewModel,
+                        sharedPreferences = navHostController.context.getSharedPreferences(
+                            "MyPrefs",
+                            Context.MODE_PRIVATE
+                        ),
+                        onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
                     )
                 }
             }
@@ -137,7 +162,8 @@ fun Post(
     postViewModel: PostViewModel,
     post: PostResponse,
     userWhoInteractWithThisPost: User,
-    onClickReport: () -> Unit
+    onClickReport: () -> Unit,
+    onClickDelete: () -> Unit
 ) {
     var showImageDetail by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableStateOf(0) }
@@ -156,7 +182,8 @@ fun Post(
                 navHostController = navHostController,
                 userWhoInteractWithThisPost,
                 post,
-                onClickReport
+                onClickReport,
+                onClickDelete
             )
             Spacer(modifier = Modifier.height(8.dp))
             PostBody(post)
@@ -185,22 +212,29 @@ fun Post(
 }
 
 @Composable
-fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost: User,post: PostResponse, onClickReport: () -> Unit){
+fun PostHeader(
+    navHostController: NavHostController,
+    userWhoInteractWithThisPost: User,
+    post: PostResponse,
+    onClickReport: () -> Unit,
+    onClickDelete: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
-    ){
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row (
+            // Avatar + tên
+            Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Ảnh avatar
                 AsyncImage(
                     model = post.user.avatarURL,
                     contentDescription = "Avatar of ${post.user.name}",
@@ -209,7 +243,6 @@ fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost:
                         .clip(CircleShape)
                         .clickable {
                             if (post.user.id != userWhoInteractWithThisPost.id) {
-                                println("Id user 1: " + post.user.id)
                                 navHostController.navigate("otherUserProfile/${post.user.id}")
                             } else {
                                 navHostController.navigate("personal")
@@ -221,38 +254,60 @@ fun PostHeader(navHostController: NavHostController,userWhoInteractWithThisPost:
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column(
-                    modifier = Modifier
-                        .clickable {
-                            if (post.user.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.user.id}")
-                            } else {
-                                navHostController.navigate("personal")
-                            }
-                        },
+                    modifier = Modifier.clickable {
+                        if (post.user.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    }
                 ) {
                     Text(
                         text = post.user.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
-                    // Có thể thêm thông tin khác như thời gian đăng
                 }
             }
-            IconButton(
-                onClick = {
-                    onClickReport()
-                },
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "Close",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
+
+            // Nút 3 chấm và Dropdown gắn liền
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    offset = DpOffset(x = (-110).dp, y = (-40).dp)
+                ) {
+                    if (userWhoInteractWithThisPost.id == post.user.id) {
+                        // Người đăng bài == người hiện tại → chỉ cho xoá
+                        DropdownMenuItem(
+                            text = { Text("Xoá bài viết") },
+                            onClick = {
+                                showMenu = false
+                                onClickDelete()
+                            }
+                        )
+                    } else {
+                        // Người khác → chỉ cho báo cáo
+                        DropdownMenuItem(
+                            text = { Text("Báo cáo bài viết") },
+                            onClick = {
+                                showMenu = false
+                                onClickReport()
+                            }
+                        )
+                    }
+                }
+
             }
         }
-
     }
 }
 
@@ -314,7 +369,7 @@ fun ImageGrid(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = Color.Black, ambientColor = Color.Black)
+                    .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = MaterialTheme.colorScheme.onBackground, ambientColor = MaterialTheme.colorScheme.onBackground)
                     .clip(RoundedCornerShape(20.dp))
                     .clickable { onImageClick?.invoke(imageUrls[0], 0) }
             ) {
@@ -325,7 +380,7 @@ fun ImageGrid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(4f / 3f) // Instagram-like aspect ratio
-                        .background(Color.Gray.copy(alpha = 0.1f))
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                 )
             }
         }
@@ -350,7 +405,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
                 }
@@ -377,7 +432,7 @@ fun ImageGrid(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Gray.copy(alpha = 0.1f))
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                     )
                 }
 
@@ -399,7 +454,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
 
@@ -416,7 +471,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
                 }
@@ -451,7 +506,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -480,7 +535,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -519,7 +574,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -549,7 +604,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
 
                             // Overlay for the last image showing extra count
@@ -561,7 +616,7 @@ fun ImageGrid(
                                             Brush.verticalGradient(
                                                 colors = listOf(
                                                     Color.Transparent,
-                                                    Color.Black.copy(alpha = 0.7f)
+                                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                                                 )
                                             )
                                         ),
@@ -572,13 +627,13 @@ fun ImageGrid(
                                     ) {
                                         Text(
                                             text = "+$extraImageCount",
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.background,
                                             fontSize = 24.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
                                             text = "more",
-                                            color = Color.White.copy(alpha = 0.9f),
+                                            color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
                                             fontSize = 12.sp
                                         )
                                     }
@@ -620,7 +675,7 @@ fun ImageDetailDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.onBackground)
         ) {
             // Close button
             IconButton(
@@ -633,7 +688,7 @@ fun ImageDetailDialog(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.background,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -641,7 +696,7 @@ fun ImageDetailDialog(
             // Image counter
             Text(
                 text = "${currentIndex + 1} / ${imageUrls.size}",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.background,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
@@ -689,7 +744,7 @@ fun ImageDetailDialog(
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (index == currentIndex) Color.White
+                                    if (index == currentIndex) MaterialTheme.colorScheme.background
                                     else Color.White.copy(alpha = 0.4f)
                                 )
                         )
