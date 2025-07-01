@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,15 +63,15 @@ fun ReportDoctor(
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray)
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
                 .padding(16.dp)
         ) {
             Text("Báo cáo bác sĩ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
-            Text(youTheCurrentUserUseThisApp!!.name, color = Color.DarkGray)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
@@ -102,7 +105,7 @@ fun ReportDoctor(
             ) {
                 Text(
                     "Huỷ",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .clickable { onClickShowReportDialog() }
                         .padding(8.dp),
@@ -146,7 +149,7 @@ fun ReportUser(
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
                 .border(1.dp, Color.Gray)
                 .padding(16.dp)
         ) {
@@ -154,7 +157,7 @@ fun ReportUser(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
-            Text(youTheCurrentUserUseThisApp!!.name, color = Color.DarkGray)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
@@ -188,7 +191,7 @@ fun ReportUser(
             ) {
                 Text(
                     "Huỷ",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .clickable { onClickShowReportDialog() }
                         .padding(8.dp),
@@ -233,15 +236,15 @@ fun ReportPostDoctor(
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray)
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
                 .padding(16.dp)
         ) {
             Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
-            Text(youTheCurrentUserUseThisApp!!.name, color = Color.DarkGray)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
@@ -273,7 +276,7 @@ fun ReportPostDoctor(
             ) {
                 Text(
                     "Huỷ",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .clickable { onClickShowPostReportDialog() }
                         .padding(8.dp),
@@ -298,6 +301,7 @@ fun ReportPostDoctor(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportPostUser(
     context: Context,
@@ -322,14 +326,14 @@ fun ReportPostUser(
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(20.dp))
                 .padding(16.dp)
         ) {
             Text("Báo cáo bài viết", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Người báo cáo", fontWeight = FontWeight.Medium)
-            Text(youTheCurrentUserUseThisApp!!.name, color = Color.DarkGray)
+            Text(youTheCurrentUserUseThisApp!!.name, color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
@@ -348,10 +352,17 @@ fun ReportPostUser(
             TextField(
                 value = reportContent,
                 onValueChange = { reportContent = it },
-                placeholder = { Text("Nhập nội dung...") },
+                placeholder = { Text("Nhập nội dung...", color = MaterialTheme.colorScheme.onBackground) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(120.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,        // Màu nền của ô TextField
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi đang focus
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,                 // Màu chữ khi không focus
+                    focusedIndicatorColor = Color.Transparent, // Ẩn viền khi focus
+                    unfocusedIndicatorColor = Color.Transparent // Ẩn viền khi không focus
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -361,7 +372,7 @@ fun ReportPostUser(
             ) {
                 Text(
                     "Huỷ",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .clickable { onClickShowPostReportDialog()  }
                         .padding(8.dp),

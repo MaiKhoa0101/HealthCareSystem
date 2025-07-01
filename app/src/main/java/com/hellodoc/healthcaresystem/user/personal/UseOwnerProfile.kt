@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -173,7 +174,7 @@ fun ProfileSection(
 )
 {
     Column(
-        modifier = Modifier.background(Color.Cyan)
+        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column(
             modifier = Modifier
@@ -222,7 +223,7 @@ fun UserIntroSection(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.2f))
+                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
             ) {
                 AsyncImage(
                     model = user.avatarURL,
@@ -242,13 +243,13 @@ fun UserIntroSection(
                 user.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 user.email,
                 fontSize = 14.sp,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -262,7 +263,7 @@ fun UserIntroSection(
             Icon(
                 painter = painterResource(id = R.drawable.settingbtn),
                 contentDescription = "Setting",
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .height(20.dp)
             )
@@ -281,7 +282,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
     ) {
         Button(
             onClick = { navHostController.navigate("editProfile") },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
                 .height(60.dp)
@@ -289,7 +290,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
         ) {
             Text(
                 text = "Chỉnh sửa hồ sơ",
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
@@ -309,7 +310,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                     navHostController.navigate("editClinic")
                 }
                  },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier
                 .height(60.dp)
@@ -321,7 +322,7 @@ fun UserProfileModifierSection(navHostController: NavHostController, user: User?
                 } else {
                     "Quản lý phòng khám"
                 },
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )

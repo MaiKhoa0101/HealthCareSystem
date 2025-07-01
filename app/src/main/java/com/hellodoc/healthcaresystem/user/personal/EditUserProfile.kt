@@ -130,20 +130,20 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4)) // A pleasant cyan
+            .background(MaterialTheme.colorScheme.primaryContainer) // A pleasant cyan
             .padding(16.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.background,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .clickable { navHostController.navigate("personal") }
         )
         Text(
             text = "Chỉnh sửa hồ sơ",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.background,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -222,7 +222,7 @@ fun ChangeAvatar(
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .border(2.dp, Color.White, CircleShape)
+                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                 )
             } else {
                 AsyncImage(
@@ -232,16 +232,16 @@ fun ChangeAvatar(
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .border(2.dp, Color.White, CircleShape)
+                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                 )
             }
             Icon(
                 painter = painterResource(R.drawable.camera),
                 contentDescription = "Change Avatar",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.background,
                 modifier = Modifier
                     .size(36.dp)
-                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), CircleShape)
                     .padding(6.dp)
                     .clip(CircleShape)
             )
@@ -372,7 +372,7 @@ fun InputEditField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.Gray) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onBackground) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
