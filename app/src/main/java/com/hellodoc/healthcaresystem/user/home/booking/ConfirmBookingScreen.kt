@@ -203,7 +203,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
             ) {
                 Button(
                     onClick = { /* TODO: Hủy */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
@@ -245,7 +245,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                         .weight(1f)
                         .height(48.dp)
                 ) {
-                    Text("Xác nhận", color = MaterialTheme.colorScheme.background)
+                    Text("Xác nhận", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
                 // Hiển thị Dialog khi bấm nút
