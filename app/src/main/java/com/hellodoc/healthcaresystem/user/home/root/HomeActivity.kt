@@ -406,7 +406,7 @@ class HomeActivity : BaseActivity() {
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                PostDetailScreen()
+                PostDetailScreen(navHostController,postId, postViewModel, userViewModel)
             }
         }
 

@@ -111,7 +111,7 @@ fun FullScreenCommentUI(
 }
 
 @Composable
-private fun rememberCommentUIState(
+internal fun rememberCommentUIState(
     postViewModel: PostViewModel,
     postId: String
 ): CommentUIState {
@@ -142,7 +142,7 @@ private fun CommentSheetDragHandle() {
 }
 
 @Composable
-private fun CommentScreenContent(
+internal fun CommentScreenContent(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
@@ -160,7 +160,6 @@ private fun CommentScreenContent(
             postId = postId,
             currentUser = currentUser,
             navHostController = navHostController,
-            modifier = Modifier.weight(1f)
         )
 
         CommentInput(
@@ -444,7 +443,7 @@ private fun navigateToUserProfile(
     }
 }
 
-private suspend fun observeScrollToLoadMore(
+internal suspend fun observeScrollToLoadMore(
     listState: LazyListState,
     hasMore: Boolean,
     isLoading: Boolean,
