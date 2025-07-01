@@ -133,7 +133,7 @@ class AppointmentViewModel(
                 _isLoading.value = true
                 val response = RetrofitInstance.appointment.getAppointmentUser(patientId)
                 if(response.isSuccessful){
-                    val apiData = response.body() ?: emptyList()
+                    val apiData = response.body()?.reversed() ?: emptyList()
                     _appointmentsUser.value = apiData
 
                     try {
@@ -176,7 +176,7 @@ class AppointmentViewModel(
                     println("Dữ liệu local: ${localData.size} items")
 
                     if (localData.isNotEmpty()) {
-                        val responseData = localData.map { it.toResponse() }
+                        val responseData = localData.map { it.toResponse() }.reversed()
                         _appointmentsUser.value = responseData
                         println("Đã load ${responseData.size} appointments từ local")
                     } else {
