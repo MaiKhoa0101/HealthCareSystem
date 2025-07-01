@@ -30,7 +30,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -368,7 +367,7 @@ fun MarqueeNewsTicker(
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
-                Divider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
+                Divider(color = MaterialTheme.colorScheme.tertiaryContainer, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
@@ -628,8 +627,8 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
                                 .padding(16.dp)
                                 .clickable { onClick(item) }
                         ) {
@@ -641,7 +640,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
                                     contentScale = ContentScale.Fit
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
-                                Text(text = item.name, color = Color.Black)
+                                Text(text = item.name, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }
@@ -689,8 +688,8 @@ fun SpecialtySkeletonList() {
                         .width(140.dp)
                         .height(140.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                        .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
                         .padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -742,14 +741,14 @@ fun SpecialtyList(
             Text(
                 text = "Chuyên khoa",
                 fontSize = 20.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
 
             if (specialties.size > 6) {
                 Text(
                     text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
-                    color = Color(0xFF00C5CB),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clickable { showAllSpecialties = !showAllSpecialties }
@@ -784,8 +783,8 @@ fun SpecialtyItem(
             .width(140.dp)
             .height(140.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .border(width = 1.dp, color = Color(0xFFCCCCCC), shape = RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.background)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
             .clickable {
                 firebaseAnalytics.logEvent("specialty_selected", bundleOf(
                     "ID_specialty" to specialty.id,
@@ -832,7 +831,7 @@ fun SpecialtyItem(
             Text(
                 text = specialty.name,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 2
@@ -846,7 +845,7 @@ fun DoctorSkeletonList() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF73E3E7)) // cùng tone với phần real content
+            .background(MaterialTheme.colorScheme.primaryContainer) // cùng tone với phần real content
     ) {
         Row(
             modifier = Modifier
@@ -924,11 +923,11 @@ fun DoctorList(
     var showAllDoctors by remember { mutableStateOf(false) }
     val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
 
-    HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF73E3E7))
+            .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier
@@ -941,12 +940,12 @@ fun DoctorList(
                 text = "Bác sĩ nổi bật",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (doctors.size > 6) {
                 Text(
                     text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clickable { showAllDoctors = !showAllDoctors }
@@ -975,7 +974,7 @@ fun DoctorList(
             }
         }
     }
-    HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
 }
 
 @Composable
@@ -998,7 +997,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(90.dp)
                     .clip(CircleShape)
-                    .border(1.dp, Color.LightGray, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
             )
         } else {
             Image(
@@ -1008,7 +1007,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .border(1.dp, Color.LightGray, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -1016,7 +1015,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
             text = doctor.name,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -1024,50 +1023,11 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
         Text(
             text = doctor.specialty.name,
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-    }
-}
-
-@Composable
-fun RemoteMedicalOptionList(context: Context, remoteMedicalOptions: List<GetRemoteMedicalOptionResponse>) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(start = 16.dp)
-    ) {
-        items(remoteMedicalOptions, key = { it.id }) { remoteMedicalOption ->
-            RemoteMedicalOption(remoteMedicalOption) {
-                showToast(context, "Clicked: ${remoteMedicalOption.name}")
-            }
-        }
-    }
-}
-
-@Composable
-fun RemoteMedicalOption(service: GetRemoteMedicalOptionResponse, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .width(150.dp)
-            .height(150.dp)
-            .background(Color(0xFFFBE9E7), shape = RoundedCornerShape(8.dp))
-            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(id = R.drawable.doctor),
-                contentDescription = service.name,
-                modifier = Modifier.size(60.dp),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = service.name, fontSize = 14.sp, color = Color.Black, textAlign = TextAlign.Center)
-        }
     }
 }
 
@@ -1076,7 +1036,7 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(10.dp)
     ) {
         // Header: Avatar + Name
@@ -1152,7 +1112,7 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
 
     HorizontalDivider(
         thickness = 2.dp,
-        color = Color.Gray,
+        color = MaterialTheme.colorScheme.tertiaryContainer,
         modifier = Modifier.padding(top = 12.dp)
     )
 }

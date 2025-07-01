@@ -29,7 +29,7 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = onSecondDarkContainer,
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
     tertiaryContainer = LightDarkTheme,
-
+    error = CustomRed,
 
     )
 
@@ -51,7 +51,8 @@ private val LightColorScheme = lightColorScheme(
     // Nội dung trên card
     onSecondaryContainer = Color.DarkGray,
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
-    tertiaryContainer = LightTheme
+    tertiaryContainer = LightTheme,
+    error = CustomRed,
 )
 
 @Composable

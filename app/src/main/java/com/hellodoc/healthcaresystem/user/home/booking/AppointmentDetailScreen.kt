@@ -205,7 +205,7 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF4F5F7))
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -357,8 +357,8 @@ fun UpdateButton(
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF00C5CB),
-            contentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
     ) {
         Text("Cập nhật lịch hẹn")
@@ -371,7 +371,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
 //            .statusBarsPadding()
             .height(56.dp)
     ) {
@@ -379,7 +379,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 16.dp)
@@ -389,7 +389,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         // Tiêu đề ở giữa
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )
@@ -408,7 +408,7 @@ fun DoctorInfoSection(
             .fillMaxWidth()
             .padding(top = 12.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -426,7 +426,7 @@ fun DoctorInfoSection(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(doctorName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(specialtyName, color = Color.Gray)
+                Text(specialtyName, color = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -451,7 +451,7 @@ fun PatientInfoSection(
                 .fillMaxWidth()
                 .height(100.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFE0E0E0))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
         ) {
             Row(
                 modifier = Modifier
@@ -463,7 +463,7 @@ fun PatientInfoSection(
             ) {
                 Text(
                     text = "Xem chi tiết",
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 13.sp,
                     modifier = Modifier.clickable {
                         showDetailDialog = true
@@ -484,7 +484,7 @@ fun PatientInfoSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(4.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 Text("Đặt lịch khám này cho:", fontWeight = FontWeight.Bold)
@@ -531,7 +531,7 @@ fun VisitMethodSection(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text("Phương thức khám", fontWeight = FontWeight.Bold)
@@ -543,9 +543,9 @@ fun VisitMethodSection(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (examinationMethod.value == "at_clinic") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                    if (examinationMethod.value == "at_clinic") MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
                 )
-                .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
+                .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
                 .clickable { examinationMethod.value = "at_clinic" }
                 .padding(12.dp)
                 .height(70.dp),
@@ -568,9 +568,9 @@ fun VisitMethodSection(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(
-                        if (examinationMethod.value == "at_home") Color(0xFFD2D2D2) else Color(0xFFDDFDFF)
+                        if (examinationMethod.value == "at_home") MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
                     )
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
                     .clickable { examinationMethod.value = "at_home" }
                     .height(100.dp)
                     .padding(horizontal = 12.dp),
@@ -584,7 +584,7 @@ fun VisitMethodSection(
                         Text(patientAddress, fontSize = 13.sp)
                     }
                 }
-                Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -605,7 +605,7 @@ fun AppointmentDateSection(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(text = "Ngày khám", fontWeight = FontWeight.Bold)
@@ -615,7 +615,7 @@ fun AppointmentDateSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFE0E0E0))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
                 .padding(horizontal = 12.dp, vertical = 14.dp)
                 .clickable {
                     navHostController.currentBackStackEntry?.savedStateHandle?.apply {
@@ -643,7 +643,7 @@ fun AppointmentDateSection(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -657,7 +657,7 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(text = "Lời nhắn cho bác sĩ:", fontWeight = FontWeight.Bold)
@@ -671,11 +671,11 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .height(90.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFE0E0E0)),
+                .background(MaterialTheme.colorScheme.secondaryContainer),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = Color(0xFFE0E0E0),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondaryContainer
             )
         )
     }
@@ -686,7 +686,7 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
 fun FeeSummarySection() {
     println(" fee sumary render duoc")
     CardSection(title = "Chi phí khám tại phòng khám") {
-        InfoRow("Voucher dịch vụ", "0đ", Color.Red)
+        InfoRow("Voucher dịch vụ", "0đ", MaterialTheme.colorScheme.error)
         InfoRow("Giá dịch vụ", "0đ")
         InfoRow("Tạm tính giá tiền", "0đ", fontWeight = FontWeight.Bold)
     }
@@ -777,8 +777,8 @@ fun BookButton(
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF00C5CB),
-            contentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onBackground
         )
     ) {
         Text(
@@ -797,7 +797,7 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(title, fontWeight = FontWeight.Bold)
@@ -810,7 +810,7 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 fun InfoRow(
     label: String,
     value: String,
-    valueColor: Color = Color.Black,
+    valueColor: Color = MaterialTheme.colorScheme.onBackground,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
     Row(
