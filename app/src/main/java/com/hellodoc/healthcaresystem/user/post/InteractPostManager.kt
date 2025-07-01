@@ -128,9 +128,9 @@ fun LikeButton(
                 painterResource(R.drawable.like)
             },
             tint = if (isFavorited) {
-                Color.Red
+                MaterialTheme.colorScheme.error
             } else {
-                Color.Black
+                MaterialTheme.colorScheme.onBackground
             },
             contentDescription = if (isFavorited) "Unlike" else "Like",
             modifier = modifier
