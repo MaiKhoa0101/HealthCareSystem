@@ -34,7 +34,7 @@ object RetrofitInstance {
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             //.baseUrl(SECOND_URL)
-            .baseUrl(THIRD_URL)
+            .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create()) // Dùng gson để chuyển JSON thành obj
             .build()

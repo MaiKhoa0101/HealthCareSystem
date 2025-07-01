@@ -52,7 +52,13 @@ fun InteractPostManager(
         postViewModel.fetchFavoriteForPost(postId = post.id, userId = user.id)
     }
     val isFavoritedMap by postViewModel.isFavoritedMap.collectAsState()
-    val isFavorited = isFavoritedMap[post.id] ?: false
+    val serverIsFavorited = isFavoritedMap[post.id] ?: false
+    var localFavorited by remember(post.id) { mutableStateOf(serverIsFavorited) }
+
+    LaunchedEffect(serverIsFavorited) {
+        localFavorited = serverIsFavorited
+    }
+
     val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
     val totalFavorites = totalFavoritesMap[post.id]?.toIntOrNull() ?: 0
 
@@ -66,6 +72,7 @@ fun InteractPostManager(
                 .size(height = sizeButton*2, width = sizeButton*6)
                 .clip(RoundedCornerShape(20.dp))
                 .discordClick {
+                    localFavorited = !localFavorited
                     coroutineScope.launch {
                         println("Nút like được nhấn")
                         postViewModel.updateFavoriteForPost(
@@ -79,7 +86,7 @@ fun InteractPostManager(
         ){
             LikeButton(
                 size = sizeButton,
-                isFavorited = isFavorited,
+                isFavorited = localFavorited,
                 totalFavorites = totalFavorites
             )
         }
