@@ -548,52 +548,52 @@ fun DoctorProfileScreen(
             }
         }
         println("Vao dươc toi trang user khác")
-            when (selectedTab) {
-                0 -> {
-                    if( doctor == null || isLoadingStat ) {
-                        RatingOverviewSkeleton()
-                    } else{
-                        ViewIntroduce(doctor = doctor,onImageClick)
-                    }
+        when (selectedTab) {
+            0 -> {
+                if( doctor == null || isLoadingStat ) {
+                    RatingOverviewSkeleton()
+                } else{
+                    ViewIntroduce(doctor = doctor,onImageClick)
                 }
-                1 -> {
-                    if (showWriteReviewScreen.value) {
-                        WriteReviewScreen(
-                            doctorId = doctor?.id ?: "",
-                            userId = currentUserId,
-                            initialRating = editingRating,
-                            initialComment = editingComment,
-                            reviewId = editingReviewId,
-                            onBackClick = {
-                                showWriteReviewScreen.value = false
-                                editingReviewId = null
-                                editingRating = null
-                                editingComment = null
-                            },
-                            onSubmitClick = { _, _ ->
-                                refreshReviewsTrigger = !refreshReviewsTrigger
-                                showWriteReviewScreen.value = false
-                                editingReviewId = null
-                                editingRating = null
-                                editingComment = null
-                            }
-                        )
-                    } else {
-                        ViewRating(
-                            doctorId = doctor?.id ?: "",
-                            refreshTrigger = refreshReviewsTrigger,
-                            onEditReview = { reviewId, rating, comment ->
-                                editingReviewId = reviewId
-                                editingRating = rating
-                                editingComment = comment
-                                showWriteReviewScreen.value = true
-                            },
-                            onDeleteReview = {
-                                refreshReviewsTrigger = !refreshReviewsTrigger
-                            }
-                        )
-                    }
+            }
+            1 -> {
+                if (showWriteReviewScreen.value) {
+                    WriteReviewScreen(
+                        doctorId = doctor?.id ?: "",
+                        userId = currentUserId,
+                        initialRating = editingRating,
+                        initialComment = editingComment,
+                        reviewId = editingReviewId,
+                        onBackClick = {
+                            showWriteReviewScreen.value = false
+                            editingReviewId = null
+                            editingRating = null
+                            editingComment = null
+                        },
+                        onSubmitClick = { _, _ ->
+                            refreshReviewsTrigger = !refreshReviewsTrigger
+                            showWriteReviewScreen.value = false
+                            editingReviewId = null
+                            editingRating = null
+                            editingComment = null
+                        }
+                    )
+                } else {
+                    ViewRating(
+                        doctorId = doctor?.id ?: "",
+                        refreshTrigger = refreshReviewsTrigger,
+                        onEditReview = { reviewId, rating, comment ->
+                            editingReviewId = reviewId
+                            editingRating = rating
+                            editingComment = comment
+                            showWriteReviewScreen.value = true
+                        },
+                        onDeleteReview = {
+                            refreshReviewsTrigger = !refreshReviewsTrigger
+                        }
+                    )
                 }
+            }
 
             2 -> PostColumn(
                 navHostController = navHostController,
@@ -710,4 +710,3 @@ fun OtherUserProfilePreview() {
         DoctorScreen(context, navController)
     }
 }
-

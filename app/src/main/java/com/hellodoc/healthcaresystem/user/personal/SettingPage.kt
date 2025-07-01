@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
@@ -116,10 +117,10 @@ fun Setting(
             onPress = {})
 
         SectionSetting(
-            "Góp ý về ứng dụng",
-            iconVector = Icons.Default.QuestionMark,
+            "Quản lí hoạt động",
+            iconVector = Icons.Default.Info,
             onPress = {
-                navHostController.navigate("complaint")
+                navHostController.navigate("activity_manager")
             })
 
         SectionSetting(
