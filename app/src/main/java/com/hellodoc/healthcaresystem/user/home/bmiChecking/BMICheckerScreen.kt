@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -118,7 +117,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .statusBarsPadding()
             .height(56.dp)
     ) {
@@ -126,7 +125,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 16.dp)
@@ -136,7 +135,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         // Tiêu đề ở giữa
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )
@@ -147,7 +146,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
 fun CapsuleInput(label: String, value: String, onValueChange: (String) -> Unit) {
     Surface(
         shape = RoundedCornerShape(50),
-        color = Color.LightGray,
+        color = MaterialTheme.colorScheme.secondaryContainer,
         modifier = Modifier
             .width(170.dp)
             .height(56.dp)
@@ -175,7 +174,7 @@ fun CapsuleInput(label: String, value: String, onValueChange: (String) -> Unit) 
 fun CapsuleResult(label: String, value: String) {
     Surface(
         shape = RoundedCornerShape(50),
-        color = Color(0xFFD1F0D1),
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .width(150.dp)
             .height(56.dp)

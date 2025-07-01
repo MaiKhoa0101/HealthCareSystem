@@ -144,13 +144,13 @@ fun AppointmentScreenUI(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF00F1F8))
+            .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
             text = "Danh sách lịch hẹn",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .padding(top = 48.dp, bottom = 16.dp)
                 .align(Alignment.CenterHorizontally)
@@ -159,13 +159,13 @@ fun AppointmentScreenUI(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
         ) {
             //Tabs chọn Vai trò
             TabRow(
                 selectedTabIndex = roleSelectedTab,
-                containerColor = Color.Transparent,
-                contentColor = Color.Black,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 roles.forEachIndexed { index, title ->
@@ -187,7 +187,7 @@ fun AppointmentScreenUI(
                             Text(
                                 text = title,
                                 fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isTabEnabled) Color.Black else Color.Gray
+                                color = if (isTabEnabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondaryContainer
                             )
                         }
                     )
@@ -197,8 +197,8 @@ fun AppointmentScreenUI(
             // Tabs chọn Trạng thái
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color.Transparent,
-                contentColor = Color.Black,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -291,7 +291,7 @@ fun AppointmentCard(
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
@@ -317,7 +317,7 @@ fun AppointmentCard(
                         modifier = Modifier
                             .size(90.dp)
                             .clip(CircleShape)
-                            .border(1.dp, Color.LightGray, CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                     )
                 } else {
                     Image(
@@ -327,7 +327,7 @@ fun AppointmentCard(
                         modifier = Modifier
                             .size(72.dp)
                             .clip(CircleShape)
-                            .border(1.dp, Color.LightGray, CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                     )
                 }
 
@@ -364,7 +364,7 @@ fun AppointmentCard(
                         Button(onClick = {
                             appointmentViewModel.confirmAppointmentDone(appointment.id, userID)
                         }) {
-                            Text("Hoàn thành", color = Color.White)
+                            Text("Hoàn thành", color = MaterialTheme.colorScheme.background)
                         }
                     } else {
                         Row(
@@ -383,7 +383,7 @@ fun AppointmentCard(
                     if (selectedTab == 0) { // Chờ khám
                         OutlinedButton(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
                         ) {
                             Text("Huỷ")
                         }
@@ -404,15 +404,15 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
                         ) {
-                            Text("Chỉnh sửa", color = Color.White)
+                            Text("Chỉnh sửa", color = MaterialTheme.colorScheme.background)
                         }
                     }
                     else if (selectedTab == 1 ) { // Khám xong hoặc Đã huỷ
                         OutlinedButton(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
                         ) {
                             Text("Xóa")
                         }
@@ -430,9 +430,9 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
                         ) {
-                            Text("Đặt lại", color = Color.White)
+                            Text("Đặt lại", color = MaterialTheme.colorScheme.background)
                         }
                         Button(
                             onClick = {
@@ -443,15 +443,15 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("other_user_profile")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242760))
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                         ) {
-                            Text("Đánh giá", color = Color.White)
+                            Text("Đánh giá", color = MaterialTheme.colorScheme.background)
                         }
                     }
                     else if ( selectedTab == 2){
                         OutlinedButton(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
                         ) {
                             Text("Xóa")
                         }
@@ -468,9 +468,9 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
                         ) {
-                            Text("Đặt lại", color = Color.White)
+                            Text("Đặt lại", color = MaterialTheme.colorScheme.background)
                         }
                     }
                 }
@@ -486,7 +486,7 @@ fun AppointmentSkeletonItem() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         SkeletonBox(

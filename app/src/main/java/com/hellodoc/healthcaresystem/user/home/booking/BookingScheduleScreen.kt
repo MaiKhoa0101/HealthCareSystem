@@ -103,7 +103,7 @@ fun BookingCalendarScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -200,10 +200,10 @@ fun BookingCalendarScreen(
                                             .clip(CircleShape)
                                             .background(
                                                 when {
-                                                    isSelected -> Color(0xFF00BCD4)
-                                                    isAvailable && !isPast -> Color(0xFFB2EBF2)
-                                                    !isAvailable && day != null && !isPast -> Color(0xFFE0E0E0)
-                                                    else -> Color.Transparent
+                                                    isSelected -> MaterialTheme.colorScheme.tertiaryContainer
+                                                    isAvailable && !isPast -> MaterialTheme.colorScheme.primaryContainer
+                                                    !isAvailable && day != null && !isPast -> MaterialTheme.colorScheme.secondaryContainer
+                                                    else -> MaterialTheme.colorScheme.secondaryContainer
                                                 }
                                             )
                                             .clickable(enabled = isClickable) {
@@ -217,10 +217,10 @@ fun BookingCalendarScreen(
                                         Text(
                                             text = day?.dayOfMonth?.toString() ?: "",
                                             color = when {
-                                                isPast -> Color.Gray
-                                                isSelected -> Color.White
-                                                isAvailable && !isPast -> Color.Black
-                                                else -> Color.Gray
+                                                isPast -> MaterialTheme.colorScheme.onBackground
+                                                isSelected -> MaterialTheme.colorScheme.onBackground
+                                                isAvailable && !isPast -> MaterialTheme.colorScheme.onBackground
+                                                else -> MaterialTheme.colorScheme.onBackground
                                             },
                                             fontSize = 14.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -259,7 +259,7 @@ fun BookingCalendarScreen(
                             else
                                 "Vui lòng chọn ngày có lịch khám",
                             fontSize = 13.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -275,15 +275,15 @@ fun BookingCalendarScreen(
                             Button(
                                 onClick = { selectedTime = time },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isSelected) Color(0xFF00BCD4) else Color.White,
-                                    contentColor = if (isSelected) Color.White else Color.Black
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background,
+                                    contentColor = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
                                 ),
-                                border = BorderStroke(1.dp, Color.Gray),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiaryContainer),
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(48.dp)
                             ) {
-                                Text(time, fontSize = 14.sp)
+                                Text(time, fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
                             }
                         }
 
@@ -312,16 +312,17 @@ fun BookingCalendarScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00BCD4),
-                        contentColor = Color.White,
-                        disabledContainerColor = Color.Gray,
-                        disabledContentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.background,
+                        disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        disabledContentColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Text(
                         text = "Xác nhận",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 Spacer(modifier = Modifier.height(40.dp))
