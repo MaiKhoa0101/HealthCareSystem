@@ -67,20 +67,20 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BCD4))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.background,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .clickable { navHostController.navigate("personal") }
         )
         Text(
             text = "Chỉnh sửa phòng khám",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.background,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -150,14 +150,6 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
     println("Dữ liệu đã sửa service: "+servicesInput)
     println("Dữ liệu đã sửa address: "+address)
 
-//    if (doctor == null) return
-//    else {
-//        servicesCreated = doctor!!.services
-//        oldSchedule = doctor!!.workHour
-//        address = doctor?.address ?: ""
-//        hasHomeService = doctor?.hasHomeService ?: false
-//        isClinicPaused = doctor?.isClinicPaused ?: false
-//    }
     LaunchedEffect(doctor) {
         if (doctor == null) return@LaunchedEffect
         else {
@@ -254,7 +246,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     println("service output: "+servicesCreated)
                 }
                 Spacer(Modifier.height(12.dp))
-                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
             }
 
             Column(
@@ -269,7 +261,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     onHomeServiceChange = { hasHomeService = it }
                 )
                 Spacer(Modifier.height(8.dp))
-                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
 
                 WorkScheduleSection(
                     schedule = oldSchedule,
@@ -289,7 +281,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPref
                     isPaused = isClinicPaused,
                     onTogglePause = { isClinicPaused = it }
                 )
-                HorizontalDivider(thickness = 2.dp, color = Color.Gray)
+                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     SaveFloatingButton (
@@ -396,8 +388,8 @@ fun SaveFloatingButton(
                 .height(50.dp),
 //                .align(Alignment.Center)
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF00C5CB),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
             shape = RoundedCornerShape(12.dp),
 
@@ -511,7 +503,7 @@ fun AddServiceButton(onAdd: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.LightGray)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable(onClick = onAdd),
         horizontalArrangement = Arrangement.Center
     ){
@@ -543,14 +535,14 @@ fun ServiceTags(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFFE0E0E0))
+                        .background(MaterialTheme.colorScheme.onSecondaryContainer)
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = service.specialtyName,
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(
@@ -559,7 +551,7 @@ fun ServiceTags(
                             modifier = Modifier
                                 .size(16.dp)
                                 .clickable { onRemove(service) },
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.secondaryContainer
                         )
                     }
                 }
@@ -654,7 +646,7 @@ fun WorkScheduleSection(
                                 } ?: "",
                                 textAlign = TextAlign.Center,
                                 fontSize = 13.sp,
-                                color = Color(0xFF444444)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -747,10 +739,10 @@ fun ClinicPauseSwitch(
             checked = isPaused,
             onCheckedChange = onTogglePause,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.Red,
-                checkedTrackColor = Color.Gray,
-                uncheckedThumbColor = Color.LightGray,
-                uncheckedTrackColor = Color.Gray
+                checkedThumbColor = MaterialTheme.colorScheme.error,
+                checkedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer
             )
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -794,7 +786,7 @@ fun AutoCompleteSpecialization(
             onDismissRequest = { expanded = false },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             filtered.forEach { item ->
                 DropdownMenuItem(

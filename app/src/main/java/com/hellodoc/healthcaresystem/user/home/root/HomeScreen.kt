@@ -367,7 +367,7 @@ fun MarqueeNewsTicker(
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
-                Divider(color = MaterialTheme.colorScheme.tertiaryContainer, thickness = 1.dp)
+                Divider(color = MaterialTheme.colorScheme.onBackground, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),

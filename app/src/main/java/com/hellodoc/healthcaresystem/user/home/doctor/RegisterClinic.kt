@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,7 +91,7 @@ fun HeadbarResClinic(navHostController: NavHostController) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Cyan)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(20.dp),
     ) {
         Icon(
@@ -254,7 +255,7 @@ fun ContentRegistrationForm(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = true }
-                    .border(1.dp, Color.Gray)
+                    .border(1.dp, MaterialTheme.colorScheme.secondaryContainer)
                     .padding(12.dp)
             ) {
                 Text(text = selectedSpecialtyName)
@@ -373,7 +374,7 @@ fun ImageInputField(
                         modifier = Modifier
                             .size(120.dp)
                             .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                     )
                 } else {
                     Box(contentAlignment = Alignment.Center) {
@@ -384,15 +385,15 @@ fun ImageInputField(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape)
-                                .border(2.dp, Color.White, CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.camera),
                             contentDescription = "Select image",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.background,
                             modifier = Modifier
                                 .size(36.dp)
-                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), CircleShape)
                                 .padding(6.dp)
                                 .clip(CircleShape)
                         )

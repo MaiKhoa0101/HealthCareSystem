@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -204,7 +203,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
             ) {
                 Button(
                     onClick = { /* TODO: Hủy */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
@@ -241,12 +240,12 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                             )
                         )
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
                 ) {
-                    Text("Xác nhận", color = Color.White)
+                    Text("Xác nhận", color = MaterialTheme.colorScheme.background)
                 }
             }
                 // Hiển thị Dialog khi bấm nút
@@ -259,7 +258,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(32.dp)
-                            .background(Color.White, shape = RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(20.dp))
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -268,7 +267,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                             Box(
                                 modifier = Modifier
                                     .size(80.dp)
-                                    .background(Color(0xFFB2DFDB), shape = CircleShape),
+                                    .background(MaterialTheme.colorScheme.primaryContainer, shape = CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -295,13 +294,13 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                     appointmentViewModel.resetAppointmentSuccess()
                                     navigateToAppointment(context)
                                           },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A0E21)),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp)
                             ) {
-                                Text("OK", color = Color.White)
+                                Text("OK", color = MaterialTheme.colorScheme.background)
                             }
                         }
                     }
