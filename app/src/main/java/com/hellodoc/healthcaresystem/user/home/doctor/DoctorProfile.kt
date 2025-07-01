@@ -309,6 +309,7 @@ fun UserInfo(
             modifier = Modifier
                 .clip(CircleShape)
                 .size(110.dp)
+                .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
                 .constrainAs(imgIcon) {
                     top.linkTo(parent.top, margin = 45.dp)
                     start.linkTo(parent.start)
@@ -590,7 +591,8 @@ fun DoctorProfileScreen(
                         },
                         onDeleteReview = {
                             refreshReviewsTrigger = !refreshReviewsTrigger
-                        }
+                        },
+                        userId = currentUserId
                     )
                 }
             }
