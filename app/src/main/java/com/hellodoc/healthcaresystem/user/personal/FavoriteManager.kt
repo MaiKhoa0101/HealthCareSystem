@@ -70,7 +70,7 @@ fun FavouriteHistoryScreen(navHostController: NavHostController, sharedPreferenc
                         Text(
                             text = "Trở lại",
                             fontSize = 16.sp,
-                            color = Color.Blue,
+                            color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .padding(end = 20.dp)
                                 .clickable {
@@ -150,7 +150,7 @@ fun FavoriteCard(favorite: ManagerResponse, dateText: String) {
                     Text(
                         text = dateText,
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }

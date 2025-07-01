@@ -32,6 +32,7 @@ import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.post.FullScreenCommentNews
@@ -91,14 +92,14 @@ fun NewsDetailScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         item {
             // Header & Back
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navHostController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại", tint = Color.Black)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại", tint = MaterialTheme.colorScheme.onBackground)
                 }
                 Text("Tin tức chi tiết", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
             }
@@ -117,7 +118,7 @@ fun NewsDetailScreen(
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
-            Text(news.title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(news.title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -128,7 +129,7 @@ fun NewsDetailScreen(
                     modifier = Modifier.size(48.dp).clip(CircleShape))
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text("Admin:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = Color.Gray)
+                    Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
@@ -148,7 +149,7 @@ fun NewsDetailScreen(
                     Icon(
                         imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Thích",
-                        tint = if (isFavorited) Color.Red else Color.Black
+                        tint = if (isFavorited) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("$totalFavorites")
@@ -157,7 +158,7 @@ fun NewsDetailScreen(
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
                     showFullScreenComment = true
                 }) {
-                    Icon(Icons.Default.ModeComment, contentDescription = "Bình luận", tint = Color.Black)
+                    Icon(Icons.Default.ModeComment, contentDescription = "Bình luận", tint = MaterialTheme.colorScheme.onBackground)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Bình luận")
                 }
@@ -167,7 +168,7 @@ fun NewsDetailScreen(
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
         item {
-            Text(news.content, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(news.content, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = 16.dp))
         }
     }
 

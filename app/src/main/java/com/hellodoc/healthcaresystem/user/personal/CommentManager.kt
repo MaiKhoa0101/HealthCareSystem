@@ -67,7 +67,7 @@ fun CommentHistoryScreen(navHostController: NavHostController, sharedPreferences
                         Text(
                             text = "Trở lại",
                             fontSize = 16.sp,
-                            color = Color.Blue,
+                            color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .padding(end = 20.dp)
                                 .clickable {
@@ -137,7 +137,7 @@ fun CommentCard(comment: ManagerResponse, dateText: String) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(text = comment.user.name, fontWeight = FontWeight.SemiBold)
-                    Text(text = dateText, fontSize = 12.sp, color = Color.Gray)
+                    Text(text = dateText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
                     Text(
                         text = comment.content,
                         fontSize = 16.sp,

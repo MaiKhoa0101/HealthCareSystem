@@ -35,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -174,7 +175,7 @@ fun CreatePostScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.LightGray)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         item {
             Header(
@@ -245,12 +246,12 @@ fun CreatePostScreen(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .size(21.dp)
-                                    .background(Color.Black.copy(alpha = 0.5f), shape = CircleShape),
+                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), shape = CircleShape),
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Xóa ảnh",
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.background,
                                     modifier = Modifier.size(30.dp),
                                 )
                             }
@@ -271,10 +272,10 @@ fun CreatePostScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.background)
                 }
             }
         }
@@ -315,7 +316,7 @@ fun Header(
     onPost: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    val backgroundColor = Color.Cyan
+    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
     val isPostEnabled = postText.isNotBlank() || selectedImageUri.isNotEmpty()
 
     ConstraintLayout(
@@ -343,7 +344,7 @@ fun Header(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             ),
             modifier = Modifier.constrainAs(tvTitle){
                 top.linkTo(horizontalGuideLine10, margin = 10.dp)
@@ -383,7 +384,7 @@ fun PostBody(
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val backgroundColor = Color.White
+    val backgroundColor = MaterialTheme.colorScheme.background
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
@@ -409,7 +410,7 @@ fun PostBody(
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             ),
             modifier = Modifier.constrainAs(tvName){
                 top.linkTo(horizontalGuideLine50, margin = 5.dp)
@@ -435,7 +436,7 @@ fun FooterWithPermission(
     permissionState: PermissionState,
     onImageClick: () -> Unit
 ) {
-    val backgroundColor = Color.White
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     ConstraintLayout(
         modifier = modifier
@@ -450,7 +451,7 @@ fun FooterWithPermission(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(3.dp)
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
                 .constrainAs(topLine) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
@@ -478,7 +479,7 @@ fun FooterWithPermission(
                     style = TextStyle(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 20.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     ),
                     modifier = Modifier.constrainAs(tvTitle) {
                         top.linkTo(iconImage.bottom, margin = 5.dp)
@@ -511,7 +512,7 @@ fun FooterWithPermission(
                     style = TextStyle(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.error
                     ),
                     modifier = Modifier.constrainAs(tvTitle) {
                         top.linkTo(iconImage.bottom, margin = 5.dp)
@@ -539,7 +540,7 @@ fun OutlineTextField(
         placeholder = {
             Text(
                 text = "Hãy nói gì đó ...",
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onBackground
             )
         },
         modifier = modifier
@@ -547,10 +548,10 @@ fun OutlineTextField(
             .padding(horizontal = 10.dp),
         maxLines = 10,
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            unfocusedPlaceholderColor = Color.Gray,
-            errorPlaceholderColor = Color.Gray,
-            disabledPlaceholderColor = Color.Gray,
-            focusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
+            errorPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
+            disabledPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
             unfocusedBorderColor = Color.Transparent,
             focusedBorderColor = Color.Transparent,
             disabledBorderColor = Color.Transparent,
