@@ -152,6 +152,7 @@ fun ProfileUserPage(
             Setting(
                 navHostController,
                 sharedPreferences,
+                user,
                 onToggleTheme = onToggleTheme,
                 onExitSetting = {
                     showSetting = false

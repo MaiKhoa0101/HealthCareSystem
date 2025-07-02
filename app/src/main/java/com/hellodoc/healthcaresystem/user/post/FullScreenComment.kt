@@ -149,11 +149,20 @@ internal fun CommentScreenContent(
     currentUser: User,
     navHostController: NavHostController
 ) {
-    Column(
+    Column (
         modifier = Modifier
             .fillMaxSize()
             .padding(15.dp)
     ) {
+        CommentInput(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = postId,
+            currentUser = currentUser,
+            modifier = Modifier
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+
         CommentList(
             uiState = uiState,
             postViewModel = postViewModel,
@@ -162,11 +171,30 @@ internal fun CommentScreenContent(
             navHostController = navHostController,
         )
 
-        CommentInput(
+
+    }
+}
+
+@Composable
+internal fun CommentPostDetailScreenContent(
+    uiState: CommentUIState,
+    postViewModel: PostViewModel,
+    postId: String,
+    currentUser: User,
+    navHostController: NavHostController,
+    modifier: Modifier
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(15.dp)
+    ) {
+        CommentList(
             uiState = uiState,
             postViewModel = postViewModel,
             postId = postId,
-            currentUser = currentUser
+            currentUser = currentUser,
+            navHostController = navHostController,
         )
     }
 }
@@ -315,11 +343,12 @@ private fun CommentListFooter(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CommentInput(
+internal fun CommentInput(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
     currentUser: User,
+    modifier: Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
 

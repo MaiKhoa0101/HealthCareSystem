@@ -18,11 +18,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
@@ -33,7 +38,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +68,6 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostDetailScreen(
@@ -75,17 +79,17 @@ fun PostDetailScreen(
     val youTheCurrentUserUseThisApp by userViewModel.thisUser.collectAsState()
     val userOfThisProfile by userViewModel.user.collectAsState()
     val post by postViewModel.post.collectAsState()
-    // Lấy bài viết đầu tiên
+
+    // Lấy bài viết và thông tin user
     LaunchedEffect(Unit) {
         val userId = userViewModel.getUserAttributeString("userId")
         userViewModel.getYou(userId)
-
         if (postId.isNotEmpty()) {
             postViewModel.getPostById(postId)
         }
     }
 
-// Chạy khi post được cập nhật
+    // Lấy thông tin user của bài viết
     LaunchedEffect(post?.user?.id) {
         val postUserId = post?.user?.id
         if (!postUserId.isNullOrBlank()) {
@@ -93,31 +97,24 @@ fun PostDetailScreen(
         }
     }
 
-
-
     if (post != null && youTheCurrentUserUseThisApp != null) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
             HeadbarDetailPost(navHostController)
-
             var showPostReportDialog by remember { mutableStateOf(false) }
             Box(
                 modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.background),
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 PostDetailSection(
                     navHostController = navHostController,
                     postViewModel = postViewModel,
                     post = post!!,
                     userWhoInteractWithThisPost = youTheCurrentUserUseThisApp!!,
-                    onClickReport = {
-                        showPostReportDialog = !showPostReportDialog
-                    })
-                Spacer(modifier = Modifier.height(8.dp))
+                    onClickReport = { showPostReportDialog = !showPostReportDialog }
+                )
                 if (showPostReportDialog) {
                     ReportPostUser(
                         context = navHostController.context,
@@ -132,34 +129,24 @@ fun PostDetailScreen(
                 }
             }
         }
-    }
-    else{
-        println("post: "+post + "user: "+youTheCurrentUserUseThisApp)
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Box (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ){
-                PostSkeleton()
-                Text("Đang tìm bài viết")
-            }
+            Text(
+                text = "Đang tải bài viết...",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            PostSkeleton()
         }
     }
 }
 
-//Khu vực dưới là code customize từ code bài post, có tái sử dụng phần lớn,
-// 1 số chức năng sẽ bị loại bỏ là xoá bài viết
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostDetailSection(
-    navHostController:NavHostController,
+    navHostController: NavHostController,
     postViewModel: PostViewModel,
     post: PostResponse,
     userWhoInteractWithThisPost: User,
@@ -167,43 +154,58 @@ fun PostDetailSection(
 ) {
     var showImageDetail by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableStateOf(0) }
-
-    HorizontalDivider(thickness = 2.dp)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
-        PostDetailHeader(
-            navHostController = navHostController,
-            userWhoInteractWithThisPost,
-            post,
-            onClickReport
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        PostBody(post)
-        Spacer(modifier = Modifier.height(8.dp))
-        PostMedia(
-            post = post,
-            showImageDetail = showImageDetail,
-            selectedImageIndex = selectedImageIndex,
-            onImageClick = { index ->
-                selectedImageIndex = index
-                showImageDetail = true
-            },
-            onDismiss = {
-                showImageDetail = false
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                PostDetailHeader(
+                    navHostController = navHostController,
+                    userWhoInteractWithThisPost = userWhoInteractWithThisPost,
+                    post = post,
+                    onClickReport = onClickReport
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                PostBody(post)
+                Spacer(modifier = Modifier.height(12.dp))
+                PostMedia(
+                    post = post,
+                    showImageDetail = showImageDetail,
+                    selectedImageIndex = selectedImageIndex,
+                    onImageClick = { index ->
+                        selectedImageIndex = index
+                        showImageDetail = true
+                    },
+                    onDismiss = { showImageDetail = false }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                InteractDetailPostManager(
+                    navHostController = navHostController,
+                    postViewModel = postViewModel,
+                    post = post,
+                    user = userWhoInteractWithThisPost
+                )
+                CommentDetailPostSection(
+                    navHostController = navHostController,
+                    postId = post.id,
+                    onClose = { showImageDetail = false },
+                    postViewModel = postViewModel,
+                    currentUser = userWhoInteractWithThisPost
+                )
             }
-        )
-        InteractDetailPostManager(
-            navHostController = navHostController,
-            postViewModel = postViewModel,
-            post = post,
-            user = userWhoInteractWithThisPost
-        )
+        }
     }
-}
 
 
 @Composable
@@ -215,92 +217,87 @@ fun PostDetailHeader(
 ) {
     var showMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    Box(
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
+            .padding(bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Avatar + tên
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = post.user.avatarURL,
-                    contentDescription = "Avatar of ${post.user.name}",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            if (post.user.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.user.id}")
-                            } else {
-                                navHostController.navigate("personal")
-                            }
-                        },
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column(
-                    modifier = Modifier.clickable {
-                        if (post.user.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.user.id}")
-                        } else {
-                            navHostController.navigate("personal")
-                        }
-                    }
-                ) {
-                    Text(
-                        text = post.user.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+            modifier = Modifier.clickable {
+                if (post.user.id != userWhoInteractWithThisPost.id) {
+                    navHostController.navigate("otherUserProfile/${post.user.id}")
+                } else {
+                    navHostController.navigate("personal")
                 }
             }
+        ) {
+            AsyncImage(
+                model = post.user.avatarURL,
+                contentDescription = "Avatar of ${post.user.name}",
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(2.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = post.user.name,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = post.createdAt ?: "Vừa xong", // Giả sử post có thuộc tính createdAt
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
 
-            // Nút 3 chấm và Dropdown gắn liền
-            Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = MaterialTheme.colorScheme.onBackground
+        Box {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                offset = DpOffset(x = (-8).dp, y = 8.dp),
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
+                if (userWhoInteractWithThisPost.id == post.user.id) {
+                    DropdownMenuItem(
+                        text = { Text("Xoá bài viết", style = MaterialTheme.typography.bodyMedium) },
+                        onClick = {
+                            showMenu = false
+                            Toast.makeText(
+                                context,
+                                "Không thể thực hiện thao tác xoá bài viết trong đây do chúng tôi quên làm chức năng này",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    )
+                } else {
+                    DropdownMenuItem(
+                        text = { Text("Báo cáo bài viết", style = MaterialTheme.typography.bodyMedium) },
+                        onClick = {
+                            showMenu = false
+                            onClickReport()
+                        }
                     )
                 }
-
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                    offset = DpOffset(x = (-110).dp, y = (-40).dp)
-                ) {
-                    if (userWhoInteractWithThisPost.id == post.user.id) {
-                        // Người đăng bài == người hiện tại → chỉ cho xoá
-                        DropdownMenuItem(
-                            text = { Text("Xoá bài viết") },
-                            onClick = {
-                                showMenu = false
-                                Toast.makeText(context, "Không thể thực hiện thao tác xoá bài viết trong đây do chúng tôi quên làm chức năng này",
-                                    Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    } else {
-                        // Người khác → chỉ cho báo cáo
-                        DropdownMenuItem(
-                            text = { Text("Báo cáo bài viết") },
-                            onClick = {
-                                showMenu = false
-                                onClickReport()
-                            }
-                        )
-                    }
-                }
-
             }
         }
     }
@@ -308,17 +305,15 @@ fun PostDetailHeader(
 
 @Composable
 fun InteractDetailPostManager(
-    navHostController:NavHostController,
+    navHostController: NavHostController,
     postViewModel: PostViewModel,
     post: PostResponse,
     user: User
-){
-    val sizeButton = 28.dp
+) {
+    val sizeButton = 32.dp
     val coroutineScope = rememberCoroutineScope()
     var showCommentSheet by remember { mutableStateOf(false) }
 
-
-    // Lấy trạng thái favorite từ ViewModel
     LaunchedEffect(post.id, user.id) {
         postViewModel.fetchFavoriteForPost(postId = post.id, userId = user.id)
     }
@@ -327,17 +322,20 @@ fun InteractDetailPostManager(
     val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
     val totalFavorites = totalFavoritesMap[post.id]?.toIntOrNull() ?: 0
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(height = sizeButton * 2, width = sizeButton * 6)
-                .clip(RoundedCornerShape(20.dp))
+                .size(width = sizeButton * 3, height = sizeButton * 1.5f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
                 .clickable {
                     coroutineScope.launch {
-                        println("Nut like dc nhan")
                         postViewModel.updateFavoriteForPost(
                             postId = post.id,
                             userFavouriteId = user.id,
@@ -353,20 +351,36 @@ fun InteractDetailPostManager(
                 totalFavorites = totalFavorites
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Divider()
-        Spacer(modifier = Modifier.height(8.dp))
-        CommentDetailPostSection(
-            navHostController = navHostController, // hoặc truyền vào từ tham số
-            postId = post.id,
-            onClose = { showCommentSheet = false },
-            postViewModel = postViewModel,
-            currentUser = user
-        )
+
+        Box(
+            modifier = Modifier
+                .size(width = sizeButton * 3, height = sizeButton * 1.5f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                .clickable { showCommentSheet = !showCommentSheet },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Comment,
+                    contentDescription = "Comment",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(sizeButton * 0.8f)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Bình luận",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
+
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -376,13 +390,12 @@ fun CommentDetailPostSection(
     onClose: () -> Unit,
     postViewModel: PostViewModel,
     currentUser: User
-){
+) {
     val uiState = rememberCommentUIState(postViewModel, postId)
-    val coroutineScope = rememberCoroutineScope() // ✅ Thêm dòng này
+    val coroutineScope = rememberCoroutineScope()
 
     BackHandler { onClose() }
 
-    // Load more comments when reaching end of list
     LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
         observeScrollToLoadMore(
             listState = uiState.listState,
@@ -395,37 +408,57 @@ fun CommentDetailPostSection(
             }
         )
     }
-    CommentScreenContent(
-        uiState = uiState,
-        postViewModel = postViewModel,
-        postId = postId,
-        currentUser = currentUser,
-        navHostController = navHostController
-    )
+
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp)
+    ){
+        CommentInput(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = postId,
+            currentUser = currentUser,
+            modifier = Modifier
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        CommentPostDetailScreenContent(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = postId,
+            currentUser = currentUser,
+            navHostController = navHostController,
+            modifier = Modifier
+
+        )
+    }
 }
 
 
 @Composable
 fun HeadbarDetailPost(navHostController: NavHostController) {
     Box(
-        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = MaterialTheme.colorScheme.onBackground,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .align(Alignment.CenterStart)
+                .size(28.dp)
+                .clip(CircleShape)
                 .clickable { navHostController.popBackStack() }
+                .padding(4.dp)
         )
         Text(
             text = "Bài viết chi tiết",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )

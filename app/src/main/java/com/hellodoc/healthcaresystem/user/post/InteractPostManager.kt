@@ -31,6 +31,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.skeleton.discordClick
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import kotlinx.coroutines.launch
 
@@ -51,7 +52,13 @@ fun InteractPostManager(
         postViewModel.fetchFavoriteForPost(postId = post.id, userId = user.id)
     }
     val isFavoritedMap by postViewModel.isFavoritedMap.collectAsState()
-    val isFavorited = isFavoritedMap[post.id] ?: false
+    val serverIsFavorited = isFavoritedMap[post.id] ?: false
+    var localFavorited by remember(post.id) { mutableStateOf(serverIsFavorited) }
+
+    LaunchedEffect(serverIsFavorited) {
+        localFavorited = serverIsFavorited
+    }
+
     val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
     val totalFavorites = totalFavoritesMap[post.id]?.toIntOrNull() ?: 0
 
@@ -64,9 +71,10 @@ fun InteractPostManager(
             modifier = Modifier
                 .size(height = sizeButton*2, width = sizeButton*6)
                 .clip(RoundedCornerShape(20.dp))
-                .clickable{
+                .discordClick {
+                    localFavorited = !localFavorited
                     coroutineScope.launch {
-                        println("Nut like dc nhan")
+                        println("Nút like được nhấn")
                         postViewModel.updateFavoriteForPost(
                             postId = post.id,
                             userFavouriteId = user.id,
@@ -78,7 +86,7 @@ fun InteractPostManager(
         ){
             LikeButton(
                 size = sizeButton,
-                isFavorited = isFavorited,
+                isFavorited = localFavorited,
                 totalFavorites = totalFavorites
             )
         }

@@ -1,5 +1,5 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main_sign_up"
+    android:id="@+id/sub_sign_up"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
@@ -57,37 +57,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="Tên đăng ký"
-                android:background="@android:color/transparent"
-                android:textColor="@color/black"
-                android:textColorHint="@color/gray"
-                android:padding="8dp"/>
-        </LinearLayout>
-
-        <!-- Email -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/edit_text_background"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="8dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/baseline_email_24"
-                android:contentDescription="Email Icon"
-                android:layout_marginEnd="12dp"/>
-
-            <EditText
-                android:id="@+id/email"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Email"
-                android:inputType="textEmailAddress"
                 android:background="@android:color/transparent"
                 android:textColor="@color/black"
                 android:textColorHint="@color/gray"
@@ -242,34 +211,6 @@
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
-
-        <!-- Thông tin và mạng xã hội -->
-<!--        <TextView-->
-<!--            android:id="@+id/info"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="hoặc đăng ký với"-->
-<!--            android:layout_marginTop="24dp"/>-->
-
-<!--        <LinearLayout-->
-<!--            android:id="@+id/socialicons"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:gravity="center"-->
-<!--            android:layout_marginTop="8dp">-->
-
-<!--            <ImageView-->
-<!--                android:layout_width="48dp"-->
-<!--                android:layout_height="48dp"-->
-<!--                android:layout_margin="20dp"-->
-<!--                android:src="@drawable/ic_google" />-->
-
-<!--            <ImageView-->
-<!--                android:layout_width="48dp"-->
-<!--                android:layout_height="48dp"-->
-<!--                android:layout_margin="20dp"-->
-<!--                android:src="@drawable/ic_facebook" />-->
-<!--        </LinearLayout>-->
 
     </LinearLayout>
 </ScrollView>
