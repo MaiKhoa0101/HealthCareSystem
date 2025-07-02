@@ -18,12 +18,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -128,22 +130,14 @@ fun PostDetailScreen(
             }
         }
     } else {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(48.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Đang tải bài viết...",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(16.dp))
             PostSkeleton()
         }
     }
@@ -160,49 +154,59 @@ fun PostDetailSection(
 ) {
     var showImageDetail by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableStateOf(0) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            PostDetailHeader(
-                navHostController = navHostController,
-                userWhoInteractWithThisPost = userWhoInteractWithThisPost,
-                post = post,
-                onClickReport = onClickReport
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            PostBody(post)
-            Spacer(modifier = Modifier.height(12.dp))
-            PostMedia(
-                post = post,
-                showImageDetail = showImageDetail,
-                selectedImageIndex = selectedImageIndex,
-                onImageClick = { index ->
-                    selectedImageIndex = index
-                    showImageDetail = true
-                },
-                onDismiss = { showImageDetail = false }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-            Spacer(modifier = Modifier.height(12.dp))
-            InteractDetailPostManager(
-                navHostController = navHostController,
-                postViewModel = postViewModel,
-                post = post,
-                user = userWhoInteractWithThisPost
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                PostDetailHeader(
+                    navHostController = navHostController,
+                    userWhoInteractWithThisPost = userWhoInteractWithThisPost,
+                    post = post,
+                    onClickReport = onClickReport
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                PostBody(post)
+                Spacer(modifier = Modifier.height(12.dp))
+                PostMedia(
+                    post = post,
+                    showImageDetail = showImageDetail,
+                    selectedImageIndex = selectedImageIndex,
+                    onImageClick = { index ->
+                        selectedImageIndex = index
+                        showImageDetail = true
+                    },
+                    onDismiss = { showImageDetail = false }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                InteractDetailPostManager(
+                    navHostController = navHostController,
+                    postViewModel = postViewModel,
+                    post = post,
+                    user = userWhoInteractWithThisPost
+                )
+                CommentDetailPostSection(
+                    navHostController = navHostController,
+                    postId = post.id,
+                    onClose = { showImageDetail = false },
+                    postViewModel = postViewModel,
+                    currentUser = userWhoInteractWithThisPost
+                )
+            }
         }
     }
-}
+
 
 @Composable
 fun PostDetailHeader(
@@ -376,15 +380,6 @@ fun InteractDetailPostManager(
         }
     }
 
-    if (showCommentSheet) {
-        CommentDetailPostSection(
-            navHostController = navHostController,
-            postId = post.id,
-            onClose = { showCommentSheet = false },
-            postViewModel = postViewModel,
-            currentUser = user
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -413,14 +408,32 @@ fun CommentDetailPostSection(
             }
         )
     }
-    CommentScreenContent(
-        uiState = uiState,
-        postViewModel = postViewModel,
-        postId = postId,
-        currentUser = currentUser,
-        navHostController = navHostController
-    )
+
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp)
+    ){
+        CommentInput(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = postId,
+            currentUser = currentUser,
+            modifier = Modifier
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        CommentPostDetailScreenContent(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = postId,
+            currentUser = currentUser,
+            navHostController = navHostController,
+            modifier = Modifier
+
+        )
+    }
 }
+
 
 @Composable
 fun HeadbarDetailPost(navHostController: NavHostController) {
@@ -428,7 +441,6 @@ fun HeadbarDetailPost(navHostController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .shadow(4.dp, RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
