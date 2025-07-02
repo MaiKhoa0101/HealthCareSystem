@@ -77,17 +77,7 @@ fun ReportDoctor(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable { selectedType = "Bác sĩ" }
-                        .padding(end = 10.dp)
-                ) {
-                    Text("Bác sĩ", modifier = Modifier.padding(start = 5.dp))
-                }
-            }
+            Text("Bác sĩ", color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
@@ -105,7 +95,6 @@ fun ReportDoctor(
                     focusedIndicatorColor = Color.Transparent, // Ẩn viền khi focus
                     unfocusedIndicatorColor = Color.Transparent // Ẩn viền khi không focus
                 )
-
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -174,7 +163,7 @@ fun ReportUser(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-            Text("Người dùng", color = Color.DarkGray)
+            Text("Người dùng", color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
@@ -260,7 +249,7 @@ fun ReportPostDoctor(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-            Text("Bài viết", color = Color.DarkGray)
+            Text("Bài viết", color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)
@@ -342,7 +331,7 @@ fun ReportPostUser(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Loại báo cáo", fontWeight = FontWeight.Medium)
-            Text("Bài viết", color = Color.DarkGray)
+            Text("Bài viết", color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Nội dung báo cáo", fontWeight = FontWeight.Medium)

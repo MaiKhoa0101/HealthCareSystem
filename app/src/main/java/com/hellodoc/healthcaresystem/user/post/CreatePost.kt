@@ -149,7 +149,10 @@ fun CreatePostScreen(
             val post = posts.firstOrNull { it.id == postId }
             post?.let {
                 postText = it.content ?: ""
-                selectedImageUri = it.media?.mapNotNull { uri -> Uri.parse(uri) } ?: emptyList()
+                // Lưu cả URLs của media cũ
+                selectedImageUri = it.media?.mapNotNull { url ->
+                    Uri.parse(url)
+                } ?: emptyList()
             }
         }
     }
@@ -201,15 +204,21 @@ fun CreatePostScreen(
                     isEditMode = postId != null,
                     onPost = {
                         if (postId != null) {
-//                            postViewModel.updatePost(
-//                                postId = postId,
-//                                request = UpdatePostRequest(
-//                                    content = postText,
-//                                    media = media,
-//                                    images = selectedImageUri
-//                                ),
-//                                context = context
-//                            )
+                            // Gửi cả URLs của ảnh cũ và Uris của ảnh mới
+                            val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
+                            val newImagesUris = selectedImageUri.filter { uri ->
+                                uri.scheme != "http" && uri.scheme != "https"
+                            }
+
+                            postViewModel.updatePost(
+                                postId = postId,
+                                request = UpdatePostRequest(
+                                    content = postText,
+                                    media = existingMediaUrls,
+                                    images = newImagesUris
+                                ),
+                                context = context
+                            )
                         } else {
                             postViewModel.createPost(
                                 request = CreatePostRequest(userId, userModel, postText, selectedImageUri),

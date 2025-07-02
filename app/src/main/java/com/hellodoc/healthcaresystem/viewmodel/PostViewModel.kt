@@ -361,20 +361,23 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             try {
                 _isUpdating.value = true
 
-                val contentPart = MultipartBody.Part.createFormData("content", request.content)
+                val contentPart = request.content?.let {
+                    MultipartBody.Part.createFormData("content", it)
+                }
 
-                val mediaParts = request.media.mapIndexed { index, url ->
-                    MultipartBody.Part.createFormData("media", url)
+                // Sửa lại phần xử lý media cũ
+                val mediaParts = request.media?.mapIndexed { index, url ->
+                    MultipartBody.Part.createFormData("media[$index]", url)
                 } ?: emptyList()
 
-                val imageParts = request.images.mapNotNull { uri ->
+                val imageParts = request.images?.mapNotNull { uri ->
                     try {
                         prepareFilePart(context, uri, "images")
                     } catch (e: Exception) {
                         Log.e("PostViewModel", "Skipping invalid URI: $uri", e)
                         null
                     }
-                }
+                } ?: emptyList()
 
                 val response = RetrofitInstance.postService.updatePost(
                     postId = postId,
@@ -385,6 +388,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 if (response.isSuccessful) {
                     _updateSuccess.value = true
+                    getPostById(postId)
                 } else {
                     Log.e("PostViewModel", "Update error: ${response.errorBody()?.string()}")
                 }
@@ -395,7 +399,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-
 
     fun resetUpdateSuccess() {
         _updateSuccess.value = false

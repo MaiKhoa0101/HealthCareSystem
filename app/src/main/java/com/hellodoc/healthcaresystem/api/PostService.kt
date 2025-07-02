@@ -103,7 +103,7 @@ interface PostService {
     @PATCH("post/{id}")
     suspend fun updatePost(
         @Path("id") postId: String,
-        @Part content: MultipartBody.Part,
+        @Part content: MultipartBody.Part?,
         @Part media: List<MultipartBody.Part>,
         @Part images: List<MultipartBody.Part>
     ): Response<Unit>
