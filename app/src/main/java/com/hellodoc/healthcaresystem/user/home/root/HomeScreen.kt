@@ -781,7 +781,7 @@ fun SpecialtyItem(
     Box(
         modifier = Modifier
             .width(140.dp)
-            .height(140.dp)
+            .height(160.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.background)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
@@ -834,7 +834,10 @@ fun SpecialtyItem(
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 ),
-                maxLines = 2
+                modifier = Modifier.fillMaxWidth(), // Đảm bảo chiếm hết chiều rộng để căn giữa chính xác
+                maxLines = 2,
+//                overflow = TextOverflow.Ellipsis, // Thêm dấu "..." nếu quá 2 dòng
+                softWrap = true // Cho phép xuống dòng mềm
             )
         }
     }
