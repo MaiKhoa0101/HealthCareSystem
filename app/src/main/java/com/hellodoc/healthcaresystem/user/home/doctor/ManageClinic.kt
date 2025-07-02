@@ -80,7 +80,7 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
         )
         Text(
             text = "Chỉnh sửa phòng khám",
-            color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()

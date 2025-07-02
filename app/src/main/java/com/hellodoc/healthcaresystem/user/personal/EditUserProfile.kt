@@ -143,7 +143,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
         )
         Text(
             text = "Chỉnh sửa hồ sơ",
-            color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
