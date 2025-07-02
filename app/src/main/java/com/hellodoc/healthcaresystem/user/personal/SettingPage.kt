@@ -34,17 +34,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.discordClick
 
 @Composable
 fun Setting(
     navHostController: NavHostController,
     sharedPreferences: SharedPreferences,
+    user: User?,
     onToggleTheme: () -> Unit,
     onExitSetting:() -> Unit,
     darkTheme: Boolean
 ) {
     val context = LocalContext.current
+    val clinicButtonText =  if (user?.role == "User") {
+        "Đăng kí phòng khám"
+    } else {
+        "Quản lý phòng khám"
+    }
 
     Column(
         modifier = Modifier
@@ -104,9 +111,24 @@ fun Setting(
             })
 
         SectionSetting(
-            "Đánh giá ứng dụng",
-            iconVector = Icons.Default.StarRate,
-            onPress = {})
+            clinicButtonText,
+            iconVector = Icons.Default.Person,
+            onPress = {
+                if (user == null) {
+                    return@SectionSetting
+                }
+                else if (user.role=="User"){
+                    navHostController.navigate("doctorRegister")
+                }
+                else{
+                    navHostController.navigate("editClinic")
+                }
+            })
+
+//        SectionSetting(
+//            "Đánh giá ứng dụng",
+//            iconVector = Icons.Default.StarRate,
+//            onPress = {})
 
         SectionSetting(
             "Quản lí hoạt động",

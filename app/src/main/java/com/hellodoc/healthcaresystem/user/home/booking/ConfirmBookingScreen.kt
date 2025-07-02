@@ -252,7 +252,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
             if (showDialog) {
                 Dialog(onDismissRequest = {
                     showDialog = false
-                    navigateToAppointment(context)
+                    navigateToAppointment(context, navHostController)
                 }) {
                     Box(
                         modifier = Modifier
@@ -292,7 +292,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                                 onClick = {
                                     showDialog = false
                                     appointmentViewModel.resetAppointmentSuccess()
-                                    navigateToAppointment(context)
+                                    navigateToAppointment(context, navHostController)
                                           },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                                 shape = RoundedCornerShape(12.dp),
@@ -331,12 +331,15 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
 }
 
 // Hàm điều hướng sang HomeActivity và chỉ định mở tab "appointment"
-private fun navigateToAppointment(context: Context) {
-    val intent = Intent(context, HomeActivity::class.java).apply {
-        putExtra("navigate-to", "appointment")
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+private fun navigateToAppointment(context: Context, navHostController: NavHostController) {
+    navHostController.navigate("appointment") {
+        // Xóa tất cả các entry trong backstack cho đến startDestination
+        popUpTo(navHostController.graph.startDestinationId) {
+            inclusive = true
+        }
+        launchSingleTop = true // tránh tạo lại nếu đang ở đó
+        restoreState = false   // không khôi phục trạng thái cũ
     }
-    context.startActivity(intent)
 }
 
 @Composable

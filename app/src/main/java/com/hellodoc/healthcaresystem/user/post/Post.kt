@@ -288,6 +288,13 @@ fun PostHeader(
                     if (userWhoInteractWithThisPost.id == post.user.id) {
                         // Người đăng bài == người hiện tại → chỉ cho xoá
                         DropdownMenuItem(
+                            text = { Text("Chỉnh sửa bài viết") },
+                            onClick = {
+                                showMenu = false
+                                navHostController.navigate("edit_post/${post.id}")
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Xoá bài viết") },
                             onClick = {
                                 showMenu = false

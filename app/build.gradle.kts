@@ -64,7 +64,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("com.google.accompanist:accompanist-flowlayout:0.26.5-rc")
-    implementation("io.coil-kt:coil-compose:2.2.0")//them
+    implementation("io.coil-kt:coil-compose:2.4.0")
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
