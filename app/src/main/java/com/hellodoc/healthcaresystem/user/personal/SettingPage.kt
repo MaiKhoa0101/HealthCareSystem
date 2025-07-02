@@ -1,6 +1,9 @@
 package com.hellodoc.healthcaresystem.user.personal
 
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,8 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
+import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.discordClick
+//import com.hellodoc.healthcaresystem.user.home.root.clearToken
+//import com.hellodoc.healthcaresystem.user.home.root.logoutWithGoogle
+import com.hellodoc.healthcaresystem.user.home.startscreen.StartScreen
 
 @Composable
 fun Setting(
@@ -141,12 +151,51 @@ fun Setting(
             nameField = "Đăng xuất",
             iconVector = Icons.Default.Logout,
             onPress = {
-
+                logoutWithGoogle(context, sharedPreferences)
             }
         )
     }
 }
 
+private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences) {
+    // Initialize Firebase Auth
+    val auth = FirebaseAuth.getInstance()
+
+    // Configure Google Sign In
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.web_client_id))
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
+    // Clear saved token
+    clearToken(sharedPreferences)
+
+    // Sign out from Firebase Auth
+    auth.signOut()
+
+    // Sign out from Google
+    googleSignInClient.signOut().addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            // Navigate back to StartScreen
+            val intent = Intent(context, StartScreen::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            context.startActivity(intent)
+
+            // Show success message
+            Toast.makeText(context, "Đăng xuất thành công!", Toast.LENGTH_SHORT).show()
+        } else {
+            // Handle error
+            Toast.makeText(context, "Lỗi khi đăng xuất khỏi Google", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+private fun clearToken(sharedPreferences: SharedPreferences) {
+    sharedPreferences.edit()
+        .remove("access_token")
+        .apply()
+}
 
 @Composable
 fun SectionSetting(nameField:String, iconVector:ImageVector, onPress:()->Unit, ){
