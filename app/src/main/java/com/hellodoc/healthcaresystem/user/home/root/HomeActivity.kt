@@ -320,7 +320,6 @@ class HomeActivity : BaseActivity() {
                 ProfileOtherUserPage(
                     navHostController,
                     sharedPreferences,
-                    userViewModel,
                     postViewModel,
                     userOwnerID
                 )

@@ -5,7 +5,7 @@
         <domain includeSubdomains="true">192.168.1.4</domain>
         <domain includeSubdomains="true">192.168.1.110</domain>
         <domain includeSubdomains="true">192.168.0.103</domain>
-        <domain includeSubdomains="true">192.168.1.8</domain>
+        <domain includeSubdomains="true">192.168.1.218</domain>
 
 
     </domain-config>

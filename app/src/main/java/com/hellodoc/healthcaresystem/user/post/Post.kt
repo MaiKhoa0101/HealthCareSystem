@@ -89,6 +89,7 @@ fun PostColumn(
         }
     }
 
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -175,37 +176,58 @@ fun Post(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            PostHeader(
-                navHostController = navHostController,
-                userWhoInteractWithThisPost,
-                post,
-                onClickReport,
-                onClickDelete
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            PostBody(post)
-            Spacer(modifier = Modifier.height(8.dp))
-            PostMedia(
-                post = post,
-                showImageDetail = showImageDetail,
-                selectedImageIndex = selectedImageIndex,
-                onImageClick = { index ->
-                    selectedImageIndex = index
-                    showImageDetail = true
-                },
-                onDismiss = {
-                    showImageDetail = false
-                }
-            )
-            InteractPostManager(
-                navHostController = navHostController,
-                postViewModel = postViewModel,
-                post = post,
-                user = userWhoInteractWithThisPost
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .clickable {
+                        navHostController.navigate("post-detail/${post.id}")
+                    }.padding(horizontal = 26.dp),
+            ) {
+                PostHeader(
+                    navHostController = navHostController,
+                    userWhoInteractWithThisPost,
+                    post,
+                    onClickReport,
+                    onClickDelete
+                )
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 26.dp)
+            ) {
+                PostBody(post)
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 26.dp)
+            ) {
+                PostMedia(
+                    post = post,
+                    showImageDetail = showImageDetail,
+                    selectedImageIndex = selectedImageIndex,
+                    onImageClick = { index ->
+                        selectedImageIndex = index
+                        showImageDetail = true
+                    },
+                    onDismiss = {
+                        showImageDetail = false
+                    }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 26.dp)
+            ) {
+                InteractPostManager(
+                    navHostController = navHostController,
+                    postViewModel = postViewModel,
+                    post = post,
+                    user = userWhoInteractWithThisPost
+                )
+            }
+            Spacer(modifier = Modifier.height(18.dp))
         }
 
     }
@@ -227,8 +249,10 @@ fun PostHeader(
             .padding(bottom = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Avatar + tên
@@ -242,6 +266,7 @@ fun PostHeader(
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable {
+                            println("Nguoi dang post la: ${post.user.id}"+" Nguoi hien tai la: ${userWhoInteractWithThisPost.id}")
                             if (post.user.id != userWhoInteractWithThisPost.id) {
                                 navHostController.navigate("otherUserProfile/${post.user.id}")
                             } else {
@@ -255,6 +280,7 @@ fun PostHeader(
 
                 Column(
                     modifier = Modifier.clickable {
+                        println("Nguoi dang post la: ${post.user.id}"+" Nguoi hien tai la: ${userWhoInteractWithThisPost.id}")
                         if (post.user.id != userWhoInteractWithThisPost.id) {
                             navHostController.navigate("otherUserProfile/${post.user.id}")
                         } else {
@@ -272,7 +298,9 @@ fun PostHeader(
 
             // Nút 3 chấm và Dropdown gắn liền
             Box {
-                IconButton(onClick = { showMenu = true }) {
+                IconButton(
+                    modifier = Modifier.size(50.dp),
+                    onClick = { showMenu = true }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Options",
