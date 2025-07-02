@@ -29,6 +29,9 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
 
+    private val _post = MutableStateFlow<PostResponse?>(null) // nullable
+    val post: StateFlow<PostResponse?> = _post
+
     private val _hasMorePosts = MutableStateFlow(true)
     val hasMorePosts: StateFlow<Boolean> = _hasMorePosts
 

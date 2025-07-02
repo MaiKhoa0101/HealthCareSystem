@@ -56,7 +56,8 @@ fun ViewRating(
     doctorId: String,
     refreshTrigger: Boolean,
     onEditReview: (reviewId: String, rating: Int, comment: String) -> Unit,
-    onDeleteReview: () -> Unit
+    onDeleteReview: () -> Unit,
+    userId: String
 ) {
     val reviews = remember { mutableStateOf<List<ReviewResponse>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
@@ -122,7 +123,8 @@ fun ViewRating(
                         },
                         onDeleteClick = {
                             onDeleteReview()
-                        }
+                        },
+                        currentUserId = userId,
                     )
                 }
             }
@@ -200,10 +202,14 @@ fun RatingSummary(
 fun ReviewItem(
     review: ReviewResponse,
     onEditClick: (reviewId: String, rating: Int, comment: String) -> Unit = { _, _, _ -> },
-    onDeleteClick: (String) -> Unit = {}
+    onDeleteClick: (String) -> Unit = {},
+    currentUserId: String
 ) {
     var showMenu by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    val canEditOrDelete = currentUserId == review.user?.id
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -272,52 +278,63 @@ fun ReviewItem(
             }
         )
 
-        Box(
-            modifier = Modifier.constrainAs(menuIcon) {
-                bottom.linkTo(comment.top, margin = (-8).dp)
-                end.linkTo(parent.end)
-            }
-        ) {
-            IconButton(onClick = { showMenu = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-            }
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-                offset = DpOffset((-16).dp, 0.dp)
+        if(canEditOrDelete) {
+            Box(
+                modifier = Modifier.constrainAs(menuIcon) {
+                    bottom.linkTo(comment.top, margin = (-8).dp)
+                    end.linkTo(parent.end)
+                }
             ) {
-                DropdownMenuItem(
-                    text = {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Text("Xóa")
-                        }
-                    },
-                    onClick = {
-                        showMenu = false
-                        review.id?.let { id ->
-                            coroutineScope.launch {
-                                try {
-                                    val response = RetrofitInstance.reviewService.deleteReview(id)
-                                    if (response.isSuccessful) {
-                                        onDeleteClick(id)
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    offset = DpOffset((-16).dp, 0.dp)
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Xóa")
+                            }
+                        },
+                        onClick = {
+                            showMenu = false
+                            review.id?.let { id ->
+                                coroutineScope.launch {
+                                    try {
+                                        val response =
+                                            RetrofitInstance.reviewService.deleteReview(id)
+                                        if (response.isSuccessful) {
+                                            onDeleteClick(id)
+                                        }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
                                     }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
                                 }
                             }
                         }
-                    }
-                )
-                Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
-                DropdownMenuItem(
-                    text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Sửa") }},
-                    onClick = {
-                        showMenu = false
-                        review.id?.let { id ->
-                            onEditClick(id, review.rating ?: 5, review.comment ?: "")
+                    )
+                    Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
+                    DropdownMenuItem(
+                        text = {
+                            Box(
+                                Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) { Text("Sửa") }
+                        },
+                        onClick = {
+                            showMenu = false
+                            review.id?.let { id ->
+                                onEditClick(id, review.rating ?: 5, review.comment ?: "")
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

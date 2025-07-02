@@ -35,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -275,7 +276,7 @@ fun PostHeader(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Options",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -375,7 +376,7 @@ fun ImageGrid(
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = Color.Black, ambientColor = Color.Black)
+                    .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = MaterialTheme.colorScheme.onBackground, ambientColor = MaterialTheme.colorScheme.onBackground)
                     .clip(RoundedCornerShape(20.dp))
                     .clickable { onImageClick?.invoke(imageUrls[0], 0) }
             ) {
@@ -386,7 +387,7 @@ fun ImageGrid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(4f / 3f) // Instagram-like aspect ratio
-                        .background(Color.Gray.copy(alpha = 0.1f))
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                 )
             }
         }
@@ -411,7 +412,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
                 }
@@ -438,7 +439,7 @@ fun ImageGrid(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Gray.copy(alpha = 0.1f))
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                     )
                 }
 
@@ -460,7 +461,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
 
@@ -477,7 +478,7 @@ fun ImageGrid(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Gray.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                         )
                     }
                 }
@@ -512,7 +513,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -541,7 +542,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -580,7 +581,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
                         }
                     }
@@ -610,7 +611,7 @@ fun ImageGrid(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Gray.copy(alpha = 0.1f))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
                             )
 
                             // Overlay for the last image showing extra count
@@ -622,7 +623,7 @@ fun ImageGrid(
                                             Brush.verticalGradient(
                                                 colors = listOf(
                                                     Color.Transparent,
-                                                    Color.Black.copy(alpha = 0.7f)
+                                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                                                 )
                                             )
                                         ),
@@ -633,13 +634,13 @@ fun ImageGrid(
                                     ) {
                                         Text(
                                             text = "+$extraImageCount",
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.background,
                                             fontSize = 24.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
                                             text = "more",
-                                            color = Color.White.copy(alpha = 0.9f),
+                                            color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
                                             fontSize = 12.sp
                                         )
                                     }
@@ -681,7 +682,7 @@ fun ImageDetailDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.onBackground)
         ) {
             // Close button
             IconButton(
@@ -694,7 +695,7 @@ fun ImageDetailDialog(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.background,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -702,7 +703,7 @@ fun ImageDetailDialog(
             // Image counter
             Text(
                 text = "${currentIndex + 1} / ${imageUrls.size}",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.background,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
@@ -750,7 +751,7 @@ fun ImageDetailDialog(
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (index == currentIndex) Color.White
+                                    if (index == currentIndex) MaterialTheme.colorScheme.background
                                     else Color.White.copy(alpha = 0.4f)
                                 )
                         )

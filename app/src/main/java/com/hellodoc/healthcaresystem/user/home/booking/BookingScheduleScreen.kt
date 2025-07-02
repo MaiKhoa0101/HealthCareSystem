@@ -118,6 +118,7 @@ fun BookingCalendarScreen(
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.secondaryContainer),
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         // Month-Year Header
@@ -132,7 +133,8 @@ fun BookingCalendarScreen(
                             Text(
                                 text = "Tháng ${currentMonth.monthValue} / ${currentMonth.year}",
                                 fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
                                 Icon(Icons.Default.ChevronRight, contentDescription = null)
@@ -154,7 +156,8 @@ fun BookingCalendarScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .padding(vertical = 4.dp),
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
@@ -201,7 +204,7 @@ fun BookingCalendarScreen(
                                             .background(
                                                 when {
                                                     isSelected -> MaterialTheme.colorScheme.tertiaryContainer
-                                                    isAvailable && !isPast -> MaterialTheme.colorScheme.primaryContainer
+                                                    isAvailable && !isPast -> MaterialTheme.colorScheme.tertiary
                                                     !isAvailable && day != null && !isPast -> MaterialTheme.colorScheme.secondaryContainer
                                                     else -> MaterialTheme.colorScheme.secondaryContainer
                                                 }
@@ -283,7 +286,7 @@ fun BookingCalendarScreen(
                                     .weight(1f)
                                     .height(48.dp)
                             ) {
-                                Text(time, fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
+                                Text(time, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
 

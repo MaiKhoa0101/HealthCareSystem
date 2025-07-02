@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -49,8 +50,8 @@ fun ConfirmDeletePostModal(
         Column(
             modifier = Modifier
                 .width(320.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray)
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer)
                 .padding(16.dp)
         ) {
             Text("Báo cáo người dùng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -65,7 +66,7 @@ fun ConfirmDeletePostModal(
             ) {
                 Text(
                     "Huỷ",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .clickable { onClickShowConfirmDeleteDialog() }
                         .padding(8.dp),
@@ -78,8 +79,8 @@ fun ConfirmDeletePostModal(
                         postViewModel.deletePost(postId)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red, // đỏ nhạt
-                        contentColor = Color.White // màu chữ
+                        containerColor = MaterialTheme.colorScheme.error, // đỏ nhạt
+                        contentColor = MaterialTheme.colorScheme.background // màu chữ
                     )
                 ) {
                     Text("Xóa")

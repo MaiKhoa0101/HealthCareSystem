@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.skeleton.discordClick
 
 @Composable
 fun Setting(
@@ -133,9 +134,7 @@ fun SectionSetting(nameField:String, iconVector:ImageVector, onPress:()->Unit, )
     Row (
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                onPress()
-            },
+            .discordClick { onPress() }, // áp dụng hiệu ứng
         ) {
         Row (
             modifier = Modifier
@@ -174,9 +173,7 @@ fun SectionSetting(nameField:String, darkTheme:Boolean, onPress:()->Unit, ){
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondaryContainer)
-            .clickable {
-                onPress()
-            },
+            .discordClick { onPress() }, // áp dụng hiệu ứng
     ) {
         Row (
             modifier = Modifier
