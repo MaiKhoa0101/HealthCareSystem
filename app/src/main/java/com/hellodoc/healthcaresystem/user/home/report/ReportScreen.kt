@@ -44,6 +44,7 @@ import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportDoctor(
     context: Context,
@@ -96,7 +97,15 @@ fun ReportDoctor(
                 placeholder = { Text("Nhập nội dung...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(120.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,        // Màu nền của ô TextField
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi đang focus
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,                 // Màu chữ khi không focus
+                    focusedIndicatorColor = Color.Transparent, // Ẩn viền khi focus
+                    unfocusedIndicatorColor = Color.Transparent // Ẩn viền khi không focus
+                )
+
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -131,6 +140,7 @@ fun ReportDoctor(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportUser(
     context: Context,
@@ -174,7 +184,14 @@ fun ReportUser(
                 placeholder = { Text("Nhập nội dung...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(120.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,        // Màu nền của ô TextField
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi đang focus
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,                 // Màu chữ khi không focus
+                    focusedIndicatorColor = Color.Transparent, // Ẩn viền khi focus
+                    unfocusedIndicatorColor = Color.Transparent // Ẩn viền khi không focus
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))

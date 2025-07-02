@@ -97,6 +97,12 @@
         <activity
             android:name=".user.home.startscreen.SignUp"
             android:exported="true" />
+        <activity
+            android:name=".user.home.startscreen.VerifyOtpSignUpAcctivity"
+            android:exported="true" />
+        <activity
+            android:name=".user.home.startscreen.SecondSignUp"
+            android:exported="true" />
 
         <service
             android:name=".notification.MyFirebaseMessagingService"

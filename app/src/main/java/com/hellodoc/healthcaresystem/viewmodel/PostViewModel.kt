@@ -23,6 +23,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
@@ -31,10 +32,16 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _hasMorePosts = MutableStateFlow(true)
     val hasMorePosts: StateFlow<Boolean> = _hasMorePosts
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
 
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
+
+    private val _errorMessage = MutableStateFlow("")
+    val errorMessage: StateFlow<String?> get() = _errorMessage
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
         println("Post dc fetch")
@@ -96,25 +103,27 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun getPostById(id:String) {
+    fun getPostById(id: String) {
+        if (_isLoading.value) return
+
+        _isLoading.value = true
         viewModelScope.launch {
             try {
                 val result = RetrofitInstance.postService.getPostById(id)
-
                 if (result.isSuccessful) {
-                    result.body()?.let {
-                        _posts.value = listOf(it)
-                    } ?: run {
-                        _posts.value = emptyList()
+                    result.body()?.let { post ->
+                        _posts.update { currentList ->
+                            currentList.filterNot { it.id == post.id } + post
+                        }
                     }
-                    println("Kết qua getPostById: "+_posts.value)
                 } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
+                    _errorMessage.value = "Failed to load post: ${result.code()}"
                 }
-
             } catch (e: Exception) {
-                println("Lỗi ở getPostById")
-                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")            }
+                _errorMessage.value = "Network error: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -350,27 +359,40 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 _isUpdating.value = true
 
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
+
+                val mediaParts = request.media.mapIndexed { index, url ->
+                    MultipartBody.Part.createFormData("media", url)
+                } ?: emptyList()
+
                 val imageParts = request.images.mapNotNull { uri ->
-                    prepareFilePart(context, uri, "images")
+                    try {
+                        prepareFilePart(context, uri, "images")
+                    } catch (e: Exception) {
+                        Log.e("PostViewModel", "Skipping invalid URI: $uri", e)
+                        null
+                    }
                 }
 
                 val response = RetrofitInstance.postService.updatePost(
                     postId = postId,
                     content = contentPart,
+                    media = mediaParts,
                     images = imageParts
                 )
 
                 if (response.isSuccessful) {
                     _updateSuccess.value = true
+                } else {
+                    Log.e("PostViewModel", "Update error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Update Post Exception", e)
+                Log.e("PostViewModel", "Update exception", e)
             } finally {
                 _isUpdating.value = false
-                println("Đổi biến trc")
             }
         }
     }
+
 
     fun resetUpdateSuccess() {
         _updateSuccess.value = false

@@ -32,6 +32,9 @@ interface AuthService {
     @POST("auth/request-otp")
     suspend fun requestOtp(@Body request: EmailRequest): Response<OtpResponse>
 
+    @POST("auth/request-otp-signup")
+    suspend fun requestOtpSignUp(@Body request: EmailRequest): Response<OtpResponse>
+
     @POST("auth/verify-otp")
     suspend fun verifyOtp(@Body request: OtpVerifyRequest): Response<GenericResponse>
 

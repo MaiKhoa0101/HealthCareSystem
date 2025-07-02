@@ -27,6 +27,6 @@ data class GetFavoritePostRequest(
 
 data class UpdatePostRequest(
     val content: String,
-    val media: List<String>? = null,
-    val images: List<Uri> = emptyList()
+    val media: List<String>, // URL của ảnh cũ
+    val images: List<Uri>    // URI ảnh mới từ thiết bị
 )
