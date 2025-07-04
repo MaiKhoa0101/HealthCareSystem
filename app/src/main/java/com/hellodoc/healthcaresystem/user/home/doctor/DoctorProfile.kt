@@ -483,8 +483,6 @@ fun DoctorProfileScreen(
     isLoadingStat: Boolean
 
 ) {
-    println("Doctor lay duoc: "+doctor)
-
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
     val sharedPreferences = remember {
