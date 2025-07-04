@@ -114,7 +114,6 @@ fun DoctorScreen(
     var isClinicPaused by remember { mutableStateOf(false) }
     var hasHomeService by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(Unit) {
         val userId = userViewModel.getUserAttributeString("userId")
         userViewModel.getUser(userId)
@@ -128,7 +127,6 @@ fun DoctorScreen(
         savedStateHandle?.remove<Int>("selectedTab")
         isRating = savedStateHandle?.get<Boolean>("isRating") ?: false
         //viewModel.fetchDoctorById(doctorId)
-        println("doctorId: " + doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
