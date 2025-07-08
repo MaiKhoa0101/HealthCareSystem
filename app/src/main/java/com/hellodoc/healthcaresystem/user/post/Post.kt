@@ -114,16 +114,18 @@ fun PostColumn(
                 )
 
                 if (showPostReportDialog) {
-                    ReportPostUser(
-                        context = navHostController.context,
-                        youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
-                        userReported = post.user,
-                        onClickShowPostReportDialog = { showPostReportDialog = false },
-                        sharedPreferences = navHostController.context.getSharedPreferences(
-                            "MyPrefs",
-                            Context.MODE_PRIVATE
+                    post.user?.let {
+                        ReportPostUser(
+                            context = navHostController.context,
+                            youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
+                            userReported = it,
+                            onClickShowPostReportDialog = { showPostReportDialog = false },
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            )
                         )
-                    )
+                    }
                 }
 
                 if (showPostDeleteConfirmDialog) {
@@ -236,14 +238,14 @@ fun PostHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = post.user.avatarURL,
-                    contentDescription = "Avatar of ${post.user.name}",
+                    model = post.user?.avatarURL,
+                    contentDescription = "Avatar of ${post.user?.name}",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable {
-                            if (post.user.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.user.id}")
+                            if (post.user?.id != userWhoInteractWithThisPost.id) {
+                                navHostController.navigate("otherUserProfile/${post.user?.id}")
                             } else {
                                 navHostController.navigate("personal")
                             }
@@ -255,15 +257,15 @@ fun PostHeader(
 
                 Column(
                     modifier = Modifier.clickable {
-                        if (post.user.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.user.id}")
+                        if (post.user?.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user?.id}")
                         } else {
                             navHostController.navigate("personal")
                         }
                     }
                 ) {
                     Text(
-                        text = post.user.name,
+                        text = post.user?.name ?: "Người dùng ẩn",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -285,7 +287,7 @@ fun PostHeader(
                     onDismissRequest = { showMenu = false },
                     offset = DpOffset(x = (-110).dp, y = (-40).dp)
                 ) {
-                    if (userWhoInteractWithThisPost.id == post.user.id) {
+                    if (userWhoInteractWithThisPost.id == post.user?.id) {
                         // Người đăng bài == người hiện tại → chỉ cho xoá
                         DropdownMenuItem(
                             text = { Text("Chỉnh sửa bài viết") },
