@@ -121,7 +121,7 @@ fun PostItem(id: Int,post: PostResponse,  postViewModel: PostViewModel) {
 
     LaunchedEffect(post.id) {
         // Gọi API và cập nhật state khi dữ liệu được fetch về
-        postViewModel.fetchFavoriteForPost(post.id, post.user.id)
+        postViewModel.fetchFavoriteForPost(post.id, post.user?.id ?: "")
         postViewModel.fetchComments(post.id)
     }
 
@@ -159,7 +159,7 @@ fun PostItem(id: Int,post: PostResponse,  postViewModel: PostViewModel) {
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "Tên người tạo: ${post.user.name}",
+                        text = "Tên người tạo: ${post.user?.name}",
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 15.sp,
                         maxLines = 1,
@@ -287,7 +287,7 @@ fun PostItem(id: Int,post: PostResponse,  postViewModel: PostViewModel) {
                         modifier = Modifier.verticalScroll(rememberScrollState())
                     ) {
                         Text("ID: $id", fontSize = 15.sp)
-                        Text("Tên người tạo: ${post.user.name}", fontSize = 15.sp)
+                        Text("Tên người tạo: ${post.user?.name}", fontSize = 15.sp)
                         Text("Nội dung: ${post.content}", fontSize = 15.sp)
                         Text("Số lượng ảnh: ${post.media.size}", fontSize = 15.sp)
                         Text("Số lượt thích: $totalFavorites", fontSize = 15.sp)

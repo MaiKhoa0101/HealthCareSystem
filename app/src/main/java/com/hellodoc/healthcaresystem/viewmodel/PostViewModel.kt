@@ -114,11 +114,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             try {
                 val result = RetrofitInstance.postService.getPostById(id)
                 if (result.isSuccessful) {
-                    result.body()?.let { post ->
-                        _posts.update { currentList ->
-                            currentList.filterNot { it.id == post.id } + post
-                        }
-                    }
+                    _post.value = result.body()
                 } else {
                     _errorMessage.value = "Failed to load post: ${result.code()}"
                 }
