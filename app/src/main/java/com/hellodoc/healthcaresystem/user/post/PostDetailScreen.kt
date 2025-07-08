@@ -116,16 +116,18 @@ fun PostDetailScreen(
                     onClickReport = { showPostReportDialog = !showPostReportDialog }
                 )
                 if (showPostReportDialog) {
-                    ReportPostUser(
-                        context = navHostController.context,
-                        youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
-                        userReported = post!!.user,
-                        onClickShowPostReportDialog = { showPostReportDialog = false },
-                        sharedPreferences = navHostController.context.getSharedPreferences(
-                            "MyPrefs",
-                            Context.MODE_PRIVATE
+                    post!!.user?.let {
+                        ReportPostUser(
+                            context = navHostController.context,
+                            youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
+                            userReported = it,
+                            onClickShowPostReportDialog = { showPostReportDialog = false },
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -228,16 +230,16 @@ fun PostDetailHeader(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
-                if (post.user.id != userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile/${post.user.id}")
+                if (post.user?.id != userWhoInteractWithThisPost.id) {
+                    navHostController.navigate("otherUserProfile/${post.user?.id}")
                 } else {
                     navHostController.navigate("personal")
                 }
             }
         ) {
             AsyncImage(
-                model = post.user.avatarURL,
-                contentDescription = "Avatar of ${post.user.name}",
+                model = post.user?.avatarURL,
+                contentDescription = "Avatar of ${post.user?.name}",
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
@@ -248,7 +250,7 @@ fun PostDetailHeader(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = post.user.name,
+                    text = post.user?.name ?: "Người dùng ẩn",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -277,7 +279,7 @@ fun PostDetailHeader(
                 offset = DpOffset(x = (-8).dp, y = 8.dp),
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
-                if (userWhoInteractWithThisPost.id == post.user.id) {
+                if (userWhoInteractWithThisPost.id == post.user?.id) {
                     DropdownMenuItem(
                         text = { Text("Xoá bài viết", style = MaterialTheme.typography.bodyMedium) },
                         onClick = {
