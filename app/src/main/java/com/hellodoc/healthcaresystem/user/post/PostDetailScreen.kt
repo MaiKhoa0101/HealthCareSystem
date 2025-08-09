@@ -179,13 +179,6 @@ fun PostDetailSection(
                 Spacer(modifier = Modifier.height(12.dp))
                 PostMedia(
                     post = post,
-                    showImageDetail = showImageDetail,
-                    selectedImageIndex = selectedImageIndex,
-                    onImageClick = { index ->
-                        selectedImageIndex = index
-                        showImageDetail = true
-                    },
-                    onDismiss = { showImageDetail = false }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(
