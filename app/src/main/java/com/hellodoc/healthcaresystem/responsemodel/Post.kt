@@ -20,6 +20,12 @@ data class PostResponse(
         val avatarURL: String?
     )
 }
+enum class MediaType {
+    IMAGE,
+    VIDEO,
+    UNKNOWN
+}
+
 
 data class CreatePostResponse(
     val user: String,

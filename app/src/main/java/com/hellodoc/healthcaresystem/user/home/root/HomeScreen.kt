@@ -169,7 +169,7 @@ fun HealthMateHomeScreen(
                     AssistantQueryRow(
                         navHostController = navHostController,
                         onSubmit = { query ->
-                            geminiViewModel.askGemini(query)
+                            geminiViewModel.processUserQuery(query)
                             showDialog = true
                         }
                     )

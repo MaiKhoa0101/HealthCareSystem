@@ -412,7 +412,6 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun resetStates() {
         _isLoading.value = false
     }
-
 }
 
 
