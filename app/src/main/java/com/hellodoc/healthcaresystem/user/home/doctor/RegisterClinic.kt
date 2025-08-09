@@ -231,25 +231,6 @@ fun ContentRegistrationForm(
         }
 
         Column {
-            Text(
-                "Ảnh đại diện",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ImageInputField(
-                    description = "Ảnh đại diện",
-                    imageUri = avatarUri,
-                    onImageSelected = { avatarUri = it }
-                )
-            }
-        }
-
-        Column {
             Text("Chuyên khoa", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Box(
                 modifier = Modifier

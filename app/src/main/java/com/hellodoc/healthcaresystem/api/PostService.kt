@@ -11,6 +11,8 @@ import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.Response
 import retrofit2.http.Body
@@ -22,6 +24,8 @@ import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
+import retrofit2.http.Url
 
 interface PostService {
     @Headers("Content-Type: application/json")
@@ -96,12 +100,21 @@ interface PostService {
     ): Response<List<ManagerResponse>>
 
     @Multipart
-    @PATCH("post/{postId}")
+    @PATCH("post/{id}")
     suspend fun updatePost(
-        @Path("postId") postId: String,
-        @Part content: MultipartBody.Part,
+        @Path("id") postId: String,
+        @Part content: MultipartBody.Part?,
+        @Part media: List<MultipartBody.Part>,
         @Part images: List<MultipartBody.Part>
     ): Response<Unit>
 
+    @GET
+    @Streaming
+    suspend fun downloadImage(@Url imageUrl: String): Response<ResponseBody>
+
+    @GET("post/search")
+    suspend fun searchPosts(
+        @Query("q") query: String
+    ): Response<List<PostResponse>>
 
 }

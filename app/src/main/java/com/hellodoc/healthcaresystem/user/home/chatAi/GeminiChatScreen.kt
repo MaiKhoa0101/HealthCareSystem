@@ -39,13 +39,13 @@ fun GeminiChatScreen(
 
     // Cập nhật giá trị nếu có trong savedStateHandle
     val savedStateHandle = navHostController
-        .previousBackStackEntry  // ✅ lấy từ previous
+        .previousBackStackEntry
         ?.savedStateHandle
 
     LaunchedEffect(Unit) {
         val question = savedStateHandle?.get<String>("first_question")
         if (!question.isNullOrBlank()) {
-            geminiViewModel.askGemini(question)
+            geminiViewModel.processUserQuery(question)
         }
     }
     val chatMessages by geminiViewModel.chatMessages.collectAsState()
@@ -109,7 +109,7 @@ fun GeminiChatScreen(
                     .size(30.dp)
                     .clickable {
                         if (input.isNotBlank()) {
-                            geminiViewModel.askGemini(input)
+                            geminiViewModel.processUserQuery(input)
                             input = ""
                         }
                     }

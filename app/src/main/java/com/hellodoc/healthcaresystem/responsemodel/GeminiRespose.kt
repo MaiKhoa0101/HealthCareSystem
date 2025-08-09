@@ -15,3 +15,8 @@ data class AnswerContent(
 data class AnswerPart(
     val text: String
 )
+
+data class GeminiFullResponse(
+    val answer: GeminiResponse,
+    val relatedPosts: List<PostResponse>  // Bài viết liên quan từ hệ thống
+)

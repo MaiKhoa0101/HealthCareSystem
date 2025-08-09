@@ -42,10 +42,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
+import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
+import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.user.home.report.ReportUser
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -57,10 +62,12 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 fun ProfileOtherUserPage(
     navHostController: NavHostController,
     sharedPreferences: SharedPreferences,
-    userViewModel: UserViewModel,
     postViewModel: PostViewModel,
     userOwnerID: String
 ) {
+    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
+        initializer { UserViewModel(sharedPreferences) }
+    })
     val context = LocalContext.current
 
     var shouldReloadPosts by remember { mutableStateOf(false) }
@@ -84,43 +91,51 @@ fun ProfileOtherUserPage(
     }
     var showReportBox by remember { mutableStateOf(false) }
 
-
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures {
-                postViewModel.closeAllPostMenus()  //tắt menu post
-                showReportBox = false
-            }
-        }
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                if (userOfThisProfile!=null) {
-                    OtherUserIntroSection(
-                        user = userOfThisProfile!!,
-                        navHostController = navHostController,
-                        onImageClick = { selectedImageUrl = it },
-                        showReportBox = showReportBox,
-                        onToggleReportBox = { showReportBox = !showReportBox }
-                    )
-                    PostColumn(
-                        navHostController = navHostController,
-                        idUserOfPost = userOwnerID,
-                        userWhoInteractWithThisPost = userOfThisProfile!!,
-                        postViewModel = postViewModel,
-                    )
+    if (youTheCurrentUserUseThisApp!= null && userOfThisProfile != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        postViewModel.closeAllPostMenus()  //tắt menu post
+                        showReportBox = false
+                    }
+                }
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                item {
+                    if (userOfThisProfile != null) {
+                        OtherUserIntroSection(
+                            user = userOfThisProfile!!,
+                            navHostController = navHostController,
+                            onImageClick = { selectedImageUrl = it },
+                            showReportBox = showReportBox,
+                            onToggleReportBox = { showReportBox = !showReportBox }
+                        )
+                        PostColumn(
+                            navHostController = navHostController,
+                            idUserOfPost = userOwnerID,
+                            userWhoInteractWithThisPost = youTheCurrentUserUseThisApp!!,
+                            postViewModel = postViewModel,
+                        )
+                    }
                 }
             }
+            if (showReportBox && youTheCurrentUserUseThisApp != null) {
+                ReportUser(
+                    context,
+                    youTheCurrentUserUseThisApp,
+                    userOfThisProfile,
+                    onClickShowReportDialog = { showReportBox = !showReportBox },
+                    sharedPreferences,
+                )
+            }
         }
-        if (showReportBox && youTheCurrentUserUseThisApp != null) {
-            ReportUser(
-                context,
-                youTheCurrentUserUseThisApp,
-                userOfThisProfile,
-                onClickShowReportDialog = { showReportBox = !showReportBox },
-                sharedPreferences,
-            )
+    }
+    else {
+        Column {
+            UserSkeleton()
+            PostSkeleton()
         }
     }
 }

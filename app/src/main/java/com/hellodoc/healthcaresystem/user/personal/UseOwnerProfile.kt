@@ -152,6 +152,7 @@ fun ProfileUserPage(
             Setting(
                 navHostController,
                 sharedPreferences,
+                user,
                 onToggleTheme = onToggleTheme,
                 onExitSetting = {
                     showSetting = false
@@ -190,8 +191,8 @@ fun ProfileSection(
                 onClickSetting = onClickSetting
             )
             Spacer(modifier = Modifier.height(26.dp))
-            UserProfileModifierSection(navHostController, user)
-            Spacer(modifier = Modifier.height(10.dp))
+//            UserProfileModifierSection(navHostController, user)
+//            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
+import com.hellodoc.healthcaresystem.responsemodel.GeminiFullResponse
 import com.hellodoc.healthcaresystem.responsemodel.GeminiResponse
 import retrofit2.Response
 import retrofit2.http.Body
