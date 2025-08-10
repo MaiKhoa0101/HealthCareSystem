@@ -7,6 +7,7 @@ import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
 import com.hellodoc.healthcaresystem.requestmodel.Part
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.responsemodel.ChatMessage
+import com.hellodoc.healthcaresystem.responsemodel.MessageType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -83,10 +84,10 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
-    /** ===================== Tìm kiếm bài viết ===================== */
+    //Tìm kiếm bài viết
     private fun searchArticles(query: String) {
         _isSearching.value = true
-        _answer.value = "🔍 Đang tìm kiếm bài viết..."
+        _answer.value = "Đang tìm kiếm bài viết..."
 
         viewModelScope.launch {
             try {
@@ -95,33 +96,30 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val articles = searchResponse.body()?.take(5) ?: emptyList()
 
                 if (articles.isEmpty()) {
-                    _answer.value = "Không tìm thấy bài viết phù hợp."
+                    _chatMessages.update { it + ChatMessage("Không tìm thấy bài viết phù hợp.", isUser = false) }
                     return@launch
                 }
 
-                val articlesSummary = articles.joinToString("\n\n") { article ->
-                    "📌 ${article.content.take(80)}..."
+                articles.forEach { article ->
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = article.content.take(80) + "...",
+                            isUser = false,
+                            type = MessageType.ARTICLE,
+                            articleId = article.id
+                        )
+                    }
                 }
 
-                val prompt = """
-                    Người dùng hỏi: "$query"
-                    Các bài viết tìm được:
-                    $articlesSummary
-                    Hãy tóm tắt, sắp xếp và gợi ý thông tin hữu ích từ các bài viết này.
-                """.trimIndent()
-
-                val response = askGeminiWithPrompt(prompt)
-                _answer.value = response
-                _chatMessages.update { it + ChatMessage(response, isUser = false) }
             } catch (e: Exception) {
-                _answer.value = "Lỗi tìm kiếm bài viết: ${e.localizedMessage}"
+                _chatMessages.update { it + ChatMessage("Lỗi tìm kiếm bài viết: ${e.localizedMessage}", isUser = false) }
             } finally {
                 _isSearching.value = false
             }
         }
     }
 
-    /** ===================== Tìm kiếm bác sĩ ===================== */
+    // Tìm kiếm bác sĩ
     private fun searchDoctors(query: String) {
         _isSearching.value = true
         _answer.value = "Đang tìm kiếm bác sĩ..."
@@ -136,33 +134,31 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 println("doctors: $doctors")
 
                 if (doctors.isEmpty()) {
-                    _answer.value = "Không tìm thấy bác sĩ phù hợp."
+                    _chatMessages.update { it + ChatMessage("Không tìm thấy bác sĩ phù hợp.", isUser = false) }
                     return@launch
                 }
 
-                val doctorSummary = doctors.joinToString("\n\n") { doctor ->
-                    "${doctor.name} - ${doctor.specialty} (${doctor.hospital})"
+                // Thêm từng bác sĩ vào chat
+                doctors.forEach { doctor ->
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                            isUser = false,
+                            type = MessageType.DOCTOR,
+                            doctorId = doctor.id
+                        )
+                    }
                 }
 
-                val prompt = """
-                    Người dùng hỏi: "$query"
-                    Danh sách bác sĩ tìm thấy:
-                    $doctorSummary
-                    Hãy giới thiệu và gợi ý phù hợp.
-                """.trimIndent()
-
-                val response = askGeminiWithPrompt(prompt)
-                _answer.value = response
-                _chatMessages.update { it + ChatMessage(response, isUser = false) }
             } catch (e: Exception) {
-                _answer.value = "Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}"
+                _chatMessages.update { it + ChatMessage("Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}", isUser = false) }
             } finally {
                 _isSearching.value = false
             }
         }
     }
 
-    /** ===================== Trích xuất từ khóa tìm kiếm ===================== */
+    //Trích xuất từ khóa tìm kiếm
     private fun extractSearchKeyword(query: String): String {
         val lowerQuery = query.lowercase().trim()
         val stopWords = listOf("bài viết", "tìm kiếm", "bác sĩ", "khoa", "ở đâu", "phòng khám")
@@ -171,7 +167,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         return cleaned.replace(Regex("\\s+"), " ").trim()
     }
 
-    /** ===================== Gọi Gemini API ===================== */
+    // Gọi Gemini API
     private suspend fun askGeminiWithPrompt(prompt: String): String {
         return try {
             val request = GeminiRequest(
@@ -185,7 +181,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 else -> response.body()!!.candidates.first().content.parts.first().text
             }
         } catch (e: Exception) {
-            "🔌 Lỗi kết nối: ${e.localizedMessage}"
+            "Lỗi kết nối: ${e.localizedMessage}"
         }
     }
 }

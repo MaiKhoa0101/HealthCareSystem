@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.user.home.chatAi
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.MessageType
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance.doctor
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 
 @Composable
@@ -63,25 +66,22 @@ fun GeminiChatScreen(
                 items = chatMessages.reversed(),
                 key = { it.hashCode() }
             ) { msg ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth() // <- hàng rộng ra toàn màn hình
-                        .padding(vertical = 4.dp, horizontal = 8.dp),
-                    horizontalArrangement = if (msg.isUser) Arrangement.End else Arrangement.Start
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .widthIn(max = 250.dp) // <- Giới hạn chiều rộng tối đa của hộp chat
-                            .background(
-                                if (msg.isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = msg.message,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                when (msg.type) {
+                    MessageType.TEXT -> {
+                        ChatBubble(msg.message, msg.isUser)
+                    }
+                    MessageType.ARTICLE -> {
+                        ChatBubble(msg.message, msg.isUser) {
+                            navHostController.navigate("article_detail/${msg.articleId}")
+                        }
+                    }
+                    MessageType.DOCTOR -> {
+                        ChatBubble(msg.message, msg.isUser) {
+                            msg.doctorId?.let { id ->
+                                navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", id)
+                                navHostController.navigate("other_user_profile")
+                            }
+                        }
                     }
                 }
             }
@@ -119,6 +119,34 @@ fun GeminiChatScreen(
         Spacer(modifier = Modifier.height(40.dp))
     }
 }
+
+@Composable
+fun ChatBubble(
+    text: String,
+    isUser: Boolean,
+    onClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 250.dp)
+                .background(
+                    if (isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable(enabled = onClick != null) { onClick?.invoke() }
+                .padding(12.dp)
+        ) {
+            Text(text = text, color = MaterialTheme.colorScheme.onBackground)
+        }
+    }
+}
+
 
 @Composable
 fun TopBar(title: String,onClick: () -> Unit) {

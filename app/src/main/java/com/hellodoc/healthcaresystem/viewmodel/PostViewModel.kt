@@ -400,9 +400,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         _updateSuccess.value = false
     }
 
-
-
-
     private val _activePostMenuId = MutableStateFlow<String?>(null)
     val activePostMenuId: StateFlow<String?> get() = _activePostMenuId
 
@@ -412,6 +409,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun closeAllPostMenus() {
         _activePostMenuId.value = null
+    }
+
+    fun clearPosts(){
+        _posts.value = emptyList()
     }
 
 
