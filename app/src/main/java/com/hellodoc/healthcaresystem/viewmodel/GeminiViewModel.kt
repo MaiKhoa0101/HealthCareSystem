@@ -31,7 +31,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     // xử lý câu hỏi
     fun processUserQuery(query: String) {
         _question.value = query
-        _chatMessages.update { it + ChatMessage(query, isUser = true) }
+        _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
 
         when {
             isArticleQuery(query) -> searchArticles(query)
@@ -80,7 +80,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         viewModelScope.launch {
             val response = askGeminiWithPrompt(medicalPrompt)
             _answer.value = response
-            _chatMessages.update { it + ChatMessage(response, isUser = false) }
+            _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
         }
     }
 
@@ -96,7 +96,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val articles = searchResponse.body()?.take(5) ?: emptyList()
 
                 if (articles.isEmpty()) {
-                    _chatMessages.update { it + ChatMessage("Không tìm thấy bài viết phù hợp.", isUser = false) }
+                    _chatMessages.update { it + ChatMessage(message = "Không tìm thấy bài viết phù hợp.", isUser = false) }
                     return@launch
                 }
 
@@ -112,7 +112,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 }
 
             } catch (e: Exception) {
-                _chatMessages.update { it + ChatMessage("Lỗi tìm kiếm bài viết: ${e.localizedMessage}", isUser = false) }
+                _chatMessages.update { it + ChatMessage(message = "Lỗi tìm kiếm bài viết: ${e.localizedMessage}", isUser = false) }
             } finally {
                 _isSearching.value = false
             }
@@ -134,7 +134,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 println("doctors: $doctors")
 
                 if (doctors.isEmpty()) {
-                    _chatMessages.update { it + ChatMessage("Không tìm thấy bác sĩ phù hợp.", isUser = false) }
+                    _chatMessages.update { it + ChatMessage(message = "Không tìm thấy bác sĩ phù hợp.", isUser = false) }
                     return@launch
                 }
 
@@ -151,7 +151,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 }
 
             } catch (e: Exception) {
-                _chatMessages.update { it + ChatMessage("Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}", isUser = false) }
+                _chatMessages.update { it + ChatMessage(message = "Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}", isUser = false) }
             } finally {
                 _isSearching.value = false
             }

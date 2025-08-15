@@ -64,7 +64,7 @@ fun GeminiChatScreen(
         ) {
             items(
                 items = chatMessages.reversed(),
-                key = { it.hashCode() }
+                key = { it.id }
             ) { msg ->
                 when (msg.type) {
                     MessageType.TEXT -> {
