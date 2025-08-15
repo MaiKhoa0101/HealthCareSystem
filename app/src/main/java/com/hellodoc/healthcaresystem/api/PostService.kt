@@ -11,7 +11,6 @@ import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.Response
@@ -61,7 +60,8 @@ interface PostService {
         @Part userId: MultipartBody.Part,
         @Part userModel: MultipartBody.Part,
         @Part content: MultipartBody.Part,
-        @Part images: List<MultipartBody.Part>?
+        @Part images: List<MultipartBody.Part>?,
+        @Part keywordsPart: MultipartBody.Part?,
     ): Response<CreatePostResponse>
 
     // favorite

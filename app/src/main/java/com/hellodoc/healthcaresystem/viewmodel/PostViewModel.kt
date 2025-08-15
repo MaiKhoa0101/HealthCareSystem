@@ -7,8 +7,11 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.requestmodel.Content
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
+import com.hellodoc.healthcaresystem.requestmodel.Part
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
@@ -23,7 +26,6 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
@@ -40,6 +42,14 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
+
+    private val _isAnalyzingKeywords = MutableStateFlow(false)
+    val isAnalyzingKeywords: StateFlow<Boolean> get() = _isAnalyzingKeywords
+
+    private val _extractedKeywords = MutableStateFlow<List<String>>(emptyList())
+    val extractedKeywords: StateFlow<List<String>> get() = _extractedKeywords
+
+    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
@@ -151,12 +161,85 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private suspend fun analyzeContentKeywords(content: String): List<String> {
+        return try {
+            _isAnalyzingKeywords.value = true
+
+            val keywordPrompt = """
+                Phân tích nội dung y tế sau và trích xuất 5-10 từ khóa quan trọng nhất:
+                
+                Nội dung: "$content"
+                
+                Yêu cầu:
+                1. Chỉ trích xuất từ khóa liên quan đến y tế, sức khỏe
+                2. Ưu tiên các thuật ngữ y khoa, tên bệnh, triệu chứng, phương pháp điều trị
+                3. Bao gồm cả từ tiếng Việt và tiếng Anh (nếu có)
+                4. Trả về danh sách từ khóa, mỗi từ khóa trên một dòng
+                5. Không giải thích, chỉ liệt kê từ khóa
+                6. Loại bỏ từ khóa quá chung chung như "sức khỏe", "bệnh tật"
+                
+                Ví dụ format trả về:
+                tiểu đường
+                đái tháo đường
+                insulin
+                glucose
+                chế độ ăn
+            """.trimIndent()
+
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = keywordPrompt))))
+            )
+
+            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+            if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                val aiResponse = response.body()!!.candidates.first().content.parts.first().text
+
+                // Xử lý response và trích xuất từ khóa
+                val keywords = aiResponse
+                    .split("\n")
+                    .map { it.trim() }
+                    .filter {
+                        it.isNotBlank() &&
+                                it.length >= 2 &&
+                                !it.contains("từ khóa", ignoreCase = true) &&
+                                !it.startsWith("-") &&
+                                !it.matches(Regex("\\d+\\..*")) // Loại bỏ số thứ tự
+                    }
+                    .take(10) // Giới hạn tối đa 10 từ khóa
+
+                Log.d("KeywordAnalysis", "Extracted keywords: $keywords")
+                _extractedKeywords.value = keywords
+                keywords
+
+            } else {
+                Log.e("KeywordAnalysis", "Failed to get keywords from AI: ${response.errorBody()?.string()}")
+                emptyList()
+            }
+
+        } catch (e: Exception) {
+            Log.e("KeywordAnalysis", "Error analyzing keywords", e)
+            emptyList()
+        } finally {
+            _isAnalyzingKeywords.value = false
+        }
+    }
+
     fun createPost(request: CreatePostRequest, context: Context) {
         viewModelScope.launch {
             try {
+                //phân tích từ khóa từ nội dung
+                val keywords = analyzeContentKeywords(request.content)
+
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
                 val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
+
+                val keywordsPart = if (keywords.isNotEmpty()) {
+                    MultipartBody.Part.createFormData("keywords", keywords.joinToString(","))
+                } else {
+                    null
+                }
 
                 val imageParts = request.images?.mapNotNull { uri ->
                     prepareFilePart(context, uri, "images")
@@ -166,7 +249,8 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     userIdPart,
                     userModelPart,
                     contentPart,
-                    imageParts ?: emptyList()
+                    imageParts ?: emptyList(),
+                    keywordsPart
                 )
 
                 if (response.isSuccessful) {
