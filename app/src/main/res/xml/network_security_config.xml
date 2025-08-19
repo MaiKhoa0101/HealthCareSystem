@@ -3,6 +3,8 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">192.168.1.4</domain>
 
+        <domain includeSubdomains="true">192.168.0.101</domain>
+        <domain includeSubdomains="true">healthcare-backend-yc39.onrender.com</domain>
 
     </domain-config>
 </network-security-config>
