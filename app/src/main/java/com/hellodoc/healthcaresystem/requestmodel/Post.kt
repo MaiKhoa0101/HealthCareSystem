@@ -6,7 +6,7 @@ data class CreatePostRequest(
     val userId: String,
     val userModel: String,
     val content: String,
-    val images: List<Uri>, // List các ảnh, mỗi ảnh là một Uri
+    val media: List<Uri>, // List các ảnh, mỗi ảnh là một Uri
 )
 
 

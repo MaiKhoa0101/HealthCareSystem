@@ -76,6 +76,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -109,7 +110,7 @@ fun CreatePostScreen(
     })
 
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
 
     val user by userViewModel.user.collectAsState()
@@ -224,7 +225,16 @@ fun CreatePostScreen(
                                 request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
                                 context = context
                             )
-                            navController.navigate("personal")
+                            navController.navigate("personal"){
+                                //Câu lệnh dưới đây để xóa backstack khi click vào item khác trong bottom bar
+                                popUpTo(navController.graph.startDestinationId){
+                                    // Savestate để giữ trạng thái khi xoay màn hình
+                                    saveState = true
+                                }
+                                //Câu lệnh dưới đây để giữ lại trạng thái khi click vào item khác trong bottom bar
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 )

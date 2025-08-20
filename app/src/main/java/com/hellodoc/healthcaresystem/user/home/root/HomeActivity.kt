@@ -76,6 +76,7 @@ import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
@@ -153,7 +154,7 @@ class HomeActivity : BaseActivity() {
                     initializer { NewsViewModel(sharedPreferences) }
                 })
                 val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-                    initializer { PostViewModel(sharedPreferences) }
+                    initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
                 })
                 val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
                     initializer { FAQItemViewModel(sharedPreferences) }

@@ -56,6 +56,7 @@ import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.ShimmerEffect
 import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.user.post.PostColumn
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -75,7 +76,7 @@ fun ProfileUserPage(
     })
 
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
 
 //    val comments by postViewModel.comments.collectAsState()

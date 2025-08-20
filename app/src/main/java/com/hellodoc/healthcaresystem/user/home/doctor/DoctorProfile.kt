@@ -58,6 +58,7 @@ import com.hellodoc.healthcaresystem.skeleton.RatingOverviewSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserInfoSkeleton
 import com.hellodoc.healthcaresystem.user.home.report.ReportDoctor
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostDoctor
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -82,7 +83,7 @@ fun DoctorScreen(
         initializer { UserViewModel(sharedPreferences) }
     })
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
@@ -491,7 +492,7 @@ fun DoctorProfileScreen(
     val token = remember { sharedPreferences.getString("access_token", null) }
 
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val posts by postViewModel.posts.collectAsState()
 

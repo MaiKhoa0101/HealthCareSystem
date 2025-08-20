@@ -27,7 +27,10 @@ import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+class PostViewModel(
+    private val sharedPreferences: SharedPreferences,
+    private val geminiHelper: GeminiHelper
+    ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
 
@@ -230,18 +233,34 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             try {
                 //phân tích từ khóa từ nội dung
                 val keywords = analyzeContentKeywords(request.content)
+                // 1. Lấy từ khóa nội dung
+                val contentKeywords = analyzeContentKeywords(request.content)
 
+                // 2. Lấy từ khóa từ ảnh/video (giả sử request có trường videoUri)
+                val mediaUri = request.media?.firstOrNull()?.toString() ?: ""
+                val mediaKeywords = if (mediaUri.isNotEmpty()) {
+                    geminiHelper.readImageAndVideo(context, mediaUri)
+                } else emptyList()
+
+                // 3. Gộp và loại trùng
+                val allKeywords = (contentKeywords + mediaKeywords)
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .take(10)
+                println("Từ khóa đã phân tích: $allKeywords")
+                // 4. Chuyển đổi thành MultipartBody.Part
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
                 val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
 
-                val keywordsPart = if (keywords.isNotEmpty()) {
-                    MultipartBody.Part.createFormData("keywords", keywords.joinToString(","))
+                val keywordsPart = if (allKeywords.isNotEmpty()) {
+                    MultipartBody.Part.createFormData("keywords", allKeywords.joinToString(","))
                 } else {
                     null
                 }
 
-                val imageParts = request.images?.mapNotNull { uri ->
+                val imageParts = request.media?.mapNotNull { uri ->
                     prepareFilePart(context, uri, "images")
                 }
 
