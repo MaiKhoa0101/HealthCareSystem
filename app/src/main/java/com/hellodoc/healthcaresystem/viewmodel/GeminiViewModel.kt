@@ -40,12 +40,33 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    // Hàm này để phân tích nội dung ảnh và video đính kèm với bài post và trả về list keyword
+    suspend fun readImageAndVideo(imageUri: String, videoUri: String): List<String> {
+        val medicalPrompt = """
+            Bạn hãy phân tích hình ảnh và video đính kèm trong bài viết.
+            Hình ảnh: $imageUri
+            Video: $videoUri
+            Đưa ra danh sách các từ khóa chính liên quan đến y tế trong hình ảnh và video đó.
+            Trả lời bằng tiếng Việt.
+            Danh sách từ khóa:
+        """.trimIndent()
+        val response = askGeminiWithPrompt(medicalPrompt)
+        // Giả sử Gemini trả về danh sách từ khóa, mỗi từ khóa trên 1 dòng
+        return response
+            .lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+
     private fun isArticleQuery(query: String): Boolean {
         val lower = query.lowercase()
         val keywords = listOf(
-            "bài viết về", "bài viết", "tìm bài viết",
+            "tìm kiếm", "bác sĩ", "khoa", "ở đâu", "phòng khám",
+            "bài", "bài viết về", "bài viết", "tìm bài viết",
             "thông tin về", "tài liệu về", "tìm hiểu về",
-            "có bài nào về", "cho tôi bài viết",
+            "có bài nào về", "cho tôi bài viết", "cho tôi",
+            "tìm bài", "cho tôi bài", "cho tôi bài viết về",
+            "cho tôi bài về", "cho tôi bài nào về", "cho tôi bài nào"
         )
         return keywords.any { lower.contains(it) }
     }
@@ -57,7 +78,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             "khoa", "chuyên khoa", "phòng khám",
             "ai chữa", "đâu chữa", "nơi chữa",
             "bệnh viện nào", "phòng khám nào",
-
+            "ở đâu", "chỗ", "địa chỉ", "chỗ nào"
             )
         return keywords.any { lower.contains(it) }
     }
@@ -93,6 +114,10 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             try {
                 val keyword = extractSearchKeyword(query)
                 val searchResponse = RetrofitInstance.postService.searchPosts(keyword)
+                if (!searchResponse.isSuccessful) {
+                    _chatMessages.update { it + ChatMessage(message = "Lỗi hệ thống: ${searchResponse.code()}", isUser = false) }
+                    return@launch
+                }
                 val articles = searchResponse.body()?.take(5) ?: emptyList()
 
                 if (articles.isEmpty()) {

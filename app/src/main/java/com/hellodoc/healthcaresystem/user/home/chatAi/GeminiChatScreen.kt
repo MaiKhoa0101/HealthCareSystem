@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -71,12 +73,18 @@ fun GeminiChatScreen(
                         ChatBubble(msg.message, msg.isUser)
                     }
                     MessageType.ARTICLE -> {
-                        ChatBubble(msg.message, msg.isUser) {
-                            navHostController.navigate("article_detail/${msg.articleId}")
+                        ChatBubble(msg.message, msg.isUser, true) {
+                            navHostController.navigate("post-detail/${msg.articleId}"){
+                                popUpTo(this){
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                     MessageType.DOCTOR -> {
-                        ChatBubble(msg.message, msg.isUser) {
+                        ChatBubble(msg.message, msg.isUser, true) {
                             msg.doctorId?.let { id ->
                                 navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", id)
                                 navHostController.navigate("other_user_profile")
@@ -124,6 +132,7 @@ fun GeminiChatScreen(
 fun ChatBubble(
     text: String,
     isUser: Boolean,
+    isLink: Boolean =false,
     onClick: (() -> Unit)? = null
 ) {
     Row(
@@ -135,14 +144,20 @@ fun ChatBubble(
         Box(
             modifier = Modifier
                 .widthIn(max = 250.dp)
+                .shadow(elevation = 5.dp, shape = RoundedCornerShape(12.dp))
                 .background(
-                    if (isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
+                    if (isLink) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    }
+                    else{
+                        if (isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+                    },
                     shape = RoundedCornerShape(12.dp)
                 )
                 .clickable(enabled = onClick != null) { onClick?.invoke() }
                 .padding(12.dp)
         ) {
-            Text(text = text, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = if(isLink){"Bấm vào đây để xem chi tiết bài viết:\n"+ text} else text, color = MaterialTheme.colorScheme.onBackground)
         }
     }
 }
