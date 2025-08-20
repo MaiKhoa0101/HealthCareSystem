@@ -226,12 +226,10 @@ fun CreatePostScreen(
                                 context = context
                             )
                             navController.navigate("personal"){
-                                //Câu lệnh dưới đây để xóa backstack khi click vào item khác trong bottom bar
-                                popUpTo(navController.graph.startDestinationId){
-                                    // Savestate để giữ trạng thái khi xoay màn hình
+                                popUpTo("personal"){
                                     saveState = true
+                                    inclusive = true
                                 }
-                                //Câu lệnh dưới đây để giữ lại trạng thái khi click vào item khác trong bottom bar
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -370,7 +368,7 @@ fun Header(
             contentDescription = null,
             modifier = Modifier
                 .size(20.dp)
-                .clickable { navController.navigate("home") }
+                .clickable { navController.popBackStack() }
                 .constrainAs(iconImage){
                     start.linkTo(parent.start, margin = 10.dp)
                     top.linkTo(horizontalGuideLine10, margin = 10.dp)

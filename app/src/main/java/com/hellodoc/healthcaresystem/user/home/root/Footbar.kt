@@ -156,14 +156,12 @@ fun BoxItem(
                     println(nameDirection)
                     if (nameDirection.isNotEmpty()) {
                         navHostController.navigate(nameDirection){
-                            //Câu lệnh dưới đây để xóa backstack khi click vào item khác trong bottom bar
                             popUpTo(navHostController.graph.startDestinationId){
-                                // Savestate để giữ trạng thái khi xoay màn hình
                                 saveState = true
                             }
-                            //Câu lệnh dưới đây để giữ lại trạng thái khi click vào item khác trong bottom bar
-                            launchSingleTop = true
                             restoreState = true
+                            launchSingleTop = true
+
                         }
                     }
                 },

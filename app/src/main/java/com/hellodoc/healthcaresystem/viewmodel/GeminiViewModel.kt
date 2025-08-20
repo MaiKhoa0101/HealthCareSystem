@@ -30,7 +30,7 @@ class GeminiHelper() {
         val inlineData = InlineData(mime_type = mimeType, data = base64)
 
         val prompt = "" +
-                "Hãy phân tích ảnh/video này và liệt kê các từ khóa mô tả hình ảnh, mỗi từ khóa trên một dòng. Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
+                "Hãy phân tích ảnh/video này và liệt kê các từ khóa mô tả hình ảnh, mỗi từ khóa trên một dòng, chỉ có kí tự chữ và số. Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
 
         val parts = listOf(
             Part(inline_data = inlineData),
