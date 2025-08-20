@@ -106,7 +106,9 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                             message = article.content.take(80) + "...",
                             isUser = false,
                             type = MessageType.ARTICLE,
-                            articleId = article.id
+                            articleId = article.id,
+                            articleImgUrl = article.media.firstOrNull(),
+                            articleAuthor = article.user?.name
                         )
                     }
                 }

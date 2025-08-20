@@ -105,14 +105,14 @@ fun HealthMateHomeScreen(
         faqItemViewModel.fetchFAQItems()
     }
 
-
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
-
 
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    val isPosting by postViewModel.isPosting.collectAsState()
 
     LaunchedEffect(reloadTrigger?.value) {
         postViewModel.fetchPosts()
@@ -144,6 +144,16 @@ fun HealthMateHomeScreen(
             }
         }
     }
+
+    LaunchedEffect(isPosting) {
+        Log.d("UI", "isPosting changed to: $isPosting")
+        if (isPosting) {
+            Log.d("UI", "Showing posting progress")
+        } else {
+            Log.d("UI", "Hiding posting progress")
+        }
+    }
+
     val posts by postViewModel.posts.collectAsState()
 
     if (selectedImageUrl != null) {
@@ -162,12 +172,39 @@ fun HealthMateHomeScreen(
                 }
             }
     ) {
+
+        if(isPosting) {
+            Log.d("UI", "Showing posting progress")
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Đang đăng bài...")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
+
             item(key = "header") {
                 Column(
                     modifier = Modifier

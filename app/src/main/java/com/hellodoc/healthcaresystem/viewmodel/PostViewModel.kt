@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,8 @@ import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -26,6 +29,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 
 class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
@@ -225,10 +229,21 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private val _isPosting = MutableStateFlow(false)
+    val isPosting: StateFlow<Boolean> = _isPosting
+
     fun createPost(request: CreatePostRequest, context: Context) {
+        Log.d("PostViewModel", "Bắt đầu đăng bài")
         viewModelScope.launch {
             try {
-                //phân tích từ khóa từ nội dung
+                _isPosting.value = true
+                Log.d("PostViewModel", "isPosting chuyen thanh true")
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Đang đăng bài...", Toast.LENGTH_SHORT).show()
+                }
+
+                // Phân tích từ khóa từ nội dung
                 val keywords = analyzeContentKeywords(request.content)
 
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
@@ -255,11 +270,28 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
                 if (response.isSuccessful) {
                     _createPostResponse.value = response.body()
+                    Log.d("PostViewModel", "Đăng bài thành công")
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Đăng bài thành công", Toast.LENGTH_SHORT).show()
+                    }
+
+                    // Refresh danh sách bài viết
+                    fetchPosts()
                 } else {
                     Log.e("PostViewModel", "Create Post Error: ${response.errorBody()?.string()}")
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Đăng bài thất bại", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Create Post Exception", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                _isPosting.value = false
+                Log.d("PostViewModel", "isPosting chuyen thanh false")
             }
         }
     }
@@ -361,7 +393,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-    
+
     private val _userComments = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userComments: StateFlow<List<ManagerResponse>> get()= _userComments
 
@@ -395,7 +427,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-    
+
     private val _userFavorites = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userFavorites: StateFlow<List<ManagerResponse>> get()= _userFavorites
 

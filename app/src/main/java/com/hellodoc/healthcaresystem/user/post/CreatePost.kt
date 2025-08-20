@@ -224,7 +224,7 @@ fun CreatePostScreen(
                                 request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
                                 context = context
                             )
-                            navController.navigate("personal")
+                            navController.navigate("home")
                         }
                     }
                 )

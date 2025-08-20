@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +26,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance.doctor
@@ -71,9 +73,16 @@ fun GeminiChatScreen(
                         ChatBubble(msg.message, msg.isUser)
                     }
                     MessageType.ARTICLE -> {
-                        ChatBubble(msg.message, msg.isUser) {
-                            navHostController.navigate("article_detail/${msg.articleId}")
-                        }
+                        ArticleBubble(
+                            title = msg.message ?: "Không có tiêu đề",
+                            author = msg.articleAuthor ?: "Ẩn danh",
+                            imageUrl = msg.articleImgUrl,
+                            onClick = {
+                                msg.articleId?.let { id ->
+                                    navHostController.navigate("post-detail/$id")
+                                }
+                            }
+                        )
                     }
                     MessageType.DOCTOR -> {
                         ChatBubble(msg.message, msg.isUser) {
@@ -175,6 +184,69 @@ fun TopBar(title: String,onClick: () -> Unit) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )
+    }
+}
+
+@Composable
+fun ArticleBubble(
+    title: String,
+    author: String,
+    imageUrl: String?,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column {
+                if (!imageUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Article image",
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Tác giả: $author",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Xem chi tiết ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
     }
 }
 
