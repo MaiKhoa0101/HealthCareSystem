@@ -72,6 +72,8 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -242,6 +244,14 @@ fun VideoPlayer(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatDateTime(isoString: String): String {
+    val zonedDateTime = ZonedDateTime.parse(isoString)
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    return zonedDateTime.format(formatter)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostHeader(
     navHostController: NavHostController,
@@ -262,43 +272,51 @@ fun PostHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Avatar + tên
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = post.user?.avatarURL,
-                    contentDescription = "Avatar of ${post.user?.name}",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable {
+            Column() {
+                // Avatar + tên
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = post.user?.avatarURL,
+                        contentDescription = "Avatar of ${post.user?.name}",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                if (post.user?.id != userWhoInteractWithThisPost.id) {
+                                    navHostController.navigate("otherUserProfile/${post.user?.id}")
+                                } else {
+                                    navHostController.navigate("personal")
+                                }
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column(
+                        modifier = Modifier.clickable {
                             if (post.user?.id != userWhoInteractWithThisPost.id) {
                                 navHostController.navigate("otherUserProfile/${post.user?.id}")
                             } else {
                                 navHostController.navigate("personal")
                             }
-                        },
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column(
-                    modifier = Modifier.clickable {
-                        if (post.user?.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.user?.id}")
-                        } else {
-                            navHostController.navigate("personal")
                         }
+                    ) {
+                        Text(
+                            text = post.user?.name ?: "Người dùng ẩn",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = formatDateTime(post.createdAt),
+                            fontSize = 12.sp
+                        )
                     }
-                ) {
-                    Text(
-                        text = post.user?.name ?: "Người dùng ẩn",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
                 }
+
             }
 
             // Nút 3 chấm và Dropdown gắn liền

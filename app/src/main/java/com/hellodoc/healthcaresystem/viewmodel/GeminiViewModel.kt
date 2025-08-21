@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _question = MutableStateFlow("")
@@ -130,7 +131,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             try {
                 val keyword = extractSearchKeyword(query)
                 println("keyword: $keyword")
-                val searchResponse = RetrofitInstance.doctor.getDoctorBySpecialtyName(keyword)
+                val searchResponse = RetrofitInstance.doctor.getDoctorBySpecialNameForAI(keyword)
                 println("searchResponse: $searchResponse")
                 val doctors = searchResponse.body()?.take(5) ?: emptyList()
                 println("doctors: $doctors")
@@ -166,7 +167,28 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         val stopWords = listOf("bài viết", "tìm kiếm", "bác sĩ", "khoa", "ở đâu", "phòng khám")
         var cleaned = lowerQuery
         stopWords.forEach { cleaned = cleaned.replace(it, " ") }
-        return cleaned.replace(Regex("\\s+"), " ").trim()
+        // Loại bỏ dấu tiếng Việt
+        return removeDiacritics(cleaned.replace(Regex("\\s+"), " ").trim())
+    }
+
+    private fun removeDiacritics(text: String): String {
+        val diacriticMap = mapOf(
+            'á' to 'a', 'à' to 'a', 'ả' to 'a', 'ã' to 'a', 'ạ' to 'a',
+            'ă' to 'a', 'ắ' to 'a', 'ằ' to 'a', 'ẳ' to 'a', 'ẵ' to 'a', 'ặ' to 'a',
+            'â' to 'a', 'ấ' to 'a', 'ầ' to 'a', 'ẩ' to 'a', 'ẫ' to 'a', 'ậ' to 'a',
+            'đ' to 'd',
+            'é' to 'e', 'è' to 'e', 'ẻ' to 'e', 'ẽ' to 'e', 'ẹ' to 'e',
+            'ê' to 'e', 'ế' to 'e', 'ề' to 'e', 'ể' to 'e', 'ễ' to 'e', 'ệ' to 'e',
+            'í' to 'i', 'ì' to 'i', 'ỉ' to 'i', 'ĩ' to 'i', 'ị' to 'i',
+            'ó' to 'o', 'ò' to 'o', 'ỏ' to 'o', 'õ' to 'o', 'ọ' to 'o',
+            'ô' to 'o', 'ố' to 'o', 'ồ' to 'o', 'ổ' to 'o', 'ỗ' to 'o', 'ộ' to 'o',
+            'ơ' to 'o', 'ớ' to 'o', 'ờ' to 'o', 'ở' to 'o', 'ỡ' to 'o', 'ợ' to 'o',
+            'ú' to 'u', 'ù' to 'u', 'ủ' to 'u', 'ũ' to 'u', 'ụ' to 'u',
+            'ư' to 'u', 'ứ' to 'u', 'ừ' to 'u', 'ử' to 'u', 'ữ' to 'u', 'ự' to 'u',
+            'ý' to 'y', 'ỳ' to 'y', 'ỷ' to 'y', 'ỹ' to 'y', 'ỵ' to 'y'
+        )
+
+        return text.map { char -> diacriticMap[char] ?: char }.joinToString("")
     }
 
     // Gọi Gemini API
