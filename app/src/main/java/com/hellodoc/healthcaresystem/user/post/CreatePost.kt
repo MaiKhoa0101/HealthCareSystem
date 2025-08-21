@@ -226,9 +226,8 @@ fun CreatePostScreen(
                                 context = context
                             )
                             navController.navigate("personal"){
-                                popUpTo("personal"){
+                                popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
-                                    inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true

@@ -75,7 +75,7 @@ fun GeminiChatScreen(
                     MessageType.ARTICLE -> {
                         ChatBubble(msg.message, msg.isUser, true) {
                             navHostController.navigate("post-detail/${msg.articleId}"){
-                                popUpTo(this){
+                                popUpTo(navHostController.currentBackStackEntry?.destination?.route ?: "home") {
                                     saveState = true
                                 }
                                 launchSingleTop = true
