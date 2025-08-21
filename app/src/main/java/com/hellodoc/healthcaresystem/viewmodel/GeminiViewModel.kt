@@ -1,4 +1,5 @@
 package com.hellodoc.healthcaresystem.viewmodel
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +13,71 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.Normalizer
+import android.net.Uri
+import android.util.Base64
+import com.hellodoc.healthcaresystem.requestmodel.InlineData
+
+class GeminiHelper() {
+
+    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
+
+    // Hàm này để phân tích nội dung ảnh và video đính kèm với bài post và trả về list keyword
+    suspend fun readImageAndVideo(context: Context, mediaUri: String): List<String> {
+        val base64 = uriToBase64(context, mediaUri)
+        if (base64 == null) return listOf("Không thể đọc tệp phương tiện.")
+
+        val mimeType = context.contentResolver.getType(Uri.parse(mediaUri)) ?: "image/jpeg"
+        val inlineData = InlineData(mime_type = mimeType, data = base64)
+
+        val prompt = "" +
+                "Hãy phân tích ảnh/video này và liệt kê các từ khóa mô tả hình ảnh, mỗi từ khóa trên một dòng, chỉ có kí tự chữ và số. Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
+
+        val parts = listOf(
+            Part(inline_data = inlineData),
+            Part(text = prompt)
+        )
+        val request = GeminiRequest(contents = listOf(Content(parts = parts)))
+        val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+        val aiResponse = when {
+            !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
+            response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
+            else -> response.body()!!.candidates.first().content.parts.first().text
+        }
+
+        return aiResponse
+            .lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+    // Gọi Gemini API
+    private suspend fun askGeminiWithPrompt(prompt: String): String {
+        return try {
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt))))
+            )
+            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+            when {
+                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
+                response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
+                else -> response.body()!!.candidates.first().content.parts.first().text
+            }
+        } catch (e: Exception) {
+            "Lỗi kết nối: ${e.localizedMessage}"
+        }
+    }
+    fun uriToBase64(context: Context, uri: String): String? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(Uri.parse(uri))
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+            if (bytes != null) Base64.encodeToString(bytes, Base64.NO_WRAP) else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     private val _question = MutableStateFlow("")
@@ -44,9 +109,11 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private fun isArticleQuery(query: String): Boolean {
         val lower = query.lowercase()
         val keywords = listOf(
-            "bài viết về", "bài viết", "tìm bài viết",
+            "bài", "bài viết về", "bài viết", "tìm bài viết",
             "thông tin về", "tài liệu về", "tìm hiểu về",
-            "có bài nào về", "cho tôi bài viết",
+            "có bài nào về", "cho tôi bài viết", "cho tôi",
+            "tìm bài", "cho tôi bài", "cho tôi bài viết về",
+            "cho tôi bài về", "cho tôi bài nào về", "cho tôi bài nào"
         )
         return keywords.any { lower.contains(it) }
     }
@@ -58,7 +125,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             "khoa", "chuyên khoa", "phòng khám",
             "ai chữa", "đâu chữa", "nơi chữa",
             "bệnh viện nào", "phòng khám nào",
-
+            "ở đâu", "chỗ", "địa chỉ", "chỗ nào"
             )
         return keywords.any { lower.contains(it) }
     }
@@ -94,6 +161,10 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             try {
                 val keyword = extractSearchKeyword(query)
                 val searchResponse = RetrofitInstance.postService.searchPosts(keyword)
+                if (!searchResponse.isSuccessful) {
+                    _chatMessages.update { it + ChatMessage(message = "Lỗi hệ thống: ${searchResponse.code()}", isUser = false) }
+                    return@launch
+                }
                 val articles = searchResponse.body()?.take(5) ?: emptyList()
 
                 if (articles.isEmpty()) {

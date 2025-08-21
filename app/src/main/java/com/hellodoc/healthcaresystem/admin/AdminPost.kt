@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import java.time.Instant
 import java.time.ZoneId
@@ -44,7 +45,7 @@ fun PostManagerScreen(
     sharedPreferences: SharedPreferences
 ) {
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val posts by postViewModel.posts.collectAsState()
 

@@ -155,7 +155,15 @@ fun BoxItem(
                 .clickable {
                     println(nameDirection)
                     if (nameDirection.isNotEmpty()) {
-                        navHostController.navigate(nameDirection)
+                        navHostController.navigate(nameDirection){
+                            popUpTo(navHostController.graph.startDestinationId){
+                                saveState = true
+                            }
+                            restoreState = true
+                            launchSingleTop = true
+
+
+                        }
                     }
                 },
             horizontalAlignment = Alignment.CenterHorizontally,

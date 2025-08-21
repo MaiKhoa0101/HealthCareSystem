@@ -87,7 +87,7 @@ fun Headbar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val shortName = truncateName(userName, 10)
+                val shortName = userName.let { shortenUserName(it) }
 
                 Text(
                     text = "Xin chào\n$shortName",
