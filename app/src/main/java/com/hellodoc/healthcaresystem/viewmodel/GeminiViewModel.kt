@@ -131,7 +131,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             try {
                 val keyword = extractSearchKeyword(query)
                 println("keyword: $keyword")
-                val searchResponse = RetrofitInstance.doctor.getDoctorBySpecialNameForAI(keyword)
+                val searchResponse = RetrofitInstance.doctor.getDoctorBySpecialtyName(keyword)
                 println("searchResponse: $searchResponse")
                 val doctors = searchResponse.body()?.take(5) ?: emptyList()
                 println("doctors: $doctors")

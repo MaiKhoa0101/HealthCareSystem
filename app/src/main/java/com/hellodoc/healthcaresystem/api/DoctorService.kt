@@ -80,7 +80,7 @@ interface DoctorService {
 
     @GET("doctor/search-by-specialty")
     suspend fun getDoctorBySpecialNameForAI(
-        @Query("name") specialtyName: String
+        @Query("query") specialtyName: String
     ): Response<List<GetDoctorResponse>>
 
 }
