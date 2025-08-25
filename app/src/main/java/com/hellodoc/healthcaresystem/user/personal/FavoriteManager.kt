@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -34,7 +35,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 @Composable
 fun FavouriteHistoryScreen(navHostController: NavHostController, sharedPreferences: SharedPreferences) {
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val userFavorites by postViewModel.userFavorites.collectAsState()
 

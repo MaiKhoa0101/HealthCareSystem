@@ -30,7 +30,8 @@ enum class MediaType {
 data class CreatePostResponse(
     val user: String,
     val content: String,
-    val media: List<String>
+    val media: List<String>,
+    val keywords: String
 )
 
 data class GetFavoritePostResponse(

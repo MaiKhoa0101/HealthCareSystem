@@ -4,11 +4,15 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.requestmodel.Content
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
+import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
+import com.hellodoc.healthcaresystem.requestmodel.Part
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
@@ -16,6 +20,8 @@ import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -23,9 +29,12 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 
-class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+class PostViewModel(
+    private val sharedPreferences: SharedPreferences,
+    private val geminiHelper: GeminiHelper
+    ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
 
@@ -40,6 +49,14 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     private val _isLoadingMorePosts = MutableStateFlow(false)
     val isLoadingMorePosts: StateFlow<Boolean> = _isLoadingMorePosts
+
+    private val _isAnalyzingKeywords = MutableStateFlow(false)
+    val isAnalyzingKeywords: StateFlow<Boolean> get() = _isAnalyzingKeywords
+
+    private val _extractedKeywords = MutableStateFlow<List<String>>(emptyList())
+    val extractedKeywords: StateFlow<List<String>> get() = _extractedKeywords
+
+    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
@@ -151,14 +168,114 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
+    private suspend fun analyzeContentKeywords(content: String): List<String> {
+        return try {
+            _isAnalyzingKeywords.value = true
+
+            val keywordPrompt = """
+                Phân tích nội dung y tế sau và trích xuất 5-10 từ khóa quan trọng nhất:
+                
+                Nội dung: "$content"
+                
+                Yêu cầu:
+                1. Chỉ trích xuất từ khóa liên quan đến y tế, sức khỏe
+                2. Ưu tiên các thuật ngữ y khoa, tên bệnh, triệu chứng, phương pháp điều trị
+                3. Bao gồm cả từ tiếng Việt và tiếng Anh (nếu có)
+                4. Trả về danh sách từ khóa, mỗi từ khóa trên một dòng
+                5. Không giải thích, chỉ liệt kê từ khóa
+                6. Loại bỏ từ khóa quá chung chung như "sức khỏe", "bệnh tật"
+                
+                Ví dụ format trả về:
+                tiểu đường
+                đái tháo đường
+                insulin
+                glucose
+                chế độ ăn
+            """.trimIndent()
+
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = keywordPrompt))))
+            )
+
+            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+            if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                val aiResponse = response.body()!!.candidates.first().content.parts.first().text
+
+                // Xử lý response và trích xuất từ khóa
+                val keywords = aiResponse
+                    .split("\n")
+                    .map { it.trim() }
+                    .filter {
+                        it.isNotBlank() &&
+                                it.length >= 2 &&
+                                !it.contains("từ khóa", ignoreCase = true) &&
+                                !it.startsWith("-") &&
+                                !it.matches(Regex("\\d+\\..*")) // Loại bỏ số thứ tự
+                    }
+                    .take(10) // Giới hạn tối đa 10 từ khóa
+
+                Log.d("KeywordAnalysis", "Extracted keywords: $keywords")
+                _extractedKeywords.value = keywords
+                keywords
+
+            } else {
+                Log.e("KeywordAnalysis", "Failed to get keywords from AI: ${response.errorBody()?.string()}")
+                emptyList()
+            }
+
+        } catch (e: Exception) {
+            Log.e("KeywordAnalysis", "Error analyzing keywords", e)
+            emptyList()
+        } finally {
+            _isAnalyzingKeywords.value = false
+        }
+    }
+
+    private val _isPosting = MutableStateFlow(false)
+    val isPosting: StateFlow<Boolean> = _isPosting
+
     fun createPost(request: CreatePostRequest, context: Context) {
+        Log.d("PostViewModel", "Bắt đầu đăng bài")
         viewModelScope.launch {
             try {
+                _isPosting.value = true
+                Log.d("PostViewModel", "isPosting chuyen thanh true")
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Đang đăng bài...", Toast.LENGTH_SHORT).show()
+                }
+
+                // Phân tích từ khóa từ nội dung
+                val keywords = analyzeContentKeywords(request.content)
+                // 1. Lấy từ khóa nội dung
+                val contentKeywords = analyzeContentKeywords(request.content)
+
+                // 2. Lấy từ khóa từ ảnh/video (giả sử request có trường videoUri)
+                val mediaUri = request.media?.firstOrNull()?.toString() ?: ""
+                val mediaKeywords = if (mediaUri.isNotEmpty()) {
+                    geminiHelper.readImageAndVideo(context, mediaUri)
+                } else emptyList()
+
+                // 3. Gộp và loại trùng
+                val allKeywords = (contentKeywords + mediaKeywords)
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .take(10)
+                println("Từ khóa đã phân tích: $allKeywords")
+                // 4. Chuyển đổi thành MultipartBody.Part
                 val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
                 val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
                 val contentPart = MultipartBody.Part.createFormData("content", request.content)
 
-                val imageParts = request.images?.mapNotNull { uri ->
+                val keywordsPart = if (allKeywords.isNotEmpty()) {
+                    MultipartBody.Part.createFormData("keywords", allKeywords.joinToString(","))
+                } else {
+                    null
+                }
+
+                val imageParts = request.media?.mapNotNull { uri ->
                     prepareFilePart(context, uri, "images")
                 }
 
@@ -166,16 +283,34 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     userIdPart,
                     userModelPart,
                     contentPart,
-                    imageParts ?: emptyList()
+                    imageParts ?: emptyList(),
+                    keywordsPart
                 )
 
                 if (response.isSuccessful) {
                     _createPostResponse.value = response.body()
+                    Log.d("PostViewModel", "Đăng bài thành công")
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Đăng bài thành công", Toast.LENGTH_SHORT).show()
+                    }
+
+                    // Refresh danh sách bài viết
+                    fetchPosts()
                 } else {
                     Log.e("PostViewModel", "Create Post Error: ${response.errorBody()?.string()}")
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Đăng bài thất bại", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Create Post Exception", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                _isPosting.value = false
+                Log.d("PostViewModel", "isPosting chuyen thanh false")
             }
         }
     }
@@ -277,7 +412,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-    
+
     private val _userComments = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userComments: StateFlow<List<ManagerResponse>> get()= _userComments
 
@@ -311,7 +446,7 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
-    
+
     private val _userFavorites = MutableStateFlow<List<ManagerResponse>>(emptyList())
     val userFavorites: StateFlow<List<ManagerResponse>> get()= _userFavorites
 
@@ -400,9 +535,6 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         _updateSuccess.value = false
     }
 
-
-
-
     private val _activePostMenuId = MutableStateFlow<String?>(null)
     val activePostMenuId: StateFlow<String?> get() = _activePostMenuId
 
@@ -412,6 +544,10 @@ class PostViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun closeAllPostMenus() {
         _activePostMenuId.value = null
+    }
+
+    fun clearPosts(){
+        _posts.value = emptyList()
     }
 
 

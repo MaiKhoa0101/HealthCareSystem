@@ -105,14 +105,14 @@ fun HealthMateHomeScreen(
         faqItemViewModel.fetchFAQItems()
     }
 
-
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
-
 
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    val isPosting by postViewModel.isPosting.collectAsState()
 
     LaunchedEffect(reloadTrigger?.value) {
         postViewModel.fetchPosts()
@@ -120,6 +120,14 @@ fun HealthMateHomeScreen(
         println("Gọi 1 voi index: "+ postIndex)
     }
 
+    LaunchedEffect(navHostController.currentBackStackEntry) {
+        // Reset pagination state khi navigate back
+        if (navHostController.currentBackStackEntry?.destination?.route == "home") {
+            postIndex = 0
+            postViewModel.clearPosts() // Clear existing posts
+            postViewModel.fetchPosts() // Fetch fresh data
+        }
+    }
 
     LaunchedEffect(postIndex,hasMorePosts) {
         snapshotFlow {
@@ -136,6 +144,16 @@ fun HealthMateHomeScreen(
             }
         }
     }
+
+    LaunchedEffect(isPosting) {
+        Log.d("UI", "isPosting changed to: $isPosting")
+        if (isPosting) {
+            Log.d("UI", "Showing posting progress")
+        } else {
+            Log.d("UI", "Hiding posting progress")
+        }
+    }
+
     val posts by postViewModel.posts.collectAsState()
 
     if (selectedImageUrl != null) {
@@ -154,12 +172,39 @@ fun HealthMateHomeScreen(
                 }
             }
     ) {
+
+        if(isPosting) {
+            Log.d("UI", "Showing posting progress")
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Đang đăng bài...")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
+
             item(key = "header") {
                 Column(
                     modifier = Modifier
@@ -169,7 +214,7 @@ fun HealthMateHomeScreen(
                     AssistantQueryRow(
                         navHostController = navHostController,
                         onSubmit = { query ->
-                            geminiViewModel.askGemini(query)
+                            geminiViewModel.processUserQuery(query)
                             showDialog = true
                         }
                     )
@@ -244,7 +289,7 @@ fun HealthMateHomeScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
-            item {
+            item(key = "loading_posts"){
                 if (isLoadingMorePosts && hasMorePosts) {
                     Box(
                         modifier = Modifier
@@ -761,7 +806,7 @@ fun SpecialtyList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(vertical = 16.dp)
         ) {
-            items(displayedSpecialties, key = { it.id }) { specialty ->
+            items(displayedSpecialties,  key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
                 SpecialtyItem(
                     navHostController = navHostController,
                     specialty = specialty,
@@ -963,7 +1008,7 @@ fun DoctorList(
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
-            items(displayedDoctors, key = { it.id }) { doctor ->
+            items(displayedDoctors,  key = { doctor -> "doctor_${doctor.id}" }) { doctor ->
                 DoctorItem(doctor) {
                     firebaseAnalytics.logEvent("doctor_selected", bundleOf(
                         "doctor_id" to doctor.id,

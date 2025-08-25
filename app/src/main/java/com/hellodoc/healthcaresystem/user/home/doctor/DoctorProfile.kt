@@ -58,6 +58,7 @@ import com.hellodoc.healthcaresystem.skeleton.RatingOverviewSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserInfoSkeleton
 import com.hellodoc.healthcaresystem.user.home.report.ReportDoctor
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostDoctor
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -82,7 +83,7 @@ fun DoctorScreen(
         initializer { UserViewModel(sharedPreferences) }
     })
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
         initializer { DoctorViewModel(sharedPreferences) }
@@ -114,7 +115,6 @@ fun DoctorScreen(
     var isClinicPaused by remember { mutableStateOf(false) }
     var hasHomeService by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(Unit) {
         val userId = userViewModel.getUserAttributeString("userId")
         userViewModel.getUser(userId)
@@ -128,7 +128,6 @@ fun DoctorScreen(
         savedStateHandle?.remove<Int>("selectedTab")
         isRating = savedStateHandle?.get<Boolean>("isRating") ?: false
         //viewModel.fetchDoctorById(doctorId)
-        println("doctorId: " + doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
@@ -485,8 +484,6 @@ fun DoctorProfileScreen(
     isLoadingStat: Boolean
 
 ) {
-    println("Doctor lay duoc: "+doctor)
-
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
     val context = LocalContext.current
     val sharedPreferences = remember {
@@ -495,7 +492,7 @@ fun DoctorProfileScreen(
     val token = remember { sharedPreferences.getString("access_token", null) }
 
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
     val posts by postViewModel.posts.collectAsState()
 

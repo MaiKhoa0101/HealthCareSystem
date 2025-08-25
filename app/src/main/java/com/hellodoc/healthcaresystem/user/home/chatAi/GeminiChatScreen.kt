@@ -1,8 +1,10 @@
 package com.hellodoc.healthcaresystem.user.home.chatAi
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +16,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +29,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.responsemodel.MessageType
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance.doctor
 import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
 
 @Composable
@@ -39,13 +47,13 @@ fun GeminiChatScreen(
 
     // Cập nhật giá trị nếu có trong savedStateHandle
     val savedStateHandle = navHostController
-        .previousBackStackEntry  // ✅ lấy từ previous
+        .previousBackStackEntry
         ?.savedStateHandle
 
     LaunchedEffect(Unit) {
         val question = savedStateHandle?.get<String>("first_question")
         if (!question.isNullOrBlank()) {
-            geminiViewModel.askGemini(question)
+            geminiViewModel.processUserQuery(question)
         }
     }
     val chatMessages by geminiViewModel.chatMessages.collectAsState()
@@ -61,26 +69,35 @@ fun GeminiChatScreen(
         ) {
             items(
                 items = chatMessages.reversed(),
-                key = { it.hashCode() }
+                key = { it.id }
             ) { msg ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth() // <- hàng rộng ra toàn màn hình
-                        .padding(vertical = 4.dp, horizontal = 8.dp),
-                    horizontalArrangement = if (msg.isUser) Arrangement.End else Arrangement.Start
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .widthIn(max = 250.dp) // <- Giới hạn chiều rộng tối đa của hộp chat
-                            .background(
-                                if (msg.isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = msg.message,
-                            color = MaterialTheme.colorScheme.onBackground
+                when (msg.type) {
+                    MessageType.TEXT -> {
+                        ChatBubble(msg.message, msg.isUser)
+                    }
+                    MessageType.ARTICLE -> {
+                        ArticleBubble(
+                            title = msg.message ?: "Không có tiêu đề",
+                            author = msg.articleAuthor ?: "Ẩn danh",
+                            imageUrl = msg.articleImgUrl,
+                            onClick = {
+                                msg.articleId?.let { id ->
+                                    navHostController.navigate("post-detail/$id")
+                                }
+                            }
+                        )
+                    }
+                    MessageType.DOCTOR -> {
+                        DoctorBubble(
+                            name = msg.message.substringBefore(" - "),
+                            specialty = msg.message.substringAfter(" - ").substringBefore("(").trim(),
+                            hospital = msg.message.substringAfter("(").substringBefore(")").trim(),
+                            onClick = {
+                                msg.doctorId?.let { id ->
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", id)
+                                    navHostController.navigate("other_user_profile")
+                                }
+                            }
                         )
                     }
                 }
@@ -109,7 +126,7 @@ fun GeminiChatScreen(
                     .size(30.dp)
                     .clickable {
                         if (input.isNotBlank()) {
-                            geminiViewModel.askGemini(input)
+                            geminiViewModel.processUserQuery(input)
                             input = ""
                         }
                     }
@@ -119,6 +136,122 @@ fun GeminiChatScreen(
         Spacer(modifier = Modifier.height(40.dp))
     }
 }
+
+@Composable
+fun DoctorBubble(
+    name: String,
+    specialty: String?,
+    hospital: String?,
+    avatarUrl: String? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Avatar bác sĩ
+                if (!avatarUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Doctor avatar",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(50)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_person_24), // thay bằng icon bác sĩ
+                        contentDescription = "Doctor",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(50)
+                            )
+                            .padding(12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Thông tin bác sĩ
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (!specialty.isNullOrEmpty()) {
+                        Text(
+                            text = specialty,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    if (!hospital.isNullOrEmpty()) {
+                        Text(
+                            text = hospital,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_down),
+                    contentDescription = "View doctor profile",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ChatBubble(
+    text: String,
+    isUser: Boolean,
+    onClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 250.dp)
+                .shadow(elevation = 5.dp, shape = RoundedCornerShape(12.dp))
+                .background(
+                    if (isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable(enabled = onClick != null) { onClick?.invoke() }
+                .padding(12.dp)
+        ) {
+            Text(text = text, color = MaterialTheme.colorScheme.onBackground)
+        }
+    }
+}
+
 
 @Composable
 fun TopBar(title: String,onClick: () -> Unit) {
@@ -147,6 +280,69 @@ fun TopBar(title: String,onClick: () -> Unit) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )
+    }
+}
+
+@Composable
+fun ArticleBubble(
+    title: String,
+    author: String,
+    imageUrl: String?,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column {
+                if (!imageUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Article image",
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Tác giả: $author",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Xem chi tiết ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
     }
 }
 

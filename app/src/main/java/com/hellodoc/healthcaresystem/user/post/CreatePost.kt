@@ -76,6 +76,7 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -109,7 +110,7 @@ fun CreatePostScreen(
     })
 
     val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences) }
+        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
 
     val user by userViewModel.user.collectAsState()
@@ -224,7 +225,9 @@ fun CreatePostScreen(
                                 request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
                                 context = context
                             )
-                            navController.navigate("personal")
+                            navController.navigate("home"){
+
+                            }
                         }
                     }
                 )
@@ -360,7 +363,7 @@ fun Header(
             contentDescription = null,
             modifier = Modifier
                 .size(20.dp)
-                .clickable { navController.navigate("home") }
+                .clickable { navController.popBackStack() }
                 .constrainAs(iconImage){
                     start.linkTo(parent.start, margin = 10.dp)
                     top.linkTo(horizontalGuideLine10, margin = 10.dp)

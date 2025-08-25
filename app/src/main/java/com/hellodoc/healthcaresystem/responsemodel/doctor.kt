@@ -5,7 +5,7 @@ import androidx.annotation.RequiresApi
 import com.google.gson.annotations.SerializedName
 
 data class GetDoctorResponse (
-    @SerializedName("_id") val id: String, // Đổi thành `id` để dễ đọc hơn
+    @SerializedName("_id") val id: String,
     @SerializedName("role") val role: String,
     @SerializedName("email") val email: String,
     @SerializedName("name") val name: String,
@@ -29,14 +29,15 @@ data class GetDoctorResponse (
     @SerializedName("hasHomeService")
     val hasHomeService: Boolean?,
     @SerializedName("isClinicPaused")
-    val isClinicPaused: Boolean?
+    val isClinicPaused: Boolean?,
+    @SerializedName("verified")
+    val verified: Boolean?
 )
 
 data class Specialty (
     @SerializedName("_id") val id:String,
     @SerializedName("name") val name: String
 )
-
 
 data class ApplyDoctor(
     val message: String
