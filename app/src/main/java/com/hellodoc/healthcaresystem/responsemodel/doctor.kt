@@ -29,7 +29,9 @@ data class GetDoctorResponse (
     @SerializedName("hasHomeService")
     val hasHomeService: Boolean?,
     @SerializedName("isClinicPaused")
-    val isClinicPaused: Boolean?
+    val isClinicPaused: Boolean?,
+    @SerializedName("verified")
+    val verified: Boolean?
 )
 
 data class Specialty (

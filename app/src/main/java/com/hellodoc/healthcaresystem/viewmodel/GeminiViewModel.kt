@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
+import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import kotlin.collections.forEach
 
 class GeminiHelper() {
 
@@ -95,13 +98,14 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
     // xử lý câu hỏi
-    fun processUserQuery(query: String) {
+     fun processUserQuery(query: String) {
         _question.value = query
         _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
 
         when {
-            isArticleQuery(query) -> searchArticles(query)
+            isDoctorNameQuery(query) -> getDoctorByName(query)
             isDoctorQuery(query) -> searchDoctors(query)
+            isArticleQuery(query) -> searchArticles(query)
             else -> askGeminiDirectly(query)
         }
     }
@@ -121,12 +125,19 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private fun isDoctorQuery(query: String): Boolean {
         val lower = query.lowercase()
         val keywords = listOf(
-            "bác sĩ", "bác sỹ", "doctor", "chuyên gia",
             "khoa", "chuyên khoa", "phòng khám",
             "ai chữa", "đâu chữa", "nơi chữa",
             "bệnh viện nào", "phòng khám nào",
             "ở đâu", "chỗ", "địa chỉ", "chỗ nào"
             )
+        return keywords.any { lower.contains(it) }
+    }
+
+    private fun isDoctorNameQuery(query: String): Boolean {
+        val lower = query.lowercase()
+        val keywords = listOf(
+            "bác sĩ", "bác sỹ", "doctor", "chuyên gia"
+        )
         return keywords.any { lower.contains(it) }
     }
 
@@ -232,14 +243,142 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private fun generateDoctorAnswer(query: String, doctor: GetDoctorResponse): String? {
+        val lower = query.lowercase()
+
+        return when {
+            // Hỏi chuyên khoa
+            lower.contains("khoa nào") || lower.contains("chuyên khoa") -> {
+                if (doctor.specialty.name != "")
+                    "Bác sĩ ${doctor.name} hiện đang công tác tại chuyên khoa ${doctor.specialty}."
+                else "Xin lỗi, tôi chưa có thông tin về chuyên khoa của bác sĩ ${doctor.name}."
+            }
+
+            // Hỏi nơi làm việc
+            lower.contains("làm việc ở đâu") || lower.contains("công tác ở đâu") || lower.contains("bệnh viện") -> {
+                if (!doctor.hospital.isNullOrEmpty())
+                    "Bác sĩ ${doctor.name} hiện đang làm việc tại ${doctor.hospital}."
+                else "Xin lỗi, tôi chưa có thông tin bệnh viện nơi bác sĩ ${doctor.name} công tác."
+            }
+
+            // Hỏi địa chỉ
+            lower.contains("địa chỉ") -> {
+                if (!doctor.address.isNullOrEmpty())
+                    "Địa chỉ của bác sĩ ${doctor.name} là: ${doctor.address}."
+                else "Xin lỗi, tôi chưa có thông tin địa chỉ của bác sĩ ${doctor.name}."
+            }
+
+            // Hỏi số điện thoại
+            lower.contains("số điện thoại") || lower.contains("liên hệ") -> {
+                if (!doctor.phone.isNullOrEmpty())
+                    "Bạn có thể liên hệ bác sĩ ${doctor.name} qua số điện thoại: ${doctor.phone}."
+                else "Xin lỗi, tôi chưa có số điện thoại của bác sĩ ${doctor.name}."
+            }
+
+            // Hỏi uy tín
+            lower.contains("uy tín") || lower.contains("có tốt không") || lower.contains("giỏi không") -> {
+                if (doctor.verified == true)
+                    "Bác sĩ ${doctor.name} là bác sĩ đã được xác minh và có uy tín trong hệ thống."
+                else "Hiện tôi chưa có thông tin xác minh độ uy tín của bác sĩ ${doctor.name}."
+            }
+            else -> null // fallback: không hiểu intent -> sẽ hiển thị card
+        }
+    }
+
+    private fun extractDoctorName(query: String): String? {
+        val lower = query.lowercase()
+
+        // Loại bỏ các cụm từ dư thừa liên quan đến intent
+        val cleaned = lower
+            .replace("bác sĩ", "", ignoreCase = true)
+            .replace("bác sỹ", "", ignoreCase = true)
+            .replace("có uy tín không", "", ignoreCase = true)
+            .replace("ở khoa nào", "", ignoreCase = true)
+            .replace("làm việc ở đâu", "", ignoreCase = true)
+            .replace("số điện thoại", "", ignoreCase = true)
+            .replace("địa chỉ", "", ignoreCase = true)
+            .trim()
+
+        // Viết hoa chữ cái đầu cho giống DB (ví dụ: "hà văn quyết" -> "Hà Văn Quyết")
+        return cleaned.split(" ").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }.trim()
+    }
+
+    private fun getDoctorByName(userQuery: String) {
+        _isSearching.value = true
+        _answer.value = "Đang tìm kiếm bác sĩ..."
+
+        viewModelScope.launch {
+            try {
+                val doctorName = extractDoctorName(userQuery) ?: return@launch
+
+                println("Extracted doctor name: $doctorName")
+
+                val response = RetrofitInstance.doctor.getDoctorByName(doctorName)
+
+                if (!response.isSuccessful) {
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "Lỗi hệ thống: ${response.code()}",
+                            isUser = false
+                        )
+                    }
+                    return@launch
+                }
+
+                val doctors = response.body() ?: emptyList()
+                if (doctors.isEmpty()) {
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "Không tìm thấy bác sĩ phù hợp với tên \"$doctorName\".",
+                            isUser = false
+                        )
+                    }
+                    return@launch
+                }
+
+                val reply = generateDoctorAnswer(userQuery, doctors.first())
+                if (reply != null) {
+                    _chatMessages.update { it + ChatMessage(message = reply, isUser = false) }
+                } else {
+                    // fallback: hiển thị card thông tin
+                    doctors.forEach { doctor ->
+                        _chatMessages.update {
+                            it + ChatMessage(
+                                message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                                isUser = false,
+                                type = MessageType.DOCTOR,
+                                doctorId = doctor.id,
+                                doctorName = doctor.name,
+                                doctorAvatar = doctor.avatarURL,
+                                doctorAddress = doctor.address,
+                                doctorPhone = doctor.phone,
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _chatMessages.update {
+                    it + ChatMessage(
+                        message = "Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}",
+                        isUser = false
+                    )
+                }
+            } finally {
+                _isSearching.value = false
+            }
+        }
+    }
+
+
     //Trích xuất từ khóa tìm kiếm
     private fun extractSearchKeyword(query: String): String {
         val lowerQuery = query.lowercase().trim()
         val stopWords = listOf("bài viết", "tìm kiếm", "bác sĩ", "khoa", "ở đâu", "phòng khám")
         var cleaned = lowerQuery
         stopWords.forEach { cleaned = cleaned.replace(it, " ") }
+        return cleaned.replace(Regex("\\s+"), " ").trim()
         // Loại bỏ dấu tiếng Việt
-        return removeDiacritics(cleaned.replace(Regex("\\s+"), " ").trim())
+        //return removeDiacritics(cleaned.replace(Regex("\\s+"), " ").trim())
     }
 
     private fun removeDiacritics(text: String): String {

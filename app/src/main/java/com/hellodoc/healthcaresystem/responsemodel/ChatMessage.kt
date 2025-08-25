@@ -10,7 +10,12 @@ data class ChatMessage(
     val articleId: String? = null,
     val doctorId: String? = null,
     val articleImgUrl: String? = null,
-    val articleAuthor: String? = null
+    val articleAuthor: String? = null,
+    val doctorName: String? = null,
+    val doctorAvatar: String? = null,
+    val doctorAddress: String? = null,
+    val doctorPhone: String? = null,
+    val doctorVerified: Boolean? = null
 )
 
 enum class MessageType {

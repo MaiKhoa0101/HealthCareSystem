@@ -83,4 +83,7 @@ interface DoctorService {
         @Query("query") specialtyName: String
     ): Response<List<GetDoctorResponse>>
 
+    @GET("doctor/doctorName/{name}")
+    suspend fun getDoctorByName(@Path("name") name: String): Response<List<GetDoctorResponse>>
+
 }

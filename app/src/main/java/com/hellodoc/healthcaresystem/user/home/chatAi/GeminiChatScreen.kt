@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -87,12 +88,17 @@ fun GeminiChatScreen(
                         )
                     }
                     MessageType.DOCTOR -> {
-                        ChatBubble(msg.message, msg.isUser) {
-                            msg.doctorId?.let { id ->
-                                navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", id)
-                                navHostController.navigate("other_user_profile")
+                        DoctorBubble(
+                            name = msg.message.substringBefore(" - "),
+                            specialty = msg.message.substringAfter(" - ").substringBefore("(").trim(),
+                            hospital = msg.message.substringAfter("(").substringBefore(")").trim(),
+                            onClick = {
+                                msg.doctorId?.let { id ->
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", id)
+                                    navHostController.navigate("other_user_profile")
+                                }
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -130,6 +136,93 @@ fun GeminiChatScreen(
         Spacer(modifier = Modifier.height(40.dp))
     }
 }
+
+@Composable
+fun DoctorBubble(
+    name: String,
+    specialty: String?,
+    hospital: String?,
+    avatarUrl: String? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Avatar bác sĩ
+                if (!avatarUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Doctor avatar",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(50)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_person_24), // thay bằng icon bác sĩ
+                        contentDescription = "Doctor",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(50)
+                            )
+                            .padding(12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Thông tin bác sĩ
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (!specialty.isNullOrEmpty()) {
+                        Text(
+                            text = specialty,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    if (!hospital.isNullOrEmpty()) {
+                        Text(
+                            text = hospital,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_down),
+                    contentDescription = "View doctor profile",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ChatBubble(
