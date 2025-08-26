@@ -18,10 +18,11 @@ import android.util.Base64
 import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlin.collections.forEach
 
 class GeminiHelper() {
-
     private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
     // Hàm này để phân tích nội dung ảnh và video đính kèm với bài post và trả về list keyword
@@ -53,23 +54,7 @@ class GeminiHelper() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
     }
-    // Gọi Gemini API
-    private suspend fun askGeminiWithPrompt(prompt: String): String {
-        return try {
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = listOf(Part(text = prompt))))
-            )
-            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
 
-            when {
-                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
-                response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
-                else -> response.body()!!.candidates.first().content.parts.first().text
-            }
-        } catch (e: Exception) {
-            "Lỗi kết nối: ${e.localizedMessage}"
-        }
-    }
     fun uriToBase64(context: Context, uri: String): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(Uri.parse(uri))
@@ -97,69 +82,174 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
-    // xử lý câu hỏi
-     fun processUserQuery(query: String) {
+    // Xử lý câu hỏi với phản hồi dựa trên data từ API
+    fun processUserQuery(query: String) {
         _question.value = query
         _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
 
         when {
-            isDoctorNameQuery(query) -> getDoctorByName(query)
-            isDoctorQuery(query) -> searchDoctors(query)
+            isDoctorNameQuery(query) -> handleDoctorNameQueryWithData(query)
+            isDoctorQuery(query) -> handleDoctorQueryWithData(query)
             isArticleQuery(query) -> searchArticles(query)
             else -> askGeminiDirectly(query)
         }
     }
 
-    private fun isArticleQuery(query: String): Boolean {
-        val lower = query.lowercase()
-        val keywords = listOf(
-            "bài", "bài viết về", "bài viết", "tìm bài viết",
-            "thông tin về", "tài liệu về", "tìm hiểu về",
-            "có bài nào về", "cho tôi bài viết", "cho tôi",
-            "tìm bài", "cho tôi bài", "cho tôi bài viết về",
-            "cho tôi bài về", "cho tôi bài nào về", "cho tôi bài nào"
-        )
-        return keywords.any { lower.contains(it) }
-    }
-
-    private fun isDoctorQuery(query: String): Boolean {
-        val lower = query.lowercase()
-        val keywords = listOf(
-            "khoa", "chuyên khoa", "phòng khám",
-            "ai chữa", "đâu chữa", "nơi chữa",
-            "bệnh viện nào", "phòng khám nào",
-            "ở đâu", "chỗ", "địa chỉ", "chỗ nào"
-            )
-        return keywords.any { lower.contains(it) }
-    }
-
-    private fun isDoctorNameQuery(query: String): Boolean {
-        val lower = query.lowercase()
-        val keywords = listOf(
-            "bác sĩ", "bác sỹ", "doctor", "chuyên gia"
-        )
-        return keywords.any { lower.contains(it) }
-    }
-
-    // Hỏi Gemini trực tiếp cho câu hỏi sức khỏe thông thường
-    private fun askGeminiDirectly(query: String) {
-        _answer.value = "Đang phân tích câu hỏi..."
-        _isSearching.value = false
-
-        val medicalPrompt = """
-            Bạn là một trợ lý y tế AI chuyên nghiệp và thân thiện.
-            Câu hỏi: "$query"
-            - Chỉ trả lời về y tế & sức khỏe.
-            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
-            - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
-            - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
-            Trả lời bằng tiếng Việt.
-        """.trimIndent()
+    // Xử lý câu hỏi về bác sĩ theo tên dựa trên data thực tế
+    private fun handleDoctorNameQueryWithData(query: String) {
+        _isSearching.value = true
+        _answer.value = "Đang tìm kiếm thông tin bác sĩ..."
 
         viewModelScope.launch {
-            val response = askGeminiWithPrompt(medicalPrompt)
-            _answer.value = response
-            _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
+            try {
+                // 1. Lấy dữ liệu từ database trước
+                val doctors = searchDoctorByName(query)
+
+                if (doctors.isEmpty()) {
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "Không tìm thấy bác sĩ phù hợp trong hệ thống.",
+                            isUser = false
+                        )
+                    }
+                    return@launch
+                }
+
+                // 2. Tạo prompt với data thực tế từ API
+                val doctorsInfo = doctors.take(3).joinToString("\n") { doctor ->
+                    "- Tên: ${doctor.name}\n" +
+                            "  Chuyên khoa: ${doctor.specialty}\n" +
+                            "  Bệnh viện: ${doctor.hospital}\n" +
+                            "  Địa chỉ: ${doctor.address ?: "Chưa cập nhật"}\n" +
+                            "  Điện thoại: ${doctor.phone ?: "Chưa cập nhật"}\n" +
+                            "  Xác minh: ${if (doctor.verified == true) "Đã xác minh" else "Chưa xác minh"}"
+                }
+
+                val aiPrompt = """
+                    Người dùng hỏi: "$query"
+                    
+                    Dựa trên thông tin bác sĩ có trong hệ thống:
+                    $doctorsInfo
+                    
+                    Hãy trả lời câu hỏi của người dùng một cách chi tiết và hữu ích:
+                    - Nếu hỏi về thông tin cụ thể (địa chỉ, số điện thoại, chuyên khoa), hãy trả lời chính xác dựa trên data
+                    - Nếu hỏi chung về bác sĩ, hãy giới thiệu thông tin tổng quan
+                    - Đưa ra lời khuyên về việc liên hệ và đặt lịch khám
+                    
+                    Sau đó kết thúc bằng: "Thông tin chi tiết được hiển thị bên dưới:"
+                    
+                    Trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.
+                """.trimIndent()
+
+                // 3. AI phân tích và trả lời dựa trên data
+                val aiResponse = askGeminiWithPrompt(aiPrompt)
+                _chatMessages.update { it + ChatMessage(message = aiResponse, isUser = false) }
+
+                // 4. Hiển thị thông tin chi tiết dưới dạng card
+                doctors.forEach { doctor ->
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                            isUser = false,
+                            type = MessageType.DOCTOR,
+                            doctorId = doctor.id,
+                            doctorName = doctor.name,
+                            doctorAvatar = doctor.avatarURL,
+                            doctorAddress = doctor.address,
+                            doctorPhone = doctor.phone,
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
+                _chatMessages.update {
+                    it + ChatMessage(
+                        message = "Lỗi xử lý: ${e.localizedMessage}",
+                        isUser = false
+                    )
+                }
+            } finally {
+                _isSearching.value = false
+            }
+        }
+    }
+
+    // Xử lý câu hỏi về chuyên khoa dựa trên data thực tế
+    private fun handleDoctorQueryWithData(query: String) {
+        _isSearching.value = true
+        _answer.value = "Đang tìm kiếm thông tin chuyên khoa..."
+
+        viewModelScope.launch {
+            try {
+                val keyword = extractSearchKeyword(query)
+                val doctors = searchDoctorsBySpecialty(keyword)
+
+                if (doctors.isEmpty()) {
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "Không tìm thấy bác sĩ chuyên khoa phù hợp.",
+                            isUser = false
+                        )
+                    }
+                    return@launch
+                }
+
+                // Tạo thông tin tổng hợp từ data thực tế
+                val specialtyInfo = doctors.groupBy { it.specialty }
+                val hospitalInfo = doctors.groupBy { it.hospital }.entries.take(3)
+                val totalDoctors = doctors.size
+
+                val dataInfo = """
+                Thông tin từ hệ thống:
+                - Tổng số bác sĩ: $totalDoctors
+                - Các chuyên khoa: ${specialtyInfo.keys.joinToString(", ")}
+                - Các bệnh viện: ${hospitalInfo.map { "${it.key} (${it.value.size} bác sĩ)" }.joinToString(", ")}
+                
+                Danh sách một số bác sĩ:
+                ${doctors.take(5).joinToString("\n") { "- ${it.name} tại ${it.hospital}" }}
+                """.trimIndent()
+
+                val aiPrompt = """
+                    Người dùng hỏi về: "$query"
+                    
+                    $dataInfo
+                    
+                    Dựa trên thông tin thực tế từ hệ thống, hãy:
+                    1. Giải thích về chuyên khoa này và những bệnh thường gặp
+                    2. Tư vấn khi nào nên đến khám
+                    3. Giới thiệu về các bệnh viện và bác sĩ có sẵn trong hệ thống
+                    4. Đưa ra lời khuyên về cách chọn bác sĩ phù hợp
+                    
+                    Kết thúc bằng: "Danh sách bác sĩ chi tiết:"
+                    
+                    Trả lời bằng tiếng Việt, dựa trên data thực tế.
+                """.trimIndent()
+
+                val aiResponse = askGeminiWithPrompt(aiPrompt)
+                _chatMessages.update { it + ChatMessage(message = aiResponse, isUser = false) }
+
+                // Hiển thị danh sách bác sĩ
+                doctors.take(5).forEach { doctor ->
+                    _chatMessages.update {
+                        it + ChatMessage(
+                            message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                            isUser = false,
+                            type = MessageType.DOCTOR,
+                            doctorId = doctor.id
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
+                _chatMessages.update {
+                    it + ChatMessage(
+                        message = "Lỗi tìm kiếm: ${e.localizedMessage}",
+                        isUser = false
+                    )
+                }
+            } finally {
+                _isSearching.value = false
+            }
         }
     }
 
@@ -204,84 +294,76 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
-    // Tìm kiếm bác sĩ
-    private fun searchDoctors(query: String) {
-        _isSearching.value = true
-        _answer.value = "Đang tìm kiếm bác sĩ..."
-
-        viewModelScope.launch {
-            try {
-                val keyword = extractSearchKeyword(query)
-                println("keyword: $keyword")
-                val searchResponse = RetrofitInstance.doctor.getDoctorBySpecialtyName(keyword)
-                println("searchResponse: $searchResponse")
-                val doctors = searchResponse.body()?.take(5) ?: emptyList()
-                println("doctors: $doctors")
-
-                if (doctors.isEmpty()) {
-                    _chatMessages.update { it + ChatMessage(message = "Không tìm thấy bác sĩ phù hợp.", isUser = false) }
-                    return@launch
-                }
-
-                // Thêm từng bác sĩ vào chat
-                doctors.forEach { doctor ->
-                    _chatMessages.update {
-                        it + ChatMessage(
-                            message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
-                            isUser = false,
-                            type = MessageType.DOCTOR,
-                            doctorId = doctor.id
-                        )
-                    }
-                }
-
-            } catch (e: Exception) {
-                _chatMessages.update { it + ChatMessage(message = "Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}", isUser = false) }
-            } finally {
-                _isSearching.value = false
-            }
+    // Helper functions để tìm kiếm database
+    private suspend fun searchDoctorByName(query: String): List<GetDoctorResponse> {
+        return try {
+            val doctorName = extractDoctorName(query) ?: return emptyList()
+            val response = RetrofitInstance.doctor.getDoctorByName(doctorName)
+            if (response.isSuccessful) response.body() ?: emptyList() else emptyList()
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
-    private fun generateDoctorAnswer(query: String, doctor: GetDoctorResponse): String? {
+    private suspend fun searchDoctorsBySpecialty(keyword: String): List<GetDoctorResponse> {
+        return try {
+            val response = RetrofitInstance.doctor.getDoctorBySpecialtyName(keyword)
+            if (response.isSuccessful) response.body() ?: emptyList() else emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun isArticleQuery(query: String): Boolean {
         val lower = query.lowercase()
+        val keywords = listOf(
+            "bài", "bài viết về", "bài viết", "tìm bài viết",
+            "thông tin về", "tài liệu về", "tìm hiểu về",
+            "có bài nào về", "cho tôi bài viết", "cho tôi",
+            "tìm bài", "cho tôi bài", "cho tôi bài viết về",
+            "cho tôi bài về", "cho tôi bài nào về", "cho tôi bài nào"
+        )
+        return keywords.any { lower.contains(it) }
+    }
 
-        return when {
-            // Hỏi chuyên khoa
-            lower.contains("khoa nào") || lower.contains("chuyên khoa") -> {
-                if (doctor.specialty.name != "")
-                    "Bác sĩ ${doctor.name} hiện đang công tác tại chuyên khoa ${doctor.specialty}."
-                else "Xin lỗi, tôi chưa có thông tin về chuyên khoa của bác sĩ ${doctor.name}."
-            }
+    private fun isDoctorQuery(query: String): Boolean {
+        val lower = query.lowercase()
+        val keywords = listOf(
+            "khoa", "chuyên khoa", "phòng khám",
+            "ai chữa", "đâu chữa", "nơi chữa",
+            "bệnh viện nào", "phòng khám nào",
+            "ở đâu", "chỗ", "địa chỉ", "chỗ nào"
+        )
+        return keywords.any { lower.contains(it) }
+    }
 
-            // Hỏi nơi làm việc
-            lower.contains("làm việc ở đâu") || lower.contains("công tác ở đâu") || lower.contains("bệnh viện") -> {
-                if (!doctor.hospital.isNullOrEmpty())
-                    "Bác sĩ ${doctor.name} hiện đang làm việc tại ${doctor.hospital}."
-                else "Xin lỗi, tôi chưa có thông tin bệnh viện nơi bác sĩ ${doctor.name} công tác."
-            }
+    private fun isDoctorNameQuery(query: String): Boolean {
+        val lower = query.lowercase()
+        val keywords = listOf(
+            "bác sĩ", "bác sỹ", "doctor", "chuyên gia"
+        )
+        return keywords.any { lower.contains(it) }
+    }
 
-            // Hỏi địa chỉ
-            lower.contains("địa chỉ") -> {
-                if (!doctor.address.isNullOrEmpty())
-                    "Địa chỉ của bác sĩ ${doctor.name} là: ${doctor.address}."
-                else "Xin lỗi, tôi chưa có thông tin địa chỉ của bác sĩ ${doctor.name}."
-            }
+    // Hỏi Gemini trực tiếp cho câu hỏi sức khỏe thông thường
+    private fun askGeminiDirectly(query: String) {
+        _answer.value = "Đang phân tích câu hỏi..."
+        _isSearching.value = false
 
-            // Hỏi số điện thoại
-            lower.contains("số điện thoại") || lower.contains("liên hệ") -> {
-                if (!doctor.phone.isNullOrEmpty())
-                    "Bạn có thể liên hệ bác sĩ ${doctor.name} qua số điện thoại: ${doctor.phone}."
-                else "Xin lỗi, tôi chưa có số điện thoại của bác sĩ ${doctor.name}."
-            }
+        val medicalPrompt = """
+            Bạn là một trợ lý y tế AI chuyên nghiệp và thân thiện.
+            Câu hỏi: "$query"
+            - Chỉ trả lời về y tế & sức khỏe.
+            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
+            - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
+            - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
+            Trả lời bằng tiếng Việt.
+        """.trimIndent()
 
-            // Hỏi uy tín
-            lower.contains("uy tín") || lower.contains("có tốt không") || lower.contains("giỏi không") -> {
-                if (doctor.verified == true)
-                    "Bác sĩ ${doctor.name} là bác sĩ đã được xác minh và có uy tín trong hệ thống."
-                else "Hiện tôi chưa có thông tin xác minh độ uy tín của bác sĩ ${doctor.name}."
-            }
-            else -> null // fallback: không hiểu intent -> sẽ hiển thị card
+        viewModelScope.launch {
+            val response = askGeminiWithPrompt(medicalPrompt)
+            _answer.value = response
+            _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
         }
     }
 
@@ -303,73 +385,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         return cleaned.split(" ").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }.trim()
     }
 
-    private fun getDoctorByName(userQuery: String) {
-        _isSearching.value = true
-        _answer.value = "Đang tìm kiếm bác sĩ..."
-
-        viewModelScope.launch {
-            try {
-                val doctorName = extractDoctorName(userQuery) ?: return@launch
-
-                println("Extracted doctor name: $doctorName")
-
-                val response = RetrofitInstance.doctor.getDoctorByName(doctorName)
-
-                if (!response.isSuccessful) {
-                    _chatMessages.update {
-                        it + ChatMessage(
-                            message = "Lỗi hệ thống: ${response.code()}",
-                            isUser = false
-                        )
-                    }
-                    return@launch
-                }
-
-                val doctors = response.body() ?: emptyList()
-                if (doctors.isEmpty()) {
-                    _chatMessages.update {
-                        it + ChatMessage(
-                            message = "Không tìm thấy bác sĩ phù hợp với tên \"$doctorName\".",
-                            isUser = false
-                        )
-                    }
-                    return@launch
-                }
-
-                val reply = generateDoctorAnswer(userQuery, doctors.first())
-                if (reply != null) {
-                    _chatMessages.update { it + ChatMessage(message = reply, isUser = false) }
-                } else {
-                    // fallback: hiển thị card thông tin
-                    doctors.forEach { doctor ->
-                        _chatMessages.update {
-                            it + ChatMessage(
-                                message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
-                                isUser = false,
-                                type = MessageType.DOCTOR,
-                                doctorId = doctor.id,
-                                doctorName = doctor.name,
-                                doctorAvatar = doctor.avatarURL,
-                                doctorAddress = doctor.address,
-                                doctorPhone = doctor.phone,
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                _chatMessages.update {
-                    it + ChatMessage(
-                        message = "Lỗi tìm kiếm bác sĩ: ${e.localizedMessage}",
-                        isUser = false
-                    )
-                }
-            } finally {
-                _isSearching.value = false
-            }
-        }
-    }
-
-
     //Trích xuất từ khóa tìm kiếm
     private fun extractSearchKeyword(query: String): String {
         val lowerQuery = query.lowercase().trim()
@@ -377,28 +392,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         var cleaned = lowerQuery
         stopWords.forEach { cleaned = cleaned.replace(it, " ") }
         return cleaned.replace(Regex("\\s+"), " ").trim()
-        // Loại bỏ dấu tiếng Việt
-        //return removeDiacritics(cleaned.replace(Regex("\\s+"), " ").trim())
-    }
-
-    private fun removeDiacritics(text: String): String {
-        val diacriticMap = mapOf(
-            'á' to 'a', 'à' to 'a', 'ả' to 'a', 'ã' to 'a', 'ạ' to 'a',
-            'ă' to 'a', 'ắ' to 'a', 'ằ' to 'a', 'ẳ' to 'a', 'ẵ' to 'a', 'ặ' to 'a',
-            'â' to 'a', 'ấ' to 'a', 'ầ' to 'a', 'ẩ' to 'a', 'ẫ' to 'a', 'ậ' to 'a',
-            'đ' to 'd',
-            'é' to 'e', 'è' to 'e', 'ẻ' to 'e', 'ẽ' to 'e', 'ẹ' to 'e',
-            'ê' to 'e', 'ế' to 'e', 'ề' to 'e', 'ể' to 'e', 'ễ' to 'e', 'ệ' to 'e',
-            'í' to 'i', 'ì' to 'i', 'ỉ' to 'i', 'ĩ' to 'i', 'ị' to 'i',
-            'ó' to 'o', 'ò' to 'o', 'ỏ' to 'o', 'õ' to 'o', 'ọ' to 'o',
-            'ô' to 'o', 'ố' to 'o', 'ồ' to 'o', 'ổ' to 'o', 'ỗ' to 'o', 'ộ' to 'o',
-            'ơ' to 'o', 'ớ' to 'o', 'ờ' to 'o', 'ở' to 'o', 'ỡ' to 'o', 'ợ' to 'o',
-            'ú' to 'u', 'ù' to 'u', 'ủ' to 'u', 'ũ' to 'u', 'ụ' to 'u',
-            'ư' to 'u', 'ứ' to 'u', 'ừ' to 'u', 'ử' to 'u', 'ữ' to 'u', 'ự' to 'u',
-            'ý' to 'y', 'ỳ' to 'y', 'ỷ' to 'y', 'ỹ' to 'y', 'ỵ' to 'y'
-        )
-
-        return text.map { char -> diacriticMap[char] ?: char }.joinToString("")
     }
 
     // Gọi Gemini API
