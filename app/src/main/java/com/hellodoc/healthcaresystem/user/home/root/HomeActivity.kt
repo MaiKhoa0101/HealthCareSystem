@@ -326,7 +326,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("create_post") {
-                CreatePostScreen(context, navHostController)
+                CreatePostScreen(context, navHostController, postViewModel)
             }
             composable("editProfile") {
                 EditUserProfile(sharedPreferences, navHostController)
@@ -399,7 +399,7 @@ class HomeActivity : BaseActivity() {
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                CreatePostScreen(context, navHostController, postId = postId)
+                CreatePostScreen(context, navHostController, postViewModel ,postId = postId)
             }
             composable(
                 route = "post-detail/{postId}",

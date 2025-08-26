@@ -19,6 +19,7 @@ import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.responsemodel.UiState
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -30,6 +31,14 @@ import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import java.io.FileOutputStream
+import java.util.concurrent.atomic.AtomicInteger
+import okhttp3.RequestBody
+import okio.BufferedSink
+import okio.source
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 class PostViewModel(
     private val sharedPreferences: SharedPreferences,
@@ -62,6 +71,9 @@ class PostViewModel(
 
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String?> get() = _errorMessage
+
+    private var _uiStatePost = MutableStateFlow<UiState>(UiState.Idle)
+    val uiStatePost: StateFlow<UiState> = _uiStatePost
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
         println("Post dc fetch")
@@ -235,103 +247,162 @@ class PostViewModel(
     private val _isPosting = MutableStateFlow(false)
     val isPosting: StateFlow<Boolean> = _isPosting
 
-    fun createPost(request: CreatePostRequest, context: Context) {
-        Log.d("PostViewModel", "Bắt đầu đăng bài")
-        viewModelScope.launch {
-            try {
-                _isPosting.value = true
-                Log.d("PostViewModel", "isPosting chuyen thanh true")
+    private val _uploadProgress = MutableStateFlow(0f)
+    val uploadProgress: StateFlow<Float> = _uploadProgress
 
+    fun createPost(request: CreatePostRequest, context: Context) {
+        viewModelScope.launch {
+            _uploadProgress.value = 0f
+            _isPosting.value = true
+            _uiStatePost.value = UiState.Loading
+
+            try {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Đang đăng bài...", Toast.LENGTH_SHORT).show()
                 }
 
-                // Phân tích từ khóa từ nội dung
-                val keywords = analyzeContentKeywords(request.content)
-                // 1. Lấy từ khóa nội dung
+                // 1) Phân tích từ khóa
                 val contentKeywords = analyzeContentKeywords(request.content)
-
-                // 2. Lấy từ khóa từ ảnh/video (giả sử request có trường videoUri)
-                val mediaUri = request.media?.firstOrNull()?.toString() ?: ""
+                val mediaUri = request.media?.firstOrNull()?.toString().orEmpty()
                 val mediaKeywords = if (mediaUri.isNotEmpty()) {
                     geminiHelper.readImageAndVideo(context, mediaUri)
                 } else emptyList()
-
-                // 3. Gộp và loại trùng
                 val allKeywords = (contentKeywords + mediaKeywords)
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .distinct()
-                    .take(10)
-                println("Từ khóa đã phân tích: $allKeywords")
-                // 4. Chuyển đổi thành MultipartBody.Part
-                val userIdPart = MultipartBody.Part.createFormData("userId", request.userId)
+                    .map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(10)
+
+                // 2) Parts text
+                val userIdPart    = MultipartBody.Part.createFormData("userId", request.userId)
                 val userModelPart = MultipartBody.Part.createFormData("userModel", request.userModel)
-                val contentPart = MultipartBody.Part.createFormData("content", request.content)
-
-                val keywordsPart = if (allKeywords.isNotEmpty()) {
+                val contentPart   = MultipartBody.Part.createFormData("content", request.content)
+                val keywordsPart  = if (allKeywords.isNotEmpty())
                     MultipartBody.Part.createFormData("keywords", allKeywords.joinToString(","))
+                else null
+
+                // 3) Chuẩn bị danh sách file HỢP LỆ trước (để tính totalFiles CHÍNH XÁC)
+                val uris = request.media.orEmpty()
+
+                data class Tmp(val file: File, val mime: String)
+                val tmpFiles: List<Tmp> = withContext(Dispatchers.IO) {
+                    uris.mapNotNull { uri ->
+                        try {
+                            val mime = context.contentResolver.getType(uri) ?: "application/octet-stream"
+                            val f = File.createTempFile("upload_", null, context.cacheDir)
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                FileOutputStream(f).use { out -> input.copyTo(out) }
+                            } ?: run {
+                                f.delete(); return@mapNotNull null
+                            }
+                            Tmp(f, mime)
+                        } catch (e: Exception) {
+                            Log.e("PostViewModel", "Copy uri -> temp fail: $uri", e)
+                            null
+                        }
+                    }
+                }
+
+                val totalFiles = tmpFiles.size
+                val imageParts: List<MultipartBody.Part> = if (totalFiles == 0) {
+                    emptyList()
                 } else {
-                    null
+                    val uploaded = AtomicInteger(0)
+                    tmpFiles.map { tmp ->
+                        val body = FileCompletionRequestBody(
+                            file = tmp.file,
+                            mediaType = tmp.mime.toMediaTypeOrNull()
+                        ) {
+                            val done = uploaded.incrementAndGet()
+                            // xóa file tạm sau khi file này upload xong để tránh đầy cache
+                            tmp.file.delete()
+                            viewModelScope.launch(Dispatchers.Main) {
+                                _uploadProgress.value = done.toFloat() / totalFiles.toFloat()
+                            }
+                        }
+                        MultipartBody.Part.createFormData("images", tmp.file.name, body)
+                    }
                 }
 
-                val imageParts = request.media?.mapNotNull { uri ->
-                    prepareFilePart(context, uri, "images")
-                }
-
+                // 4) Gọi API — tiến trình nhảy mỗi khi 1 file xong
                 val response = RetrofitInstance.postService.createPost(
-                    userIdPart,
-                    userModelPart,
-                    contentPart,
-                    imageParts ?: emptyList(),
-                    keywordsPart
+                    userIdPart, userModelPart, contentPart, imageParts, keywordsPart
                 )
 
                 if (response.isSuccessful) {
                     _createPostResponse.value = response.body()
-                    Log.d("PostViewModel", "Đăng bài thành công")
-
+                    _uiStatePost.value = UiState.Success("Đăng bài thành công")
                     withContext(Dispatchers.Main) {
+                        // Nếu không có file, đảm bảo vẫn về 100%
+                        if (totalFiles == 0) _uploadProgress.value = 1f
                         Toast.makeText(context, "Đăng bài thành công", Toast.LENGTH_SHORT).show()
                     }
-
-                    // Refresh danh sách bài viết
                     fetchPosts()
                 } else {
-                    Log.e("PostViewModel", "Create Post Error: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string().orEmpty()
+                    _uiStatePost.value = UiState.Error("Đăng bài thất bại: $errorBody")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Đăng bài thất bại", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Đăng bài thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Create Post Exception", e)
+                _uiStatePost.value = UiState.Error("Lỗi: ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 _isPosting.value = false
-                Log.d("PostViewModel", "isPosting chuyen thanh false")
+                // Cho người dùng thấy 100% một nhịp rồi reset (tùy bạn):
+                 delay(500)
+                 _uploadProgress.value = 0f
+                 _uiStatePost.value = UiState.Idle
             }
         }
     }
 
-
-    private fun prepareFilePart(context: Context, fileUri: Uri, partName: String): MultipartBody.Part? {
+    private fun prepareFilePart(
+        context: Context,
+        fileUri: Uri,
+        partName: String
+    ): MultipartBody.Part? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(fileUri)
-            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
-            tempFile.outputStream().use { outputStream ->
-                inputStream?.copyTo(outputStream)
+            val mimeType = context.contentResolver.getType(fileUri) ?: "application/octet-stream"
+
+            // Tạo file tạm (không cần tên gốc)
+            val tempFile = File.createTempFile("upload_", null, context.cacheDir)
+
+            context.contentResolver.openInputStream(fileUri)?.use { input ->
+                FileOutputStream(tempFile).use { output -> input.copyTo(output) }
+            } ?: run {
+                Log.e("PostViewModel", "Không mở được InputStream cho $fileUri")
+                return null
             }
 
-            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
+            val requestBody = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(partName, tempFile.name, requestBody)
         } catch (e: Exception) {
-            Log.e("PostViewModel", "Error preparing file part", e)
+            Log.e("PostViewModel", "Error preparing file part: $fileUri", e)
             null
         }
     }
+    /** RequestBody gọi onFileUploaded() đúng 1 lần khi file này đã ghi xong vào request. */
+    class FileCompletionRequestBody(
+        private val file: File,
+        private val mediaType: MediaType?,
+        private val onFileUploaded: () -> Unit
+    ) : RequestBody() {
 
+        private val done = AtomicBoolean(false)
+
+        override fun contentType(): MediaType? = mediaType
+        override fun contentLength(): Long = file.length()
+
+        override fun writeTo(sink: BufferedSink) {
+            file.source().use { source ->
+                sink.writeAll(source)
+            }
+            if (done.compareAndSet(false, true)) {
+                onFileUploaded()
+            }
+        }
+    }
 
     private val _isFavoritedMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val isFavoritedMap: StateFlow<Map<String, Boolean>> = _isFavoritedMap

@@ -89,8 +89,8 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 fun CreatePostScreen(
     context: Context,
     navController: NavHostController,
-    postId: String? = null,
-    modifier: Modifier = Modifier
+    postViewModel: PostViewModel,
+    postId: String? = null
 ) {
     val storagePermissionState: PermissionState = rememberPermissionState(
         permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -109,9 +109,6 @@ fun CreatePostScreen(
         initializer { UserViewModel(sharedPreferences) }
     })
 
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
 
     val user by userViewModel.user.collectAsState()
     var avatarUrl by remember { mutableStateOf("") }
