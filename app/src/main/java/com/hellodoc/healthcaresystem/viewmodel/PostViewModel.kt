@@ -350,7 +350,7 @@ class PostViewModel(
             } finally {
                 _isPosting.value = false
                 // Cho người dùng thấy 100% một nhịp rồi reset (tùy bạn):
-                 delay(500)
+                 delay(2000)
                  _uploadProgress.value = 0f
                  _uiStatePost.value = UiState.Idle
             }
