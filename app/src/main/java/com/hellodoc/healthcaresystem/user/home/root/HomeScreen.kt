@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
@@ -30,6 +31,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +54,8 @@ import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlin.text.toInt
+import kotlin.times
 
 
 var username = ""
@@ -85,10 +90,6 @@ fun HealthMateHomeScreen(
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    var reportedPostId by remember { mutableStateOf<String?>(null) }
-    var showReportDialog by remember { mutableStateOf(false) }
-    var showFullScreenComment by remember { mutableStateOf(false) }
-    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
@@ -110,7 +111,6 @@ fun HealthMateHomeScreen(
 
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
-    val coroutineScope = rememberCoroutineScope()
 
     val isPosting by postViewModel.isPosting.collectAsState()
 
@@ -154,7 +154,8 @@ fun HealthMateHomeScreen(
         }
     }
 
-    val posts by postViewModel.posts.collectAsState()
+    val progress by postViewModel.uploadProgress.collectAsState()
+    val uiStatePost by postViewModel.uiStatePost.collectAsState()
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(
@@ -172,32 +173,6 @@ fun HealthMateHomeScreen(
                 }
             }
     ) {
-
-        if(isPosting) {
-            Log.d("UI", "Showing posting progress")
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Đang đăng bài...")
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-        }
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -325,6 +300,52 @@ fun HealthMateHomeScreen(
                 answer = answer,
                 onDismiss = { showDialog = false }
             )
+        }
+        Row (
+            modifier = Modifier.padding(bottom = 50.dp)
+                .align(Alignment.TopCenter)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    clip = false
+                )
+                .clip(RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (uiStatePost is UiState.Loading) {
+                println("Hien thanh trang thai")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    Text(
+                        text = "Đang đăng bài: ${(progress * 100).toInt()}%",
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            } else if (uiStatePost is UiState.Success) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Success",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Đăng bài thành công",
+                        color = Color.Green,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -404,36 +406,32 @@ fun PostMedia(
         )
     }
 }
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaGrid(
     mediaUrls: List<String>,
     modifier: Modifier = Modifier,
     onMediaClick: ((String, Int) -> Unit)? = null
 ) {
-    val maxImagesToShow = 5
-    val extraImageCount = mediaUrls.size - maxImagesToShow
+    if (mediaUrls.isEmpty()) return
 
-    if (mediaUrls.isEmpty()) {
-        return
-    }
+    val corner = 12.dp
+    val spacing = 2.dp
+    val maxImagesToShow = 5
+    val extraImageCount = (mediaUrls.size - maxImagesToShow).coerceAtLeast(0)
+
     when (mediaUrls.size) {
         1 -> {
-            // Single media - full width with proper aspect ratio
             Box(
                 modifier = modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { onMediaClick?.invoke( mediaUrls[0], 0) }
+                    .clip(RoundedCornerShape(corner))
+                    .clickable { onMediaClick?.invoke(mediaUrls[0], 0) }
             ) {
                 SingleMediaItem(
                     url = mediaUrls[0],
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(4f / 3f)
-                        .shadow(10.dp, RoundedCornerShape(8.dp))
-                        .clip(RoundedCornerShape(20.dp))
                 )
             }
         }
@@ -441,22 +439,25 @@ fun MediaGrid(
         2 -> {
             Row(
                 modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing)
             ) {
                 mediaUrls.forEachIndexed { index, url ->
+                    val shape = RoundedCornerShape(
+                        topStart = if (index == 0) corner else 0.dp,
+                        topEnd = if (index == 1) corner else 0.dp,
+                        bottomEnd = if (index == 1) corner else 0.dp,
+                        bottomStart = if (index == 0) corner else 0.dp
+                    )
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
-                            .clip(RoundedCornerShape(if (index == 0) 12.dp else 0.dp, if (index == 1) 12.dp else 0.dp, if (index == 1) 12.dp else 0.dp, if (index == 0) 12.dp else 0.dp))
-                            .clickable { onMediaClick?.invoke( url , index) }
+                            .clip(shape)
+                            .clickable { onMediaClick?.invoke(url, index) }
                     ) {
                         SingleMediaItem(
                             url = url,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .aspectRatio(1f)
-                                .clip(RoundedCornerShape(if (index == 0) 12.dp else 0.dp, if (index == 1) 12.dp else 0.dp, if (index == 1) 12.dp else 0.dp, if (index == 0) 12.dp else 0.dp))
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
@@ -465,35 +466,44 @@ fun MediaGrid(
 
         3 -> {
             Row(
-                modifier = modifier.fillMaxWidth().height(300.dp).shadow(5.dp, RoundedCornerShape(12.dp)),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                horizontalArrangement = Arrangement.spacedBy(spacing)
             ) {
+                // Trái: ảnh lớn (index 0)
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topStart = corner, bottomStart = corner))
                         .clickable { onMediaClick?.invoke(mediaUrls[0], 0) }
                 ) {
                     SingleMediaItem(
                         url = mediaUrls[0],
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp, 0.dp, 0.dp, 12.dp))
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
+                // Phải: 2 ảnh nhỏ (index 1, 2)
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(spacing)
                 ) {
-                    mediaUrls.slice(1..2) .forEachIndexed { index, url ->
+                    listOf(1, 2).forEachIndexed { idx, realIndex ->
+                        val shape = when (idx) {
+                            0 -> RoundedCornerShape(topEnd = corner)
+                            else -> RoundedCornerShape(bottomEnd = corner)
+                        }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onMediaClick?.invoke( url , index) }
+                                .fillMaxWidth()
+                                .clip(shape)
+                                .clickable { onMediaClick?.invoke(mediaUrls[realIndex], realIndex) }
                         ) {
                             SingleMediaItem(
-                                url = url,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(0.dp, if (index == 0) 12.dp else 0.dp, if (index == 0) 0.dp else 12.dp, 0.dp))
+                                url = mediaUrls[realIndex],
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
@@ -504,84 +514,103 @@ fun MediaGrid(
         4 -> {
             Column(
                 modifier = modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(spacing)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    repeat(2) { index ->
-                        SingleMediaItem(
-                            url = mediaUrls[index],
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                    // Hàng trên: index 0,1
+                    (0..1).forEach { index ->
+                        val shape = RoundedCornerShape(
+                            topStart = if (index == 0) corner else 0.dp,
+                            topEnd = if (index == 1) corner else 0.dp
+                        )
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = if (index == 0) 12.dp else 0.dp,
-                                        topEnd = if (index == 1) 12.dp else 0.dp
-                                    )
-                                )
-                        )
+                                .clip(shape)
+                                .clickable { onMediaClick?.invoke(mediaUrls[index], index) }
+                        ) {
+                            SingleMediaItem(
+                                url = mediaUrls[index],
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    repeat(2) { index ->
-                        val imageIndex = index + 2
-                        SingleMediaItem(
-                            url = mediaUrls[imageIndex],
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                    // Hàng dưới: index 2,3
+                    (2..3).forEach { index ->
+                        val shape = RoundedCornerShape(
+                            bottomStart = if (index == 2) corner else 0.dp,
+                            bottomEnd = if (index == 3) corner else 0.dp
+                        )
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(
-                                        bottomStart = if (index == 0) 12.dp else 0.dp,
-                                        bottomEnd = if (index == 1) 12.dp else 0.dp
-                                    )
-                                )
-                        )
+                                .clip(shape)
+                                .clickable { onMediaClick?.invoke(mediaUrls[index], index) }
+                        ) {
+                            SingleMediaItem(
+                                url = mediaUrls[index],
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
         }
 
         else -> {
-            val displayedMedia = mediaUrls.take(maxImagesToShow)
+            val displayed = mediaUrls.take(maxImagesToShow) // 0..4
             Column(
                 modifier = modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(spacing)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    repeat(2) { index ->
-                        SingleMediaItem(
-                            url = displayedMedia[index],
+                // Hàng trên: index 0,1
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                    (0..1).forEach { index ->
+                        val shape = RoundedCornerShape(
+                            topStart = if (index == 0) corner else 0.dp,
+                            topEnd   = if (index == 1) corner else 0.dp
+                        )
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = if (index == 0) 12.dp else 0.dp,
-                                        topEnd = if (index == 1) 12.dp else 0.dp
-                                    )
-                                )
-                        )
+                                .clip(shape)
+                                .clickable { onMediaClick?.invoke(mediaUrls[index], index) }
+                        ) {
+                            SingleMediaItem(
+                                url = displayed[index],
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    repeat(3) { index ->
-                        val mediaIndex = index + 2
-                        SingleMediaItem(
-                            url = displayedMedia[mediaIndex],
+                // Hàng dưới: index 2,3,4 (ô cuối có overlay nếu còn)
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                    (2..4).forEach { index ->
+                        val isLast = index == 4
+                        val shape = RoundedCornerShape(
+                            bottomStart = if (index == 2) corner else 0.dp,
+                            bottomEnd   = if (index == 4) corner else 0.dp
+                        )
+                        val overlay = if (isLast && extraImageCount > 0) "+$extraImageCount\nmore" else null
+
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(
-                                        bottomStart = if (index == 0) 12.dp else 0.dp,
-                                        bottomEnd = if (index == 2) 12.dp else 0.dp
-                                    )
-                                ),
-                            overlayText = if (index == 2 && extraImageCount > 0) "+$extraImageCount\nmore" else null
-                        )
+                                .clip(shape)
+                                .clickable { onMediaClick?.invoke(mediaUrls[index], index) }
+                        ) {
+                            SingleMediaItem(
+                                url = displayed[index],
+                                modifier = Modifier.fillMaxSize(),
+                                overlayText = overlay
+                            )
+                        }
                     }
                 }
             }
@@ -595,21 +624,18 @@ fun SingleMediaItem(
     modifier: Modifier,
     overlayText: String? = null
 ) {
-    Box(
-        modifier = modifier.background(Color.Gray.copy(alpha = 0.1f))
-    ) {
+    Box(modifier = modifier.background(Color.Gray.copy(alpha = 0.08f))) {
         when (detectMediaType(url)) {
             MediaType.IMAGE -> {
                 AsyncImage(
                     model = url,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f))
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             MediaType.VIDEO -> {
+                // Hiển thị thumbnail + nút Play
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -617,20 +643,15 @@ fun SingleMediaItem(
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = url, // This might be a video thumbnail URL
+                        model = url, // nếu là thumbnail URL
                         contentDescription = "Video thumbnail",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-
-                    // Play button overlay
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(
-                                Color.Black.copy(alpha = 0.6f),
-                                CircleShape
-                            ),
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -640,7 +661,6 @@ fun SingleMediaItem(
                             modifier = Modifier.size(24.dp)
                         )
                     }
-
                 }
             }
             MediaType.UNKNOWN -> {
@@ -655,27 +675,30 @@ fun SingleMediaItem(
             }
         }
 
-        if (overlayText != null) {
+        // Overlay “+X more” (nếu có)
+        overlayText?.let {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
                         )
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = overlayText,
+                    text = it,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun MediaDetailDialog(
