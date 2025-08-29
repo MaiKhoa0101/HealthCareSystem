@@ -263,7 +263,10 @@ class PostViewModel(
 
                 // 1) Phân tích từ khóa
                 val contentKeywords = analyzeContentKeywords(request.content)
-                val mediaUri = request.media?.firstOrNull()?.toString().orEmpty()
+                var mediaUri: List<Uri> = emptyList()
+                for (i in request.media) {
+                    mediaUri = mediaUri + i
+                }
                 val mediaKeywords = if (mediaUri.isNotEmpty()) {
                     geminiHelper.readImageAndVideo(context, mediaUri)
                 } else emptyList()
@@ -347,6 +350,7 @@ class PostViewModel(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
+                println("Lỗi: ${e.message}")
             } finally {
                 _isPosting.value = false
                 // Cho người dùng thấy 100% một nhịp rồi reset (tùy bạn):

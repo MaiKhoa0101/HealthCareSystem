@@ -30,8 +30,8 @@ private val DarkColorScheme = darkColorScheme(
     //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
     tertiaryContainer = LightDarkTheme,
     error = CustomRed,
-    tertiary = LightBlueCustom,
-    surfaceVariant = LightGreenCustom,
+    tertiary = BoxGrey,
+    surfaceVariant = BoxLightGrey,
     errorContainer = LightRedCustom,
     outlineVariant = AmberCustom,
     )
