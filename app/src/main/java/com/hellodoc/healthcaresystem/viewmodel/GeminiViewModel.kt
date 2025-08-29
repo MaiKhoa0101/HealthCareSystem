@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import kotlin.collections.forEach
