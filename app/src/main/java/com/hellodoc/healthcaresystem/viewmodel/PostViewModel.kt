@@ -292,7 +292,69 @@ class PostViewModel(
                             val f = File.createTempFile("upload_", null, context.cacheDir)
                             context.contentResolver.openInputStream(uri)?.use { input ->
                                 FileOutputStream(f).use { out -> input.copyTo(out) }
-                            } ?: run {
+                            } ?: run {suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
+                                try {
+                                    // Chuyển Uri → base64 và lấy mimeType tương ứng
+                                    val mediaParts = mediaUris.map { uri ->
+                                        val inputStream = context.contentResolver.openInputStream(uri)
+                                            ?: return listOf("Không thể đọc tệp phương tiện: $uri")
+
+                                        val bytes = inputStream.use { it.readBytes() }
+                                        val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+
+                                        val mimeType = context.contentResolver.getType(uri)
+                                            ?: when {
+                                                uri.toString().endsWith(".png", true) -> "image/png"
+                                                uri.toString().endsWith(".jpg", true) ||
+                                                        uri.toString().endsWith(".jpeg", true) -> "image/jpeg"
+                                                uri.toString().endsWith(".mp4", true) -> "video/mp4"
+                                                uri.toString().endsWith(".mov", true) -> "video/quicktime"
+                                                else -> "application/octet-stream"
+                                            }
+
+                                        Part(
+                                            inline_data = InlineData(
+                                                mime_type = mimeType,
+                                                data = base64
+                                            )
+                                        )
+                                    }
+
+                                    // Prompt text
+                                    val promptPart = Part(
+                                        text = "Hãy phân tích tất cả ảnh/video này và liệt kê các từ khóa mô tả, " +
+                                                "mỗi từ khóa trên một dòng, viết thường, chỉ có kí tự chữ và số. " +
+                                                "Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
+                                    )
+
+                                    // Gom mediaParts + promptPart trong MỘT Content duy nhất
+                                    val request = GeminiRequest(
+                                        contents = listOf(
+                                            Content(parts = mediaParts + promptPart)
+                                        )
+                                    )
+
+                                    val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                                    val aiResponse = when {
+                                        !response.isSuccessful ->
+                                            "Lỗi hệ thống: ${response.code()} - ${response.errorBody()?.string()}"
+                                        response.body()?.candidates.isNullOrEmpty() ->
+                                            "Không nhận được phản hồi từ AI"
+                                        else ->
+                                            response.body()!!.candidates.first().content.parts.first().text
+                                    }
+
+                                    return aiResponse
+                                        .lines()
+                                        .map { it.trim() }
+                                        .filter { it.isNotEmpty() }
+
+                                } catch (e: Exception) {
+                                    return listOf("Lỗi khi xử lý: ${e.message}")
+                                }
+                            }
+
                                 f.delete(); return@mapNotNull null
                             }
                             Tmp(f, mime)
