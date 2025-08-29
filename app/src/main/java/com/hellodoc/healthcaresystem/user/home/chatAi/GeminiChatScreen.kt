@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -120,7 +121,7 @@ fun GeminiChatScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
-                painter = painterResource(id = R.drawable.submit_arrow),
+                imageVector = Icons.Default.KeyboardDoubleArrowUp,
                 contentDescription = "submit question for AI",
                 modifier = Modifier
                     .size(30.dp)
@@ -276,7 +277,7 @@ fun TopBar(title: String,onClick: () -> Unit) {
         // Tiêu đề ở giữa
         Text(
             text = title,
-            color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )

@@ -24,26 +24,46 @@ class GeminiHelper() {
 
     private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
 
-    // Hàm này để phân tích nội dung ảnh và video đính kèm với bài post và trả về list keyword
-    suspend fun readImageAndVideo(context: Context, mediaUri: String): List<String> {
-        val base64 = uriToBase64(context, mediaUri)
-        if (base64 == null) return listOf("Không thể đọc tệp phương tiện.")
+    suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
+        val base64List = mediaUris.map { uriToBase64(context, it.toString()) }
+        if (base64List.any { it == null }) {
+            return listOf("Không thể đọc tệp phương tiện.")
+        }
 
-        val mimeType = context.contentResolver.getType(Uri.parse(mediaUri)) ?: "image/jpeg"
-        val inlineData = InlineData(mime_type = mimeType, data = base64)
+        val mimeTypes:List<String> = mediaUris.map {
+            context.contentResolver.getType(
+                it
+            )?:"image/jpeg"
+        }
 
-        val prompt = "" +
-                "Hãy phân tích ảnh/video này và liệt kê các từ khóa mô tả hình ảnh, mỗi từ khóa trên một dòng, viết thường, chỉ có kí tự chữ và số. Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
+        // Tạo list Parts chứa tất cả media
+        val mediaParts = base64List.mapIndexed { index, base64 ->
+            Part(
+                inline_data = InlineData(
+                    mime_type = mimeTypes[index],
+                    data = base64!!
+                )
+            )
+        }
 
-        val parts = listOf(
-            Part(inline_data = inlineData),
-            Part(text = prompt)
+        // Prompt text
+        val promptPart = Part(
+            text = "Hãy phân tích tất cả ảnh/video này và liệt kê các từ khóa mô tả, " +
+                    "mỗi từ khóa trên một dòng, viết thường, chỉ có kí tự chữ và số. " +
+                    "Trả lời bằng tiếng Việt. Chỉ trả lời từ khoá, không trả lời thừa"
         )
-        val request = GeminiRequest(contents = listOf(Content(parts = parts)))
+
+        // Gom mediaParts + promptPart trong MỘT Content duy nhất
+        val request = GeminiRequest(
+            contents = listOf(
+                Content(parts = mediaParts + promptPart)
+            )
+        )
+
         val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
 
         val aiResponse = when {
-            !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
+            !response.isSuccessful -> "Lỗi hệ thống: ${response.code()} - ${response.errorBody()?.string()}"
             response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
             else -> response.body()!!.candidates.first().content.parts.first().text
         }
@@ -53,6 +73,21 @@ class GeminiHelper() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
     }
+
+
+
+    // Chỉ encode 1 file
+    fun uriToBase64(context: Context, uri: String): String? {
+        return try {
+            context.contentResolver.openInputStream(Uri.parse(uri)).use { inputStream ->
+                val bytes = inputStream?.readBytes()
+                if (bytes != null) Base64.encodeToString(bytes, Base64.NO_WRAP) else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     // Gọi Gemini API
     private suspend fun askGeminiWithPrompt(prompt: String): String {
         return try {
@@ -70,16 +105,7 @@ class GeminiHelper() {
             "Lỗi kết nối: ${e.localizedMessage}"
         }
     }
-    fun uriToBase64(context: Context, uri: String): String? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(Uri.parse(uri))
-            val bytes = inputStream?.readBytes()
-            inputStream?.close()
-            if (bytes != null) Base64.encodeToString(bytes, Base64.NO_WRAP) else null
-        } catch (e: Exception) {
-            null
-        }
-    }
+
 }
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
