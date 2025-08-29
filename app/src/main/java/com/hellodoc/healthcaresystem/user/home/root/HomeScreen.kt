@@ -23,8 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DoubleArrow
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -568,8 +571,8 @@ fun AssistantQueryRow(
             Spacer(modifier = Modifier.height(4.dp))
         }
         Spacer(modifier = Modifier.width(8.dp))
-        Image(
-            painter = painterResource(id = R.drawable.submit_arrow),
+        Icon(
+            imageVector = Icons.Default.DoubleArrow,
             contentDescription = "submit question for AI",
             modifier = Modifier
                 .size(20.dp)
@@ -579,7 +582,8 @@ fun AssistantQueryRow(
                         text = ""
                         navHostController.navigate("gemini_help")
                     }
-                }
+                },
+            tint = MaterialTheme.colorScheme.onBackground
         )
     }
 }

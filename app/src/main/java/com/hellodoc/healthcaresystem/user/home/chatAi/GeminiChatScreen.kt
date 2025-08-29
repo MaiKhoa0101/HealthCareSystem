@@ -120,7 +120,7 @@ fun GeminiChatScreen(
                 placeholder = { Text("Nhập câu hỏi...") }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Image(
+            Icon(
                 imageVector = Icons.Default.KeyboardDoubleArrowUp,
                 contentDescription = "submit question for AI",
                 modifier = Modifier
@@ -130,7 +130,8 @@ fun GeminiChatScreen(
                             geminiViewModel.processUserQuery(input)
                             input = ""
                         }
-                    }
+                    },
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
 
