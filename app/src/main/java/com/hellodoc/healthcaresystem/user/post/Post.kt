@@ -1,9 +1,12 @@
 package com.hellodoc.healthcaresystem.user.post
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,6 +50,7 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -71,9 +76,17 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import coil.request.videoFrameMillis
+import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -89,16 +102,6 @@ fun PostColumn(
     val posts by postViewModel.posts.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
-
-    // Lấy bài viết đầu tiên
-    LaunchedEffect(Unit) {
-        if (idUserOfPost.isNotEmpty()) {
-            postViewModel.getPostByUserId(idUserOfPost)
-        } else {
-            postViewModel.fetchPosts()
-        }
-    }
-
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -617,7 +620,6 @@ fun MediaGrid(
         }
     }
 }
-
 @Composable
 fun SingleMediaItem(
     url: String,
@@ -627,40 +629,17 @@ fun SingleMediaItem(
     Box(modifier = modifier.background(Color.Gray.copy(alpha = 0.08f))) {
         when (detectMediaType(url)) {
             MediaType.IMAGE -> {
-                AsyncImage(
-                    model = url,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                SkeletonAsyncImage(url)
             }
             MediaType.VIDEO -> {
                 // Hiển thị thumbnail + nút Play
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
-                    AsyncImage(
-                        model = url, // nếu là thumbnail URL
-                        contentDescription = "Video thumbnail",
-                        contentScale = ContentScale.Crop,
+                    VideoThumbnail(
+                        url = url,
                         modifier = Modifier.fillMaxSize()
                     )
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(Color.Black.copy(alpha = 0.6f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Play video",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
                 }
             }
             MediaType.UNKNOWN -> {
@@ -699,6 +678,77 @@ fun SingleMediaItem(
     }
 }
 
+suspend fun getVideoThumbnail(url: String): Bitmap? =
+withContext(Dispatchers.IO) {
+    var retriever: MediaMetadataRetriever? = null
+    try {
+        retriever = MediaMetadataRetriever()
+        retriever.setDataSource(url, HashMap()) // http/https OK
+        retriever.getFrameAtTime(1_000_000) // 1s (microsecond)
+    } catch (e: Exception) {
+        null
+    } finally {
+        retriever?.release()
+    }
+}
+
+@Composable
+fun SkeletonAsyncImage(url: String, modifier: Modifier = Modifier) {
+    SubcomposeAsyncImage(
+        model = url,
+        contentDescription = null,
+        modifier = modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop,
+        loading = {
+            // Skeleton UI khi ảnh đang load
+            SkeletonBox()
+        },
+        error = {
+            // fallback nếu load lỗi
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Gray)
+            )
+        }
+    )
+}
+
+@Composable
+fun VideoThumbnail(url: String, modifier: Modifier = Modifier) {
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(url) {
+        withContext(Dispatchers.IO) {
+            bitmap = getVideoThumbnail(url)
+        }
+    }
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        bitmap?.let { bmp ->
+            Image(
+                bitmap = bmp.asImageBitmap(),
+                contentDescription = "Video thumbnail",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        } ?: SkeletonBox(modifier = Modifier.matchParentSize())
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(Color.Black.copy(alpha = 0.6f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Play video",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
 
 @Composable
 fun MediaDetailDialog(

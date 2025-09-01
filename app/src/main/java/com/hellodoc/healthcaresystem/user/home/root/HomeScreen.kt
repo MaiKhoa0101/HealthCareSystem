@@ -53,6 +53,9 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.*
+import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
+import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
@@ -61,7 +64,6 @@ import kotlin.text.toInt
 import kotlin.times
 
 
-var username = ""
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -96,6 +98,8 @@ fun HealthMateHomeScreen(
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
+    var username = ""
+
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
@@ -115,20 +119,40 @@ fun HealthMateHomeScreen(
     val navEntry = navHostController.currentBackStackEntry
     val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
-    val isPosting by postViewModel.isPosting.collectAsState()
 
-    LaunchedEffect(reloadTrigger?.value) {
+    val progress by postViewModel.uploadProgress.collectAsState()
+    val uiStatePost by postViewModel.uiStatePost.collectAsState()
+    val isPosting by postViewModel.isPosting.collectAsState()
+    val posts by postViewModel.posts.collectAsState()
+
+    // Infinite scroll trigger
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = layoutInfo.totalItemsCount
+            lastVisible >= total - 2
+        }.distinctUntilChanged().collect { isAtEnd ->
+            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+                postViewModel.loadMorePosts(posts.size)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
         postViewModel.fetchPosts()
         postIndex=10
         println("Gọi 1 voi index: "+ postIndex)
     }
 
+
     LaunchedEffect(navHostController.currentBackStackEntry) {
-        // Reset pagination state khi navigate back
         if (navHostController.currentBackStackEntry?.destination?.route == "home") {
-            postIndex = 0
-            postViewModel.clearPosts() // Clear existing posts
-            postViewModel.fetchPosts() // Fetch fresh data
+            if (postViewModel.posts == emptyList<PostResponse>()) {
+                postIndex = 0
+                postViewModel.clearPosts()
+                postViewModel.fetchPosts()
+            }
         }
     }
 
@@ -137,7 +161,7 @@ fun HealthMateHomeScreen(
             val layoutInfo = listState.layoutInfo
             val totalItems = layoutInfo.totalItemsCount
             val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItemIndex >= totalItems - 1
+            lastVisibleItemIndex >= totalItems - 2
         }.distinctUntilChanged().collect { isAtEnd ->
             println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
             if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
@@ -148,17 +172,6 @@ fun HealthMateHomeScreen(
         }
     }
 
-    LaunchedEffect(isPosting) {
-        Log.d("UI", "isPosting changed to: $isPosting")
-        if (isPosting) {
-            Log.d("UI", "Showing posting progress")
-        } else {
-            Log.d("UI", "Hiding posting progress")
-        }
-    }
-
-    val progress by postViewModel.uploadProgress.collectAsState()
-    val uiStatePost by postViewModel.uiStatePost.collectAsState()
 
     if (selectedImageUrl != null) {
         ZoomableImageDialog(
@@ -234,17 +247,6 @@ fun HealthMateHomeScreen(
                 }
             }
 
-            item(key = "specialties") {
-                if (specialtyState.isEmpty()) {
-//                    EmptyList("chuyên khoa")
-                    SpecialtySkeletonList()
-                } else {
-                    SpecialtyList(
-                        navHostController = navHostController,
-                        context = context,
-                        specialties = specialtyState)
-                }
-            }
 
             item(key = "doctors") {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -254,6 +256,18 @@ fun HealthMateHomeScreen(
                 } else {
                     println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctorState)
+                }
+            }
+
+            item(key = "specialties") {
+                if (specialtyState.isEmpty()) {
+//                    EmptyList("chuyên khoa")
+                    SpecialtySkeletonList()
+                } else {
+                    SpecialtyList(
+                        navHostController = navHostController,
+                        context = context,
+                        specialties = specialtyState)
                 }
             }
 
@@ -267,30 +281,72 @@ fun HealthMateHomeScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
-            item(key = "loading_posts"){
-                if (isLoadingMorePosts && hasMorePosts) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-//                        CircularProgressIndicator()
-                        repeat(3) { // Hiển thị 3 skeleton post giả
-                            UserPostSkeleton()
-                            Spacer(modifier = Modifier.height(12.dp))
+            items(posts) { post ->
+                var showPostReportDialog by remember { mutableStateOf(false) }
+                var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+                Box (modifier = Modifier.fillMaxWidth()) {
+                    Post(
+                        navHostController = navHostController,
+                        postViewModel = postViewModel,
+                        post = post,
+                        userWhoInteractWithThisPost = user!!,
+                        onClickReport = {
+//                        showOptionsMenu = true
+                            showPostReportDialog = !showPostReportDialog
+                        },
+                        onClickDelete = {
+//                        showOptionsMenu = true
+                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                        },
+                    )
+
+                    if (showPostReportDialog) {
+                        post.user?.let {
+                            ReportPostUser(
+                                context = navHostController.context,
+                                youTheCurrentUserUseThisApp = user!!,
+                                userReported = it,
+                                onClickShowPostReportDialog = { showPostReportDialog = false },
+                                sharedPreferences = navHostController.context.getSharedPreferences(
+                                    "MyPrefs",
+                                    Context.MODE_PRIVATE
+                                )
+                            )
                         }
                     }
-                }
-                else{
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("Đã hết bài viết")
+
+                    if (showPostDeleteConfirmDialog) {
+                        ConfirmDeletePostModal(
+                            postId = post.id,
+                            postViewModel = postViewModel,
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            ),
+                            onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
+                        )
                     }
                 }
             }
+
+            item {
+                if (isLoadingMorePosts) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else if (!hasMorePosts) {
+                    Text(
+                        text = "Đã hết bài viết",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
 
             item(key = "bottom_space") {
                 Spacer(modifier = Modifier.height(100.dp))
@@ -850,8 +906,8 @@ fun SpecialtyItem(
 ) {
     Box(
         modifier = Modifier
-            .width(140.dp)
-            .height(160.dp)
+            .width(100.dp)
+            .height(100.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.background)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
@@ -1170,22 +1226,17 @@ fun UserPostSkeleton(modifier: Modifier = Modifier) {
         ) {
             SkeletonBox(
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(24.dp),
+                    .width(30.dp)
+                    .height(30.dp),
                 shape = RoundedCornerShape(6.dp)
             )
             SkeletonBox(
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(24.dp),
+                    .width(30.dp)
+                    .height(30.dp),
                 shape = RoundedCornerShape(6.dp)
             )
         }
     }
 
-    HorizontalDivider(
-        thickness = 2.dp,
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.padding(top = 12.dp)
-    )
 }

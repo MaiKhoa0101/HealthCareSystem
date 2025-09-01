@@ -74,6 +74,19 @@ class PostViewModel(
 
     private var _uiStatePost = MutableStateFlow<UiState>(UiState.Idle)
     val uiStatePost: StateFlow<UiState> = _uiStatePost
+    fun loadInitialPosts() {
+        viewModelScope.launch {
+            clearPosts()
+            fetchPosts(skip = 0, limit = 10, append = false)
+        }
+    }
+
+    fun loadMorePosts(currentSkip: Int, limit: Int = 10) {
+        if (isLoadingMorePosts.value || !hasMorePosts.value) return
+        viewModelScope.launch {
+            fetchPosts(skip = currentSkip, limit = limit, append = true)
+        }
+    }
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
         println("Post dc fetch")
@@ -344,6 +357,7 @@ class PostViewModel(
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "Đăng bài thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                     }
+                    println("Đăng bài thất bại: $errorBody")
                 }
             } catch (e: Exception) {
                 _uiStatePost.value = UiState.Error("Lỗi: ${e.message}")
