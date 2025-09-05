@@ -45,6 +45,7 @@ class GeminiHelper() {
                         else -> "application/octet-stream"
                     }
 
+
                 if (mimeType.startsWith("video")) {
                     // 📌 Với video → trích frame thay vì gửi cả file
                     val frames = extractFrames(context, uri, maxFrames = 10) // lấy 10 frame đầu

@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -182,10 +183,24 @@ fun Post(
     onClickDelete: () -> Unit
 ) {
 
-    HorizontalDivider(thickness = 2.dp)
     Box (
         modifier = Modifier.fillMaxWidth()
+            .padding(3.dp)
+            .shadow(1.dp, RoundedCornerShape(3.dp,), clip = true, spotColor = Color.Gray)
+            .clip(RoundedCornerShape(10.dp))
+
+            .padding(2.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(3.dp))
+            .clickable{
+                navHostController.navigate("postDetail/${post.id}"){
+                    restoreState = true
+                }
+            }
             .padding(horizontal = 15.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(10.dp))
+
+
+
     ){
         Column(
             modifier = Modifier
@@ -274,9 +289,7 @@ fun PostHeader(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
-                .clickable{
-                    navHostController.navigate("postDetail/${post.id}")
-                },
+                ,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
