@@ -34,6 +34,13 @@ interface PostService {
         @Query("limit") limit: Int
     ): Response<GetPostPageResponse>
 
+    @GET("post/{id}/similar")
+    suspend fun getSimilarPosts(
+        @Path("id") id: String,
+        @Query("limit") limit: Int = 5,
+        @Query("minSimilarity") minSimilarity: Double = 0.5
+    ): Response<List<PostResponse>>
+
     @GET("post/{postId}/comment/get")
     suspend fun getCommentByPostId(
         @Path("postId") postId: String,
@@ -117,4 +124,8 @@ interface PostService {
         @Query("q") query: String
     ): Response<List<PostResponse>>
 
+    @GET ("post/search/advanced")
+    suspend fun searchAdvanced(
+        @Query("query") query: String
+    ): Response<List<PostResponse>>
 }

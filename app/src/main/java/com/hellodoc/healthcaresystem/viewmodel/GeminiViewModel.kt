@@ -392,7 +392,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
             if (!searchResponse.isSuccessful) {
                 _chatMessages.update {
-                    it + ChatMessage(message = "Lỗi tìm kiếm bài viết: ${searchResponse.code()}", isUser = false)
+                    it + ChatMessage(message = "Lỗi tìm kiếm bài viết: ${searchResponse.code()} - ${searchResponse.errorBody()?.string()}", isUser = false)
                 }
                 return
             }

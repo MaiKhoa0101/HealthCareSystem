@@ -631,6 +631,24 @@ class PostViewModel(
         _activePostMenuId.value = if (_activePostMenuId.value == postId) null else postId
     }
 
+    private val _similarPosts = MutableStateFlow<List<PostResponse>>(emptyList())
+    val similarPosts: StateFlow<List<PostResponse>> get() = _similarPosts
+
+    fun getSimilarPosts(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.5)
+                println("Get similar posts: "+response.body())
+                if (response.isSuccessful) {
+                    println("Get similar posts success: "+response.body())
+                    _similarPosts.value = response.body() ?: emptyList()
+                }
+                } catch (e: Exception) {
+                Log.e("PostViewModel", "Get Similar Posts Error", e)
+            }
+        }
+    }
+
     fun closeAllPostMenus() {
         _activePostMenuId.value = null
     }
