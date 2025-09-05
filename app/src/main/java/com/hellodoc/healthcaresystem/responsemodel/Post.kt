@@ -34,6 +34,10 @@ enum class MediaType {
     VIDEO,
     UNKNOWN
 }
+data class SimilarPostResponse(
+    val post: PostResponse,
+    val similarity: Double
+)
 
 
 data class CreatePostResponse(

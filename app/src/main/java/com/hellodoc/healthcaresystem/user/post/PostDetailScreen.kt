@@ -6,7 +6,9 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -60,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
@@ -77,8 +82,8 @@ fun PostDetailScreen(
     userViewModel: UserViewModel
 ) {
     val youTheCurrentUserUseThisApp by userViewModel.thisUser.collectAsState()
-    val userOfThisProfile by userViewModel.user.collectAsState()
     val post by postViewModel.post.collectAsState()
+    val similarPosts by postViewModel.similarPosts.collectAsState()
 
     // Lấy bài viết và thông tin user
     LaunchedEffect(Unit) {
@@ -87,6 +92,7 @@ fun PostDetailScreen(
         if (postId.isNotEmpty()) {
             println("Lay pót theo id: "+postId)
             postViewModel.getPostById(postId)
+            postViewModel.getSimilarPosts(postId)
         }
     }
 
@@ -97,7 +103,7 @@ fun PostDetailScreen(
             userViewModel.getUser(postUserId)
         }
     }
-    println("Post: "+post + " user use this app: "+youTheCurrentUserUseThisApp)
+
     if (post != null && youTheCurrentUserUseThisApp != null) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -113,6 +119,7 @@ fun PostDetailScreen(
                     navHostController = navHostController,
                     postViewModel = postViewModel,
                     post = post!!,
+                    similarPosts = similarPosts,
                     userWhoInteractWithThisPost = youTheCurrentUserUseThisApp!!,
                     onClickReport = { showPostReportDialog = !showPostReportDialog }
                 )
@@ -134,7 +141,8 @@ fun PostDetailScreen(
         }
     } else {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Đang tải bài viết...",
@@ -146,62 +154,182 @@ fun PostDetailScreen(
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostDetailSection(
     navHostController: NavHostController,
     postViewModel: PostViewModel,
     post: PostResponse,
+    similarPosts: List<PostResponse>,
     userWhoInteractWithThisPost: User,
     onClickReport: () -> Unit
 ) {
-    var showImageDetail by remember { mutableStateOf(false) }
-    var selectedImageIndex by remember { mutableStateOf(0) }
-        Card(
+    val uiState = rememberCommentUIState(postViewModel, post.id)
+    val coroutineScope = rememberCoroutineScope()
+
+    // Xử lý load thêm khi scroll
+    LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
+        observeScrollToLoadMore(
+            listState = uiState.listState,
+            hasMore = uiState.hasMore,
+            isLoading = uiState.isLoadingMore,
+            onLoadMore = {
+                coroutineScope.launch {
+                    uiState.loadMoreComments(postViewModel, post.id)
+                }
+            }
+        )
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                .fillMaxSize()
+                .padding(bottom = 72.dp), // chừa chỗ cho input
+            state = uiState.listState
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                PostDetailHeader(
+            // Nội dung bài viết
+            item {
+                PostContentSection(
                     navHostController = navHostController,
-                    userWhoInteractWithThisPost = userWhoInteractWithThisPost,
+                    postViewModel = postViewModel,
                     post = post,
+                    similarPosts = similarPosts,
+                    user = userWhoInteractWithThisPost,
                     onClickReport = onClickReport
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                PostBody(post)
-                Spacer(modifier = Modifier.height(12.dp))
-                PostMedia(
-                    post = post,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                InteractDetailPostManager(
-                    navHostController = navHostController,
-                    postViewModel = postViewModel,
-                    post = post,
-                    user = userWhoInteractWithThisPost
-                )
-                CommentDetailPostSection(
-                    navHostController = navHostController,
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Danh sách comment
+            items(uiState.comments) { comment ->
+                CommentItem(
+                    comment = comment,
                     postId = post.id,
-                    onClose = { showImageDetail = false },
                     postViewModel = postViewModel,
-                    currentUser = userWhoInteractWithThisPost
+                    currentUser = userWhoInteractWithThisPost,
+                    navHostController = navHostController,
+                    uiState = uiState
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Footer load thêm
+            item {
+                CommentListFooter(
+                    isLoadingMore = uiState.isLoadingMore,
+                    hasMore = uiState.hasMore
                 )
             }
         }
+        CommentInput(
+            uiState = uiState,
+            postViewModel = postViewModel,
+            postId = post.id,
+            currentUser = userWhoInteractWithThisPost,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
+}
+
+@Composable
+fun PostContentSection(
+    navHostController: NavHostController,
+    postViewModel: PostViewModel,
+    post: PostResponse,
+    similarPosts: List<PostResponse>,
+    user: User,
+    onClickReport: () -> Unit
+) {
+    Column {
+        Spacer(modifier = Modifier.height(12.dp))
+        PostDetailHeader(
+            navHostController = navHostController,
+            userWhoInteractWithThisPost = user,
+            post = post,
+            onClickReport = onClickReport
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PostBody(post)
+        Spacer(modifier = Modifier.height(12.dp))
+        PostMedia(post = post)
+        Spacer(modifier = Modifier.height(12.dp))
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        InteractDetailPostManager(
+            navHostController = navHostController,
+            postViewModel = postViewModel,
+            post = post,
+            user = user
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        SimilarPosts(
+            navHostController = navHostController,
+            similarPosts = similarPosts
+        )
+    }
+}
+
+
+
+@Composable
+fun SimilarPosts(
+    navHostController: NavHostController,
+    similarPosts: List<PostResponse>
+) {
+    Column {
+        Text(text = "Bài viết liên quan", style = MaterialTheme.typography.titleMedium)
+        if (similarPosts.isEmpty()) {
+            Row {
+                SkeletonBox(modifier = Modifier.height(40.dp).width(160.dp))
+                SkeletonBox(modifier = Modifier.height(40.dp).width(160.dp))
+                SkeletonBox(modifier = Modifier.height(40.dp).width(160.dp))
+            }
+        }
+        else {
+            LazyRow (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ){
+                items(similarPosts.size) { index ->
+                    val similarPost = similarPosts[index]
+                    Box(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(8.dp)
+                            .clickable {
+                                navHostController.navigate("postDetail/${similarPost.id}")
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = shortenSentence(similarPost.content,30), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+fun shortenSentence(sentence: String, maxLength: Int): String {
+    return if (sentence.length > maxLength) {
+        sentence.take(maxLength) + "..."
+    } else {
+        sentence
+    }
+}
 
 
 @Composable
@@ -418,14 +546,12 @@ fun CommentDetailPostSection(
             modifier = Modifier
         )
         Spacer(modifier = Modifier.height(20.dp))
-        CommentPostDetailScreenContent(
+        CommentList(
             uiState = uiState,
             postViewModel = postViewModel,
             postId = postId,
             currentUser = currentUser,
             navHostController = navHostController,
-            modifier = Modifier
-
         )
     }
 }
@@ -454,7 +580,8 @@ fun HeadbarDetailPost(navHostController: NavHostController) {
         Text(
             text = "Bài viết chi tiết",
             color = MaterialTheme.colorScheme.onPrimaryContainer,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )

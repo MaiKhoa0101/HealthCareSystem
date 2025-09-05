@@ -43,13 +43,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -80,6 +78,7 @@ import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import coil.request.videoFrameMillis
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
@@ -113,22 +112,20 @@ fun PostColumn(
             var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
             Box (modifier = Modifier.fillMaxWidth()) {
-                key(post.id) {
-                    Post(
-                        navHostController = navHostController,
-                        postViewModel = postViewModel,
-                        post = post,
-                        userWhoInteractWithThisPost = userWhoInteractWithThisPost,
-                        onClickReport = {
+                Post(
+                    navHostController = navHostController,
+                    postViewModel = postViewModel,
+                    post = post,
+                    userWhoInteractWithThisPost = userWhoInteractWithThisPost,
+                    onClickReport = {
 //                        showOptionsMenu = true
-                            showPostReportDialog = !showPostReportDialog
-                        },
-                        onClickDelete = {
+                        showPostReportDialog = !showPostReportDialog
+                    },
+                    onClickDelete = {
 //                        showOptionsMenu = true
-                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                        },
-                    )
-                }
+                        showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                    },
+                )
 
                 if (showPostReportDialog) {
                     post.user?.let {
@@ -185,11 +182,6 @@ fun Post(
     onClickDelete: () -> Unit
 ) {
 
-    // Sử dụng derivedStateOf để giảm recomposition
-    val shouldShowMedia by remember(post.media) {
-        derivedStateOf { post.media.isNotEmpty() }
-    }
-
     HorizontalDivider(thickness = 2.dp)
     Box (
         modifier = Modifier.fillMaxWidth()
@@ -209,14 +201,10 @@ fun Post(
             )
             Spacer(modifier = Modifier.height(8.dp))
             PostBody(post)
-
-            if (shouldShowMedia){
-                Spacer(modifier = Modifier.height(8.dp))
-                PostMedia(
-                    post = post,
-                )
-            }
-
+            Spacer(modifier = Modifier.height(8.dp))
+            PostMedia(
+                post = post,
+            )
             InteractPostManager(
                 navHostController = navHostController,
                 postViewModel = postViewModel,
@@ -279,65 +267,60 @@ fun PostHeader(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    val formattedDate = remember(post.createdAt) {
-        formatDateTime(post.createdAt)
-    }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .clickable{
+                    navHostController.navigate("postDetail/${post.id}")
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column() {
-                // Avatar + tên
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AsyncImage(
-                        model = post.user?.avatarURL,
-                        contentDescription = "Avatar of ${post.user?.name}",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                if (post.user?.id != userWhoInteractWithThisPost.id) {
-                                    navHostController.navigate("otherUserProfile/${post.user?.id}")
-                                } else {
-                                    navHostController.navigate("personal")
-                                }
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Column(
-                        modifier = Modifier.clickable {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = post.user?.avatarURL,
+                    contentDescription = "Avatar of ${post.user?.name}",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable {
                             if (post.user?.id != userWhoInteractWithThisPost.id) {
                                 navHostController.navigate("otherUserProfile/${post.user?.id}")
                             } else {
                                 navHostController.navigate("personal")
                             }
-                        }
-                    ) {
-                        Text(
-                            text = post.user?.name ?: "Người dùng ẩn",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = formattedDate,
-                            fontSize = 12.sp
-                        )
-                    }
-                }
+                        },
+                    contentScale = ContentScale.Crop
+                )
 
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.clickable {
+                        if (post.user?.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user?.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    }
+                ) {
+                    Text(
+                        text = post.user?.name ?: "Người dùng ẩn",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = formatDateTime(post.createdAt),
+                        fontSize = 12.sp
+                    )
+                }
             }
 
             // Nút 3 chấm và Dropdown gắn liền
