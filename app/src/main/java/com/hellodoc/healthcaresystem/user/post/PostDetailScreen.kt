@@ -309,7 +309,7 @@ fun SimilarPosts(
                                 RoundedCornerShape(8.dp)
                             )
                             .clickable {
-                                navHostController.navigate("postDetail/${similarPost.id}"){
+                                navHostController.navigate("post-detail/${similarPost.id}"){
                                     restoreState = true
                                 }
                             }

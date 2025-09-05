@@ -192,7 +192,7 @@ fun Post(
             .padding(2.dp)
             .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(3.dp))
             .clickable{
-                navHostController.navigate("postDetail/${post.id}"){
+                navHostController.navigate("post-detail/${post.id}"){
                     restoreState = true
                 }
             }
