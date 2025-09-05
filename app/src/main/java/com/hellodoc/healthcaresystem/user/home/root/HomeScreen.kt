@@ -6,6 +6,10 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.MarqueeSpacing
@@ -33,7 +37,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -58,12 +64,12 @@ import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlin.text.toInt
 import kotlin.times
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -83,6 +89,13 @@ fun HealthMateHomeScreen(
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val isScrollButtonVisible by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
+        }
+    }
 
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
@@ -105,6 +118,10 @@ fun HealthMateHomeScreen(
         userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
@@ -139,11 +156,7 @@ fun HealthMateHomeScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-    }
+
 
 
     LaunchedEffect(navHostController.currentBackStackEntry) {
@@ -195,7 +208,6 @@ fun HealthMateHomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
-
             item(key = "header") {
                 Column(
                     modifier = Modifier
@@ -353,6 +365,19 @@ fun HealthMateHomeScreen(
             }
         }
 
+        if (isScrollButtonVisible) {
+            BackToTopButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
+                }
+            )
+        }
+
         if (showDialog) {
             AssistantAnswerDialog(
                 question = question,
@@ -405,6 +430,48 @@ fun HealthMateHomeScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BackToTopButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(durationMillis = 300),
+        label = "backToTopAlpha"
+    )
+
+    val animatedScale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(
+            dampingRatio = 0.6f,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "backToTopScale"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(animatedScale)
+            .alpha(animatedAlpha)
+    ) {
+        FloatingActionButton(
+            onClick = onClick,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .size(56.dp)
+                .shadow(8.dp, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Default.KeyboardDoubleArrowUp,
+                contentDescription = "Back to Top",
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
