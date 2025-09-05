@@ -640,10 +640,13 @@ class PostViewModel(
                 val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.5)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
-                    println("Get similar posts success: "+response.body())
-                    _similarPosts.value = response.body() ?: emptyList()
+                    val similarPostsResponse = response.body() ?: emptyList()
+                    _similarPosts.value = similarPostsResponse.map { it.post }  // chỉ lấy post
+                } else {
+                    Log.e("PostViewModel", "Get Similar Posts failed: ${response.errorBody()?.string()}")
                 }
-                } catch (e: Exception) {
+                }
+            catch (e: Exception) {
                 Log.e("PostViewModel", "Get Similar Posts Error", e)
             }
         }

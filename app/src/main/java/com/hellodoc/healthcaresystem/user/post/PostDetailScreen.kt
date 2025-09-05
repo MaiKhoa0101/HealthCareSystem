@@ -294,24 +294,27 @@ fun SimilarPosts(
             }
         }
         else {
-            LazyRow {
+            LazyRow (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ){
                 items(similarPosts.size) { index ->
                     val similarPost = similarPosts[index]
                     Box(
                         modifier = Modifier
-                            .height(20.dp)
-                            .padding(8.dp)
+                            .height(40.dp)
                             .border(
                                 1.dp,
                                 MaterialTheme.colorScheme.secondaryContainer,
                                 RoundedCornerShape(8.dp)
                             )
+                            .padding(8.dp)
                             .clickable {
                                 navHostController.navigate("postDetail/${similarPost.id}")
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        similarPost.content
+                        Text(text = shortenSentence(similarPost.content,30), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
 
@@ -319,6 +322,15 @@ fun SimilarPosts(
         }
     }
 }
+
+fun shortenSentence(sentence: String, maxLength: Int): String {
+    return if (sentence.length > maxLength) {
+        sentence.take(maxLength) + "..."
+    } else {
+        sentence
+    }
+}
+
 
 @Composable
 fun PostDetailHeader(

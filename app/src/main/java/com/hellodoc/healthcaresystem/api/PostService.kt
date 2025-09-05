@@ -10,6 +10,7 @@ import com.hellodoc.healthcaresystem.responsemodel.GetPostPageResponse
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.responsemodel.SimilarPostResponse
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.http.GET
@@ -39,7 +40,7 @@ interface PostService {
         @Path("id") id: String,
         @Query("limit") limit: Int = 5,
         @Query("minSimilarity") minSimilarity: Double = 0.5
-    ): Response<List<PostResponse>>
+    ): Response<List<SimilarPostResponse>>
 
     @GET("post/{postId}/comment/get")
     suspend fun getCommentByPostId(
