@@ -134,12 +134,10 @@ fun HealthMateHomeScreen(
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
     val navEntry = navHostController.currentBackStackEntry
-    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
 
 
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
-    val isPosting by postViewModel.isPosting.collectAsState()
     val posts by postViewModel.posts.collectAsState()
 
     // Infinite scroll trigger

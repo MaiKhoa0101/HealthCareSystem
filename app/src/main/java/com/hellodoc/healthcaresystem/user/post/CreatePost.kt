@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,10 +31,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +51,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,7 +72,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-
+import com.hellodoc.healthcaresystem.user.supportfunction.getType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
@@ -76,12 +82,13 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.responsemodel.ContainerPost
+import com.hellodoc.healthcaresystem.user.supportfunction.extractOneFrame
 import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-
-//var userId=""
-//var userModel= ""
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -95,67 +102,86 @@ fun CreatePostScreen(
     val storagePermissionState: PermissionState = rememberPermissionState(
         permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             android.Manifest.permission.READ_MEDIA_IMAGES
-        } else {
+        }
+        else {
             android.Manifest.permission.READ_EXTERNAL_STORAGE
         }
     )
 
     var showPermissionDialog by remember { mutableStateOf(false) }
-    var userId by remember { mutableStateOf("") }
-    var userModel by remember { mutableStateOf("") }
 
+    // User info
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
-
     val user by userViewModel.user.collectAsState()
-    var avatarUrl by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
+    var userId by remember { mutableStateOf("") }
+    var userRole by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userModel = userViewModel.getUserAttributeString("role")
-        userViewModel.getUser(userId)
-        avatarUrl = user?.avatarURL ?: ""
-        username = user?.name ?: ""
-
-        // Nếu có postId thì gọi API lấy thông tin bài viết
-        postId?.let { id ->
-            postViewModel.getPostById(id, context)
-        }
-    }
-
-    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    // Post states
     var postText by remember { mutableStateOf("") }
+    var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var frameUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var pairedList by remember { mutableStateOf<List<Pair<Uri, Uri>>>(emptyList()) }
 
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
-    ) { uris ->
-        selectedImageUri += uris
-    }
-
+    // Loading & dialog
     val posts by postViewModel.posts.collectAsState()
     val updateSuccess by postViewModel.updateSuccess.collectAsState()
     val isUpdating by postViewModel.isUpdating.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
     var showContentEmptyDialog by remember { mutableStateOf(false) }
 
-    // Theo dõi khi có bài viết được load
-    LaunchedEffect(posts) {
-        if (postId != null && posts.isNotEmpty()) {
-            val post = posts.firstOrNull { it.id == postId }
-            post?.let {
-                postText = it.content ?: ""
-                // Lưu cả URLs của media cũ
-                selectedImageUri = it.media?.mapNotNull { url ->
-                    Uri.parse(url)
-                } ?: emptyList()
+    val coroutineScope = rememberCoroutineScope()
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            coroutineScope.launch {
+                uris.forEach { uri ->
+                    val type = getType(uri, context)
+                    if (type.contains("video")) {
+                        withContext(Dispatchers.IO) {
+                            extractOneFrame(context, uri)
+                        }?.let { frameUri ->
+                            // cập nhật state ở Main thread
+                            pairedList = pairedList + (uri to frameUri)
+                            selectedImageUris = selectedImageUris + uri
+                        }
+                    } else {
+                        // ảnh thì paired chính nó
+                        pairedList = pairedList + (uri to uri)
+                        selectedImageUris = selectedImageUris + uri
+                    }
+                }
             }
         }
     }
 
+
+
+    // Load user info & post data
+    LaunchedEffect(Unit) {
+        userId = userViewModel.getUserAttributeString("userId")
+        userRole = userViewModel.getUserAttributeString("role")
+        userViewModel.getUser(userId)
+
+        postId?.let { id -> postViewModel.getPostById(id, context) }
+    }
+
+    // Nếu đang edit thì load dữ liệu cũ
+    LaunchedEffect(posts) {
+        if (postId != null && posts.isNotEmpty()) {
+            posts.firstOrNull { it.id == postId }?.let { post ->
+                postText = post.content ?: ""
+                selectedImageUris = post.media?.mapNotNull { Uri.parse(it) } ?: emptyList()
+            }
+        }
+    }
+
+    // Navigate khi update thành công
     LaunchedEffect(updateSuccess) {
         if (updateSuccess) {
             postViewModel.resetUpdateSuccess()
@@ -164,7 +190,8 @@ fun CreatePostScreen(
         }
     }
 
-    fun handleImageSelection() {
+    // Handle chọn media
+    fun handleMediaSelection() {
         when {
             storagePermissionState.status.isGranted -> {
                 photoPickerLauncher.launch(
@@ -174,55 +201,39 @@ fun CreatePostScreen(
             storagePermissionState.status.shouldShowRationale -> {
                 showPermissionDialog = true
             }
-            else -> {
-                storagePermissionState.launchPermissionRequest()
-            }
+            else -> storagePermissionState.launchPermissionRequest()
         }
     }
 
+    // Validate & Post
     fun validateAndPost() {
         val trimmedText = postText.trim()
-
-        // Kiểm tra cả content text và media
         if (trimmedText.isEmpty()) {
             showContentEmptyDialog = true
             return
         }
 
-        // Nếu validation pass thì thực hiện post
         if (postId != null) {
             val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
-            val newImagesUris = selectedImageUri.filter { uri ->
-                uri.scheme != "http" && uri.scheme != "https"
-            }
+            val newUris = selectedImageUris.filterNot { it.scheme in listOf("http", "https") }
 
             postViewModel.updatePost(
                 postId = postId,
-                request = UpdatePostRequest(
-                    content = trimmedText, // Sử dụng trimmed text
-                    media = existingMediaUrls,
-                    images = newImagesUris
-                ),
+                request = UpdatePostRequest(trimmedText, existingMediaUrls, newUris),
                 context = context
             )
         } else {
             postViewModel.createPost(
-                request = CreatePostRequest(userId, userModel, trimmedText, selectedImageUri),
+                request = CreatePostRequest(userId, userRole, trimmedText, selectedImageUris),
                 context = context
             )
             navController.navigate("home")
         }
     }
 
+    // === UI ===
     if (isLoading && postId != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        LoadingOverlay()
     } else {
         LazyColumn(
             modifier = Modifier
@@ -233,11 +244,9 @@ fun CreatePostScreen(
                 Header(
                     navController = navController,
                     postText = postText,
-                    selectedImageUri = selectedImageUri,
+                    selectedImageUri = selectedImageUris,
                     isEditMode = postId != null,
-                    onPost = {
-                        validateAndPost()
-                    }
+                    onPost = { validateAndPost() }
                 )
             }
 
@@ -254,112 +263,41 @@ fun CreatePostScreen(
             }
 
             item {
-                if (selectedImageUri.isNotEmpty()) {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        items(selectedImageUri) { uri ->
-                            Box(
-                                modifier = Modifier.size(200.dp)
-                            ) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(uri),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-
-                                IconButton(
-                                    onClick = {
-                                        selectedImageUri = selectedImageUri.toMutableList().apply {
-                                            remove(uri)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .size(21.dp)
-                                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), shape = CircleShape),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Xóa ảnh",
-                                        tint = MaterialTheme.colorScheme.background,
-                                        modifier = Modifier.size(30.dp),
-                                    )
-                                }
+                Column {
+                    FooterWithPermission(
+                        permissionState = storagePermissionState,
+                        onImageClick = { handleMediaSelection() }
+                    )
+                    if (pairedList.isNotEmpty()) {
+                        MediaPreviewList(
+                            context = context,
+                            pairedList = pairedList,
+                            onRemove = { uri ->
+                                selectedImageUris = selectedImageUris - uri
+                                pairedList = selectedImageUris.zip(frameUris)
                             }
-                        }
-                    }
-                }
-
-                FooterWithPermission(
-                    permissionState = storagePermissionState,
-                    onImageClick = { handleImageSelection() }
-                )
-            }
-
-            item {
-                if (isUpdating) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.background)
-                    }
-                }
-            }
-        }
-
-        if (showContentEmptyDialog) {
-            AlertDialog(
-                onDismissRequest = { showContentEmptyDialog = false },
-                title = {
-                    Text(
-                        "Nội dung trống",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    )
-                },
-                text = {
-                    Text(
-                        "Vui lòng nhập nội dung hoặc chọn ít nhất một hình ảnh để đăng bài.",
-                        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = { showContentEmptyDialog = false }
-                    ) {
-                        Text(
-                            "Đã hiểu",
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
                         )
                     }
                 }
-            )
+            }
+
+            if (isUpdating) {
+                item { LoadingOverlay() }
+            }
         }
+    }
+
+    if (showContentEmptyDialog) {
+        EmptyContentDialog { showContentEmptyDialog = false }
     }
 
     if (showPermissionDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Cần quyền truy cập thư viện") },
-            text = {
-                Text("Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn hình ảnh cho bài viết.")
+            onDismissRequest = {
+                showPermissionDialog = false
             },
+            title = { Text("Cần quyền truy cập thư viện") },
+            text = { Text("Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn hình ảnh cho bài viết.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -368,15 +306,112 @@ fun CreatePostScreen(
                     }
                 ) {
                     Text("Cấp quyền")
-                }
-            },
+                } },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
+                TextButton(
+                    onClick = { showPermissionDialog = false }
+                ) {
                     Text("Hủy")
                 }
             }
         )
     }
+}
+
+@Composable
+fun MediaPreviewList(
+    context: Context,
+    pairedList: List<Pair<Uri, Uri>>,
+    onRemove: (Uri) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
+    ) {
+        items(pairedList) { (uri, frame) ->
+            Box(
+                modifier = Modifier.size(200.dp)
+            ) {
+                val type = getType(uri, context)
+
+                if (type.contains("video")) {
+                    // Video -> hiển thị thumbnail
+                    Image(
+                        painter = rememberAsyncImagePainter(frame),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Image
+                    Image(
+                        painter = rememberAsyncImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                // Nút xóa
+                IconButton(
+                    onClick = { onRemove(uri) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(24.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Xóa media",
+                        tint = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun LoadingOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+    }
+}
+@Composable
+fun EmptyContentDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Nội dung trống",
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            )
+        },
+        text = {
+            Text("Vui lòng nhập nội dung hoặc chọn ít nhất một hình ảnh để đăng bài.")
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Đã hiểu", style = TextStyle(fontWeight = FontWeight.SemiBold))
+            }
+        }
+    )
 }
 
 @Composable
@@ -460,8 +495,8 @@ fun PostBody(
     ConstraintLayout(
         modifier = modifier
             .background(color = backgroundColor, shape = RectangleShape)
-            .height(500.dp)
             .fillMaxWidth()
+            .padding(vertical = 10.dp)
     ) {
         val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
         val (iconImage, tvName, textField) = createRefs()
@@ -498,6 +533,7 @@ fun PostBody(
                 end.linkTo(parent.end)
             }
         )
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
@@ -508,57 +544,55 @@ fun FooterWithPermission(
     permissionState: PermissionState,
     onImageClick: () -> Unit
 ) {
-    val backgroundColor = MaterialTheme.colorScheme.background
-
-    ConstraintLayout(
+    HorizontalDivider()
+    Column(
         modifier = modifier
-            .background(color = backgroundColor, shape = RectangleShape)
-            .fillMaxSize()
-            .height(250.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(10.dp),
     ) {
-        val horizontalGuideLine30 = createGuidelineFromTop(0.3f)
-        val (iconImage, tvTitle, topLine, permissionText) = createRefs()
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .constrainAs(topLine) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-        )
-
         when {
             permissionState.status.isGranted -> {
-                // Hiển thị button bình thường khi đã có quyền
-                Image(
-                    painter = painterResource(id = R.drawable.ic_attach_file),
-                    contentDescription = null,
+                Column(
                     modifier = Modifier
-                        .size(70.dp)
-                        .clickable { onImageClick() }
-                        .constrainAs(iconImage) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            top.linkTo(horizontalGuideLine30)
-                        },
-                )
-                Text(
-                    text = "Thêm hình ảnh",
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    ),
-                    modifier = Modifier.constrainAs(tvTitle) {
-                        top.linkTo(iconImage.bottom, margin = 5.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .padding(5.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onImageClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Hiển thị button bình thường khi đã có quyền
+                        Image(
+                            imageVector = Icons.Default.ImageSearch,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .offset(x = (10).dp, y = (10).dp) // dịch sang trái và lên
+                        )
+                        // Hiển thị button bình thường khi đã có quyền
+                        Image(
+                            imageVector = Icons.Default.VideoLibrary,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .offset(x = (-10).dp, y = (-10).dp) // dịch sang phải và xuống
+                        )
+                        Text(
+                            text = "Thêm tệp",
+                            style = TextStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            ),
+                            modifier = Modifier.offset(x = (0).dp, y = (40).dp)
+                        )
                     }
-                )
+                }
             }
 
             else -> {
@@ -568,12 +602,9 @@ fun FooterWithPermission(
                     contentDescription = null,
                     modifier = Modifier
                         .size(70.dp)
+                        .offset(x = (0).dp, y = (40).dp)
                         .clickable { onImageClick() }
-                        .constrainAs(iconImage) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            top.linkTo(horizontalGuideLine30)
-                        },
+
                 )
                 Text(
                     text = if (permissionState.status.shouldShowRationale) {
@@ -586,15 +617,13 @@ fun FooterWithPermission(
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.error
                     ),
-                    modifier = Modifier.constrainAs(tvTitle) {
-                        top.linkTo(iconImage.bottom, margin = 5.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
+                    modifier = Modifier
+                        .offset(x = (0).dp, y = (40).dp)
                 )
             }
         }
     }
+    HorizontalDivider()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -21,6 +21,7 @@ import android.util.Base64OutputStream
 import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import java.io.ByteArrayOutputStream
@@ -131,41 +132,6 @@ class GeminiHelper() {
         }
     }
 
-    /**
-     * Hàm trích frame từ video (mặc định lấy 1 frame mỗi giây, tối đa maxFrames frame)
-     */
-    fun extractFrames(context: Context, uri: Uri, maxFrames: Int = 5): List<File> {
-        val retriever = MediaMetadataRetriever()
-        val frameFiles = mutableListOf<File>()
-        try {
-            retriever.setDataSource(context, uri)
-
-            val durationMs =
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
-
-            val stepMs = (durationMs / maxFrames).coerceAtLeast(1000L) // ít nhất 1s / frame
-            var timeUs = 0L
-            var count = 0
-
-            while (timeUs < durationMs * 1000 && count < maxFrames) {
-                val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                if (bitmap != null) {
-                    val file = File(context.cacheDir, "frame_${System.currentTimeMillis()}_${count}.jpg")
-                    FileOutputStream(file).use { fos ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos)
-                    }
-                    frameFiles.add(file)
-                    count++
-                }
-                timeUs += stepMs * 1000
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            retriever.release()
-        }
-        return frameFiles
-    }
 }
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -453,8 +419,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             
             Thông tin bác sĩ ${analysis.doctorName} trong hệ thống:
             $doctorsInfo
-            Trả lời "Các bài viết đã tìm thấy"
-            Trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.
+            Chỉ trả lời "Các bài viết đã tìm thấy"
         """.trimIndent()
 
         return askGeminiWithPrompt(responsePrompt)
@@ -478,12 +443,11 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             Phần cần trả lời: "${analysis.remainingQuery}"
             
             $specialtyStats
-            
+            Không cần chào hỏi lịch sử, chỉ cần làm đúng trọng tâm
             Hãy trả lời dựa trên thông tin thực tế về chuyên khoa ${analysis.specialty}:
             1. Giải thích ngắn gọn về chuyên khoa này
             2. Kết thúc bằng: "Danh sách bác sĩ trong chuyên khoa:"
             
-            Trả lời bằng tiếng Việt.
         """.trimIndent()
 
         return askGeminiWithPrompt(responsePrompt)

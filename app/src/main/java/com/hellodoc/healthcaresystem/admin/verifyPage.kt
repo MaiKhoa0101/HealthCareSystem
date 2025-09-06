@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -162,7 +163,10 @@ fun InfoRow(label: String, value: String?) {
 }
 
 @Composable
-fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
+fun ZoomableImageDialog(
+    selectedImageUrl: String?,
+    onDismiss: () -> Unit
+) {
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
@@ -179,9 +183,28 @@ fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
                         .fillMaxSize()
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, zoom, _ ->
-                                scale = (scale * zoom).coerceIn(1f, 5f)
-                                offset += pan
+                                // Pinch zoom
+                                val newScale = (scale * zoom).coerceIn(1f, 5f)
+
+                                // Giữ offset hợp lý khi zoom
+                                val newOffset = if (newScale > 1) {
+                                    offset + pan
+                                } else {
+                                    Offset.Zero
+                                }
+
+                                scale = newScale
+                                offset = newOffset
                             }
+                        }
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    // Reset khi double tap
+                                    scale = 1f
+                                    offset = Offset.Zero
+                                }
+                            )
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -205,4 +228,3 @@ fun ZoomableImageDialog(selectedImageUrl: String?, onDismiss: () -> Unit) {
         onDismiss()
     }
 }
-
