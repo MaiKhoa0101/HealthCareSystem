@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -77,15 +78,11 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
-import coil.request.videoFrameMillis
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -182,10 +179,24 @@ fun Post(
     onClickDelete: () -> Unit
 ) {
 
-    HorizontalDivider(thickness = 2.dp)
     Box (
         modifier = Modifier.fillMaxWidth()
+            .padding(3.dp)
+            .shadow(1.dp, RoundedCornerShape(3.dp,), clip = true, spotColor = Color.Gray)
+            .clip(RoundedCornerShape(10.dp))
+
+            .padding(2.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(3.dp))
+            .clickable{
+                navHostController.navigate("post-detail/${post.id}"){
+                    restoreState = true
+                }
+            }
             .padding(horizontal = 15.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(10.dp))
+
+
+
     ){
         Column(
             modifier = Modifier
@@ -274,9 +285,7 @@ fun PostHeader(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
-                .clickable{
-                    navHostController.navigate("postDetail/${post.id}")
-                },
+                ,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

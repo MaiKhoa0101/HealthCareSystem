@@ -11,6 +11,7 @@ import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UpdateFavoritePostResponse
 import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.responsemodel.SimilarPostResponse
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel.UpdateKeywordsRequest
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.http.GET
@@ -129,4 +130,11 @@ interface PostService {
     suspend fun searchAdvanced(
         @Query("query") query: String
     ): Response<List<PostResponse>>
+
+    @PATCH("post/update/postKeywords/{id}")
+    suspend fun addKeywords(@Path("id") id: String, @Body keywords: UpdateKeywordsRequest): Response<Void>
+
+    @POST("post/generateEmbedding/{id}")
+    suspend fun createEmbedding(@Path("id") id: String, @Body keywords: String): Response<Void>
+
 }

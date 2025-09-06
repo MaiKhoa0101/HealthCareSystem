@@ -193,7 +193,7 @@ fun HealthMateHomeScreen(
     }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures {
@@ -283,16 +283,6 @@ fun HealthMateHomeScreen(
                 }
             }
 
-            item(key = "posts") {
-                if (user != null) {
-                    PostColumn(
-                        navHostController = navHostController,
-                        userWhoInteractWithThisPost = user!!,
-                        postViewModel = postViewModel,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
             items(posts) { post ->
                 var showPostReportDialog by remember { mutableStateOf(false) }
                 var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }

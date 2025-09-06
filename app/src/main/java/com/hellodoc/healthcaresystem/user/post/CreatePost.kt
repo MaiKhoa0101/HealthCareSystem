@@ -123,7 +123,7 @@ fun CreatePostScreen(
 
         // Nếu có postId thì gọi API lấy thông tin bài viết
         postId?.let { id ->
-            postViewModel.getPostById(id)
+            postViewModel.getPostById(id, context)
         }
     }
 
@@ -140,6 +140,7 @@ fun CreatePostScreen(
     val updateSuccess by postViewModel.updateSuccess.collectAsState()
     val isUpdating by postViewModel.isUpdating.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
+    var showContentEmptyDialog by remember { mutableStateOf(false) }
 
     // Theo dõi khi có bài viết được load
     LaunchedEffect(posts) {
@@ -179,6 +180,40 @@ fun CreatePostScreen(
         }
     }
 
+    fun validateAndPost() {
+        val trimmedText = postText.trim()
+
+        // Kiểm tra cả content text và media
+        if (trimmedText.isEmpty()) {
+            showContentEmptyDialog = true
+            return
+        }
+
+        // Nếu validation pass thì thực hiện post
+        if (postId != null) {
+            val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
+            val newImagesUris = selectedImageUri.filter { uri ->
+                uri.scheme != "http" && uri.scheme != "https"
+            }
+
+            postViewModel.updatePost(
+                postId = postId,
+                request = UpdatePostRequest(
+                    content = trimmedText, // Sử dụng trimmed text
+                    media = existingMediaUrls,
+                    images = newImagesUris
+                ),
+                context = context
+            )
+        } else {
+            postViewModel.createPost(
+                request = CreatePostRequest(userId, userModel, trimmedText, selectedImageUri),
+                context = context
+            )
+            navController.navigate("home")
+        }
+    }
+
     if (isLoading && postId != null) {
         Box(
             modifier = Modifier
@@ -201,31 +236,7 @@ fun CreatePostScreen(
                     selectedImageUri = selectedImageUri,
                     isEditMode = postId != null,
                     onPost = {
-                        if (postId != null) {
-                            // Gửi cả URLs của ảnh cũ và Uris của ảnh mới
-                            val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
-                            val newImagesUris = selectedImageUri.filter { uri ->
-                                uri.scheme != "http" && uri.scheme != "https"
-                            }
-
-                            postViewModel.updatePost(
-                                postId = postId,
-                                request = UpdatePostRequest(
-                                    content = postText,
-                                    media = existingMediaUrls,
-                                    images = newImagesUris
-                                ),
-                                context = context
-                            )
-                        } else {
-                            postViewModel.createPost(
-                                request = CreatePostRequest(userId, userModel, postText, selectedImageUri),
-                                context = context
-                            )
-                            navController.navigate("home"){
-
-                            }
-                        }
+                        validateAndPost()
                     }
                 )
             }
@@ -305,6 +316,40 @@ fun CreatePostScreen(
                     }
                 }
             }
+        }
+
+        if (showContentEmptyDialog) {
+            AlertDialog(
+                onDismissRequest = { showContentEmptyDialog = false },
+                title = {
+                    Text(
+                        "Nội dung trống",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        "Vui lòng nhập nội dung hoặc chọn ít nhất một hình ảnh để đăng bài.",
+                        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showContentEmptyDialog = false }
+                    ) {
+                        Text(
+                            "Đã hiểu",
+                            style = TextStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+                }
+            )
         }
     }
 
@@ -724,4 +769,6 @@ fun FileUpload(){
             }
         }
     }
+
+
 }

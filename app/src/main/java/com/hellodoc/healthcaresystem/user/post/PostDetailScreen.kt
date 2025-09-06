@@ -91,7 +91,7 @@ fun PostDetailScreen(
         userViewModel.getYou(userId)
         if (postId.isNotEmpty()) {
             println("Lay pót theo id: "+postId)
-            postViewModel.getPostById(postId)
+            postViewModel.getPostById(postId, navHostController.context)
             postViewModel.getSimilarPosts(postId)
         }
     }
@@ -308,10 +308,12 @@ fun SimilarPosts(
                                 MaterialTheme.colorScheme.secondaryContainer,
                                 RoundedCornerShape(8.dp)
                             )
-                            .padding(8.dp)
                             .clickable {
-                                navHostController.navigate("postDetail/${similarPost.id}")
-                            },
+                                navHostController.navigate("post-detail/${similarPost.id}"){
+                                    restoreState = true
+                                }
+                            }
+                            .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = shortenSentence(similarPost.content,30), style = MaterialTheme.typography.bodyMedium)

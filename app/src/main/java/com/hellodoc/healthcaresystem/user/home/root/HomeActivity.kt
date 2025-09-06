@@ -402,7 +402,7 @@ class HomeActivity : BaseActivity() {
                 CreatePostScreen(context, navHostController, postViewModel ,postId = postId)
             }
             composable(
-                route = "postDetail/{postId}",
+                route = "post-detail/{postId}",
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""

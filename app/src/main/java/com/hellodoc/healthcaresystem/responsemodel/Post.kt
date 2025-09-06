@@ -20,7 +20,10 @@ data class PostResponse(
     val user: User?,
     val userModel: String,
     @SerializedName("createdAt")
-    val createdAt: String
+    val createdAt: String,
+
+    val keywords: String?,
+    val embedding: List<Double>?,
 ) {
     data class User(
         @SerializedName("_id")

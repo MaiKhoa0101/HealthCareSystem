@@ -29,7 +29,8 @@ import kotlin.collections.forEach
 
 class GeminiHelper() {
 
-    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
+    //private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
+    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
 
     suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
         return try {
@@ -44,6 +45,7 @@ class GeminiHelper() {
                         uri.toString().endsWith(".mov", true) -> "video/quicktime"
                         else -> "application/octet-stream"
                     }
+
 
                 if (mimeType.startsWith("video")) {
                     // 📌 Với video → trích frame thay vì gửi cả file
@@ -161,9 +163,6 @@ class GeminiHelper() {
         }
         return frameFiles
     }
-
-
-
 }
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -179,7 +178,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> get() = _isSearching
 
-    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
+    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
 
     // xử lý câu hỏi
      fun processUserQuery(query: String) {
