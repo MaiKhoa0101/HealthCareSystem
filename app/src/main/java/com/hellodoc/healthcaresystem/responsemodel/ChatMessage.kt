@@ -4,8 +4,8 @@ import java.util.UUID
 
 data class ChatMessage(
     val id: String = UUID.randomUUID().toString(), // id luôn khác nhau
-    val message: String,
-    val isUser: Boolean, // true nếu là câu hỏi, false nếu là câu trả lời
+    val message: String="",
+    val isUser: Boolean=true, // true nếu là câu hỏi, false nếu là câu trả lời
     val type: MessageType = MessageType.TEXT,
     val articleId: String? = null,
     val doctorId: String? = null,

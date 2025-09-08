@@ -100,10 +100,16 @@ class GeminiHelper() {
             }
 
             val promptPart = Part(
-                text = "Hãy phân tích tất cả ảnh/video này và liệt kê các từ khóa mô tả, " +
-                        "mỗi từ khóa trên một dòng, viết thường, chỉ có kí tự chữ và số. " +
-                        "Trả lời bằng tiếng Việt hoặc nếu có tiếng Anh thì phải có thêm từ khoá" +
-                        "tiếng Việt tương đương nghĩa, Chỉ trả lời từ khoá, không trả lời thừa"
+                text = "Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  \n" +
+                        "Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  \n" +
+                        "\n" +
+                        "Yêu cầu:  \n" +
+                        "- Mỗi từ khóa viết trên một dòng.  \n" +
+                        "- Viết thường (lowercase).  \n" +
+                        "- Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  \n" +
+                        "- Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  \n" +
+                        "- Không được trả lời gì ngoài từ khóa.  \n" +
+                        "- Nếu không có từ khóa phù hợp, không trả lời gì.\n"
             )
 
             val request = GeminiRequest(
@@ -149,7 +155,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
 
-    // xử lý câu hỏi
     fun processUserQuery(query: String) {
         _question.value = query
         _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
@@ -157,72 +162,84 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
         viewModelScope.launch {
             try {
-                // Bước 1: cho AI phân tích query để tách
-                val queryAnalysis = analyzeQueryWithAI(query)
-
-                // AI trả lời trực tiếp (nếu cần)
-                askGeminiDirectly(query)
-
-                // Gom tất cả job xử lý vào danh sách
+                val analysis = analyzeQueryWithAI(query)
                 val jobs = mutableListOf<Job>()
-
-                if (queryAnalysis.doctorName.isNotBlank()) {
-                    jobs += launch { handleDoctorQuery(query, queryAnalysis) }
+                if (analysis.intent == "hỏi sức khỏe") {
+                    jobs+= launch {
+                        handleGeneralHealthQuery(query, analysis)
+                    }
+                 }
+                if (analysis.doctorName.isNotBlank()) {
+                    jobs += launch {
+                        handleDoctorQuery(query, analysis)
+                    }
                 }
-
-                if (queryAnalysis.specialty.isNotBlank()) {
-                    jobs += launch { handleSpecialtyQuery(query, queryAnalysis) }
+                if (analysis.specialty.isNotBlank()) {
+                    jobs += launch {
+                        handleSpecialtyQuery(query, analysis)
+                    }
                 }
-
-                if (queryAnalysis.articleKeyword.isNotBlank()) {
-                    jobs += launch { handleArticleQuery(query, queryAnalysis) }
+                if (analysis.articleKeyword.isNotBlank()){
+                    jobs += launch {
+                        handleArticleQuery(query, analysis)
+                    }
                 }
 
                 // Chờ tất cả job xong
                 jobs.joinAll()
-
             } catch (e: Exception) {
                 _chatMessages.update {
-                    it + ChatMessage(
-                        message = "Lỗi xử lý câu hỏi: ${e.localizedMessage}",
-                        isUser = false
-                    )
+                    it + ChatMessage("⚠️ Lỗi: ${e.localizedMessage}", isUser = false)
                 }
             } finally {
                 _isSearching.value = false
             }
         }
     }
+    private suspend fun handleGeneralHealthQuery(originalQuery: String, analysis: QueryAnalysis) {
+        val prompt = """
+        Bạn là một trợ lý y tế AI.
+        Người dùng hỏi: "$originalQuery"
+        
+        - Nếu câu hỏi chung chung (ví dụ "Tôi bị bệnh A, B"), hãy:
+            + Tóm tắt về bệnh
+            + Đưa lời khuyên phòng ngừa
+            + Nhấn mạnh cần khám bác sĩ khi cần
+        - Nếu không liên quan sức khỏe: "Xin lỗi, tôi chỉ hỗ trợ y tế và sức khỏe."
+        
+        Trả lời ngắn gọn, dễ hiểu, tiếng Việt.
+    """.trimIndent()
 
-    // Xử lý query về bác sĩ cụ thể
+        val response = askGeminiWithPrompt(prompt)
+        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
+    }
+
     private suspend fun handleDoctorQuery(originalQuery: String, analysis: QueryAnalysis) {
         val doctors = searchDoctorByName(analysis.doctorName)
-
         if (doctors.isEmpty()) {
             _chatMessages.update {
-                it + ChatMessage(
-                    message = "Không tìm thấy bác sĩ ${analysis.doctorName} trong hệ thống.",
-                    isUser = false
-                )
+                it + ChatMessage("❌ Không tìm thấy bác sĩ ${analysis.doctorName}.", isUser = false)
             }
             return
         }
 
-        val aiResponse = generateDoctorResponse(originalQuery, analysis, doctors)
-        _chatMessages.update { it + ChatMessage(message = aiResponse, isUser = false) }
+        val prompt = """
+        Người dùng hỏi: "$originalQuery"
+        Đây là thông tin bác sĩ: 
+        ${doctors.take(3).joinToString("\n") { "- ${it.name}, ${it.specialty}, ${it.hospital}" }}
+        Hãy trả lời ngắn gọn, tập trung vào câu hỏi của người dùng.
+    """.trimIndent()
 
-        // Hiển thị card bác sĩ
+        val response = askGeminiWithPrompt(prompt)+"\nDanh sách bác sĩ:"
+        _chatMessages.update { it + ChatMessage(response, isUser = false) }
+
         doctors.take(3).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
                     message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
                     isUser = false,
                     type = MessageType.DOCTOR,
-                    doctorId = doctor.id,
-                    doctorName = doctor.name,
-                    doctorAvatar = doctor.avatarURL,
-                    doctorAddress = doctor.address,
-                    doctorPhone = doctor.phone,
+                    doctorId = doctor.id
                 )
             }
         }
@@ -283,7 +300,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             return
         }
 
-        val aiResponse = generateArticleResponse(originalQuery, analysis, articles)
+        val aiResponse = "Các bài viết liên quan:"
         _chatMessages.update { it + ChatMessage(message = aiResponse, isUser = false) }
 
         articles.forEach { article ->
@@ -316,19 +333,19 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             Phân tích câu hỏi người dùng và trích xuất thông tin theo format JSON:
             
             Câu hỏi: "$query"
+            Chỉ trả về JSON, không giải thích thêm.
+            Tất cả câu hỏi của người dùng, nếu câu hỏi chung chung như tôi bị bệnh A, B, C thì hãy trả về đầy đủ 5 trường thông tin trên, 
+            cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
+            Còn nếu câu hỏi chỉ là tìm bác sĩ chữa bệnh A, tìm bài viết chủ đề B thì điền đúng trường đó, còn các trường còn lại bằng dấu rỗng
+            Các chữ cái như hóa đổi thành hoá
             
-            Hãy trả về JSON với các trường:
+            Đây là JSON với các trường:
             - doctorName: tên bác sĩ (nếu có) - viết hoa chữ cái đầu
             - specialty: chuyên khoa (nếu có) 
             - articleKeyword: từ khóa bài viết (nếu có)
             - intent: mục đích (tìm bác sĩ, tìm chuyên khoa, tìm bài viết, hỏi sức khỏe)
             - remainingQuery: phần còn lại của câu hỏi sau khi tách thông tin
            
-            Chỉ trả về JSON, không giải thích thêm.
-            Tất cả câu hỏi của người dùng, nếu câu hỏi chung chung như tôi bị bệnh A, B, C thì hãy trả về đầy đủ 5 trường thông tin trên, 
-            cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
-            Còn nếu câu hỏi chỉ là tìm bác sĩ chữa bệnh A, tìm bài viết chủ đề B thì điền đúng trường đó, còn các trường còn lại bằng dấu rỗng
-            Các chữ cái như hóa đổi thành hoá
             Ví dụ:
             - "Bác sĩ Nguyễn Văn A làm việc ở đâu?" 
             → {"doctorName":"Nguyễn Văn A","specialty":"","articleKeyword":"","intent":"tìm bác sĩ","remainingQuery":"làm việc ở đâu"}
@@ -396,35 +413,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
-
-
-    // Xử lý câu hỏi về bác sĩ
-    private suspend fun generateDoctorResponse(
-        originalQuery: String,
-        analysis: QueryAnalysis,
-        doctors: List<GetDoctorResponse>
-    ): String {
-        val doctorsInfo = doctors.take(3).joinToString("\n") { doctor ->
-            "- Tên: ${doctor.name}\n" +
-                    "  Chuyên khoa: ${doctor.specialty}\n" +
-                    "  Bệnh viện: ${doctor.hospital}\n" +
-                    "  Địa chỉ: ${doctor.address ?: "Chưa cập nhật"}\n" +
-                    "  Điện thoại: ${doctor.phone ?: "Chưa cập nhật"}\n" +
-                    "  Xác minh: ${if (doctor.verified == true) "Đã xác minh" else "Chưa xác minh"}"
-        }
-
-        val responsePrompt = """
-            Người dùng hỏi: "$originalQuery"
-            Phần thông tin cần trả lời: "${analysis.remainingQuery}"
-            
-            Thông tin bác sĩ ${analysis.doctorName} trong hệ thống:
-            $doctorsInfo
-            Chỉ trả lời "Các bài viết đã tìm thấy"
-        """.trimIndent()
-
-        return askGeminiWithPrompt(responsePrompt)
-    }
-
     // Xử lý câu hỏi về chuyên khoa
     private suspend fun generateSpecialtyResponse(
         originalQuery: String,
@@ -462,7 +450,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         val responsePrompt = """
             Người dùng tìm bài viết: "$originalQuery"
             Từ khóa: "${analysis.articleKeyword}"       
-            Hãy trả lời "Các bài viết liên quan:"
             """.trimIndent()
 
         return askGeminiWithPrompt(responsePrompt)

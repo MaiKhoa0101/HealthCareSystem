@@ -353,10 +353,14 @@ class PostViewModel(
                 Trích xuất 5-10 từ khóa y tế từ đoạn văn sau:
                 "$chunk"
                 
-                Yêu cầu:
-                - Từ khóa liên quan đến y tế, bệnh, triệu chứng, điều trị
-                - Không trùng lặp, không quá chung chung
-                - Trả về danh sách, mỗi từ khóa một dòng
+                Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung 
+                    Yêu cầu: 
+                        - Mỗi từ khóa viết trên một dòng. 
+                        - Viết thường (lowercase).
+                        - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.
+                        - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy. 
+                        - Không được trả lời gì ngoài từ khóa.
+                        - Nếu không có từ khóa phù hợp, không trả lời gì
             """.trimIndent()
 
                 val request = GeminiRequest(
