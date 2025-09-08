@@ -51,10 +51,12 @@ fun GeminiChatScreen(
         .previousBackStackEntry
         ?.savedStateHandle
 
-    LaunchedEffect(Unit) {
+    // Lấy first_question khi màn hình được mở
+    LaunchedEffect(savedStateHandle) {
         val question = savedStateHandle?.get<String>("first_question")
         if (!question.isNullOrBlank()) {
             geminiViewModel.processUserQuery(question)
+            savedStateHandle?.remove<String>("first_question") // clear key sau khi dùng
         }
     }
     val chatMessages by geminiViewModel.chatMessages.collectAsState()
@@ -83,7 +85,10 @@ fun GeminiChatScreen(
                             imageUrl = msg.articleImgUrl,
                             onClick = {
                                 msg.articleId?.let { id ->
-                                    navHostController.navigate("post-detail/$id")
+                                    navHostController.navigate("post-detail/$id"){
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         )
