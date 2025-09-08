@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -724,7 +725,7 @@ fun SkeletonAsyncImage(url: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun VideoThumbnail(url: String, modifier: Modifier = Modifier) {
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var bitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(url) {
         withContext(Dispatchers.IO) {

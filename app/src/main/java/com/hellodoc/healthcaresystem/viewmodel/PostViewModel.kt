@@ -89,7 +89,8 @@ class PostViewModel(
     }
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
-        println("Post dc fetch")
+        if (_isLoading.value) return false
+        _isLoading.value = true
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
@@ -113,6 +114,9 @@ class PostViewModel(
         } catch (e: Exception) {
             Log.e("PostViewModel", "Post Fetch Error", e)
             false
+        }
+        finally {
+            _isLoading.value = false
         }
     }
 
@@ -402,10 +406,8 @@ class PostViewModel(
 
                 // 1) Phân tích từ khóa
                 val contentKeywords = analyzeContentKeywords(request.content)
-                var mediaUri: List<Uri> = emptyList()
-                for (i in request.media) {
-                    mediaUri = mediaUri + i
-                }
+                val mediaUri = request.media.orEmpty()
+
                 val mediaKeywords = if (mediaUri.isNotEmpty()) {
                     geminiHelper.readImageAndVideo(context, mediaUri)
                 } else emptyList()
