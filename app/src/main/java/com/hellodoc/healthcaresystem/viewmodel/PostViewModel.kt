@@ -197,7 +197,7 @@ class PostViewModel(
                 // 2) Kiểm tra keywords
                 if (finalKeywords.isNullOrEmpty()) {
                     Log.d("PostViewModel", "Post chưa có keywords, đang tạo mới...")
-                    finalKeywords = generateAndUpdateKeywords(post, context).toString()
+                    finalKeywords = generateAndUpdateKeywords(post, context)
                 } else {
                     Log.d("PostViewModel", "Post đã có keywords: $finalKeywords")
                 }
@@ -206,7 +206,7 @@ class PostViewModel(
                 val embeddingResponse = post.embedding
                 Log.d("PostViewModel", "hasEmbedding response: $embeddingResponse")
 
-                if(embeddingResponse.isNullOrEmpty()) {
+                if(embeddingResponse.isNullOrEmpty() && !finalKeywords.isNullOrEmpty()) {
                     Log.d("PostViewModel", "Post không có embedding, đang tạo embedding mới...")
                     generateEmbedding(id, post.keywords.toString())
                 }
@@ -232,8 +232,8 @@ class PostViewModel(
         }
     }
 
-    private suspend fun generateAndUpdateKeywords(post: PostResponse, context: Context) {
-         try {
+    private suspend fun generateAndUpdateKeywords(post: PostResponse, context: Context): String? {
+        return try {
             val allKeywords = mutableListOf<String>()
 
             // Phân tích từ khóa từ nội dung text
@@ -281,12 +281,14 @@ class PostViewModel(
                     "PostViewModel",
                     "Đã tạo và cập nhật ${finalKeywords.size} từ khóa cho post ${post.id}"
                 )
+            } else{
+                null
             }
 
         } catch (e: Exception) {
             Log.e("PostViewModel", "Lỗi khi tạo keywords cho post: ${e.localizedMessage}")
-
-        }
+            null
+        }.toString()
     }
     data class UpdateKeywordsRequest(
         val keywords: String
