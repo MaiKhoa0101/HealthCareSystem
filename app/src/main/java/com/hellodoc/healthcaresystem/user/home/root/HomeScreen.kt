@@ -6,8 +6,13 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -17,9 +22,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,13 +45,17 @@ import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +63,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
@@ -88,7 +103,11 @@ fun HealthMateHomeScreen(
     faqItemViewModel: FAQItemViewModel
 ) {
     val context = LocalContext.current
-    val listState = rememberLazyListState()
+    val listState = rememberSaveable(
+        saver = LazyListState.Saver
+    ) {
+        LazyListState()
+    }
     val coroutineScope = rememberCoroutineScope()
 
     val isScrollButtonVisible by remember {
@@ -133,15 +152,11 @@ fun HealthMateHomeScreen(
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
-    val navEntry = navHostController.currentBackStackEntry
-
-
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
     val posts by postViewModel.posts.collectAsState()
 
-    // Infinite scroll trigger
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -149,13 +164,15 @@ fun HealthMateHomeScreen(
             lastVisible >= total - 2
         }.distinctUntilChanged().collect { isAtEnd ->
             if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
-                postViewModel.loadMorePosts(posts.size)
+                println("Load more với skip=${posts.size}")
+                postViewModel.fetchPosts(
+                    skip = posts.size,
+                    limit = 10,
+                    append = true
+                )
             }
         }
     }
-
-
-
 
     LaunchedEffect(navHostController.currentBackStackEntry) {
         if (navHostController.currentBackStackEntry?.destination?.route == "home") {
@@ -163,22 +180,6 @@ fun HealthMateHomeScreen(
                 postIndex = 0
                 postViewModel.clearPosts()
                 postViewModel.fetchPosts()
-            }
-        }
-    }
-
-    LaunchedEffect(postIndex,hasMorePosts) {
-        snapshotFlow {
-            val layoutInfo = listState.layoutInfo
-            val totalItems = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItemIndex >= totalItems - 2
-        }.distinctUntilChanged().collect { isAtEnd ->
-            println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
-                println("Gọi 3")
-                postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
-                postIndex+=10
             }
         }
     }
@@ -292,11 +293,9 @@ fun HealthMateHomeScreen(
                         post = post,
                         userWhoInteractWithThisPost = user!!,
                         onClickReport = {
-//                        showOptionsMenu = true
                             showPostReportDialog = !showPostReportDialog
                         },
                         onClickDelete = {
-//                        showOptionsMenu = true
                             showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
                         },
                     )
@@ -362,7 +361,8 @@ fun HealthMateHomeScreen(
                     coroutineScope.launch {
                         listState.animateScrollToItem(0)
                     }
-                }
+                },
+
             )
         }
 
@@ -427,42 +427,51 @@ fun BackToTopButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val animatedAlpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 300),
-        label = "backToTopAlpha"
+    // Animation shimmer
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    // Animation chạy dọc trục Y (từ dưới lên trên)
+    val translateAnim = transition.animateFloat(
+        initialValue = 400f,   // bắt đầu ở dưới
+        targetValue = -400f,   // chạy ngược lên trên
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
     )
 
-    val animatedScale by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = spring(
-            dampingRatio = 0.6f,
-            stiffness = Spring.StiffnessLow
+    val shimmerBrush = Brush.linearGradient(
+        colors = listOf(
+            Color.Transparent,
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            Color.Transparent
         ),
-        label = "backToTopScale"
+        start = Offset(x = 0f, y = translateAnim.value + 200f), // dưới
+        end   = Offset(x = 0f, y = translateAnim.value)         // trên
     )
 
     Box(
         modifier = modifier
-            .scale(animatedScale)
-            .alpha(animatedAlpha)
+            .size(64.dp)
+            .shadow(12.dp, CircleShape)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.background)
+            .background(shimmerBrush)   // shimmer overlay
+            .clickable { onClick() },   // thay vì FloatingActionButton
+        contentAlignment = Alignment.Center
     ) {
-        FloatingActionButton(
-            onClick = onClick,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier
-                .size(56.dp)
-                .shadow(8.dp, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.KeyboardDoubleArrowUp,
-                contentDescription = "Back to Top",
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.KeyboardDoubleArrowUp,
+            contentDescription = "Back to Top",
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.primaryContainer
+        )
     }
 }
+
+
+
+
 
 //lặp lại title 3 lần nếu độ dài < N ký tự
 fun forceMarqueeText(title: String, repeatCount: Int = 3): String {

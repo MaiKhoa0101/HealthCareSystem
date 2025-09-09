@@ -61,7 +61,11 @@ interface PostService {
     suspend fun getPostById(@Path("id") id: String): Response<PostResponse>
 
     @GET("post/get-by-user-id/{id}")
-    suspend fun getPostByUserId(@Path("id") id: String): Response<List<PostResponse>>
+    suspend fun getPostByUserId(
+        @Path("id") id: String,
+        @Query("skip") skip: Int,
+        @Query("limit") limit: Int
+    ): Response<GetPostPageResponse>
 
     @Multipart
     @POST("post/create")

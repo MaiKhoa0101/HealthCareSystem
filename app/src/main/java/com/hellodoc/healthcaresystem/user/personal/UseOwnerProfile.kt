@@ -1,4 +1,5 @@
 package com.hellodoc.healthcaresystem.user.personal
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -17,10 +18,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +39,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -52,14 +63,20 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
+import com.hellodoc.healthcaresystem.responsemodel.PostResponse
+import com.hellodoc.healthcaresystem.responsemodel.UiState
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.ShimmerEffect
 import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
+import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
+import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.user.home.root.AssistantAnswerDialog
+import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
-
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -69,8 +86,6 @@ fun ProfileUserPage(
     onToggleTheme: () -> Unit,
     darkTheme: Boolean
 ) {
-
-    // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
@@ -79,90 +94,202 @@ fun ProfileUserPage(
         initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
     })
 
-//    val comments by postViewModel.comments.collectAsState()
-    var shouldReloadPosts by remember { mutableStateOf(false) }
-    val navEntry = navHostController.currentBackStackEntry
-    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
-    var userId: String = ""
-    var userModel: String = ""
+    val uiStatePost by postViewModel.uiStatePost.collectAsState()
+    val user by userViewModel.user.collectAsState()
+    val posts by postViewModel.posts.collectAsState()
+    val hasMore by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
+    val progress by postViewModel.uploadProgress.collectAsState()
 
+    var userId by remember { mutableStateOf("") }
+    var userModel by remember { mutableStateOf("") }
+
+    // LazyListState có rememberSaveable để giữ vị trí scroll khi back
+    val listState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState()
+    }
+
+    // Lấy userId, role từ SharedPreferences chỉ 1 lần
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userModel = userViewModel.getUserAttributeString("role")
-    }
 
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId, shouldReloadPosts) {
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)
-            postViewModel.getPostByUserId(userId)
+            postViewModel.getPostByUserId(userId, skip = 0, limit = 10, append = false)
         }
     }
 
-    // Lấy dữ liệu user từ StateFlow
-    val user by userViewModel.user.collectAsState()
-    println("USER: $user")
-    val isUserLoading = user == null
-
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
-    }
-    var reportedPostId by remember { mutableStateOf<String?>(null) }
-    var showReportDialog by remember { mutableStateOf(false) }
-    var showFullScreenComment by remember { mutableStateOf(false) }
-    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
-    var showReportBox by remember { mutableStateOf(false) }
-    val posts by postViewModel.posts.collectAsState()
-    var showSetting by remember { mutableStateOf(false) }
-    // Nếu có user rồi thì hiển thị UI
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures {
-                postViewModel.closeAllPostMenus()  //tắt menu post
-                showReportBox = false
+    // Scroll tới đáy thì load thêm
+    LaunchedEffect(listState, hasMore, isLoadingMorePosts) {
+        snapshotFlow {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible >= total - 2
+        }.distinctUntilChanged().collect { isAtEnd ->
+            if (isAtEnd && hasMore && !isLoadingMorePosts) {
+                println("Load thêm bài viết skip=${posts.size}")
+                postViewModel.getPostByUserId(
+                    userId = userId,
+                    skip = posts.size,
+                    limit = 10,
+                    append = true
+                )
             }
         }
+    }
+
+    // UI
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    postViewModel.closeAllPostMenus()
+                }
+            }
     ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState
+        ) {
             item {
-                if (isUserLoading) {
+                if (user == null) {
                     UserSkeleton()
                 } else {
                     ProfileSection(
                         navHostController = navHostController,
                         user = user!!,
-                        onClickShowReport = { showReportDialog = true },
-                        onImageClick = { selectedImageUrl = it },
-                        showReportBox = showReportBox,
-                        onToggleReportBox = { showReportBox = !showReportBox },
-                        onClickSetting = { showSetting = true }
-                    )
-                    PostColumn(
-                        navHostController = navHostController,
-                        idUserOfPost = user!!.id,
-                        userWhoInteractWithThisPost = user!!,
-                        postViewModel = postViewModel
+                        onClickShowReport = { /*...*/ },
+                        onImageClick = { /*...*/ },
+                        showReportBox = false,
+                        onToggleReportBox = {},
+                        onClickSetting = { /*...*/ }
                     )
                 }
             }
+
+            items(posts) { post ->
+                var showPostReportDialog by remember { mutableStateOf(false) }
+                var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+                Post(
+                    navHostController = navHostController,
+                    postViewModel = postViewModel,
+                    post = post,
+                    userWhoInteractWithThisPost = user!!,
+                    onClickReport = { showPostReportDialog = true },
+                    onClickDelete = { showPostDeleteConfirmDialog = true }
+                )
+
+                if (showPostReportDialog) {
+                    post.user?.let {
+                        ReportPostUser(
+                            context = navHostController.context,
+                            youTheCurrentUserUseThisApp = user!!,
+                            userReported = it,
+                            onClickShowPostReportDialog = { showPostReportDialog = false },
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            )
+                        )
+                    }
+                }
+
+                if (showPostDeleteConfirmDialog) {
+                    ConfirmDeletePostModal(
+                        postId = post.id,
+                        postViewModel = postViewModel,
+                        sharedPreferences = navHostController.context.getSharedPreferences(
+                            "MyPrefs",
+                            Context.MODE_PRIVATE
+                        ),
+                        onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
+                    )
+                }
+            }
+
+            // Footer load thêm
+            item {
+                when {
+                    isLoadingMorePosts -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    !hasMore && posts.isNotEmpty() -> {
+                        Text(
+                            text = "Đã hết bài viết",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
-        if (showSetting) {
-            println("SHOW SETTING")
-            Setting(
-                navHostController,
-                sharedPreferences,
-                user,
-                onToggleTheme = onToggleTheme,
-                onExitSetting = {
-                    showSetting = false
-                },
-                darkTheme = darkTheme
-            )
+
+        // Thanh trạng thái upload
+        Row(
+            modifier = Modifier
+                .padding(bottom = 50.dp)
+                .align(Alignment.TopCenter)
+                .shadow(8.dp, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            when (uiStatePost) {
+                is UiState.Loading -> {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Đang đăng bài: ${(progress * 100).toInt()}%",
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+
+                is UiState.Success -> {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Success",
+                            tint = Color.Green,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Đăng bài thành công",
+                            color = Color.Green,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                else -> {}
+            }
         }
     }
 }
+
+
 
 @Composable
 fun ProfileSection(

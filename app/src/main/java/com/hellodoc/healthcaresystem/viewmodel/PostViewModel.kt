@@ -120,6 +120,44 @@ class PostViewModel(
         }
     }
 
+    suspend fun getPostByUserId(
+        userId: String,
+        skip: Int = 0,
+        limit: Int = 10,
+        append: Boolean = false
+    ):Boolean {
+        if (_isLoading.value) return false
+        _isLoading.value = true
+
+        return try {
+            val response = RetrofitInstance.postService.getPostByUserId(userId, skip, limit)
+
+            if (response.isSuccessful) {
+                println("Get post: " + response.body())
+                val result = response.body()
+                val newPosts = result?.posts ?: emptyList()
+                val hasMore = result?.hasMore ?: false
+
+                if (append) {
+                    val current = _posts.value
+                    _posts.value = current + newPosts
+                } else {
+                    _posts.value = newPosts
+                }
+                _hasMorePosts.value = hasMore
+                true
+            } else {
+                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Post Fetch Error", e)
+            false
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
     private val _commentsMap = MutableStateFlow<Map<String, List<CommentPostResponse>>>(emptyMap())
     val commentsMap: StateFlow<Map<String, List<CommentPostResponse>>> = _commentsMap
 
@@ -315,30 +353,8 @@ class PostViewModel(
     }
 
 
-    private var _isLoadingPost = MutableStateFlow(false)
-    val isLoadingPost: StateFlow<Boolean> get() = _isLoadingPost
 
-    fun getPostByUserId(userId:String) {
-        viewModelScope.launch {
-            try {
-                _isLoadingPost.value = true
-                val result = RetrofitInstance.postService.getPostByUserId(userId)
 
-                if (result.isSuccessful) {
-                    _posts.value = result.body() ?: emptyList()
-                    println("Kết qua getPostByUserId: "+_posts.value)
-                } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
-                }
-
-            } catch (e: Exception) {
-                println("Lỗi ở getPostByUserId")
-                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")
-            } finally {
-                _isLoadingPost.value = false
-            }
-        }
-    }
 
     private suspend fun analyzeContentKeywords(content: String): List<String> {
         return try {
