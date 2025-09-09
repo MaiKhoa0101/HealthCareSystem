@@ -276,7 +276,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // Xử lý query về bài viết
     private suspend fun handleArticleQuery(originalQuery: String, analysis: QueryAnalysis) {
-        val searchResponse = RetrofitInstance.postService.searchPosts(analysis.articleKeyword)
+        val searchResponse = RetrofitInstance.postService.searchAdvanced(analysis.articleKeyword)
 
         if (!searchResponse.isSuccessful) {
             _chatMessages.update {
@@ -310,7 +310,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                     isUser = false,
                     type = MessageType.ARTICLE,
                     articleId = article.id,
-                    articleImgUrl = article.media.firstOrNull(),
+                    articleImgUrl = article?.media?.firstOrNull(),
                     articleAuthor = article.user?.name
                 )
             }
