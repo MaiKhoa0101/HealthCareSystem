@@ -6,6 +6,15 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.MarqueeSpacing
@@ -13,9 +22,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,11 +45,17 @@ import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +63,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
@@ -58,12 +79,12 @@ import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.*
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlin.text.toInt
 import kotlin.times
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -82,7 +103,18 @@ fun HealthMateHomeScreen(
     faqItemViewModel: FAQItemViewModel
 ) {
     val context = LocalContext.current
-    val listState = rememberLazyListState()
+    val listState = rememberSaveable(
+        saver = LazyListState.Saver
+    ) {
+        LazyListState()
+    }
+    val coroutineScope = rememberCoroutineScope()
+
+    val isScrollButtonVisible by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
+        }
+    }
 
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
@@ -105,6 +137,10 @@ fun HealthMateHomeScreen(
         userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
+        postViewModel.fetchPosts()
+        postIndex=10
+        println("Gọi 1 voi index: "+ postIndex)
+
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
@@ -116,17 +152,11 @@ fun HealthMateHomeScreen(
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
-    val navEntry = navHostController.currentBackStackEntry
-    val reloadTrigger = navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
-
-
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
-    val isPosting by postViewModel.isPosting.collectAsState()
     val posts by postViewModel.posts.collectAsState()
 
-    // Infinite scroll trigger
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -134,17 +164,15 @@ fun HealthMateHomeScreen(
             lastVisible >= total - 2
         }.distinctUntilChanged().collect { isAtEnd ->
             if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
-                postViewModel.loadMorePosts(posts.size)
+                println("Load more với skip=${posts.size}")
+                postViewModel.fetchPosts(
+                    skip = posts.size,
+                    limit = 10,
+                    append = true
+                )
             }
         }
     }
-
-    LaunchedEffect(Unit) {
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-    }
-
 
     LaunchedEffect(navHostController.currentBackStackEntry) {
         if (navHostController.currentBackStackEntry?.destination?.route == "home") {
@@ -152,22 +180,6 @@ fun HealthMateHomeScreen(
                 postIndex = 0
                 postViewModel.clearPosts()
                 postViewModel.fetchPosts()
-            }
-        }
-    }
-
-    LaunchedEffect(postIndex,hasMorePosts) {
-        snapshotFlow {
-            val layoutInfo = listState.layoutInfo
-            val totalItems = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItemIndex >= totalItems - 2
-        }.distinctUntilChanged().collect { isAtEnd ->
-            println("Gọi 3 with: "+isAtEnd+" "+hasMorePosts+" "+isLoadingMorePosts+ " "+ postIndex)
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts && postIndex>1) {
-                println("Gọi 3")
-                postViewModel.fetchPosts(skip = postIndex, limit = 10, append = true)
-                postIndex+=10
             }
         }
     }
@@ -180,7 +192,7 @@ fun HealthMateHomeScreen(
     }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures {
@@ -195,7 +207,6 @@ fun HealthMateHomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
-
             item(key = "header") {
                 Column(
                     modifier = Modifier
@@ -271,16 +282,6 @@ fun HealthMateHomeScreen(
                 }
             }
 
-            item(key = "posts") {
-                if (user != null) {
-                    PostColumn(
-                        navHostController = navHostController,
-                        userWhoInteractWithThisPost = user!!,
-                        postViewModel = postViewModel,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
             items(posts) { post ->
                 var showPostReportDialog by remember { mutableStateOf(false) }
                 var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
@@ -292,11 +293,9 @@ fun HealthMateHomeScreen(
                         post = post,
                         userWhoInteractWithThisPost = user!!,
                         onClickReport = {
-//                        showOptionsMenu = true
                             showPostReportDialog = !showPostReportDialog
                         },
                         onClickDelete = {
-//                        showOptionsMenu = true
                             showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
                         },
                     )
@@ -351,6 +350,20 @@ fun HealthMateHomeScreen(
             item(key = "bottom_space") {
                 Spacer(modifier = Modifier.height(100.dp))
             }
+        }
+
+        if (isScrollButtonVisible) {
+            BackToTopButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
+                },
+
+            )
         }
 
         if (showDialog) {
@@ -408,6 +421,57 @@ fun HealthMateHomeScreen(
         }
     }
 }
+
+@Composable
+fun BackToTopButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    // Animation shimmer
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    // Animation chạy dọc trục Y (từ dưới lên trên)
+    val translateAnim = transition.animateFloat(
+        initialValue = 400f,   // bắt đầu ở dưới
+        targetValue = -400f,   // chạy ngược lên trên
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
+
+    val shimmerBrush = Brush.linearGradient(
+        colors = listOf(
+            Color.Transparent,
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            Color.Transparent
+        ),
+        start = Offset(x = 0f, y = translateAnim.value + 200f), // dưới
+        end   = Offset(x = 0f, y = translateAnim.value)         // trên
+    )
+
+    Box(
+        modifier = modifier
+            .size(64.dp)
+            .shadow(12.dp, CircleShape)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.background)
+            .background(shimmerBrush)   // shimmer overlay
+            .clickable { onClick() },   // thay vì FloatingActionButton
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.KeyboardDoubleArrowUp,
+            contentDescription = "Back to Top",
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.primaryContainer
+        )
+    }
+}
+
+
+
+
 
 //lặp lại title 3 lần nếu độ dài < N ký tự
 fun forceMarqueeText(title: String, repeatCount: Int = 3): String {

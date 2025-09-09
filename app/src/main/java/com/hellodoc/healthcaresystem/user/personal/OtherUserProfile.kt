@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.personal
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -17,10 +18,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Report
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +35,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +46,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,12 +58,16 @@ import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
+import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
+import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.home.report.ReportUser
+import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 
-//Trang nguoi dung khac
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileOtherUserPage(
@@ -68,71 +79,172 @@ fun ProfileOtherUserPage(
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
+
     val context = LocalContext.current
 
-    var shouldReloadPosts by remember { mutableStateOf(false) }
-
+    // State
     val userOfThisProfile by userViewModel.user.collectAsState()
     val youTheCurrentUserUseThisApp by userViewModel.thisUser.collectAsState()
+    val posts by postViewModel.posts.collectAsState()
+    val hasMore by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
-    // Gọi API để fetch user từ server
-    LaunchedEffect(Unit, shouldReloadPosts) {
-        val userId = userViewModel.getUserAttributeString("userId")
-        userViewModel.getYou(userId)
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var showReportBox by remember { mutableStateOf(false) }
+
+    // LazyListState giữ vị trí scroll khi back
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+
+    // Fetch user + post
+    LaunchedEffect(userOwnerID) {
+        val myId = userViewModel.getUserAttributeString("userId")
+        userViewModel.getYou(myId)
+
         if (userOwnerID.isNotEmpty()) {
             userViewModel.getUser(userOwnerID)
-            postViewModel.getPostByUserId(userOwnerID)
+            postViewModel.getPostByUserId(userOwnerID, skip = 0, limit = 10, append = false)
         }
     }
 
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(selectedImageUrl = selectedImageUrl, onDismiss = { selectedImageUrl = null })
+    // Scroll tới đáy load thêm
+    LaunchedEffect(listState, hasMore, isLoadingMorePosts) {
+        snapshotFlow {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible >= total - 2
+        }.distinctUntilChanged().collect { isAtEnd ->
+            if (isAtEnd && hasMore && !isLoadingMorePosts) {
+                println("Load thêm bài viết skip=${posts.size}")
+                postViewModel.getPostByUserId(
+                    userId = userOwnerID,
+                    skip = posts.size,
+                    limit = 10,
+                    append = true
+                )
+            }
+        }
     }
-    var showReportBox by remember { mutableStateOf(false) }
 
-    if (youTheCurrentUserUseThisApp!= null && userOfThisProfile != null) {
+    if (youTheCurrentUserUseThisApp != null && userOfThisProfile != null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures {
-                        postViewModel.closeAllPostMenus()  //tắt menu post
+                        postViewModel.closeAllPostMenus()
                         showReportBox = false
                     }
                 }
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState
+            ) {
                 item {
-                    if (userOfThisProfile != null) {
-                        OtherUserIntroSection(
-                            user = userOfThisProfile!!,
+                    OtherUserIntroSection(
+                        user = userOfThisProfile!!,
+                        navHostController = navHostController,
+                        onImageClick = { selectedImageUrl = it },
+                        showReportBox = showReportBox,
+                        onToggleReportBox = { showReportBox = !showReportBox }
+                    )
+                }
+
+                items(posts) { post ->
+                    var showPostReportDialog by remember { mutableStateOf(false) }
+                    var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+                    Box (modifier = Modifier.fillMaxWidth()) {
+                        Post(
                             navHostController = navHostController,
-                            onImageClick = { selectedImageUrl = it },
-                            showReportBox = showReportBox,
-                            onToggleReportBox = { showReportBox = !showReportBox }
-                        )
-                        PostColumn(
-                            navHostController = navHostController,
-                            idUserOfPost = userOwnerID,
-                            userWhoInteractWithThisPost = youTheCurrentUserUseThisApp!!,
                             postViewModel = postViewModel,
+                            post = post,
+                            userWhoInteractWithThisPost = youTheCurrentUserUseThisApp!!,
+                            onClickReport = {
+//                        showOptionsMenu = true
+                                showPostReportDialog = !showPostReportDialog
+                            },
+                            onClickDelete = {
+//                        showOptionsMenu = true
+                                showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                            },
                         )
+
+                        if (showPostReportDialog) {
+                            post.user?.let {
+                                ReportPostUser(
+                                    context = navHostController.context,
+                                    youTheCurrentUserUseThisApp =youTheCurrentUserUseThisApp,
+                                    userReported = it,
+                                    onClickShowPostReportDialog = { showPostReportDialog = false },
+                                    sharedPreferences = navHostController.context.getSharedPreferences(
+                                        "MyPrefs",
+                                        Context.MODE_PRIVATE
+                                    )
+                                )
+                            }
+                        }
+
+                        if (showPostDeleteConfirmDialog) {
+                            ConfirmDeletePostModal(
+                                postId = post.id,
+                                postViewModel = postViewModel,
+                                sharedPreferences = navHostController.context.getSharedPreferences(
+                                    "MyPrefs",
+                                    Context.MODE_PRIVATE
+                                ),
+                                onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
+                            )
+                        }
                     }
                 }
+
+                // Footer load thêm
+                item {
+                    when {
+                        isLoadingMorePosts -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+
+                            }
+                        }
+
+                        !hasMore && posts.isNotEmpty() -> {
+                            Text(
+                                text = "Đã hết bài viết",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
-            if (showReportBox && youTheCurrentUserUseThisApp != null) {
+
+            if (selectedImageUrl != null) {
+                ZoomableImageDialog(
+                    selectedImageUrl = selectedImageUrl,
+                    onDismiss = { selectedImageUrl = null }
+                )
+            }
+
+            if (showReportBox) {
                 ReportUser(
                     context,
-                    youTheCurrentUserUseThisApp,
+                    youTheCurrentUserUseThisApp!!,
                     userOfThisProfile,
                     onClickShowReportDialog = { showReportBox = !showReportBox },
                     sharedPreferences,
                 )
             }
         }
-    }
-    else {
+    } else {
         Column {
             UserSkeleton()
             PostSkeleton()

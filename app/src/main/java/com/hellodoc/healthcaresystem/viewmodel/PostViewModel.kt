@@ -65,7 +65,7 @@ class PostViewModel(
     private val _extractedKeywords = MutableStateFlow<List<String>>(emptyList())
     val extractedKeywords: StateFlow<List<String>> get() = _extractedKeywords
 
-    private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
+    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
 
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
@@ -89,7 +89,8 @@ class PostViewModel(
     }
 
     suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
-        println("Post dc fetch")
+        if (_isLoading.value) return false
+        _isLoading.value = true
         return try {
             val response = RetrofitInstance.postService.getAllPosts(skip, limit)
             if (response.isSuccessful) {
@@ -113,6 +114,47 @@ class PostViewModel(
         } catch (e: Exception) {
             Log.e("PostViewModel", "Post Fetch Error", e)
             false
+        }
+        finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun getPostByUserId(
+        userId: String,
+        skip: Int = 0,
+        limit: Int = 10,
+        append: Boolean = false
+    ):Boolean {
+        if (_isLoading.value) return false
+        _isLoading.value = true
+
+        return try {
+            val response = RetrofitInstance.postService.getPostByUserId(userId, skip, limit)
+
+            if (response.isSuccessful) {
+                println("Get post: " + response.body())
+                val result = response.body()
+                val newPosts = result?.posts ?: emptyList()
+                val hasMore = result?.hasMore ?: false
+
+                if (append) {
+                    val current = _posts.value
+                    _posts.value = current + newPosts
+                } else {
+                    _posts.value = newPosts
+                }
+                _hasMorePosts.value = hasMore
+                true
+            } else {
+                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Post Fetch Error", e)
+            false
+        } finally {
+            _isLoading.value = false
         }
     }
 
@@ -148,18 +190,69 @@ class PostViewModel(
         }
     }
 
-    fun getPostById(id: String) {
+//    fun getPostById(id: String) {
+//        if (_isLoading.value) return
+//
+//        _isLoading.value = true
+//        viewModelScope.launch {
+//            try {
+//                val result = RetrofitInstance.postService.getPostById(id)
+//                if (result.isSuccessful) {
+//                    _post.value = result.body()
+//                } else {
+//                    _errorMessage.value = "Failed to load post: ${result.code()}"
+//                }
+//            } catch (e: Exception) {
+//                _errorMessage.value = "Network error: ${e.localizedMessage}"
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
+//    }
+
+    fun getPostById(id: String, context: Context) {
         if (_isLoading.value) return
 
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val result = RetrofitInstance.postService.getPostById(id)
-                if (result.isSuccessful) {
-                    _post.value = result.body()
-                } else {
-                    _errorMessage.value = "Failed to load post: ${result.code()}"
+                // 1) Lấy post chi tiết
+                val postResult = RetrofitInstance.postService.getPostById(id)
+
+                if (!postResult.isSuccessful) {
+                    _errorMessage.value = "Failed to load post: ${postResult.code()}"
+                    return@launch
                 }
+
+                val post = postResult.body()
+                if (post == null) {
+                    _errorMessage.value = "Post data is null"
+                    return@launch
+                }
+
+                // Cập nhật UI với dữ liệu post
+                _post.value = post
+
+
+                var finalKeywords: String? = post.keywords
+
+                // 2) Kiểm tra keywords
+                if (finalKeywords.isNullOrEmpty()) {
+                    Log.d("PostViewModel", "Post chưa có keywords, đang tạo mới...")
+                    finalKeywords = generateAndUpdateKeywords(post, context)
+                } else {
+                    Log.d("PostViewModel", "Post đã có keywords: $finalKeywords")
+                }
+
+                // 3) Kiểm tra embedding
+                val embeddingResponse = post.embedding
+                Log.d("PostViewModel", "hasEmbedding response: $embeddingResponse")
+
+                if(embeddingResponse.isNullOrEmpty() && !finalKeywords.isNullOrEmpty()) {
+                    Log.d("PostViewModel", "Post không có embedding, đang tạo embedding mới...")
+                    generateEmbedding(id, post.keywords.toString())
+                }
+
             } catch (e: Exception) {
                 _errorMessage.value = "Network error: ${e.localizedMessage}"
             } finally {
@@ -168,86 +261,142 @@ class PostViewModel(
         }
     }
 
-    private var _isLoadingPost = MutableStateFlow(false)
-    val isLoadingPost: StateFlow<Boolean> get() = _isLoadingPost
-
-    fun getPostByUserId(userId:String) {
-        viewModelScope.launch {
-            try {
-                _isLoadingPost.value = true
-                val result = RetrofitInstance.postService.getPostByUserId(userId)
-
-                if (result.isSuccessful) {
-                    _posts.value = result.body() ?: emptyList()
-                    println("Kết qua getPostByUserId: "+_posts.value)
-                } else {
-                    println("Lỗi API: ${result.errorBody()?.string()}")
-                }
-
-            } catch (e: Exception) {
-                println("Lỗi ở getPostByUserId")
-                Log.e("Ở Post:  ","Lỗi khi lấy Post: ${e.message}")
-            } finally {
-                _isLoadingPost.value = false
+    private suspend fun generateEmbedding(id: String, keywords: String) {
+        try{
+            val response = RetrofitInstance.postService.createEmbedding(id, keywords)
+            if (response.isSuccessful) {
+                Log.d("PostViewModel", "Tạo embedding thành công cho post $id")
+            } else {
+                Log.e("PostViewModel", "Lỗi tạo embedding: ${response.errorBody()?.string()}")
             }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Exception khi tạo embedding", e)
         }
     }
+
+    private suspend fun generateAndUpdateKeywords(post: PostResponse, context: Context): String? {
+        return try {
+            val allKeywords = mutableListOf<String>()
+
+            // Phân tích từ khóa từ nội dung text
+            post.content?.let { content ->
+                val contentKeywords = analyzeContentKeywords(content)
+                allKeywords.addAll(contentKeywords)
+            }
+
+    //            // Phân tích từ khóa từ media (ảnh/video)
+    //            post.media?.let { mediaList ->
+    //                if (mediaList.isNotEmpty()) {
+    //                    val mediaUris = mediaList.mapNotNull { mediaItem ->
+    //                        try {
+    //                            Uri.parse(mediaItem)
+    //                        } catch (e: Exception) {
+    //                            Log.w("PostViewModel", "Invalid URI: $mediaItem")
+    //                            null
+    //                        }
+    //                    }
+    //
+    //                    if (mediaUris.isNotEmpty()) {
+    //                        val mediaKeywords = geminiHelper.readImageAndVideo(context, mediaUris)
+    //                        allKeywords.addAll(mediaKeywords)
+    //                    }
+    //                }
+    //            }
+
+            // Loại bỏ trùng lặp và giới hạn số lượng
+            val finalKeywords = allKeywords
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+                .take(10) // Giới hạn tối đa 10 từ khóa
+
+            if (finalKeywords.isNotEmpty()) {
+
+                Log.d("PostViewModel", "keyWord mới được tạo: $finalKeywords")
+                // Cập nhật keywords cho post
+                updatePostKeywords(post.id, finalKeywords)
+
+                // Cập nhật post hiện tại với keywords mới
+                _post.value = post.copy(keywords = finalKeywords.toString())
+
+                Log.d(
+                    "PostViewModel",
+                    "Đã tạo và cập nhật ${finalKeywords.size} từ khóa cho post ${post.id}"
+                )
+            } else{
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Lỗi khi tạo keywords cho post: ${e.localizedMessage}")
+            null
+        }.toString()
+    }
+    data class UpdateKeywordsRequest(
+        val keywords: String
+    )
+
+
+    private suspend fun updatePostKeywords(postId: String, keywords: List<String>) {
+        try {
+            val request = UpdateKeywordsRequest(keywords.joinToString(","))
+            val response = RetrofitInstance.postService.addKeywords(postId, request)
+
+            if (response.isSuccessful) {
+                Log.d("PostViewModel", "Cập nhật keywords thành công cho post $postId")
+            } else {
+                Log.e("PostViewModel", "Lỗi cập nhật keywords: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "Exception khi cập nhật keywords", e)
+        }
+    }
+
+
+
+
 
     private suspend fun analyzeContentKeywords(content: String): List<String> {
         return try {
             _isAnalyzingKeywords.value = true
 
-            val keywordPrompt = """
-                Phân tích nội dung y tế sau và trích xuất 5-10 từ khóa quan trọng nhất:
+            // Chia nhỏ content để không vượt quá giới hạn
+            val chunks = content.chunked(300) // mỗi chunk tối đa 300 ký tự
+            val allKeywords = mutableSetOf<String>()
+
+            for (chunk in chunks) {
+                val keywordPrompt = """
+                Trích xuất 5-10 từ khóa y tế từ đoạn văn sau:
+                "$chunk"
                 
-                Nội dung: "$content"
-                
-                Yêu cầu:
-                1. Chỉ trích xuất từ khóa liên quan đến y tế, sức khỏe
-                2. Ưu tiên các thuật ngữ y khoa, tên bệnh, triệu chứng, phương pháp điều trị
-                3. Bao gồm cả từ tiếng Việt và tiếng Anh (nếu có)
-                4. Trả về danh sách từ khóa, mỗi từ khóa trên một dòng
-                5. Không giải thích, chỉ liệt kê từ khóa
-                6. Loại bỏ từ khóa quá chung chung như "sức khỏe", "bệnh tật"
-                
-                Ví dụ format trả về:
-                tiểu đường
-                đái tháo đường
-                insulin
-                glucose
-                chế độ ăn
+                Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung 
+                    Yêu cầu: 
+                        - Mỗi từ khóa viết trên một dòng. 
+                        - Viết thường (lowercase).
+                        - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.
+                        - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy. 
+                        - Không được trả lời gì ngoài từ khóa.
+                        - Nếu không có từ khóa phù hợp, không trả lời gì
             """.trimIndent()
 
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = listOf(Part(text = keywordPrompt))))
-            )
+                val request = GeminiRequest(
+                    contents = listOf(Content(parts = listOf(Part(text = keywordPrompt))))
+                )
 
-            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
 
-            if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
-                val aiResponse = response.body()!!.candidates.first().content.parts.first().text
-
-                // Xử lý response và trích xuất từ khóa
-                val keywords = aiResponse
-                    .split("\n")
-                    .map { it.trim() }
-                    .filter {
-                        it.isNotBlank() &&
-                                it.length >= 2 &&
-                                !it.contains("từ khóa", ignoreCase = true) &&
-                                !it.startsWith("-") &&
-                                !it.matches(Regex("\\d+\\..*")) // Loại bỏ số thứ tự
-                    }
-                    .take(10) // Giới hạn tối đa 10 từ khóa
-
-                Log.d("KeywordAnalysis", "Extracted keywords: $keywords")
-                _extractedKeywords.value = keywords
-                keywords
-
-            } else {
-                Log.e("KeywordAnalysis", "Failed to get keywords from AI: ${response.errorBody()?.string()}")
-                emptyList()
+                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                    val aiResponse = response.body()!!.candidates.first().content.parts.first().text
+                    val keywords = aiResponse.split("\n")
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+                    allKeywords.addAll(keywords)
+                }
             }
+
+            val finalKeywords = allKeywords.take(10).toList()
+            _extractedKeywords.value = finalKeywords
+            finalKeywords
 
         } catch (e: Exception) {
             Log.e("KeywordAnalysis", "Error analyzing keywords", e)
@@ -256,6 +405,7 @@ class PostViewModel(
             _isAnalyzingKeywords.value = false
         }
     }
+
 
     private val _isPosting = MutableStateFlow(false)
     val isPosting: StateFlow<Boolean> = _isPosting
@@ -276,10 +426,8 @@ class PostViewModel(
 
                 // 1) Phân tích từ khóa
                 val contentKeywords = analyzeContentKeywords(request.content)
-                var mediaUri: List<Uri> = emptyList()
-                for (i in request.media) {
-                    mediaUri = mediaUri + i
-                }
+                val mediaUri = request.media.orEmpty()
+
                 val mediaKeywords = if (mediaUri.isNotEmpty()) {
                     geminiHelper.readImageAndVideo(context, mediaUri)
                 } else emptyList()
@@ -608,7 +756,7 @@ class PostViewModel(
 
                 if (response.isSuccessful) {
                     _updateSuccess.value = true
-                    getPostById(postId)
+                    getPostById(postId, context)
                 } else {
                     Log.e("PostViewModel", "Update error: ${response.errorBody()?.string()}")
                 }
@@ -629,6 +777,27 @@ class PostViewModel(
 
     fun togglePostMenu(postId: String) {
         _activePostMenuId.value = if (_activePostMenuId.value == postId) null else postId
+    }
+
+    private val _similarPosts = MutableStateFlow<List<PostResponse>>(emptyList())
+    val similarPosts: StateFlow<List<PostResponse>> get() = _similarPosts
+
+    fun getSimilarPosts(postId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.5)
+                println("Get similar posts: "+response.body())
+                if (response.isSuccessful) {
+                    val similarPostsResponse = response.body() ?: emptyList()
+                    _similarPosts.value = similarPostsResponse.map { it.post }  // chỉ lấy post
+                } else {
+                    Log.e("PostViewModel", "Get Similar Posts failed: ${response.errorBody()?.string()}")
+                }
+                }
+            catch (e: Exception) {
+                Log.e("PostViewModel", "Get Similar Posts Error", e)
+            }
+        }
     }
 
     fun closeAllPostMenus() {

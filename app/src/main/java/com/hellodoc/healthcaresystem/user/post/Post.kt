@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -52,6 +53,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,15 +79,11 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
-import coil.request.videoFrameMillis
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -182,10 +180,24 @@ fun Post(
     onClickDelete: () -> Unit
 ) {
 
-    HorizontalDivider(thickness = 2.dp)
     Box (
         modifier = Modifier.fillMaxWidth()
+            .padding(3.dp)
+            .shadow(1.dp, RoundedCornerShape(3.dp,), clip = true, spotColor = Color.Gray)
+            .clip(RoundedCornerShape(10.dp))
+
+            .padding(2.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(3.dp))
+            .clickable{
+                navHostController.navigate("post-detail/${post.id}"){
+                    restoreState = true
+                }
+            }
             .padding(horizontal = 15.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(10.dp))
+
+
+
     ){
         Column(
             modifier = Modifier
@@ -273,55 +285,52 @@ fun PostHeader(
             .padding(bottom = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                ,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column() {
-                // Avatar + tên
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AsyncImage(
-                        model = post.user?.avatarURL,
-                        contentDescription = "Avatar of ${post.user?.name}",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                if (post.user?.id != userWhoInteractWithThisPost.id) {
-                                    navHostController.navigate("otherUserProfile/${post.user?.id}")
-                                } else {
-                                    navHostController.navigate("personal")
-                                }
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Column(
-                        modifier = Modifier.clickable {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = post.user?.avatarURL,
+                    contentDescription = "Avatar of ${post.user?.name}",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable {
                             if (post.user?.id != userWhoInteractWithThisPost.id) {
                                 navHostController.navigate("otherUserProfile/${post.user?.id}")
                             } else {
                                 navHostController.navigate("personal")
                             }
-                        }
-                    ) {
-                        Text(
-                            text = post.user?.name ?: "Người dùng ẩn",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = formatDateTime(post.createdAt),
-                            fontSize = 12.sp
-                        )
-                    }
-                }
+                        },
+                    contentScale = ContentScale.Crop
+                )
 
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.clickable {
+                        if (post.user?.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.user?.id}")
+                        } else {
+                            navHostController.navigate("personal")
+                        }
+                    }
+                ) {
+                    Text(
+                        text = post.user?.name ?: "Người dùng ẩn",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = formatDateTime(post.createdAt),
+                        fontSize = 12.sp
+                    )
+                }
             }
 
             // Nút 3 chấm và Dropdown gắn liền
@@ -716,7 +725,7 @@ fun SkeletonAsyncImage(url: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun VideoThumbnail(url: String, modifier: Modifier = Modifier) {
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var bitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(url) {
         withContext(Dispatchers.IO) {

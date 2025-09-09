@@ -48,6 +48,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -175,32 +176,10 @@ internal fun CommentScreenContent(
     }
 }
 
-@Composable
-internal fun CommentPostDetailScreenContent(
-    uiState: CommentUIState,
-    postViewModel: PostViewModel,
-    postId: String,
-    currentUser: User,
-    navHostController: NavHostController,
-    modifier: Modifier
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(15.dp)
-    ) {
-        CommentList(
-            uiState = uiState,
-            postViewModel = postViewModel,
-            postId = postId,
-            currentUser = currentUser,
-            navHostController = navHostController,
-        )
-    }
-}
+
 
 @Composable
-private fun CommentList(
+fun CommentList(
     uiState: CommentUIState,
     postViewModel: PostViewModel,
     postId: String,
@@ -234,7 +213,7 @@ private fun CommentList(
 }
 
 @Composable
-private fun CommentItem(
+fun CommentItem(
     comment: CommentPostResponse,
     postId: String,
     postViewModel: PostViewModel,
@@ -242,8 +221,7 @@ private fun CommentItem(
     navHostController: NavHostController,
     uiState: CommentUIState
 ) {
-    if (comment?.user == null) return
-    else {
+
         Row(
             verticalAlignment = Alignment.Top,
             modifier = Modifier
@@ -266,7 +244,7 @@ private fun CommentItem(
                 uiState = uiState
             )
         }
-    }
+
 }
 
 @Composable
@@ -320,7 +298,7 @@ private fun CommentContent(
 }
 
 @Composable
-private fun CommentListFooter(
+fun CommentListFooter(
     isLoadingMore: Boolean,
     hasMore: Boolean
 ) {
@@ -385,6 +363,14 @@ internal fun CommentInput(
         val currentUserId = currentUser.id
 
         Button(
+            enabled = uiState.newComment.isNotBlank() || uiState.editedCommentContent.isNotBlank(),
+            modifier = Modifier
+                .padding(start = 8.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
             onClick = {
                 coroutineScope.launch {
                     uiState.submitComment(
