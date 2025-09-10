@@ -596,30 +596,56 @@ fun FooterWithPermission(
             }
 
             else -> {
-                // Hiển thị button yêu cầu quyền
-                Image(
-                    painter = painterResource(id = R.drawable.ic_attach_file),
-                    contentDescription = null,
+                Column(
                     modifier = Modifier
-                        .size(70.dp)
-                        .offset(x = (0).dp, y = (40).dp)
-                        .clickable { onImageClick() }
-
-                )
-                Text(
-                    text = if (permissionState.status.shouldShowRationale) {
-                        "Cấp quyền để thêm ảnh"
-                    } else {
-                        "Yêu cầu quyền truy cập"
-                    },
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.error
-                    ),
-                    modifier = Modifier
-                        .offset(x = (0).dp, y = (40).dp)
-                )
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .width(180.dp)
+                            .padding(5.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onImageClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Hiển thị button bình thường khi đã có quyền
+                        Image(
+                            imageVector = Icons.Default.ImageSearch,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .offset(x = (10).dp, y = (10).dp) // dịch sang trái và lên
+                        )
+                        // Hiển thị button bình thường khi đã có quyền
+                        Image(
+                            imageVector = Icons.Default.VideoLibrary,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .offset(x = (-10).dp, y = (-10).dp) // dịch sang phải và xuống
+                        )
+                        Text(
+                            text = if (permissionState.status.shouldShowRationale) {
+                                "Cấp quyền để thêm ảnh"
+                            } else {
+                                "Yêu cầu quyền truy cập"
+                            },
+                            style = TextStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            ),
+                            fontSize = 15.sp,
+                            modifier = Modifier
+                                .offset(x = (0).dp, y = (40).dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
             }
         }
     }
