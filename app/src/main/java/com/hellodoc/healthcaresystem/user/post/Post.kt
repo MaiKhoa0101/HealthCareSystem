@@ -764,6 +764,7 @@ fun VideoThumbnail(url: String, modifier: Modifier = Modifier) {
         }
     }
 }
+
 @Composable
 fun MediaDetailDialog(
     mediaUrls: List<String>,
@@ -828,9 +829,18 @@ fun MediaDetailDialog(
             ) { page ->
                 when (detectMediaType(mediaUrls[page])) {
                     MediaType.IMAGE -> {
-                        ZoomableImage(
-                            url = mediaUrls[page],
-                            modifier = Modifier.fillMaxSize()
+                        AsyncImage(
+                            model = mediaUrls[page],
+                            contentDescription = "Image ${page + 1}",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource()
+                                    }
+                                )
+                            { /* Prevent dismiss when clicking image */ }
                         )
                     }
                     MediaType.VIDEO -> {
@@ -879,10 +889,17 @@ fun ZoomableImage(url: String, modifier: Modifier = Modifier) {
 
     Box(
         modifier = modifier
-            .pointerInput(Unit) {
+            .pointerInput(scale) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     val newScale = (scale * zoom).coerceIn(1f, 5f)
-                    val newOffset = if (newScale > 1) offset + pan else Offset.Zero
+
+                    // Nếu scale > 1 thì cho pan, còn scale = 1 thì giữ nguyên để HorizontalPager xử lý vuốt
+                    val newOffset = if (newScale > 1f) {
+                        offset + pan
+                    } else {
+                        Offset.Zero
+                    }
+
                     scale = newScale
                     offset = newOffset
                 }
@@ -890,8 +907,14 @@ fun ZoomableImage(url: String, modifier: Modifier = Modifier) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = {
-                        scale = 1f
-                        offset = Offset.Zero
+                        if (scale > 1f) {
+                            // Reset
+                            scale = 1f
+                            offset = Offset.Zero
+                        } else {
+                            // Zoom nhanh 2x khi double tap
+                            scale = 2f
+                        }
                     }
                 )
             },
@@ -912,6 +935,7 @@ fun ZoomableImage(url: String, modifier: Modifier = Modifier) {
         )
     }
 }
+
 
 fun detectMediaType(url: String): MediaType {
     val lowerUrl = url.lowercase()
