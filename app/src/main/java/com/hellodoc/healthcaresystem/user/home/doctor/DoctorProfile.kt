@@ -51,13 +51,14 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
-import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.RatingOverviewSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserInfoSkeleton
 import com.hellodoc.healthcaresystem.user.home.report.ReportDoctor
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostDoctor
+import com.hellodoc.healthcaresystem.user.post.ZoomableImage
+import com.hellodoc.healthcaresystem.user.supportfunction.AvatarDetailDialog
 import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
@@ -114,6 +115,7 @@ fun DoctorScreen(
     var specialtyName by remember { mutableStateOf("") }
     var isClinicPaused by remember { mutableStateOf(false) }
     var hasHomeService by remember { mutableStateOf(false) }
+    var showMediaDetail by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val userId = userViewModel.getUserAttributeString("userId")
@@ -176,10 +178,14 @@ fun DoctorScreen(
     }
 
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(
-            selectedImageUrl = selectedImageUrl,
-            onDismiss = { selectedImageUrl = null })
+
+    if (showMediaDetail && selectedImageUrl != null) {
+        AvatarDetailDialog(
+            mediaUrls = selectedImageUrl.toString(),
+            onDismiss = {
+                showMediaDetail = false
+            }
+        )
     }
     var reportedPostId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
@@ -189,11 +195,6 @@ fun DoctorScreen(
     var showReportBox by remember { mutableStateOf(false) }
     val posts by postViewModel.posts.collectAsState()
 
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(
-            selectedImageUrl = selectedImageUrl,
-            onDismiss = { selectedImageUrl = null })
-    }
     if (youTheCurrentUserUseThisApp == null) {
         return
     } else {
@@ -235,7 +236,10 @@ fun DoctorScreen(
                             context = context,
                             doctor = doctor,
                             navHostController = navHostController,
-                            onImageClick = { selectedImageUrl = it },
+                            onImageClick = {
+                                selectedImageUrl = it
+                                showMediaDetail = true
+                           },
                             onShowReportDialog = { showReportDialog = !showReportDialog }
                         )
                     }

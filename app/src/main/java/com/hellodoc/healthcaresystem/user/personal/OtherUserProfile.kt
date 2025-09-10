@@ -54,7 +54,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
@@ -63,6 +62,8 @@ import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.home.report.ReportUser
 import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
+import com.hellodoc.healthcaresystem.user.post.ZoomableImage
+import com.hellodoc.healthcaresystem.user.supportfunction.AvatarDetailDialog
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -94,6 +95,7 @@ fun ProfileOtherUserPage(
 
     // LazyListState giữ vị trí scroll khi back
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+    var showMediaDetail by remember { mutableStateOf(false) }
 
     // Fetch user + post
     LaunchedEffect(userOwnerID) {
@@ -144,7 +146,10 @@ fun ProfileOtherUserPage(
                     OtherUserIntroSection(
                         user = userOfThisProfile!!,
                         navHostController = navHostController,
-                        onImageClick = { selectedImageUrl = it },
+                        onImageClick = {
+                            selectedImageUrl = it
+                            showMediaDetail = true
+                        },
                         showReportBox = showReportBox,
                         onToggleReportBox = { showReportBox = !showReportBox }
                     )
@@ -227,10 +232,12 @@ fun ProfileOtherUserPage(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
 
-            if (selectedImageUrl != null) {
-                ZoomableImageDialog(
-                    selectedImageUrl = selectedImageUrl,
-                    onDismiss = { selectedImageUrl = null }
+            if (showMediaDetail && selectedImageUrl != null) {
+                AvatarDetailDialog(
+                    mediaUrls = selectedImageUrl!!,
+                    onDismiss = {
+                        showMediaDetail = false
+                    }
                 )
             }
 

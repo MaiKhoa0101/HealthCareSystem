@@ -307,7 +307,11 @@ class HomeActivity : BaseActivity() {
                 NotificationPage(context, navHostController)
             }
             composable("personal") {
-                ProfileUserPage(sharedPreferences, navHostController, onToggleTheme = onToggleTheme, darkTheme = darkTheme)
+                ProfileUserPage(
+                    sharedPreferences,
+                    navHostController,
+                    onToggleTheme = onToggleTheme,
+                    darkTheme = darkTheme)
             }
             composable(
                 "otherUserProfile/{userOwnerID}",
