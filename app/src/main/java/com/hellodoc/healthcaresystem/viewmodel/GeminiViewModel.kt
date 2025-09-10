@@ -22,8 +22,12 @@ import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -135,6 +139,104 @@ class GeminiHelper() {
 
         } catch (e: Exception) {
             listOf("Lỗi khi xử lý: ${e.message}")
+        }
+    }
+
+    suspend fun readImageAndVideoFromInternet(context: Context, mediaUrls: List<String>): List<String> {
+        return try {
+            val mediaParts = mutableListOf<Part>()
+
+            for (url in mediaUrls) {
+                val mimeType = getMimeTypeFromUrl(url)
+
+                if (mimeType.startsWith("video")) {
+                    // 📌 Video từ internet -> chưa hỗ trợ (cần tải về và trích frame)
+                    return listOf("Hiện chưa hỗ trợ video từ internet: $url")
+                } else {
+                    withContext(Dispatchers.IO) {
+                        // 📌 Ảnh từ internet -> tải về rồi encode base64
+                        val base64 = downloadUrlToBase64(url)
+                        if (base64 == null) {
+                            Log.e("GeminiHelper", "Không thể tải ảnh từ: $url")
+                        }
+                        else {
+                            mediaParts.add(
+                                Part(
+                                    inline_data = InlineData(
+                                        mime_type = mimeType,
+                                        data = base64
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            val promptPart = Part(
+                text = """
+                    Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  
+                    Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  
+                    
+                    Yêu cầu:  
+                    - Mỗi từ khóa viết trên một dòng.  
+                    - Viết thường (lowercase).  
+                    - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  
+                    - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  
+                    - Không được trả lời gì ngoài từ khóa.  
+                    - Nếu không có từ khóa phù hợp, không trả lời gì.
+                """.trimIndent()
+            )
+
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = mediaParts + promptPart))
+            )
+
+            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+            val aiResponse = when {
+                !response.isSuccessful ->
+                    "Lỗi hệ thống: ${response.code()} - ${response.errorBody()?.string()}"
+                response.body()?.candidates.isNullOrEmpty() ->
+                    "Không nhận được phản hồi từ AI"
+                else ->
+                    response.body()!!.candidates.first().content.parts.first().text
+            }
+
+            aiResponse.lines().map { it.trim() }.filter { it.isNotEmpty() }
+
+        } catch (e: Exception) {
+            listOf("Lỗi khi xử lý: ${e.message}")
+        }
+    }
+
+    // --- Helper ---
+    private fun ByteArray.encodeBase64(): String =
+        Base64.encodeToString(this, Base64.NO_WRAP)
+
+    private fun getMimeTypeFromUrl(url: String): String {
+        return when {
+            url.endsWith(".png", true) -> "image/png"
+            url.endsWith(".jpg", true) || url.endsWith(".jpeg", true) -> "image/jpeg"
+            url.endsWith(".mp4", true) -> "video/mp4"
+            url.endsWith(".mov", true) -> "video/quicktime"
+            else -> "application/octet-stream"
+        }
+    }
+
+    private fun downloadUrlToBase64(url: String): String? {
+        return try {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "Mozilla/5.0")
+                .build()
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) return null
+            val bytes = response.body?.bytes() ?: return null
+            bytes.encodeBase64()
+        } catch (e: Exception) {
+            null
         }
     }
 

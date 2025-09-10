@@ -38,6 +38,10 @@ import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.source
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.map
+import kotlin.collections.orEmpty
+import kotlin.collections.plus
+import kotlin.text.trim
 
 
 class PostViewModel(
@@ -276,39 +280,28 @@ class PostViewModel(
 
     private suspend fun generateAndUpdateKeywords(post: PostResponse, context: Context): String? {
         return try {
-            val allKeywords = mutableListOf<String>()
 
+            var contentKeywords= emptyList<String>()
             // Phân tích từ khóa từ nội dung text
             post.content?.let { content ->
-                val contentKeywords = analyzeContentKeywords(content)
-                allKeywords.addAll(contentKeywords)
+                contentKeywords = analyzeContentKeywords(content)
             }
 
-    //            // Phân tích từ khóa từ media (ảnh/video)
-    //            post.media?.let { mediaList ->
-    //                if (mediaList.isNotEmpty()) {
-    //                    val mediaUris = mediaList.mapNotNull { mediaItem ->
-    //                        try {
-    //                            Uri.parse(mediaItem)
-    //                        } catch (e: Exception) {
-    //                            Log.w("PostViewModel", "Invalid URI: $mediaItem")
-    //                            null
-    //                        }
-    //                    }
-    //
-    //                    if (mediaUris.isNotEmpty()) {
-    //                        val mediaKeywords = geminiHelper.readImageAndVideo(context, mediaUris)
-    //                        allKeywords.addAll(mediaKeywords)
-    //                    }
-    //                }
-    //            }
+            val mediaUri = post.media.orEmpty()
+
+            val mediaKeywords = if (mediaUri.isNotEmpty()) {
+                geminiHelper.readImageAndVideoFromInternet(context, mediaUri)
+            } else emptyList()
+
+
+
+            val allKeywords = (contentKeywords + mediaKeywords)
+                .map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(10)
 
             // Loại bỏ trùng lặp và giới hạn số lượng
             val finalKeywords = allKeywords
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-                .take(10) // Giới hạn tối đa 10 từ khóa
+                .map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(10)
+
 
             if (finalKeywords.isNotEmpty()) {
 
@@ -785,7 +778,7 @@ class PostViewModel(
     fun getSimilarPosts(postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.5)
+                val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.8)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
                     val similarPostsResponse = response.body() ?: emptyList()
