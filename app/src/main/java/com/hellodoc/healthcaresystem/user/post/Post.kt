@@ -10,6 +10,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,9 +61,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +84,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
@@ -758,7 +764,6 @@ fun VideoThumbnail(url: String, modifier: Modifier = Modifier) {
         }
     }
 }
-
 @Composable
 fun MediaDetailDialog(
     mediaUrls: List<String>,
@@ -786,7 +791,7 @@ fun MediaDetailDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.onBackground)
+                .background(Color.Black)
         ) {
             // Close button
             IconButton(
@@ -799,7 +804,7 @@ fun MediaDetailDialog(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = MaterialTheme.colorScheme.background,
+                    tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -807,7 +812,7 @@ fun MediaDetailDialog(
             // Image counter
             Text(
                 text = "${currentIndex + 1} / ${mediaUrls.size}",
-                color = MaterialTheme.colorScheme.background,
+                color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
@@ -816,50 +821,33 @@ fun MediaDetailDialog(
                     .zIndex(1f)
             )
 
-            // Image pager
+            // Pager cho ảnh + video
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { onDismiss() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    when (detectMediaType(mediaUrls[page])) {
-                        MediaType.IMAGE -> {
-                            AsyncImage(
-                                model = mediaUrls[page],
-                                contentDescription = "Image ${page + 1}",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) { /* Prevent dismiss when clicking image */ }
-                            )
-                        }
-                        MediaType.VIDEO ->{
-                            VideoPlayer(
-                                videoUrl = mediaUrls[page],
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) { /* Prevent dismiss when clicking image */ }
-                            )
-                        }
-                        else -> {
-                            Text("Unknown media type")
+                when (detectMediaType(mediaUrls[page])) {
+                    MediaType.IMAGE -> {
+                        ZoomableImage(
+                            url = mediaUrls[page],
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    MediaType.VIDEO -> {
+                        VideoPlayer(
+                            videoUrl = mediaUrls[page],
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    else -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Unknown media type", color = Color.White)
                         }
                     }
                 }
             }
 
-            // Page indicator dots (only show if more than 1 image)
+            // Dots indicator
             if (mediaUrls.size > 1) {
                 Row(
                     modifier = Modifier
@@ -873,7 +861,7 @@ fun MediaDetailDialog(
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (index == currentIndex) MaterialTheme.colorScheme.background
+                                    if (index == currentIndex) Color.White
                                     else Color.White.copy(alpha = 0.4f)
                                 )
                         )
@@ -881,6 +869,47 @@ fun MediaDetailDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ZoomableImage(url: String, modifier: Modifier = Modifier) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, zoom, _ ->
+                    val newScale = (scale * zoom).coerceIn(1f, 5f)
+                    val newOffset = if (newScale > 1) offset + pan else Offset.Zero
+                    scale = newScale
+                    offset = newOffset
+                }
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        scale = 1f
+                        offset = Offset.Zero
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(url),
+            contentDescription = "Zoomable Image",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        )
     }
 }
 

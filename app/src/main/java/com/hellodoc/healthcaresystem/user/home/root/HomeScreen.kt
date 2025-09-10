@@ -72,12 +72,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
+import com.hellodoc.healthcaresystem.user.post.ZoomableImage
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -185,11 +185,7 @@ fun HealthMateHomeScreen(
     }
 
 
-    if (selectedImageUrl != null) {
-        ZoomableImageDialog(
-            selectedImageUrl = selectedImageUrl,
-            onDismiss = { selectedImageUrl = null })
-    }
+
 
     Box(
         modifier = Modifier
@@ -258,18 +254,6 @@ fun HealthMateHomeScreen(
                 }
             }
 
-
-            item(key = "doctors") {
-                Spacer(modifier = Modifier.height(8.dp))
-                if (doctorState.isEmpty()) {
-//                    EmptyList("bác sĩ")
-                    DoctorSkeletonList()
-                } else {
-                    println("ko co bi empty")
-                    DoctorList(navHostController = navHostController, doctors = doctorState)
-                }
-            }
-
             item(key = "specialties") {
                 if (specialtyState.isEmpty()) {
 //                    EmptyList("chuyên khoa")
@@ -279,6 +263,17 @@ fun HealthMateHomeScreen(
                         navHostController = navHostController,
                         context = context,
                         specialties = specialtyState)
+                }
+            }
+
+            item(key = "doctors") {
+                Spacer(modifier = Modifier.height(8.dp))
+                if (doctorState.isEmpty()) {
+//                    EmptyList("bác sĩ")
+                    DoctorSkeletonList()
+                } else {
+                    println("ko co bi empty")
+                    DoctorList(navHostController = navHostController, doctors = doctorState)
                 }
             }
 
@@ -951,6 +946,7 @@ fun SpecialtyList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(vertical = 16.dp)
         ) {
+            item { Spacer(modifier = Modifier.width(8.dp)) }
             items(displayedSpecialties,  key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
                 SpecialtyItem(
                     navHostController = navHostController,
@@ -958,6 +954,7 @@ fun SpecialtyList(
                     onClick = { showToast(context, "Đã chọn: ${specialty.name}") }
                 )
             }
+            item { Spacer(modifier = Modifier.width(8.dp)) }
         }
     }
 }

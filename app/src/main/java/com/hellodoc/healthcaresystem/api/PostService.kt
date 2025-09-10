@@ -40,7 +40,7 @@ interface PostService {
     suspend fun getSimilarPosts(
         @Path("id") id: String,
         @Query("limit") limit: Int = 5,
-        @Query("minSimilarity") minSimilarity: Double = 0.5
+        @Query("minSimilarity") minSimilarity: Double = 0.6
     ): Response<List<SimilarPostResponse>>
 
     @GET("post/{postId}/comment/get")

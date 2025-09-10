@@ -196,23 +196,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             }
         }
     }
-    private suspend fun handleGeneralHealthQuery(originalQuery: String, analysis: QueryAnalysis) {
-        val prompt = """
-        Bạn là một trợ lý y tế AI.
-        Người dùng hỏi: "$originalQuery"
-        
-        - Nếu câu hỏi chung chung (ví dụ "Tôi bị bệnh A, B"), hãy:
-            + Tóm tắt về bệnh
-            + Đưa lời khuyên phòng ngừa
-            + Nhấn mạnh cần khám bác sĩ khi cần
-        - Nếu không liên quan sức khỏe: "Xin lỗi, tôi chỉ hỗ trợ y tế và sức khỏe."
-        
-        Trả lời ngắn gọn, dễ hiểu, tiếng Việt.
-    """.trimIndent()
-
-        val response = askGeminiWithPrompt(prompt)
-        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
-    }
 
     private suspend fun handleDoctorQuery(originalQuery: String, analysis: QueryAnalysis) {
         val doctors = searchDoctorByName(analysis.doctorName)
@@ -272,7 +255,34 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 )
             }
         }
+    }// Xử lý câu hỏi về chuyên khoa
+    private suspend fun generateSpecialtyResponse(
+        originalQuery: String,
+        analysis: QueryAnalysis,
+        doctors: List<GetDoctorResponse>
+    ): String {
+        val specialtyStats = """
+        Thông tin chuyên khoa ${analysis.specialty}:
+        - Tổng số bác sĩ: ${doctors.size}
+        - Các bệnh viện: ${doctors.groupBy { it.hospital }.keys.joinToString(", ")}
+        - Bác sĩ nổi bật: ${doctors.take(3).joinToString(", ") { it.name }}
+        """.trimIndent()
+
+        val responsePrompt = """
+            Người dùng hỏi: "$originalQuery"
+            Phần cần trả lời: "${analysis.remainingQuery}"
+            
+            $specialtyStats
+            Không cần chào hỏi lịch sử, chỉ cần làm đúng trọng tâm
+            Hãy trả lời dựa trên thông tin thực tế về chuyên khoa ${analysis.specialty}:
+            1. Giải thích ngắn gọn về chuyên khoa này
+            2. Kết thúc bằng: "Danh sách bác sĩ trong chuyên khoa:"
+            
+        """.trimIndent()
+
+        return askGeminiWithPrompt(responsePrompt)
     }
+
 
     // Xử lý query về bài viết
     private suspend fun handleArticleQuery(originalQuery: String, analysis: QueryAnalysis) {
@@ -317,6 +327,25 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private suspend fun handleGeneralHealthQuery(originalQuery: String, analysis: QueryAnalysis) {
+        val prompt = """      
+        Bạn là một trợ lý y tế AI chuyên nghiệp và thân thiện, 
+            nếu câu hỏi chung chung như tôi bị bệnh A, B, C thì hãy trả lời chi tiết            Tất cả câu hỏi của người dùng, nếu có thể, hãy trả về đầy đủ 5 trường thông tin trên, cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
+            còn nếu câu hỏi chỉ 1 mục đích như "cho tôi biết bác sĩ, cho tôi tìm bài viết,..."
+            thì không trả lời dài dòng mà chỉ nói " dưới đây là các phòng khám/ 
+            bác sĩ phù hợp với yêu cầu của bạn","dưới đây là các bài vết phù hợp với yêu cầu
+            của bạn:"
+            Câu hỏi: "$originalQuery"
+            - Chỉ trả lời về y tế & sức khỏe.
+            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
+            - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
+            - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
+            Trả lời bằng tiếng Việt.
+    """.trimIndent()
+
+        val response = askGeminiWithPrompt(prompt)
+        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
+    }
 
     // Data class để chứa kết quả phân tích
     data class QueryAnalysis(
@@ -349,6 +378,12 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             Ví dụ:
             - "Bác sĩ Nguyễn Văn A làm việc ở đâu?" 
             → {"doctorName":"Nguyễn Văn A","specialty":"","articleKeyword":"","intent":"tìm bác sĩ","remainingQuery":"làm việc ở đâu"}
+            
+            - "Bác sĩ A ở khoa nào"
+            -> {"doctorName":"A","specialty":"","articleKeyword":"","intent":"tìm khoa","remainingQuery":"ở khoa nào"} 
+            
+            - "Tìm bài viết về tim mạch"
+            → {"doctorName":"","specialty":"","articleKeyword":"tim mạch","intent":"tìm bài viết","remainingQuery":""}
             
             - "Khoa tim mạch có bác sĩ nào giỏi?"
             → {"doctorName":"","specialty":"tim mạch","articleKeyword":"","intent":"tìm chuyên khoa","remainingQuery":"có bác sĩ nào giỏi"}
@@ -411,71 +446,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         } catch (e: Exception) {
             ""
         }
-    }
-
-    // Xử lý câu hỏi về chuyên khoa
-    private suspend fun generateSpecialtyResponse(
-        originalQuery: String,
-        analysis: QueryAnalysis,
-        doctors: List<GetDoctorResponse>
-    ): String {
-        val specialtyStats = """
-        Thông tin chuyên khoa ${analysis.specialty}:
-        - Tổng số bác sĩ: ${doctors.size}
-        - Các bệnh viện: ${doctors.groupBy { it.hospital }.keys.joinToString(", ")}
-        - Bác sĩ nổi bật: ${doctors.take(3).joinToString(", ") { it.name }}
-        """.trimIndent()
-
-        val responsePrompt = """
-            Người dùng hỏi: "$originalQuery"
-            Phần cần trả lời: "${analysis.remainingQuery}"
-            
-            $specialtyStats
-            Không cần chào hỏi lịch sử, chỉ cần làm đúng trọng tâm
-            Hãy trả lời dựa trên thông tin thực tế về chuyên khoa ${analysis.specialty}:
-            1. Giải thích ngắn gọn về chuyên khoa này
-            2. Kết thúc bằng: "Danh sách bác sĩ trong chuyên khoa:"
-            
-        """.trimIndent()
-
-        return askGeminiWithPrompt(responsePrompt)
-    }
-
-    // Xử lý câu hỏi về bài viết
-    private suspend fun generateArticleResponse(
-        originalQuery: String,
-        analysis: QueryAnalysis,
-        articles: List<Any>
-    ): String {
-        val responsePrompt = """
-            Người dùng tìm bài viết: "$originalQuery"
-            Từ khóa: "${analysis.articleKeyword}"       
-            """.trimIndent()
-
-        return askGeminiWithPrompt(responsePrompt)
-    }
-
-    // Hỏi Gemini trực tiếp cho câu hỏi sức khỏe thông thường
-    private suspend fun askGeminiDirectly(query: String) {
-        val medicalPrompt = """
-            Bạn là một trợ lý y tế AI chuyên nghiệp và thân thiện, 
-            nếu câu hỏi chung chung như tôi bị bệnh A, B, C thì hãy trả lời chi tiết            Tất cả câu hỏi của người dùng, nếu có thể, hãy trả về đầy đủ 5 trường thông tin trên, cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
-            còn nếu câu hỏi chỉ 1 mục đích như "cho tôi biết bác sĩ, cho tôi tìm bài viết,..."
-            thì không trả lời dài dòng mà chỉ nói " dưới đây là các phòng khám/ 
-            bác sĩ phù hợp với yêu cầu của bạn","dưới đây là các bài vết phù hợp với yêu cầu
-            của bạn:"
-            Câu hỏi: "$query"
-            - Chỉ trả lời về y tế & sức khỏe.
-            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
-            - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
-            - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
-            Trả lời bằng tiếng Việt.
-        """.trimIndent()
-
-        val response = askGeminiWithPrompt(medicalPrompt)
-        _answer.value = response
-        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
-        _isSearching.value = false
     }
 
     // Helper functions để tìm kiếm database

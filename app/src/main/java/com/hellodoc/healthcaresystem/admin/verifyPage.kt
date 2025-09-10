@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.hellodoc.healthcaresystem.user.post.ZoomableImage
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 
 @Composable
@@ -147,9 +148,9 @@ fun PendingDoctorDetailScreen(
     }
 
     // Hiển thị Dialog zoom ảnh
-    ZoomableImageDialog(
-        selectedImageUrl = expandedImageUrl,
-        onDismiss = { expandedImageUrl = null }
+    ZoomableImage(
+        url = expandedImageUrl.toString(),
+        modifier=Modifier.fillMaxSize()
     )
 }
 
@@ -159,72 +160,5 @@ fun InfoRow(label: String, value: String?) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(text = "$label: ", fontWeight = FontWeight.SemiBold)
         Text(text = value ?: "", modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-fun ZoomableImageDialog(
-    selectedImageUrl: String?,
-    onDismiss: () -> Unit
-) {
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-
-    if (selectedImageUrl != null) {
-        Dialog(onDismissRequest = onDismiss) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable(onClick = onDismiss)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                // Pinch zoom
-                                val newScale = (scale * zoom).coerceIn(1f, 5f)
-
-                                // Giữ offset hợp lý khi zoom
-                                val newOffset = if (newScale > 1) {
-                                    offset + pan
-                                } else {
-                                    Offset.Zero
-                                }
-
-                                scale = newScale
-                                offset = newOffset
-                            }
-                        }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = {
-                                    // Reset khi double tap
-                                    scale = 1f
-                                    offset = Offset.Zero
-                                }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(selectedImageUrl),
-                        contentDescription = "Zoomable Image",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                translationX = offset.x,
-                                translationY = offset.y
-                            )
-                    )
-                }
-            }
-        }
-    } else {
-        onDismiss()
     }
 }

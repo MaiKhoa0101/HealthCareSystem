@@ -56,13 +56,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.admin.ZoomableImageDialog
 import com.hellodoc.healthcaresystem.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.responsemodel.UiState
 import com.hellodoc.healthcaresystem.responsemodel.User
@@ -71,8 +71,11 @@ import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.home.root.AssistantAnswerDialog
+import com.hellodoc.healthcaresystem.user.post.MediaDetailDialog
 import com.hellodoc.healthcaresystem.user.post.Post
 import com.hellodoc.healthcaresystem.user.post.PostColumn
+import com.hellodoc.healthcaresystem.user.post.ZoomableImage
+import com.hellodoc.healthcaresystem.user.supportfunction.AvatarDetailDialog
 import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
@@ -100,14 +103,16 @@ fun ProfileUserPage(
     val hasMore by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
     val progress by postViewModel.uploadProgress.collectAsState()
-
+    var showMediaDetail by remember { mutableStateOf(false) }
+    var selectedMediaIndex by remember { mutableStateOf(0) }
     var userId by remember { mutableStateOf("") }
     var userModel by remember { mutableStateOf("") }
-
+    var showSetting by remember { mutableStateOf(false) }
     // LazyListState có rememberSaveable để giữ vị trí scroll khi back
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState()
     }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     // Lấy userId, role từ SharedPreferences chỉ 1 lần
     LaunchedEffect(Unit) {
@@ -158,13 +163,14 @@ fun ProfileUserPage(
                     UserSkeleton()
                 } else {
                     ProfileSection(
-                        navHostController = navHostController,
                         user = user!!,
-                        onClickShowReport = { /*...*/ },
-                        onImageClick = { /*...*/ },
-                        showReportBox = false,
-                        onToggleReportBox = {},
-                        onClickSetting = { /*...*/ }
+                        onImageClick = {
+                            selectedImageUrl = it
+                            showMediaDetail = true
+                        },
+                        onClickSetting = {
+                            showSetting = true
+                        }
                     )
                 }
             }
@@ -286,6 +292,25 @@ fun ProfileUserPage(
                 else -> {}
             }
         }
+        if (showSetting) {
+            println("SHOW SETTING")
+            Setting(
+                navHostController,
+                sharedPreferences,
+                user,
+                onToggleTheme = onToggleTheme,
+                onExitSetting = { showSetting = false },
+                darkTheme = darkTheme
+            )
+        }
+        if (showMediaDetail && selectedImageUrl != null) {
+            AvatarDetailDialog(
+                mediaUrls = selectedImageUrl!!,
+                onDismiss = {
+                    showMediaDetail = false
+                }
+            )
+        }
     }
 }
 
@@ -293,11 +318,8 @@ fun ProfileUserPage(
 
 @Composable
 fun ProfileSection(
-    navHostController: NavHostController,
-    user: User, onClickShowReport: () -> Unit,
+    user: User,
     onImageClick: (String) -> Unit,
-    showReportBox: Boolean,
-    onToggleReportBox: () -> Unit,
     onClickSetting: () -> Unit
 )
 {
@@ -311,11 +333,7 @@ fun ProfileSection(
         ) {
             UserIntroSection(
                 user = user,
-                onClickShowReport = onClickShowReport,
-                navController = navHostController,
                 onImageClick = onImageClick,
-                showReportBox = showReportBox,
-                onToggleReportBox = onToggleReportBox,
                 onClickSetting = onClickSetting
             )
             Spacer(modifier = Modifier.height(26.dp))
@@ -328,11 +346,7 @@ fun ProfileSection(
 @Composable
 fun UserIntroSection(
     user: User,
-    onClickShowReport: () -> Unit,
-    navController: NavHostController,
     onImageClick: (String) -> Unit,
-    showReportBox: Boolean,
-    onToggleReportBox: () -> Unit,
     onClickSetting: () -> Unit
 ) {
     Box(
