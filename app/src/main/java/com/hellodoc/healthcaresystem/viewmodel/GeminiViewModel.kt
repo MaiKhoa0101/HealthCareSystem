@@ -316,8 +316,8 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         Hãy trả lời ngắn gọn, tập trung vào câu hỏi của người dùng.
     """.trimIndent()
 
-        val response = askGeminiWithPrompt(prompt)+"\nDanh sách bác sĩ:"
-        _chatMessages.update { it + ChatMessage(response, isUser = false) }
+        val response = askGeminiWithPrompt(prompt)+"Danh sách bác sĩ:"
+        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
 
         doctors.take(3).forEach { doctor ->
             _chatMessages.update {
