@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -126,6 +128,11 @@ fun CreatePostScreen(
     var frameUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var pairedList by remember { mutableStateOf<List<Pair<Uri, Uri>>>(emptyList()) }
 
+    val maxWords = 300
+    val wordCount by remember(postText) {
+        derivedStateOf { countWords(postText) }
+    }
+
     // Loading & dialog
     val posts by postViewModel.posts.collectAsState()
     val updateSuccess by postViewModel.updateSuccess.collectAsState()
@@ -159,8 +166,6 @@ fun CreatePostScreen(
             }
         }
     }
-
-
 
     // Load user info & post data
     LaunchedEffect(Unit) {
@@ -213,6 +218,10 @@ fun CreatePostScreen(
             return
         }
 
+        if (wordCount > maxWords) {
+            return
+        }
+
         if (postId != null) {
             val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
             val newUris = selectedImageUris.filterNot { it.scheme in listOf("http", "https") }
@@ -258,7 +267,9 @@ fun CreatePostScreen(
                         label = "Hãy nói gì đó ..."
                     ),
                     text = postText,
-                    onTextChange = { postText = it }
+                    onTextChange = { postText = it  },
+                    wordCount = wordCount,
+                    maxWords = maxWords
                 )
             }
 
@@ -489,6 +500,8 @@ fun PostBody(
     containerPost: ContainerPost,
     text: String,
     onTextChange: (String) -> Unit,
+    wordCount: Int,
+    maxWords: Int,
     modifier: Modifier = Modifier
 ){
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -527,6 +540,8 @@ fun PostBody(
         OutlineTextField(
             text = text,
             onTextChange = onTextChange,
+            wordCount = wordCount,
+            maxWords = maxWords,
             modifier = Modifier.constrainAs(textField) {
                 top.linkTo(iconImage.bottom)
                 start.linkTo(parent.start)
@@ -652,17 +667,28 @@ fun FooterWithPermission(
     HorizontalDivider()
 }
 
+fun countWords(text: String): Int {
+    return text.length
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutlineTextField(
     text: String,
     onTextChange: (String) -> Unit,
+    wordCount: Int,
+    maxWords: Int,
     modifier: Modifier = Modifier
 ){
     OutlinedTextField(
         value = text,
         onValueChange = { newValue ->
-            onTextChange(newValue)
+            // Chỉ cho phép nhập nếu không vượt quá giới hạn từ
+            val newWordCount = countWords(newValue)
+            if (newWordCount <= maxWords) {
+                onTextChange(newValue)
+
+            }
         },
         placeholder = {
             Text(
@@ -685,6 +711,28 @@ fun OutlineTextField(
             errorBorderColor = Color.Transparent
         )
     )
+
+    // Hiển thị word count
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Text(
+            text = "$wordCount/$maxWords chữ",
+            style = TextStyle(
+                fontSize = 12.sp,
+                color = if (wordCount > maxWords) {
+                    MaterialTheme.colorScheme.error
+                } else if (wordCount > maxWords * 0.9) {
+                    MaterialTheme.colorScheme.tertiary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+        )
+    }
 }
 
 // Các function không được sử dụng - có thể xóa hoặc giữ lại để tham khảo
