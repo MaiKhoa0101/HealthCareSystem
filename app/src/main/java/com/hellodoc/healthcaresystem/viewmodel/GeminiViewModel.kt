@@ -312,17 +312,17 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         val prompt = """
         Người dùng hỏi: "$originalQuery"
         Đây là thông tin bác sĩ: 
-        ${doctors.take(3).joinToString("\n") { "- ${it.name}, ${it.specialty}, ${it.hospital}" }}
+        ${doctors.take(10).joinToString("\n") { "- ${it.name}, ${it.specialty}, ${it.hospital}" }}
         Hãy trả lời ngắn gọn, tập trung vào câu hỏi của người dùng.
     """.trimIndent()
 
         val response = askGeminiWithPrompt(prompt)+"Danh sách bác sĩ:"
         _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
 
-        doctors.take(3).forEach { doctor ->
+        doctors.take(10).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                    message = "${doctor.name} - ${doctor.avatarURL}  *${doctor.specialty} (${doctor.hospital})",
                     isUser = false,
                     type = MessageType.DOCTOR,
                     doctorId = doctor.id
@@ -351,10 +351,14 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         doctors.take(5).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                    doctorId = doctor.id,
+                    doctorName = doctor.name,
+                    doctorSpecialty = doctor.specialty,
+                    doctorHospital = doctor.hospital,
+                    doctorAvatar = doctor.avatarURL,
+                    message = " ",
                     isUser = false,
                     type = MessageType.DOCTOR,
-                    doctorId = doctor.id
                 )
             }
         }

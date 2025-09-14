@@ -16,12 +16,12 @@ val LightTheme = Color(0xFF4DFBF2)
 val BoxGrey = Color(0xFF3F3F3F)
 val BoxLightGrey = Color(0xFF565656)
 
-val secondContainer = Color(0xFFEAEAEA)
+val secondContainer = Color(0xFFD3D3D3)
 val ButtonTheme = Color(0xFF2E3FA4)
 val onSecondDarkContainer = Color(0xFFA2A2A2)
 
 val LightBlueCustom = Color(0xFFBBDEFB) // Màu xanh dương nhạt
-val LightGreenCustom = Color(0xFFC8E6C9) // Màu xanh lá nhạt
+val MidGrayCustom = Color(0xFFC7C7C7) // Màu xám vừa
 val LightRedCustom = Color(0xFFFFCDD2) // Màu đỏ nhạt
 val CyanDarkCustom = Color(0xFF0097A7) // Màu xanh cyan đậm
 val AmberCustom = Color(0xFFFFC107) // Màu vàng cam tươi (Amber)

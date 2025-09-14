@@ -778,7 +778,7 @@ class PostViewModel(
     fun getSimilarPosts(postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getSimilarPosts(postId, 5, 0.8)
+                val response = RetrofitInstance.postService.getSimilarPosts(postId, 10, 0.8)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
                     val similarPostsResponse = response.body() ?: emptyList()

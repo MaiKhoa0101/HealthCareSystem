@@ -57,7 +57,7 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = LightTheme,
     error = CustomRed,
     tertiary = LightBlueCustom,
-    surfaceVariant = LightGreenCustom,
+    surfaceVariant = MidGrayCustom,
     errorContainer = LightRedCustom,
     outlineVariant = AmberCustom,
 )
