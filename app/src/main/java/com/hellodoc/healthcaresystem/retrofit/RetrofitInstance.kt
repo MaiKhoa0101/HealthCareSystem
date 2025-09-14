@@ -21,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit 
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.7:4000"
+    private const val BASE_URL = "http://192.168.1.5:4000"
 //    private const val BASE_URL = "https://hellodoc-backend.onrender.com"
 //    private const val BASE_URL = "http://192.168.1.110:4000"
     private val client = OkHttpClient.Builder()
