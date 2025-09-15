@@ -472,13 +472,13 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
             Còn nếu câu hỏi chỉ là tìm bác sĩ chữa bệnh A, tìm bài viết chủ đề B thì điền đúng trường đó, còn các trường còn lại bằng dấu rỗng
             Các chữ cái như hóa đổi thành hoá
-            Nếu câu hỏi kiểu nhờ tư ấn thì trả về trường intent = "hỏi sức khỏe"
+            Nếu câu hỏi kiểu nhờ tư ấn thì trả về trường intent = "hỏi sức khoẻ"
             Chỉ trả về JSON, không giải thích thêm.
             Đây là JSON với các trường:
             - doctorName: tên bác sĩ (nếu có) - viết hoa chữ cái đầu
             - specialty: chuyên khoa (nếu có) 
             - articleKeyword: từ khóa bài viết (nếu có)
-            - intent: mục đích (tìm bác sĩ, tìm chuyên khoa, tìm bài viết, tìm khoa bác sĩ, hỏi sức khỏe)
+            - intent: mục đích (tìm bác sĩ, tìm chuyên khoa, tìm bài viết, tìm khoa bác sĩ, hỏi sức khoẻ)
             - remainingQuery: phần còn lại của câu hỏi sau khi tách thông tin
            
             Ví dụ:
@@ -507,7 +507,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             parseQueryAnalysisResponse(response)
         } catch (e: Exception) {
             Log.e("GeminiViewModel", "Error analyzing query: ${e.message}")
-            QueryAnalysis(remainingQuery = query, intent = "hỏi sức khỏe")
+            QueryAnalysis(remainingQuery = query, intent = "hỏi sức khoẻ")
         }
     }
 
@@ -520,7 +520,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             val jsonEnd = response.lastIndexOf("}") + 1
 
             if (jsonStart == -1 || jsonEnd <= jsonStart) {
-                return QueryAnalysis(remainingQuery = response, intent = "hỏi sức khỏe")
+                return QueryAnalysis(remainingQuery = response, intent = "hỏi sức khoẻ")
             }
 
             val jsonString = response.substring(jsonStart, jsonEnd)
@@ -541,7 +541,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             )
         } catch (e: Exception) {
             Log.e("GeminiViewModel", "Error parsing analysis: ${e.message}")
-            QueryAnalysis(remainingQuery = response, intent = "hỏi sức khỏe")
+            QueryAnalysis(remainingQuery = response, intent = "hỏi sức khoẻ")
         }
     }
 
