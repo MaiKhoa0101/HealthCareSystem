@@ -21,8 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit 
 
 object RetrofitInstance {
-//    private const val BASE_URL = "http://192.168.1.7:4000"
-    private const val BASE_URL = "https://hellodoc-backend.onrender.com"
+    //private const val BASE_URL = "http://192.168.1.216:4000"
+      private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 //    private const val BASE_URL = "http://192.168.0.101:4000"
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối

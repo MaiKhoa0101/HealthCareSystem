@@ -34,10 +34,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.collections.forEach
 
-class GeminiHelper() {
 
-    //private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
-    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
+
+private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
+
+class GeminiHelper() {
 
     suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
         return try {
@@ -255,8 +256,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> get() = _isSearching
 
-    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
-
     fun processUserQuery(query: String) {
         _question.value = query
         _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
@@ -265,6 +264,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         viewModelScope.launch {
             try {
                 val analysis = analyzeQueryWithAI(query)
+                println("analyst la: "+analysis.toString())
                 val jobs = mutableListOf<Job>()
                 if (analysis.intent == "hỏi sức khoẻ") {
                     jobs+= launch {
@@ -443,8 +443,8 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             bác sĩ phù hợp với yêu cầu của bạn","dưới đây là các bài vết phù hợp với yêu cầu
             của bạn:"
             Câu hỏi: "$originalQuery"
-            - Chỉ trả lời về y tế & sức khỏe.
-            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
+            - Chỉ trả lời về y tế & sức khoẻ.
+            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khoẻ."
             - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
             - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
             Trả lời bằng tiếng Việt.
@@ -464,6 +464,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // AI phân tích query và tách thông tin
     private suspend fun analyzeQueryWithAI(query: String): QueryAnalysis {
+        println("vao duoc ham")
         val analysisPrompt = """
             Phân tích câu hỏi người dùng và trích xuất thông tin theo format JSON:
             
@@ -502,6 +503,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         """.trimIndent()
 
         return try {
+            println("vao duoc try ")
             val response = askGeminiWithPrompt(analysisPrompt)
             println("Phan hoi cua AI: "+ response)
             parseQueryAnalysisResponse(response)
@@ -582,12 +584,14 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 contents = listOf(Content(parts = listOf(Part(text = prompt))))
             )
             val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+            println("Response: $response")
             when {
                 !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
                 response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
                 else -> response.body()!!.candidates.first().content.parts.first().text
             }
         } catch (e: Exception) {
+            println("Error: ${e.message}")
             "Lỗi kết nối: ${e.localizedMessage}"
         }
     }
