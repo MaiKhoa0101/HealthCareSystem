@@ -266,7 +266,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             try {
                 val analysis = analyzeQueryWithAI(query)
                 val jobs = mutableListOf<Job>()
-                if (analysis.intent == "hỏi sức khoẻ") {
+                if (analysis.intent == "hỏi sức khỏe") {
                     jobs+= launch {
                         handleGeneralHealthQuery(query, analysis)
                     }
@@ -389,6 +389,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // Xử lý query về bài viết
     private suspend fun handleArticleQuery(originalQuery: String, analysis: QueryAnalysis) {
+        Log.d("GeminiViewModel", "Handling article query: ${analysis.articleKeyword}")
         val searchResponse = RetrofitInstance.postService.searchAdvanced(analysis.articleKeyword)
 
         if (!searchResponse.isSuccessful) {
@@ -402,6 +403,8 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
 
         val articles = searchResponse.body()?.take(5) ?: emptyList()
+
+        Log.d("GeminiViewModel", "Found ${articles.size} articles")
 
         if (articles.isEmpty()) {
             _chatMessages.update {
@@ -419,7 +422,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         articles.forEach { article ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = article.content.take(80) + "...",
+                    message = (article.content?.take(80) ?: "Nội dung không có sẵn") + "...",
                     isUser = false,
                     type = MessageType.ARTICLE,
                     articleId = article.id,
@@ -491,10 +494,10 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             → {"doctorName":"","specialty":"tim mạch","articleKeyword":"","intent":"tìm chuyên khoa","remainingQuery":"có bác sĩ nào giỏi"}
             
             - "Tôi bị bệnh tiểu đường"
-            → {"doctorName":"Nguyễn Văn B","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"hỏi sức khoẻ","remainingQuery":""}
+            → {"doctorName":"Nguyễn Văn B","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"hỏi sức khỏe","remainingQuery":""}
             
             - "Bệnh HIV là gì"
-            → {"doctorName":"","specialty":"","articleKeyword":"","intent":"hỏi sức khoẻ","remainingQuery":""}
+            → {"doctorName":"","specialty":"","articleKeyword":"","intent":"hỏi sức khỏe","remainingQuery":""}
         """.trimIndent()
 
         return try {
