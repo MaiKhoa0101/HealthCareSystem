@@ -16,7 +16,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="LÀ 1 DIỄN ĐÀN VÌ\nSỨC KHỎE NGƯỜI VIỆT"
+        android:text="LÀ 1 DIỄN ĐÀN VÌ\nSỨC KHOẺ NGƯỜI VIỆT"
         android:textSize="25dp"
         android:textStyle="bold"
         android:textColor="@color/black"
