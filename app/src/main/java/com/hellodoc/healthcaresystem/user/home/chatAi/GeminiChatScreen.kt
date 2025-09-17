@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DoubleArrow
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -111,7 +112,7 @@ fun GeminiChatScreen(
                         LazyRow(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(group, key = { it.id }) { articleMsg ->
+                            items(group.reversed(), key = { it.id }) { articleMsg ->
                                 ArticleBubble(
                                     title = articleMsg.message ?: "Không có tiêu đề",
                                     author = articleMsg.articleAuthor ?: "Ẩn danh",
@@ -378,6 +379,7 @@ fun ArticleBubble(
         Card(
             modifier = Modifier
                 .widthIn(max = 300.dp)
+                .heightIn(min = 280.dp, max = 280.dp)
                 .clickable(onClick = onClick),
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -386,7 +388,11 @@ fun ArticleBubble(
             Column {
                 if (!imageUrl.isNullOrEmpty()) {
                     AsyncImage(
-                        model = imageUrl,
+                        model = if (imageUrl!= null){
+                            imageUrl
+                        } else {
+                            Icons.Default.Image
+                        },
                         contentDescription = "Article image",
                         modifier = Modifier
                             .height(150.dp)

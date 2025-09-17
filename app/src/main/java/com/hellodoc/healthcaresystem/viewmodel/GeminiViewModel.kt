@@ -21,6 +21,7 @@ import android.util.Base64OutputStream
 import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.Specialty
 import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,7 +37,7 @@ import kotlin.collections.forEach
 
 
 
-private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
+private val apiKey = "AIzaSyBidRgQ6yRWXIkHpBpMfvmShLmQ4Fotc_0"
 
 class GeminiHelper() {
 
@@ -266,7 +267,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val analysis = analyzeQueryWithAI(query)
                 println("analyst la: "+analysis.toString())
                 val jobs = mutableListOf<Job>()
-                if (analysis.intent == "hỏi sức khỏe") {
+                if (analysis.intent == "hỏi sức khoẻ") {
                     jobs+= launch {
                         handleGeneralHealthQuery(query, analysis)
                     }
@@ -322,10 +323,13 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         doctors.take(10).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = "${doctor.name} - ${doctor.avatarURL}  *${doctor.specialty} (${doctor.hospital})",
+                    message = "",
                     isUser = false,
                     type = MessageType.DOCTOR,
-                    doctorId = doctor.id
+                    doctorId = doctor.id,
+                    doctorName = doctor.name ?: "Không có tên", // Xử lý null
+                    doctorSpecialty = (doctor.specialty ?: "Không có chuyên khoa") as Specialty?,
+                    doctorAvatar = doctor.avatarURL ?: "" // Xử lý null cho avatar
                 )
             }
         }
@@ -489,7 +493,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             - "Bác sĩ Nguyễn Văn A làm việc ở đâu?" 
             → {"doctorName":"Nguyễn Văn A","specialty":"","articleKeyword":"","intent":"tìm bác sĩ","remainingQuery":"làm việc ở đâu"}
             
-            - "Bác sĩ A ở khoa nào"
+            - "Bác sĩ A ở khoa nào, bác sĩ A làm việc ở đâu, thông tin bác sĩ A"
             -> {"doctorName":"A","specialty":"","articleKeyword":"","intent":"tìm khoa bác sĩ","remainingQuery":"ở khoa nào"} 
             
             - "Tìm bài viết về tim mạch"
@@ -587,9 +591,9 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 contents = listOf(Content(parts = listOf(Part(text = prompt))))
             )
             val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-            println("Response: $response")
+            println("Response: ${response.body()}")
             when {
-                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
+                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()} ${response.body()}"
                 response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
                 else -> response.body()!!.candidates.first().content.parts.first().text
             }
