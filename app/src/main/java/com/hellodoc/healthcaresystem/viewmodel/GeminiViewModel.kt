@@ -21,6 +21,7 @@ import android.util.Base64OutputStream
 import android.util.Log
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.Specialty
 import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,10 +35,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.collections.forEach
 
-class GeminiHelper() {
 
-    //private val apiKey = "AIzaSyCmmkTVG3budXG5bW9R3Yr3Vsi15U8KcR0"
-    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
+
+private val apiKey = "AIzaSyBidRgQ6yRWXIkHpBpMfvmShLmQ4Fotc_0"
+
+class GeminiHelper() {
 
     suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
         return try {
@@ -255,8 +257,6 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> get() = _isSearching
 
-    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
-
     fun processUserQuery(query: String) {
         _question.value = query
         _chatMessages.update { it + ChatMessage(message = query, isUser = true) }
@@ -265,12 +265,13 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         viewModelScope.launch {
             try {
                 val analysis = analyzeQueryWithAI(query)
+                println("analyst la: "+analysis.toString())
                 val jobs = mutableListOf<Job>()
-                if (analysis.intent == "hỏi sức khỏe") {
+                if (analysis.intent == "hỏi sức khoẻ") {
                     jobs+= launch {
                         handleGeneralHealthQuery(query, analysis)
                     }
-                 }
+                }
                 if (analysis.doctorName.isNotBlank()) {
                     jobs += launch {
                         handleDoctorQuery(query, analysis)
@@ -289,6 +290,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
                 // Chờ tất cả job xong
                 jobs.joinAll()
+                println("Tra ve job"+jobs.toString())
             } catch (e: Exception) {
                 _chatMessages.update {
                     it + ChatMessage("⚠️ Lỗi: ${e.localizedMessage}", isUser = false)
@@ -311,20 +313,23 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         val prompt = """
         Người dùng hỏi: "$originalQuery"
         Đây là thông tin bác sĩ: 
-        ${doctors.take(3).joinToString("\n") { "- ${it.name}, ${it.specialty}, ${it.hospital}" }}
+        ${doctors.take(10).joinToString("\n") { "- ${it.name}, ${it.specialty}, ${it.hospital}" }}
         Hãy trả lời ngắn gọn, tập trung vào câu hỏi của người dùng.
     """.trimIndent()
 
-        val response = askGeminiWithPrompt(prompt)+"\nDanh sách bác sĩ:"
-        _chatMessages.update { it + ChatMessage(response, isUser = false) }
+        val response = askGeminiWithPrompt(prompt)+"Danh sách bác sĩ:"
+        _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
 
-        doctors.take(3).forEach { doctor ->
+        doctors.take(10).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                    message = "",
                     isUser = false,
                     type = MessageType.DOCTOR,
-                    doctorId = doctor.id
+                    doctorId = doctor.id,
+                    doctorName = doctor.name ?: "Không có tên", // Xử lý null
+                    doctorSpecialty = (doctor.specialty ?: "Không có chuyên khoa") as Specialty?,
+                    doctorAvatar = doctor.avatarURL ?: "" // Xử lý null cho avatar
                 )
             }
         }
@@ -350,10 +355,14 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         doctors.take(5).forEach { doctor ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = "${doctor.name} - ${doctor.specialty} (${doctor.hospital})",
+                    doctorId = doctor.id,
+                    doctorName = doctor.name,
+                    doctorSpecialty = doctor.specialty,
+                    doctorHospital = doctor.hospital,
+                    doctorAvatar = doctor.avatarURL,
+                    message = " ",
                     isUser = false,
                     type = MessageType.DOCTOR,
-                    doctorId = doctor.id
                 )
             }
         }
@@ -388,6 +397,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // Xử lý query về bài viết
     private suspend fun handleArticleQuery(originalQuery: String, analysis: QueryAnalysis) {
+        Log.d("GeminiViewModel", "Handling article query: ${analysis.articleKeyword}")
         val searchResponse = RetrofitInstance.postService.searchAdvanced(analysis.articleKeyword)
 
         if (!searchResponse.isSuccessful) {
@@ -401,6 +411,8 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
 
         val articles = searchResponse.body()?.take(5) ?: emptyList()
+
+        Log.d("GeminiViewModel", "Found ${articles.size} articles")
 
         if (articles.isEmpty()) {
             _chatMessages.update {
@@ -418,7 +430,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         articles.forEach { article ->
             _chatMessages.update {
                 it + ChatMessage(
-                    message = article.content.take(80) + "...",
+                    message = (article.content?.take(80) ?: "Nội dung không có sẵn") + "...",
                     isUser = false,
                     type = MessageType.ARTICLE,
                     articleId = article.id,
@@ -438,13 +450,12 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             bác sĩ phù hợp với yêu cầu của bạn","dưới đây là các bài vết phù hợp với yêu cầu
             của bạn:"
             Câu hỏi: "$originalQuery"
-            - Chỉ trả lời về y tế & sức khỏe.
-            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khỏe."
+            - Chỉ trả lời về y tế & sức khoẻ.
+            - Nếu không liên quan, nói: "Xin lỗi, tôi chỉ hỗ trợ về y tế và sức khoẻ."
             - Đưa ra lời khuyên dễ hiểu, khuyến cáo khám bác sĩ khi cần.
             - Không chẩn đoán chính xác, chỉ tư vấn sơ bộ.
             Trả lời bằng tiếng Việt.
     """.trimIndent()
-
         val response = askGeminiWithPrompt(prompt)
         _chatMessages.update { it + ChatMessage(message = response, isUser = false) }
     }
@@ -460,29 +471,30 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // AI phân tích query và tách thông tin
     private suspend fun analyzeQueryWithAI(query: String): QueryAnalysis {
+        println("vao duoc ham")
         val analysisPrompt = """
             Phân tích câu hỏi người dùng và trích xuất thông tin theo format JSON:
             
             Câu hỏi: "$query"
-            Chỉ trả về JSON, không giải thích thêm.
             Tất cả câu hỏi của người dùng, nếu câu hỏi chung chung như tôi bị bệnh A, B, C thì hãy trả về đầy đủ 5 trường thông tin trên, 
             cố gắng tìm được bác sĩ có chuyên ngành tương đương, bài viết có từ khoá tương đương
             Còn nếu câu hỏi chỉ là tìm bác sĩ chữa bệnh A, tìm bài viết chủ đề B thì điền đúng trường đó, còn các trường còn lại bằng dấu rỗng
             Các chữ cái như hóa đổi thành hoá
-            
+            Nếu câu hỏi kiểu nhờ tư ấn thì trả về trường intent = "hỏi sức khoẻ"
+            Chỉ trả về JSON, không giải thích thêm.
             Đây là JSON với các trường:
             - doctorName: tên bác sĩ (nếu có) - viết hoa chữ cái đầu
             - specialty: chuyên khoa (nếu có) 
             - articleKeyword: từ khóa bài viết (nếu có)
-            - intent: mục đích (tìm bác sĩ, tìm chuyên khoa, tìm bài viết, hỏi sức khỏe)
+            - intent: mục đích (tìm bác sĩ, tìm chuyên khoa, tìm bài viết, tìm khoa bác sĩ, hỏi sức khoẻ)
             - remainingQuery: phần còn lại của câu hỏi sau khi tách thông tin
            
             Ví dụ:
             - "Bác sĩ Nguyễn Văn A làm việc ở đâu?" 
             → {"doctorName":"Nguyễn Văn A","specialty":"","articleKeyword":"","intent":"tìm bác sĩ","remainingQuery":"làm việc ở đâu"}
             
-            - "Bác sĩ A ở khoa nào"
-            -> {"doctorName":"A","specialty":"","articleKeyword":"","intent":"tìm khoa","remainingQuery":"ở khoa nào"} 
+            - "Bác sĩ A ở khoa nào, bác sĩ A làm việc ở đâu, thông tin bác sĩ A"
+            -> {"doctorName":"A","specialty":"","articleKeyword":"","intent":"tìm khoa bác sĩ","remainingQuery":"ở khoa nào"} 
             
             - "Tìm bài viết về tim mạch"
             → {"doctorName":"","specialty":"","articleKeyword":"tim mạch","intent":"tìm bài viết","remainingQuery":""}
@@ -491,17 +503,20 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             → {"doctorName":"","specialty":"tim mạch","articleKeyword":"","intent":"tìm chuyên khoa","remainingQuery":"có bác sĩ nào giỏi"}
             
             - "Tôi bị bệnh tiểu đường"
-            → {"doctorName":"Nguyễn Văn B","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"tìm bài viết","remainingQuery":""}
+            → {"doctorName":"Nguyễn Văn B","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"hỏi sức khỏe","remainingQuery":""}
             
+            - "Bệnh HIV là gì"
+            → {"doctorName":"","specialty":"","articleKeyword":"","intent":"hỏi sức khỏe","remainingQuery":""}
         """.trimIndent()
 
         return try {
+            println("vao duoc try ")
             val response = askGeminiWithPrompt(analysisPrompt)
             println("Phan hoi cua AI: "+ response)
             parseQueryAnalysisResponse(response)
         } catch (e: Exception) {
             Log.e("GeminiViewModel", "Error analyzing query: ${e.message}")
-            QueryAnalysis(remainingQuery = query, intent = "hỏi sức khỏe")
+            QueryAnalysis(remainingQuery = query, intent = "hỏi sức khoẻ")
         }
     }
 
@@ -514,7 +529,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             val jsonEnd = response.lastIndexOf("}") + 1
 
             if (jsonStart == -1 || jsonEnd <= jsonStart) {
-                return QueryAnalysis(remainingQuery = response, intent = "hỏi sức khỏe")
+                return QueryAnalysis(remainingQuery = response, intent = "hỏi sức khoẻ")
             }
 
             val jsonString = response.substring(jsonStart, jsonEnd)
@@ -535,7 +550,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             )
         } catch (e: Exception) {
             Log.e("GeminiViewModel", "Error parsing analysis: ${e.message}")
-            QueryAnalysis(remainingQuery = response, intent = "hỏi sức khỏe")
+            QueryAnalysis(remainingQuery = response, intent = "hỏi sức khoẻ")
         }
     }
 
@@ -576,13 +591,14 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 contents = listOf(Content(parts = listOf(Part(text = prompt))))
             )
             val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-
+            println("Response: ${response.body()}")
             when {
-                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()}"
+                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()} ${response.body()}"
                 response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
                 else -> response.body()!!.candidates.first().content.parts.first().text
             }
         } catch (e: Exception) {
+            println("Error: ${e.message}")
             "Lỗi kết nối: ${e.localizedMessage}"
         }
     }

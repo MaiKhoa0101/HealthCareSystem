@@ -36,13 +36,6 @@ interface PostService {
         @Query("limit") limit: Int
     ): Response<GetPostPageResponse>
 
-    @GET("post/{id}/similar")
-    suspend fun getSimilarPosts(
-        @Path("id") id: String,
-        @Query("limit") limit: Int = 5,
-        @Query("minSimilarity") minSimilarity: Double = 0.6
-    ): Response<List<SimilarPostResponse>>
-
     @GET("post/{postId}/comment/get")
     suspend fun getCommentByPostId(
         @Path("postId") postId: String,
@@ -121,14 +114,6 @@ interface PostService {
         @Part images: List<MultipartBody.Part>
     ): Response<Unit>
 
-    @GET
-    @Streaming
-    suspend fun downloadImage(@Url imageUrl: String): Response<ResponseBody>
-
-    @GET("post/search")
-    suspend fun searchPosts(
-        @Query("q") query: String
-    ): Response<List<PostResponse>>
 
     @GET ("post/search/advanced")
     suspend fun searchAdvanced(
@@ -140,5 +125,14 @@ interface PostService {
 
     @POST("post/generateEmbedding/{id}")
     suspend fun createEmbedding(@Path("id") id: String, @Body keywords: String): Response<Void>
+
+
+
+    @GET("post/{id}/similar")
+    suspend fun getSimilarPosts(
+        @Path("id") id: String,
+        @Query("limit") limit: Int = 5,
+        @Query("minSimilarity") minSimilarity: Double = 0.6
+    ): Response<List<SimilarPostResponse>>
 
 }

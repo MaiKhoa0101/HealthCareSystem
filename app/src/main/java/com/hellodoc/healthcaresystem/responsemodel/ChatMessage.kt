@@ -15,7 +15,9 @@ data class ChatMessage(
     val doctorAvatar: String? = null,
     val doctorAddress: String? = null,
     val doctorPhone: String? = null,
-    val doctorVerified: Boolean? = null
+    val doctorVerified: Boolean? = null,
+    val doctorSpecialty: Specialty? = null,
+    val doctorHospital: String? = null,
 )
 
 enum class MessageType {
