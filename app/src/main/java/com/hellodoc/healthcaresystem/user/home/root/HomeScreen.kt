@@ -438,7 +438,7 @@ fun BackToTopButton(
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(
             Color.Transparent,
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
             Color.Transparent
         ),
         start = Offset(x = 0f, y = translateAnim.value + 200f), // dưới
@@ -459,7 +459,7 @@ fun BackToTopButton(
             imageVector = Icons.Default.KeyboardDoubleArrowUp,
             contentDescription = "Back to Top",
             modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.primaryContainer
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 }

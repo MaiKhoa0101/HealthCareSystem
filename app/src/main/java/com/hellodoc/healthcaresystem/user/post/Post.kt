@@ -307,7 +307,10 @@ fun PostHeader(
                         .clip(CircleShape)
                         .clickable {
                             if (post.user?.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.user?.id}")
+                                navHostController.navigate("otherUserProfile/${post.user?.id}"){
+                                    restoreState = true
+                                    launchSingleTop = true
+                                }
                             } else {
                                 navHostController.navigate("personal")
                             }

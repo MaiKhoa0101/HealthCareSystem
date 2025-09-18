@@ -2,7 +2,7 @@
 <network-security-config xmlns:android="http://schemas.android.com/apk/res/android">
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">192.168.100.10</domain>
-        <domain includeSubdomains="true">192.168.1.2</domain>
+        <domain includeSubdomains="true">healthcare-backend-yc39.onrender.com</domain>
         <domain includeSubdomains="true">192.168.1.216</domain>
 
         <domain includeSubdomains="true">192.168.0.101</domain>

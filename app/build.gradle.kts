@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -9,6 +11,7 @@ plugins {
     id("com.google.firebase.crashlytics")
     id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
+val localProperties = gradleLocalProperties(rootDir, providers)
 android {
     namespace = "com.hellodoc.healthcaresystem"
     compileSdk = 35
@@ -18,8 +21,15 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0" 
-
+        versionName = "1.0"
+        buildConfigField(
+            "String",
+            "API_KEYS",
+            "\"${localProperties.getProperty("API_KEYS")}\""
+        )
+        buildFeatures {
+            buildConfig = true
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

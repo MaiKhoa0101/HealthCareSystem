@@ -62,6 +62,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
@@ -85,18 +88,22 @@ fun PostDetailScreen(
     val post by postViewModel.post.collectAsState()
     val similarPosts by postViewModel.similarPosts.collectAsState()
 
-    // Lấy bài viết và thông tin user
-    LaunchedEffect(Unit) {
+    // Reset và lấy bài viết mới mỗi khi postId thay đổi
+    LaunchedEffect(Unit, postId) {
+        // Reset dữ liệu cũ
+        userViewModel.clearUsers()
+        postViewModel.clearPosts()
+
         val userId = userViewModel.getUserAttributeString("userId")
         userViewModel.getYou(userId)
-        if (postId.isNotEmpty()) {
-            println("Lay pót theo id: "+postId)
+
+        if (postId.isNotEmpty() ) {
             postViewModel.getPostById(postId, navHostController.context)
             postViewModel.getSimilarPosts(postId)
         }
     }
 
-    // Lấy thông tin user của bài viết
+    // Khi post mới load về, lấy user của post đó
     LaunchedEffect(post?.user?.id) {
         val postUserId = post?.user?.id
         if (!postUserId.isNullOrBlank()) {
@@ -264,7 +271,6 @@ fun PostContentSection(
         )
         Spacer(modifier = Modifier.height(12.dp))
         InteractDetailPostManager(
-            navHostController = navHostController,
             postViewModel = postViewModel,
             post = post,
             user = user
@@ -431,7 +437,6 @@ fun PostDetailHeader(
 
 @Composable
 fun InteractDetailPostManager(
-    navHostController: NavHostController,
     postViewModel: PostViewModel,
     post: PostResponse,
     user: User
@@ -507,57 +512,6 @@ fun InteractDetailPostManager(
     }
 
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CommentDetailPostSection(
-    navHostController: NavHostController,
-    postId: String,
-    onClose: () -> Unit,
-    postViewModel: PostViewModel,
-    currentUser: User
-) {
-    val uiState = rememberCommentUIState(postViewModel, postId)
-    val coroutineScope = rememberCoroutineScope()
-
-    BackHandler { onClose() }
-
-    LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
-        observeScrollToLoadMore(
-            listState = uiState.listState,
-            hasMore = uiState.hasMore,
-            isLoading = uiState.isLoadingMore,
-            onLoadMore = {
-                coroutineScope.launch {
-                    uiState.loadMoreComments(postViewModel, postId)
-                }
-            }
-        )
-    }
-
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp)
-    ){
-        CommentInput(
-            uiState = uiState,
-            postViewModel = postViewModel,
-            postId = postId,
-            currentUser = currentUser,
-            modifier = Modifier
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        CommentList(
-            uiState = uiState,
-            postViewModel = postViewModel,
-            postId = postId,
-            currentUser = currentUser,
-            navHostController = navHostController,
-        )
-    }
-}
-
 
 @Composable
 fun HeadbarDetailPost(navHostController: NavHostController) {
