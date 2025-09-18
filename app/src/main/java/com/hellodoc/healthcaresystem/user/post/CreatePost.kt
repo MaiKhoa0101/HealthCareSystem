@@ -59,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -128,7 +129,7 @@ fun CreatePostScreen(
     var frameUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var pairedList by remember { mutableStateOf<List<Pair<Uri, Uri>>>(emptyList()) }
 
-    val maxWords = 300
+    val maxWords = 400
     val wordCount by remember(postText) {
         derivedStateOf { countWords(postText) }
     }
@@ -585,6 +586,7 @@ fun FooterWithPermission(
                         Image(
                             imageVector = Icons.Default.ImageSearch,
                             contentDescription = null,
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .size(30.dp)
                                 .offset(x = (10).dp, y = (10).dp) // dịch sang trái và lên
@@ -593,6 +595,7 @@ fun FooterWithPermission(
                         Image(
                             imageVector = Icons.Default.VideoLibrary,
                             contentDescription = null,
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .size(30.dp)
                                 .offset(x = (-10).dp, y = (-10).dp) // dịch sang phải và xuống
@@ -733,145 +736,4 @@ fun OutlineTextField(
             )
         )
     }
-}
-
-// Các function không được sử dụng - có thể xóa hoặc giữ lại để tham khảo
-@Composable
-fun Footer(
-    modifier: Modifier = Modifier,
-    onImageClick: () -> Unit
-){
-    val backgroundColor = Color.White
-    ConstraintLayout(
-        modifier = modifier
-            .background(color = backgroundColor, shape = RectangleShape)
-            .fillMaxSize()
-            .height(250.dp)
-    ) {
-        val horizontalGuideLine30 = createGuidelineFromTop(0.3f)
-        val (iconImage, tvTitle, topLine) = createRefs()
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .background(Color.LightGray)
-                .constrainAs(topLine) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-        )
-        Image(
-            painter = painterResource(id = R.drawable.ic_attach_file),
-            contentDescription = null,
-            modifier = Modifier
-                .size(70.dp)
-                .clickable { onImageClick() }
-                .constrainAs(iconImage){
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(horizontalGuideLine30)
-                },
-        )
-        Text(
-            text = "Thêm hình ảnh",
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                color = Color.Gray
-            ),
-            modifier = Modifier.constrainAs(tvTitle){
-                top.linkTo(iconImage.bottom, margin = 5.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-    }
-}
-
-@Composable
-fun MultiFileUpload(){
-    var selectedImageUri: List<Uri> by remember {
-        mutableStateOf<List<Uri>>(emptyList())
-    }
-    var MultiplePhotoPickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)) {
-            uri ->
-        selectedImageUri = uri
-    }
-    Column(modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
-        LazyRow {
-            items(selectedImageUri){uri ->
-                Image(painter = rememberAsyncImagePainter(uri),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .padding(4.dp),
-                    contentScale = ContentScale.Crop
-                )
-            } }
-        Button(
-            onClick ={ MultiplePhotoPickerLauncher.launch(
-                PickVisualMediaRequest(
-                    ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )}
-        ) {
-            Text("Chọn Ảnh")
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun FileUpload(){
-    var selectImageUri by remember { mutableStateOf<Uri?>(null) }
-    val storagePermissionState : PermissionState = rememberPermissionState(permission = android.Manifest.permission.READ_MEDIA_IMAGES)
-    val ImagePickerLauncher : ManagedActivityResultLauncher<String, Uri?> = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) {
-            uri: Uri? ->  selectImageUri = uri
-    }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        selectImageUri?.let {
-                uri ->
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = null,
-                modifier = Modifier.size(200.dp).padding(16.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
-        when {
-            storagePermissionState.status.isGranted->{
-                Button(onClick = {ImagePickerLauncher.launch("image/*")}){
-                    Text("Chọn ảnh trong thư viện")
-                }
-            }
-            storagePermissionState.status.shouldShowRationale->{
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Chúng tôi cần quyền truy cập vào thư viện của bạn để cho phép bạn chọn hình ảnh.")
-                }
-                Button(onClick = {storagePermissionState.launchPermissionRequest()}){
-                    Text("Cấp quyền")
-                }
-            }
-            else->{
-                Button(onClick = {storagePermissionState.launchPermissionRequest()}){
-                    Text("Yêu cầu quyền truy cập thư viện")
-                }
-            }
-        }
-    }
-
-
 }

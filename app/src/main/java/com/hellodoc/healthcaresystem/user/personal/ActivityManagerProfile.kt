@@ -40,7 +40,8 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
     Column {
         TopBar(
             title = "Nhật ký hoạt động",
-            onClick = { navHostController.popBackStack() })
+            onClick = { navHostController.popBackStack() }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -88,7 +89,6 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
 
  @Composable
  fun TopBar(title: String,onClick: () -> Unit) {
-     println("top bar render duoc")
      Box(
          modifier = Modifier
              .fillMaxWidth()
@@ -99,7 +99,7 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
          Icon(
              imageVector = Icons.Filled.ArrowBack,
              contentDescription = "Back Button",
-             tint = MaterialTheme.colorScheme.background,
+             tint = MaterialTheme.colorScheme.onBackground,
              modifier = Modifier
                  .align(Alignment.CenterStart)
                  .padding(start = 16.dp)
@@ -109,7 +109,7 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
          // Tiêu đề ở giữa
          Text(
              text = title,
-             color = MaterialTheme.colorScheme.background,
+             color = MaterialTheme.colorScheme.onBackground,
              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
              modifier = Modifier.align(Alignment.Center)
          )

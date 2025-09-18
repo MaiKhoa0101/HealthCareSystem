@@ -57,11 +57,6 @@ fun FavouriteHistoryScreen(navHostController: NavHostController, sharedPreferenc
         topBar = {
             TopAppBar(
                 title = {
-//                    Text(
-//                        "Bài viết đã thích",
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -92,21 +87,26 @@ fun FavouriteHistoryScreen(navHostController: NavHostController, sharedPreferenc
         ) {
             items(userFavorites) { favorite ->
                 val dateText = formatVietnameseDate(favorite.createdAt)
-                FavoriteCard(favorite = favorite, dateText = dateText)
+                FavoriteCard(favorite = favorite, dateText = dateText, navHostController = navHostController)
             }
         }
     }
 }
 
 @Composable
-fun FavoriteCard(favorite: ManagerResponse, dateText: String) {
+fun FavoriteCard(favorite: ManagerResponse, dateText: String, navHostController: NavHostController) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable{
+                navHostController.navigate("post-detail/${favorite.post.id}")
+            },
         elevation = CardDefaults.cardElevation(6.dp),
         shape = MaterialTheme.shapes.medium
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
 
             // Ảnh bài viết (nếu có)
             if (favorite.post.media.isNotEmpty()) {

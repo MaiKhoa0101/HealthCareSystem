@@ -1,99 +1,163 @@
 package com.hellodoc.healthcaresystem.viewmodel
+
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.hellodoc.healthcaresystem.requestmodel.Content
-import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
-import com.hellodoc.healthcaresystem.requestmodel.Part
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.responsemodel.ChatMessage
-import com.hellodoc.healthcaresystem.responsemodel.MessageType
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import android.net.Uri
 import android.util.Base64
 import android.util.Base64OutputStream
 import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.BuildConfig
+import com.hellodoc.healthcaresystem.requestmodel.Content
+import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
 import com.hellodoc.healthcaresystem.requestmodel.InlineData
+import com.hellodoc.healthcaresystem.requestmodel.Part
+import com.hellodoc.healthcaresystem.responsemodel.ChatMessage
 import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.responsemodel.Specialty
+import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
-import kotlin.collections.forEach
+import kotlinx.coroutines.Job
 
+// Quản lý API keys
+object ApiKeyManager {
+    private val apiKeys = BuildConfig.API_KEYS.split(",")
+    private var currentIndex = 0
+    private val invalidKeys = mutableSetOf<Int>()
 
+    @Synchronized
+    fun getCurrentKey(): String = apiKeys[currentIndex]
 
-private val apiKey = "AIzaSyBidRgQ6yRWXIkHpBpMfvmShLmQ4Fotc_0"
+    @Synchronized
+    fun markKeyInvalid() {
+        invalidKeys.add(currentIndex)
+        rotateKey()
+    }
 
-class GeminiHelper() {
+    @Synchronized
+    fun rotateKey() {
+        var next = (currentIndex + 1) % apiKeys.size
+        while (invalidKeys.contains(next) && invalidKeys.size < apiKeys.size) {
+            next = (next + 1) % apiKeys.size
+        }
+        currentIndex = next
+    }
 
-    suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
-        return try {
-            val mediaParts = mutableListOf<Part>()
+    @Synchronized
+    fun getTotalKeys(): Int = apiKeys.size
+}
 
-            for (uri in mediaUris) {
-                val mimeType = context.contentResolver.getType(uri)
-                    ?: when {
-                        uri.toString().endsWith(".png", true) -> "image/png"
-                        uri.toString().endsWith(".jpg", true) || uri.toString().endsWith(".jpeg", true) -> "image/jpeg"
-                        uri.toString().endsWith(".mp4", true) -> "video/mp4"
-                        uri.toString().endsWith(".mov", true) -> "video/quicktime"
-                        else -> "application/octet-stream"
-                    }
+// Helper class để xử lý media và gọi API
+class GeminiHelper {
 
+    // Gửi yêu cầu đến Gemini API với logic xoay key
+    private suspend fun sendRequestWithRetry(request: GeminiRequest): String {
+        var attempts = 0
+        val maxAttempts = ApiKeyManager.getTotalKeys()
 
-                if (mimeType.startsWith("video")) {
-                    // 📌 Với video → trích frame thay vì gửi cả file
-                    val frames = extractFrames(context, uri, maxFrames = 10) // lấy 10 frame đầu
-                    for (file in frames) {
-                        val base64 = FileInputStream(file).use { input ->
-                            val output = ByteArrayOutputStream()
-                            Base64OutputStream(output, Base64.NO_WRAP).use { base64Stream ->
-                                val buffer = ByteArray(8 * 1024)
-                                var len: Int
-                                while (input.read(buffer).also { len = it } != -1) {
-                                    base64Stream.write(buffer, 0, len)
-                                }
-                            }
-                            output.toString("UTF-8")
-                        }
-                        mediaParts.add(
-                            Part(
-                                inline_data = InlineData(
-                                    mime_type = "image/jpeg", // frame là ảnh
-                                    data = base64
-                                )
-                            )
-                        )
-                    }
+        while (attempts < maxAttempts) {
+            val apiKey = ApiKeyManager.getCurrentKey()
+            try {
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                    // Nếu thành công, trả về kết quả
+                    return response.body()!!.candidates.first().content.parts.first().text
                 } else {
-                    // 📌 Với ảnh → encode như cũ
-                    val base64 = context.contentResolver.openInputStream(uri)?.use { input ->
-                        val output = ByteArrayOutputStream()
-                        Base64OutputStream(output, Base64.NO_WRAP).use { base64Stream ->
-                            val buffer = ByteArray(8 * 1024)
-                            var len: Int
-                            while (input.read(buffer).also { len = it } != -1) {
-                                base64Stream.write(buffer, 0, len)
-                            }
-                        }
-                        output.toString("UTF-8")
-                    } ?: return listOf("Không thể đọc tệp phương tiện: $uri")
+                    // Nếu thất bại, log lỗi và thử lại
+                    Log.e(
+                        "GeminiHelper",
+                        "Lỗi hệ thống với API key: $apiKey - ${response.code()} ${response.errorBody()?.string()}"
+                    )
+                }
+            } catch (e: Exception) {
+                // Nếu gặp lỗi kết nối, log lỗi
+                Log.e("GeminiHelper", "Lỗi kết nối với API key: $apiKey - ${e.localizedMessage}")
+            }
 
+            ApiKeyManager.rotateKey()
+            attempts++
+        }
+
+        // Nếu đã thử hết tất cả các key mà vẫn thất bại
+        Log.e("GeminiHelper", "Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key.")
+        return ""
+    }
+
+    // Gửi media đến Gemini API
+    suspend fun sendMediaToGemini(mediaParts: List<Part>): List<String> {
+        val promptPart = Part(
+            text = """
+                Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  
+                Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  
+                
+                Yêu cầu:  
+                - Mỗi từ khóa viết trên một dòng.  
+                - Viết thường (lowercase).  
+                - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  
+                - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  
+                - Không được trả lời gì ngoài từ khóa.  
+                - Nếu không có từ khóa phù hợp, không trả lời gì.
+            """.trimIndent()
+        )
+
+        val request = GeminiRequest(contents = listOf(Content(parts = mediaParts + promptPart)))
+        val response = sendRequestWithRetry(request)
+
+        return response.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    }
+
+    // Đọc và phân tích hình ảnh/video từ thiết bị
+    suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
+        val mediaParts = prepareMediaParts(context, mediaUris)
+        return sendMediaToGemini(mediaParts)
+    }
+
+    // Đọc và phân tích hình ảnh/video từ internet
+    suspend fun readImageAndVideoFromInternet(context: Context, mediaUrls: List<String>): List<String> {
+        val mediaParts = prepareMediaPartsFromUrls(mediaUrls)
+        return sendMediaToGemini(mediaParts)
+    }
+
+    // Chuẩn bị media parts từ URI
+    private suspend fun prepareMediaParts(context: Context, mediaUris: List<Uri>): List<Part> {
+        val mediaParts = mutableListOf<Part>()
+        for (uri in mediaUris) {
+            val mimeType = context.contentResolver.getType(uri) ?: getMimeTypeFromUri(uri.toString())
+            if (mimeType.startsWith("video")) {
+                mediaParts.addAll(prepareVideoParts(context, uri))
+            } else {
+                mediaParts.add(prepareImagePart(context, uri, mimeType))
+            }
+        }
+        return mediaParts
+    }
+
+    // Chuẩn bị media parts từ URL
+    private suspend fun prepareMediaPartsFromUrls(mediaUrls: List<String>): List<Part> {
+        val mediaParts = mutableListOf<Part>()
+        for (url in mediaUrls) {
+            val mimeType = getMimeTypeFromUrl(url)
+            if (mimeType.startsWith("video")) {
+                Log.e("GeminiHelper", "Hiện chưa hỗ trợ video từ internet: $url")
+            } else {
+                val base64 = downloadUrlToBase64(url)
+                if (base64 != null) {
                     mediaParts.add(
                         Part(
                             inline_data = InlineData(
@@ -104,118 +168,37 @@ class GeminiHelper() {
                     )
                 }
             }
+        }
+        return mediaParts
+    }
 
-            val promptPart = Part(
-                text = "Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  \n" +
-                        "Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  \n" +
-                        "\n" +
-                        "Yêu cầu:  \n" +
-                        "- Mỗi từ khóa viết trên một dòng.  \n" +
-                        "- Viết thường (lowercase).  \n" +
-                        "- Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  \n" +
-                        "- Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  \n" +
-                        "- Không được trả lời gì ngoài từ khóa.  \n" +
-                        "- Nếu không có từ khóa phù hợp, không trả lời gì.\n"
+    // Chuẩn bị part cho video (trích xuất frame)
+    private suspend fun prepareVideoParts(context: Context, uri: Uri): List<Part> {
+        val frames = extractFrames(context, uri, maxFrames = 10)
+        return frames.map { file ->
+            val base64 = file.toBase64()
+            Part(
+                inline_data = InlineData(
+                    mime_type = "image/jpeg",
+                    data = base64
+                )
             )
-
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = mediaParts + promptPart))
-            )
-
-            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-
-            val aiResponse = when {
-                !response.isSuccessful ->
-                    "Lỗi hệ thống: ${response.code()} - ${response.errorBody()?.string()}"
-                response.body()?.candidates.isNullOrEmpty() ->
-                    "Không nhận được phản hồi từ AI"
-                else ->
-                    response.body()!!.candidates.first().content.parts.first().text
-            }
-
-            println(aiResponse.toString())
-
-            aiResponse.lines()
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-
-        } catch (e: Exception) {
-            listOf("Lỗi khi xử lý: ${e.message}")
         }
     }
 
-    suspend fun readImageAndVideoFromInternet(context: Context, mediaUrls: List<String>): List<String> {
-        return try {
-            val mediaParts = mutableListOf<Part>()
-
-            for (url in mediaUrls) {
-                val mimeType = getMimeTypeFromUrl(url)
-
-                if (mimeType.startsWith("video")) {
-                    // 📌 Video từ internet -> chưa hỗ trợ (cần tải về và trích frame)
-                    return listOf("Hiện chưa hỗ trợ video từ internet: $url")
-                } else {
-                    withContext(Dispatchers.IO) {
-                        // 📌 Ảnh từ internet -> tải về rồi encode base64
-                        val base64 = downloadUrlToBase64(url)
-                        if (base64 == null) {
-                            Log.e("GeminiHelper", "Không thể tải ảnh từ: $url")
-                        }
-                        else {
-                            mediaParts.add(
-                                Part(
-                                    inline_data = InlineData(
-                                        mime_type = mimeType,
-                                        data = base64
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            val promptPart = Part(
-                text = """
-                    Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  
-                    Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  
-                    
-                    Yêu cầu:  
-                    - Mỗi từ khóa viết trên một dòng.  
-                    - Viết thường (lowercase).  
-                    - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  
-                    - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  
-                    - Không được trả lời gì ngoài từ khóa.  
-                    - Nếu không có từ khóa phù hợp, không trả lời gì.
-                """.trimIndent()
+    // Chuẩn bị part cho ảnh
+    private fun prepareImagePart(context: Context, uri: Uri, mimeType: String): Part {
+        val base64 = context.contentResolver.openInputStream(uri)?.use { it.readBytes().encodeBase64() }
+            ?: throw Exception("Không thể đọc tệp phương tiện: $uri")
+        return Part(
+            inline_data = InlineData(
+                mime_type = mimeType,
+                data = base64
             )
-
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = mediaParts + promptPart))
-            )
-
-            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-
-            val aiResponse = when {
-                !response.isSuccessful ->
-                    "Lỗi hệ thống: ${response.code()} - ${response.errorBody()?.string()}"
-                response.body()?.candidates.isNullOrEmpty() ->
-                    "Không nhận được phản hồi từ AI"
-                else ->
-                    response.body()!!.candidates.first().content.parts.first().text
-            }
-
-            aiResponse.lines().map { it.trim() }.filter { it.isNotEmpty() }
-
-        } catch (e: Exception) {
-            listOf("Lỗi khi xử lý: ${e.message}")
-        }
+        )
     }
 
-    // --- Helper ---
-    private fun ByteArray.encodeBase64(): String =
-        Base64.encodeToString(this, Base64.NO_WRAP)
-
+    // Helper: Lấy MIME type từ URL
     private fun getMimeTypeFromUrl(url: String): String {
         return when {
             url.endsWith(".png", true) -> "image/png"
@@ -226,22 +209,47 @@ class GeminiHelper() {
         }
     }
 
+    // Helper: Lấy MIME type từ URI
+    private fun getMimeTypeFromUri(uri: String): String {
+        return when {
+            uri.endsWith(".png", true) -> "image/png"
+            uri.endsWith(".jpg", true) || uri.endsWith(".jpeg", true) -> "image/jpeg"
+            uri.endsWith(".mp4", true) -> "video/mp4"
+            uri.endsWith(".mov", true) -> "video/quicktime"
+            else -> "application/octet-stream"
+        }
+    }
+
+    // Helper: Tải URL và chuyển thành Base64
     private fun downloadUrlToBase64(url: String): String? {
         return try {
             val client = OkHttpClient()
-            val request = Request.Builder()
-                .url(url)
-                .header("User-Agent", "Mozilla/5.0")
-                .build()
+            val request = Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) return null
-            val bytes = response.body?.bytes() ?: return null
-            bytes.encodeBase64()
+            response.body?.bytes()?.encodeBase64()
         } catch (e: Exception) {
             null
         }
     }
 
+    // Helper: Chuyển file thành Base64
+    private fun File.toBase64(): String {
+        return FileInputStream(this).use { input ->
+            val output = ByteArrayOutputStream()
+            Base64OutputStream(output, Base64.NO_WRAP).use { base64Stream ->
+                val buffer = ByteArray(8 * 1024)
+                var len: Int
+                while (input.read(buffer).also { len = it } != -1) {
+                    base64Stream.write(buffer, 0, len)
+                }
+            }
+            output.toString("UTF-8")
+        }
+    }
+
+    // Helper: Chuyển ByteArray thành Base64
+    private fun ByteArray.encodeBase64(): String = Base64.encodeToString(this, Base64.NO_WRAP)
 }
 
 class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -256,6 +264,45 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> get() = _isSearching
+    private suspend fun callGeminiWithRetry(request: GeminiRequest): String {
+        var attempts = 0
+        val maxAttempts = ApiKeyManager.getTotalKeys()
+
+        while (attempts < maxAttempts) {
+            val apiKey = ApiKeyManager.getCurrentKey()
+            try {
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                if (response.isSuccessful) {
+                    val candidates = response.body()?.candidates
+                    val parts = candidates?.firstOrNull()?.content?.parts
+                    val text = parts?.firstOrNull()?.text
+
+                    if (!text.isNullOrBlank()) return text
+                }
+
+                // Xử lý lỗi theo mã code
+                when (response.code()) {
+                    401 -> { // Key hết hạn
+                        ApiKeyManager.markKeyInvalid()
+                    }
+                    429 -> { // Rate limit
+                        delay(2000L * (attempts + 1)) // backoff retry cùng key
+                    }
+                    else -> {
+                        ApiKeyManager.rotateKey()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Gemini", "Network error with key=$apiKey: ${e.localizedMessage}")
+                ApiKeyManager.rotateKey()
+            }
+
+            attempts++
+        }
+
+        return ""
+    }
 
     fun processUserQuery(query: String) {
         _question.value = query
@@ -503,7 +550,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             → {"doctorName":"","specialty":"tim mạch","articleKeyword":"","intent":"tìm chuyên khoa","remainingQuery":"có bác sĩ nào giỏi"}
             
             - "Tôi bị bệnh tiểu đường"
-            → {"doctorName":"Nguyễn Văn B","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"hỏi sức khỏe","remainingQuery":""}
+            → {"doctorName":"","specialty":"tim mạch, bài tiết, nội tiết","articleKeyword":"tiểu đường","intent":"hỏi sức khỏe","remainingQuery":""}
             
             - "Bệnh HIV là gì"
             → {"doctorName":"","specialty":"","articleKeyword":"","intent":"hỏi sức khỏe","remainingQuery":""}
@@ -512,6 +559,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         return try {
             println("vao duoc try ")
             val response = askGeminiWithPrompt(analysisPrompt)
+
             println("Phan hoi cua AI: "+ response)
             parseQueryAnalysisResponse(response)
         } catch (e: Exception) {
@@ -586,21 +634,41 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     // Gọi Gemini API
     private suspend fun askGeminiWithPrompt(prompt: String): String {
-        return try {
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = listOf(Part(text = prompt))))
-            )
-            val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-            println("Response: ${response.body()}")
-            when {
-                !response.isSuccessful -> "Lỗi hệ thống: ${response.code()} ${response.body()}"
-                response.body()?.candidates.isNullOrEmpty() -> "Không nhận được phản hồi từ AI"
-                else -> response.body()!!.candidates.first().content.parts.first().text
+        val request = GeminiRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt))))
+        )
+
+        var attempts = 0 // Đếm số lần thử
+        val maxAttempts = ApiKeyManager.getTotalKeys() // Tổng số key khả dụng
+
+        while (attempts < maxAttempts) {
+            val apiKey = ApiKeyManager.getCurrentKey()
+            try {
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                    // Nếu thành công, trả về kết quả
+                    return response.body()!!.candidates.first().content.parts.first().text
+                } else {
+                    // Nếu thất bại, log lỗi và xoay vòng key
+                    Log.e(
+                        "GeminiViewModel",
+                        "Lỗi hệ thống với API key: $apiKey - ${response.code()} ${response.errorBody()?.string()}"
+                    )
+                    ApiKeyManager.rotateKey()
+                    attempts++
+                }
+            } catch (e: Exception) {
+                // Nếu gặp lỗi kết nối, log lỗi và xoay vòng key
+                Log.e("GeminiViewModel", "Lỗi kết nối với API key: $apiKey - ${e.localizedMessage}")
+                ApiKeyManager.rotateKey()
+                attempts++
             }
-        } catch (e: Exception) {
-            println("Error: ${e.message}")
-            "Lỗi kết nối: ${e.localizedMessage}"
         }
+
+        // Nếu đã thử hết tất cả các key mà vẫn thất bại
+        Log.e("GeminiViewModel","Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key.")
+        return ""
     }
 
 }

@@ -87,17 +87,20 @@ fun CommentHistoryScreen(navHostController: NavHostController, sharedPreferences
         ) {
             items(userComments) { comment ->
                 val dateText = formatVietnameseDate(comment.createdAt)
-                CommentCard(comment = comment, dateText = dateText)
+                CommentCard(comment = comment, dateText = dateText, navHostController = navHostController)
             }
         }
     }
 }
 
 @Composable
-fun CommentCard(comment: ManagerResponse, dateText: String) {
+fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable{
+                navHostController.navigate("post-detail/${comment.post.id}")
+            }
             .padding(12.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {

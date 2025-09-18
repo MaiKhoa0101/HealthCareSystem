@@ -43,6 +43,9 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     val allUser: StateFlow<UserResponse?> get() = _allUser
 
 
+    fun clearUsers() {
+        _user.value = null
+    }
 
     fun getAllUsers() {
         viewModelScope.launch {

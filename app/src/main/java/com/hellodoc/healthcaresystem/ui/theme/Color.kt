@@ -16,7 +16,7 @@ val LightTheme = Color(0xFF4DFBF2)
 val BoxGrey = Color(0xFF3F3F3F)
 val BoxLightGrey = Color(0xFF565656)
 
-val secondContainer = Color(0xFFD3D3D3)
+val secondContainer = Color(0xFFE7E7E7)
 val ButtonTheme = Color(0xFF2E3FA4)
 val onSecondDarkContainer = Color(0xFFA2A2A2)
 

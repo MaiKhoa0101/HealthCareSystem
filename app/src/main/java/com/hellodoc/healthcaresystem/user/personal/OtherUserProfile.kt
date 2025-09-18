@@ -77,9 +77,13 @@ fun ProfileOtherUserPage(
     postViewModel: PostViewModel,
     userOwnerID: String
 ) {
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = viewModel(
+        key = "user_${userOwnerID}",
+        factory = viewModelFactory {
+            initializer { UserViewModel(sharedPreferences) }
+        }
+    )
+
 
     val context = LocalContext.current
 
@@ -90,23 +94,25 @@ fun ProfileOtherUserPage(
     val hasMore by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    var showReportBox by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember(userOwnerID) { mutableStateOf<String?>(null) }
+    var showReportBox by remember(userOwnerID) { mutableStateOf(false) }
+    var showMediaDetail by remember(userOwnerID) { mutableStateOf(false) }
 
     // LazyListState giữ vị trí scroll khi back
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
-    var showMediaDetail by remember { mutableStateOf(false) }
 
-    // Fetch user + post
     LaunchedEffect(userOwnerID) {
         val myId = userViewModel.getUserAttributeString("userId")
         userViewModel.getYou(myId)
+
+        postViewModel.clearPosts() // reset về rỗng
 
         if (userOwnerID.isNotEmpty()) {
             userViewModel.getUser(userOwnerID)
             postViewModel.getPostByUserId(userOwnerID, skip = 0, limit = 10, append = false)
         }
     }
+
 
     // Scroll tới đáy load thêm
     LaunchedEffect(listState, hasMore, isLoadingMorePosts) {
