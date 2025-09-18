@@ -20,7 +20,7 @@ import com.hellodoc.healthcaresystem.responsemodel.Specialty
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.user.supportfunction.extractFrames
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -32,19 +32,30 @@ import okhttp3.Request
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
+import kotlinx.coroutines.Job
 
 // Quản lý API keys
 object ApiKeyManager {
     private val apiKeys = BuildConfig.API_KEYS.split(",")
     private var currentIndex = 0
+    private val invalidKeys = mutableSetOf<Int>()
 
     @Synchronized
     fun getCurrentKey(): String = apiKeys[currentIndex]
 
     @Synchronized
+    fun markKeyInvalid() {
+        invalidKeys.add(currentIndex)
+        rotateKey()
+    }
+
+    @Synchronized
     fun rotateKey() {
-        currentIndex = (currentIndex + 1) % apiKeys.size
-        Log.d("ApiKeyManager", "Đã xoay key, key mới là: ${apiKeys[currentIndex]}")
+        var next = (currentIndex + 1) % apiKeys.size
+        while (invalidKeys.contains(next) && invalidKeys.size < apiKeys.size) {
+            next = (next + 1) % apiKeys.size
+        }
+        currentIndex = next
     }
 
     @Synchronized
@@ -53,6 +64,63 @@ object ApiKeyManager {
 
 // Helper class để xử lý media và gọi API
 class GeminiHelper {
+
+    // Gửi yêu cầu đến Gemini API với logic xoay key
+    private suspend fun sendRequestWithRetry(request: GeminiRequest): String {
+        var attempts = 0
+        val maxAttempts = ApiKeyManager.getTotalKeys()
+
+        while (attempts < maxAttempts) {
+            val apiKey = ApiKeyManager.getCurrentKey()
+            try {
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                    // Nếu thành công, trả về kết quả
+                    return response.body()!!.candidates.first().content.parts.first().text
+                } else {
+                    // Nếu thất bại, log lỗi và thử lại
+                    Log.e(
+                        "GeminiHelper",
+                        "Lỗi hệ thống với API key: $apiKey - ${response.code()} ${response.errorBody()?.string()}"
+                    )
+                }
+            } catch (e: Exception) {
+                // Nếu gặp lỗi kết nối, log lỗi
+                Log.e("GeminiHelper", "Lỗi kết nối với API key: $apiKey - ${e.localizedMessage}")
+            }
+
+            ApiKeyManager.rotateKey()
+            attempts++
+        }
+
+        // Nếu đã thử hết tất cả các key mà vẫn thất bại
+        Log.e("GeminiHelper", "Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key.")
+        return ""
+    }
+
+    // Gửi media đến Gemini API
+    suspend fun sendMediaToGemini(mediaParts: List<Part>): List<String> {
+        val promptPart = Part(
+            text = """
+                Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  
+                Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  
+                
+                Yêu cầu:  
+                - Mỗi từ khóa viết trên một dòng.  
+                - Viết thường (lowercase).  
+                - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  
+                - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  
+                - Không được trả lời gì ngoài từ khóa.  
+                - Nếu không có từ khóa phù hợp, không trả lời gì.
+            """.trimIndent()
+        )
+
+        val request = GeminiRequest(contents = listOf(Content(parts = mediaParts + promptPart)))
+        val response = sendRequestWithRetry(request)
+
+        return response.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    }
 
     // Đọc và phân tích hình ảnh/video từ thiết bị
     suspend fun readImageAndVideo(context: Context, mediaUris: List<Uri>): List<String> {
@@ -130,50 +198,6 @@ class GeminiHelper {
         )
     }
 
-    // Gửi media đến Gemini API
-    private suspend fun sendMediaToGemini(mediaParts: List<Part>): List<String> {
-        val promptPart = Part(
-            text = """
-                Bạn nhận đầu vào là nhiều hình ảnh hoặc video.  
-                Nhiệm vụ của bạn: phân tích và trích xuất từ khóa mô tả nội dung.  
-                
-                Yêu cầu:  
-                - Mỗi từ khóa viết trên một dòng.  
-                - Viết thường (lowercase).  
-                - Chỉ gồm ký tự chữ cái và số, không dấu chấm câu, không ký tự đặc biệt.  
-                - Mỗi từ khóa phải có cả tiếng Việt và tiếng Anh, cách nhau bằng dấu phẩy.  
-                - Không được trả lời gì ngoài từ khóa.  
-                - Nếu không có từ khóa phù hợp, không trả lời gì.
-            """.trimIndent()
-        )
-
-        val request = GeminiRequest(contents = listOf(Content(parts = mediaParts + promptPart)))
-
-        var attempts = 0
-        val maxAttempts = ApiKeyManager.getTotalKeys()
-
-        while (attempts < maxAttempts) {
-            val apiKey = ApiKeyManager.getCurrentKey()
-            try {
-                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
-                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
-                    val aiResponse = response.body()!!.candidates.first().content.parts.first().text
-                    return aiResponse.lines().map { it.trim() }.filter { it.isNotEmpty() }
-                } else {
-                    Log.e("GeminiHelper", "Lỗi hệ thống với API key: $apiKey - ${response.code()} ${response.errorBody()?.string()}")
-                    ApiKeyManager.rotateKey()
-                    attempts++
-                }
-            } catch (e: Exception) {
-                Log.e("GeminiHelper", "Lỗi kết nối với API key: $apiKey - ${e.localizedMessage}")
-                ApiKeyManager.rotateKey()
-                attempts++
-            }
-        }
-
-        return listOf("Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key.")
-    }
-
     // Helper: Lấy MIME type từ URL
     private fun getMimeTypeFromUrl(url: String): String {
         return when {
@@ -240,6 +264,45 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> get() = _isSearching
+    private suspend fun callGeminiWithRetry(request: GeminiRequest): String {
+        var attempts = 0
+        val maxAttempts = ApiKeyManager.getTotalKeys()
+
+        while (attempts < maxAttempts) {
+            val apiKey = ApiKeyManager.getCurrentKey()
+            try {
+                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                if (response.isSuccessful) {
+                    val candidates = response.body()?.candidates
+                    val parts = candidates?.firstOrNull()?.content?.parts
+                    val text = parts?.firstOrNull()?.text
+
+                    if (!text.isNullOrBlank()) return text
+                }
+
+                // Xử lý lỗi theo mã code
+                when (response.code()) {
+                    401 -> { // Key hết hạn
+                        ApiKeyManager.markKeyInvalid()
+                    }
+                    429 -> { // Rate limit
+                        delay(2000L * (attempts + 1)) // backoff retry cùng key
+                    }
+                    else -> {
+                        ApiKeyManager.rotateKey()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Gemini", "Network error with key=$apiKey: ${e.localizedMessage}")
+                ApiKeyManager.rotateKey()
+            }
+
+            attempts++
+        }
+
+        return ""
+    }
 
     fun processUserQuery(query: String) {
         _question.value = query
@@ -604,7 +667,8 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
 
         // Nếu đã thử hết tất cả các key mà vẫn thất bại
-        return "Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key."
+        Log.e("GeminiViewModel","Lỗi: Không thể kết nối với Gemini API sau khi thử tất cả các API key.")
+        return ""
     }
 
 }

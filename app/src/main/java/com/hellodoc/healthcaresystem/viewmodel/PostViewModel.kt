@@ -69,8 +69,6 @@ class PostViewModel(
     private val _extractedKeywords = MutableStateFlow<List<String>>(emptyList())
     val extractedKeywords: StateFlow<List<String>> get() = _extractedKeywords
 
-    private val apiKey = "AIzaSyBnY0U6aGWFcqAfXAr1JgRgYq-nZYh-VDE"
-
     private val _createPostResponse = MutableLiveData<CreatePostResponse>()
 
     private val _errorMessage = MutableStateFlow("")
@@ -218,10 +216,16 @@ class PostViewModel(
         if (_isLoading.value) return
 
         _isLoading.value = true
+        // Reset post cũ trước khi load mới
+        _post.value = null
+        _errorMessage.value = ""
+
         viewModelScope.launch {
             try {
                 // 1) Lấy post chi tiết
-                val postResult = RetrofitInstance.postService.getPostById(id)
+                val postResult = withContext(Dispatchers.IO) {
+                    RetrofitInstance.postService.getPostById(id)
+                }
 
                 if (!postResult.isSuccessful) {
                     _errorMessage.value = "Failed to load post: ${postResult.code()}"
@@ -234,16 +238,16 @@ class PostViewModel(
                     return@launch
                 }
 
-                // Cập nhật UI với dữ liệu post
+                // Gán post mới để UI hiển thị ngay
                 _post.value = post
 
-
-                var finalKeywords: String? = post.keywords
-
                 // 2) Kiểm tra keywords
+                var finalKeywords = post.keywords
                 if (finalKeywords.isNullOrEmpty()) {
                     Log.d("PostViewModel", "Post chưa có keywords, đang tạo mới...")
                     finalKeywords = generateAndUpdateKeywords(post, context)
+                    // Sau khi generate xong có thể update lại _post.value nếu backend trả keywords mới
+                    _post.value = _post.value?.copy(keywords = finalKeywords)
                 } else {
                     Log.d("PostViewModel", "Post đã có keywords: $finalKeywords")
                 }
@@ -252,18 +256,20 @@ class PostViewModel(
                 val embeddingResponse = post.embedding
                 Log.d("PostViewModel", "hasEmbedding response: $embeddingResponse")
 
-                if(embeddingResponse.isNullOrEmpty() && !finalKeywords.isNullOrEmpty()) {
+                if (embeddingResponse.isNullOrEmpty() && !finalKeywords.isNullOrEmpty()) {
                     Log.d("PostViewModel", "Post không có embedding, đang tạo embedding mới...")
-                    generateEmbedding(id, post.keywords.toString())
+                    generateEmbedding(id, finalKeywords)
                 }
 
             } catch (e: Exception) {
                 _errorMessage.value = "Network error: ${e.localizedMessage}"
+                Log.e("PostViewModel", "Error fetching post by id", e)
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
     private suspend fun generateEmbedding(id: String, keywords: String) {
         try{
@@ -797,7 +803,7 @@ class PostViewModel(
     fun getSimilarPosts(postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getSimilarPosts(postId, 10, 0.8)
+                val response = RetrofitInstance.postService.getSimilarPosts(postId, 10, 0.6)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
                     val similarPostsResponse = response.body() ?: emptyList()
