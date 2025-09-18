@@ -376,14 +376,33 @@ class PostViewModel(
                     contents = listOf(Content(parts = listOf(Part(text = keywordPrompt))))
                 )
 
-                val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+                var attempts = 0
+                val maxAttempts = ApiKeyManager.getTotalKeys()
 
-                if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
-                    val aiResponse = response.body()!!.candidates.first().content.parts.first().text
-                    val keywords = aiResponse.split("\n")
-                        .map { it.trim() }
-                        .filter { it.isNotBlank() }
-                    allKeywords.addAll(keywords)
+                while (attempts < maxAttempts) {
+                    val apiKey = ApiKeyManager.getCurrentKey()
+                    try {
+                        val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+
+                        if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
+                            val aiResponse = response.body()!!.candidates.first().content.parts.first().text
+                            val keywords = aiResponse.split("\n")
+                                .map { it.trim() }
+                                .filter { it.isNotBlank() }
+                            allKeywords.addAll(keywords)
+                        } else {
+                            Log.e(
+                                "GeminiHelper",
+                                "Lỗi hệ thống với API key: $apiKey - ${response.code()} ${response.errorBody()?.string()}"
+                            )
+                            ApiKeyManager.rotateKey()
+                            attempts++
+                        }
+                    } catch (e: Exception) {
+                        Log.e("GeminiHelper", "Lỗi kết nối với API key: $apiKey - ${e.localizedMessage}")
+                        ApiKeyManager.rotateKey()
+                        attempts++
+                    }
                 }
             }
 
