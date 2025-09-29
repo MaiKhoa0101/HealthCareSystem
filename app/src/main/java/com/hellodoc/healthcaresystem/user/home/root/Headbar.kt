@@ -58,23 +58,23 @@ fun Headbar(
     val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
-    val users by viewModel.users.collectAsState()
+    val you by viewModel.user.collectAsState()
     var userName by remember { mutableStateOf("Người dùng") }
     var role by remember { mutableStateOf("Người dùng") }
 
     LaunchedEffect(Unit) {
         viewModel.getAllUsers()
-        userName = viewModel.getUserNameFromToken()
         role = viewModel.getUserRole()
     }
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
@@ -87,7 +87,7 @@ fun Headbar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val shortName = userName.let { shortenUserName(it) }
+                val shortName = you?.name.toString().let { shortenUserName(it) }
 
                 Text(
                     text = "Xin chào\n$shortName",

@@ -3,7 +3,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,10 +52,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -308,26 +319,37 @@ fun ProfileSection(
     user: User,
     onImageClick: (String) -> Unit,
     onClickSetting: () -> Unit
-)
-{
-    Column(
-        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-    ) {
+){
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp)
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                )
         ) {
-            UserIntroSection(
-                user = user,
-                onImageClick = onImageClick,
-                onClickSetting = onClickSetting
-            )
-            Spacer(modifier = Modifier.height(26.dp))
-//            UserProfileModifierSection(navHostController, user)
-//            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = user.avatarURL,
+                    contentDescription = "Background",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .heightIn(max = 180.dp) // crop nếu cao hơn
+                        .fillMaxWidth()
+                        .blur(20.dp)
+                        .padding(bottom = 30.dp)
+                )
+
+                UserIntroSection(
+                    user = user,
+                    onImageClick = onImageClick,
+                    onClickSetting = onClickSetting
+                )
+                Spacer(modifier = Modifier.height(26.dp))
+            }
         }
-    }
 }
 
 @Composable
@@ -336,6 +358,29 @@ fun UserIntroSection(
     onImageClick: (String) -> Unit,
     onClickSetting: () -> Unit
 ) {
+    // Animation xoay
+    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing), // 3s xoay 1 vòng
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "angleAnim"
+    )
+
+    // Gradient nhiều màu chạy quanh border
+    val brush = Brush.sweepGradient(
+        colors = listOf(
+            Color.Cyan,
+            Color.White,
+            Color.White,
+            Color.Cyan,
+            Color.White,
+        ),
+        center = Offset.Zero
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,6 +396,18 @@ fun UserIntroSection(
             Box(
                 modifier = Modifier
                     .size(120.dp)
+                    .shadow(28.dp, CircleShape)
+                    .graphicsLayer {
+                        rotationZ = -angle // xoay gradient
+                    }
+                    .border(
+                        width = 4.dp,
+                        brush = brush,
+                        shape = CircleShape
+                    )
+                    .graphicsLayer {
+                        rotationZ = angle // giữ icon + background không xoay theo
+                    }
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
             ) {
@@ -392,7 +449,7 @@ fun UserIntroSection(
             Icon(
                 painter = painterResource(id = R.drawable.settingbtn),
                 contentDescription = "Setting",
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.tertiaryContainer,
                 modifier = Modifier
                     .height(20.dp)
             )

@@ -121,6 +121,7 @@ fun NewsDetailScreen(
 
         item {
             if (news.media.isNotEmpty()) {
+                println("ko empty anh")
                 Image(
                     painter = rememberAsyncImagePainter(news.media[0]),
                     contentDescription = null,

@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.user.post
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -258,6 +259,7 @@ private fun CommentUserAvatar(
         contentDescription = null,
         modifier = Modifier
             .size(32.dp)
+            .border( 1.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
             .clip(CircleShape)
             .clickable {
                 navigateToUserProfile(
@@ -330,7 +332,9 @@ internal fun CommentInput(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ){
         TextField(
             value = if (uiState.editingCommentId != null) {
                 uiState.editedCommentContent
@@ -347,7 +351,7 @@ internal fun CommentInput(
             placeholder = {
                 Text("Nhập bình luận...", color = MaterialTheme.colorScheme.onBackground) // Màu placeholder
             },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp)),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = MaterialTheme.colorScheme.background,               // Màu nền ô nhập
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,                   // Màu chữ khi focus

@@ -8,9 +8,9 @@ val Pink80 = Color(0xFFEFB8C8)
 
 val CustomRed = Color.Red
 val MainTheme = Color(0xFF4DFBF2)
-val LightDarkTheme = Color(0xFF00A096)
+val LightDarkTheme = Color(0xFFA2A2A2)
 
-val LightTheme = Color(0xFF4DFBF2)
+val LightTheme = Color(0xFF00D7CE)
 
 
 val BoxGrey = Color(0xFF3F3F3F)
