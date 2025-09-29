@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +73,7 @@ import com.hellodoc.healthcaresystem.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.user.personal.FavouriteHistoryScreen
 import com.hellodoc.healthcaresystem.user.personal.ProfileOtherUserPage
 import com.hellodoc.healthcaresystem.user.personal.ProfileUserPage
+import com.hellodoc.healthcaresystem.user.personal.Setting
 import com.hellodoc.healthcaresystem.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
@@ -275,6 +277,7 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
+        val user by userViewModel.user.collectAsState()
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
         NavHost(
             navController = navHostController,
@@ -411,6 +414,16 @@ class HomeActivity : BaseActivity() {
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(navHostController,postId, postViewModel, userViewModel)
+            }
+
+            composable("setting") {
+                Setting(
+                    navHostController,
+                    sharedPreferences,
+                    user,
+                    onToggleTheme = onToggleTheme,
+                    darkTheme = darkTheme
+                )
             }
         }
 

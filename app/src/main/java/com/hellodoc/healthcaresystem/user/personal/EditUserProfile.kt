@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -139,7 +140,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
             tint = MaterialTheme.colorScheme.background,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .clickable { navHostController.navigate("personal") }
+                .clickable { navHostController.popBackStack() }
         )
         Text(
             text = "Chỉnh sửa hồ sơ",
@@ -319,14 +320,24 @@ fun AcceptEditButton(
     navHostController: NavHostController
 ) {
     val context = LocalContext.current
+    val updateSuccess by viewModel.updateSuccess.collectAsState()
+    val isUpdating by viewModel.isUpdating.collectAsState()
+
+    // Điều hướng khi update thành công
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess == true) {
+            navHostController.navigate("personal")
+            viewModel.resetUpdateStatus()
+        }
+    }
+
     Button(
         modifier = Modifier.fillMaxWidth(),
+        enabled = !isUpdating, // khi đang update thì disable nút
         onClick = {
             if (password != repassword) {
-                println("Mật khẩu không khớp")
-            }
-            else {
-
+                Toast.makeText(context, "Mật khẩu không khớp", Toast.LENGTH_SHORT).show()
+            } else {
                 val updateUser = UpdateUserInput(
                     name = name,
                     email = email,
@@ -336,22 +347,25 @@ fun AcceptEditButton(
                     role = role,
                     password = password
                 )
-
                 viewModel.updateUser(userId, updateUser, context)
             }
         }
-    ){
-        Text("Lưu thay đổi")
-    }
-    val updateSuccess = viewModel.updateSuccess
-
-    LaunchedEffect(updateSuccess) {
-        if (updateSuccess == true) {
-            navHostController.navigate("personal")
-            viewModel.resetUpdateStatus()
+    ) {
+        if (isUpdating) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(20.dp),
+                color = Color.White,
+                strokeWidth = 2.dp
+            )
+            Spacer(modifier = Modifier.width(15.dp))
+            Text("Đang lưu...")
+        } else {
+            Text("Lưu thay đổi")
         }
     }
 }
+
 
 @Composable
 fun InputEditField(

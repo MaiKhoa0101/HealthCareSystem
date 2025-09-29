@@ -31,8 +31,10 @@ import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.user.notification.timeAgoInVietnam
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.style.TextAlign
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.user.post.FullScreenCommentNews
@@ -44,12 +46,10 @@ import kotlin.collections.get
 @Composable
 fun NewsDetailScreen(
     navHostController: NavHostController,
-    viewModel: NewsViewModel) {
+    viewModel: NewsViewModel
+) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-//    val viewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-//        initializer { NewsViewModel(sharedPreferences) }
-//    })
 
     val token = sharedPreferences.getString("access_token", null)
     val jwt = remember(token) {
@@ -93,15 +93,29 @@ fun NewsDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         item {
             // Header & Back
-            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(vertical = 16.dp, horizontal = 10.dp)
+                    .padding(end = 25.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 IconButton(onClick = { navHostController.popBackStack() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại", tint = MaterialTheme.colorScheme.onBackground)
                 }
-                Text("Tin tức chi tiết", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+                Text("Tin tức chi tiết",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(start = 8.dp),
+                )
             }
         }
 
@@ -124,43 +138,81 @@ fun NewsDetailScreen(
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
         item {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
-                Image(painter = rememberAsyncImagePainter(R.drawable.heart), contentDescription = null,
-                    modifier = Modifier.size(48.dp).clip(CircleShape))
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text("Admin:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(news.createdAt.timeAgoInVietnam(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
-                }
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-
-        item {
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        Log.d("NewsDetail", "Nút like được nhấn")
-                        news?.id?.let {
-                            viewModel.toggleFavoriteNews(it, currentUserId, currentUserModel)
-                        }
-                    }) {
-                    Icon(
-                        imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Thích",
-                        tint = if (isFavorited) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.heart),
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp).clip(CircleShape)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("$totalFavorites")
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text("Admin:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(
+                            news.createdAt.timeAgoInVietnam(),
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
-
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                    showFullScreenComment = true
-                }) {
-                    Icon(Icons.Default.ModeComment, contentDescription = "Bình luận", tint = MaterialTheme.colorScheme.onBackground)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Bình luận")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(58.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(8.dp)
+                            .clickable {
+                                Log.d("NewsDetail", "Nút like được nhấn")
+                                news?.id?.let {
+                                    viewModel.toggleFavoriteNews(
+                                        it,
+                                        currentUserId,
+                                        currentUserModel
+                                    )
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(44.dp),
+                            imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Thích",
+                            tint = if (isFavorited) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("$totalFavorites")
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clickable {
+                                showFullScreenComment = true
+                            }
+                    ) {
+                        Icon(
+                            Icons.Default.ModeComment,
+                            contentDescription = "Bình luận",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Bình luận")
+                    }
                 }
             }
         }

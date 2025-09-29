@@ -61,8 +61,6 @@ import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.home.report.ReportUser
 import com.hellodoc.healthcaresystem.user.post.Post
-import com.hellodoc.healthcaresystem.user.post.PostColumn
-import com.hellodoc.healthcaresystem.user.post.ZoomableImage
 import com.hellodoc.healthcaresystem.user.supportfunction.AvatarDetailDialog
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel

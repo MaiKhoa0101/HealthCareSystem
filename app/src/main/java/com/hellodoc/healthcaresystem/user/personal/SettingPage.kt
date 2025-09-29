@@ -53,7 +53,6 @@ fun Setting(
     sharedPreferences: SharedPreferences,
     user: User?,
     onToggleTheme: () -> Unit,
-    onExitSetting:() -> Unit,
     darkTheme: Boolean
 ) {
     val context = LocalContext.current
@@ -88,7 +87,7 @@ fun Setting(
                     modifier = Modifier
                         .size(25.dp)
                         .clickable {
-                            onExitSetting()
+                            navHostController.popBackStack()
                         }
                 )
             }
