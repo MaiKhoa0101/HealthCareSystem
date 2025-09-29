@@ -149,7 +149,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             try {
                 Log.d("NewsViewModel", "Calling toggleFavorite with: newsId=$newsId, userId=$userId, userModel=$userModel")
-
+                println("Calling toggleFavorite with: newsId=$newsId, userId=$userId, userModel=$userModel")
                 val response = RetrofitInstance.newsService.updateFavoriteByNewsId(
                     newsId,
                     UpdateNewsFavoriteRequest(userId, userModel)

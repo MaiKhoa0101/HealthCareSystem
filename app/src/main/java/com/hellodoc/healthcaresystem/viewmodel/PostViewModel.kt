@@ -22,6 +22,7 @@ import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.responsemodel.UiState
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -425,16 +426,12 @@ class PostViewModel(
     }
 
 
-    private val _isPosting = MutableStateFlow(false)
-    val isPosting: StateFlow<Boolean> = _isPosting
-
     private val _uploadProgress = MutableStateFlow(0f)
     val uploadProgress: StateFlow<Float> = _uploadProgress
 
     fun createPost(request: CreatePostRequest, context: Context) {
         viewModelScope.launch {
             _uploadProgress.value = 0f
-            _isPosting.value = true
             _uiStatePost.value = UiState.Loading
 
             try {
@@ -443,13 +440,16 @@ class PostViewModel(
                 }
 
                 // 1) Phân tích từ khóa
-                val contentKeywords = analyzeContentKeywords(request.content)
-                val mediaUri = request.media.orEmpty()
+                val contentKeywords = async(Dispatchers.Default) {analyzeContentKeywords(request.content)}
+                val mediaUri = request.media
 
-                val mediaKeywords = if (mediaUri.isNotEmpty()) {
-                    geminiHelper.readImageAndVideo(context, mediaUri)
-                } else emptyList()
-                val allKeywords = (contentKeywords + mediaKeywords)
+                val mediaKeywords = async (Dispatchers.IO){
+                        if (mediaUri.isNotEmpty()) {
+                            geminiHelper.readImageAndVideo(context, mediaUri)
+                        }
+                        else emptyList()
+                    }
+                val allKeywords = (contentKeywords.await() + mediaKeywords.await())
                     .map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(10)
 
                 // 2) Parts text
@@ -461,7 +461,7 @@ class PostViewModel(
                 else null
 
                 // 3) Chuẩn bị danh sách file HỢP LỆ trước (để tính totalFiles CHÍNH XÁC)
-                val uris = request.media.orEmpty()
+                val uris = request.media
 
                 data class Tmp(val file: File, val mime: String)
                 val tmpFiles: List<Tmp> = withContext(Dispatchers.IO) {
@@ -495,9 +495,7 @@ class PostViewModel(
                             val done = uploaded.incrementAndGet()
                             // xóa file tạm sau khi file này upload xong để tránh đầy cache
                             tmp.file.delete()
-                            viewModelScope.launch(Dispatchers.Main) {
-                                _uploadProgress.value = done.toFloat() / totalFiles.toFloat()
-                            }
+                            _uploadProgress.value = done.toFloat() / totalFiles.toFloat()
                         }
                         MultipartBody.Part.createFormData("images", tmp.file.name, body)
                     }
@@ -532,7 +530,6 @@ class PostViewModel(
                 }
                 println("Lỗi: ${e.message}")
             } finally {
-                _isPosting.value = false
                 // Cho người dùng thấy 100% một nhịp rồi reset (tùy bạn):
                  delay(2000)
                  _uploadProgress.value = 0f

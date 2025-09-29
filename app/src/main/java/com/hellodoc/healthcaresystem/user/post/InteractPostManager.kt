@@ -40,17 +40,15 @@ fun InteractPostManager(
     navHostController:NavHostController,
     postViewModel: PostViewModel,
     post: PostResponse,
-    user: User
+    user: User,
+    totalFavorites: Int = 0
 ) {
     val sizeButton = 28.dp
     val coroutineScope = rememberCoroutineScope()
     var showCommentSheet by remember { mutableStateOf(false) }
 
 
-    // Lấy trạng thái favorite từ ViewModel
-    LaunchedEffect(post.id, user.id) {
-        postViewModel.fetchFavoriteForPost(postId = post.id, userId = user.id)
-    }
+
     val isFavoritedMap by postViewModel.isFavoritedMap.collectAsState()
     val serverIsFavorited = isFavoritedMap[post.id] ?: false
     var localFavorited by remember(post.id) { mutableStateOf(serverIsFavorited) }
@@ -59,8 +57,6 @@ fun InteractPostManager(
         localFavorited = serverIsFavorited
     }
 
-    val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
-    val totalFavorites = totalFavoritesMap[post.id]?.toIntOrNull() ?: 0
 
     Row(
         modifier = Modifier.fillMaxWidth(),

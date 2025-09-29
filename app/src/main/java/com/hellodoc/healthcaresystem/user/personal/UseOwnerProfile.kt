@@ -73,7 +73,6 @@ import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.home.root.AssistantAnswerDialog
 import com.hellodoc.healthcaresystem.user.post.MediaDetailDialog
 import com.hellodoc.healthcaresystem.user.post.Post
-import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.user.post.ZoomableImage
 import com.hellodoc.healthcaresystem.user.supportfunction.AvatarDetailDialog
 import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
@@ -107,7 +106,6 @@ fun ProfileUserPage(
     var selectedMediaIndex by remember { mutableStateOf(0) }
     var userId by remember { mutableStateOf("") }
     var userModel by remember { mutableStateOf("") }
-    var showSetting by remember { mutableStateOf(false) }
     // LazyListState có rememberSaveable để giữ vị trí scroll khi back
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState()
@@ -169,7 +167,7 @@ fun ProfileUserPage(
                             showMediaDetail = true
                         },
                         onClickSetting = {
-                            showSetting = true
+                            navHostController.navigate("setting")
                         }
                     )
                 }
@@ -291,17 +289,6 @@ fun ProfileUserPage(
 
                 else -> {}
             }
-        }
-        if (showSetting) {
-            println("SHOW SETTING")
-            Setting(
-                navHostController,
-                sharedPreferences,
-                user,
-                onToggleTheme = onToggleTheme,
-                onExitSetting = { showSetting = false },
-                darkTheme = darkTheme
-            )
         }
         if (showMediaDetail && selectedImageUrl != null) {
             AvatarDetailDialog(

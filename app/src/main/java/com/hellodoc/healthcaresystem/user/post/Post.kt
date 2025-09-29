@@ -183,9 +183,14 @@ fun Post(
     post: PostResponse,
     userWhoInteractWithThisPost: User,
     onClickReport: () -> Unit,
-    onClickDelete: () -> Unit
+    onClickDelete: () -> Unit,
 ) {
-
+    val totalFavoritesMap by postViewModel.totalFavoritesMap.collectAsState()
+    val totalFavorites = totalFavoritesMap[post.id]?.toIntOrNull() ?: 0
+    // Lấy trạng thái favorite từ ViewModel
+    LaunchedEffect(post.id, userWhoInteractWithThisPost.id) {
+        postViewModel.fetchFavoriteForPost(postId = post.id, userId = userWhoInteractWithThisPost.id)
+    }
     Box (
         modifier = Modifier.fillMaxWidth()
             .padding(3.dp)
@@ -227,7 +232,8 @@ fun Post(
                 navHostController = navHostController,
                 postViewModel = postViewModel,
                 post = post,
-                user = userWhoInteractWithThisPost
+                user = userWhoInteractWithThisPost,
+                totalFavorites = totalFavorites
             )
         }
 

@@ -100,7 +100,7 @@ fun HeadbarResClinic(navHostController: NavHostController) {
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .size(30.dp)
-                .clickable { navHostController.navigate("personal") }
+                .clickable { navHostController.popBackStack() }
         )
         Text(
             text = "Đăng kí phòng khám",

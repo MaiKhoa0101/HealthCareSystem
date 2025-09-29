@@ -76,7 +76,7 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
             tint = MaterialTheme.colorScheme.background,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .clickable { navHostController.navigate("personal") }
+                .clickable { navHostController.popBackStack() }
         )
         Text(
             text = "Chỉnh sửa phòng khám",
@@ -404,7 +404,9 @@ fun SaveFloatingButton(
         val updateSuccess = doctorViewModel.updateSuccess
         LaunchedEffect(updateSuccess) {
             if (updateSuccess == true) {
-                navHostController.navigate("personal")
+                navHostController.navigate("home"){
+                    launchSingleTop = true
+                }
                 doctorViewModel.resetUpdateStatus()
             }
         }

@@ -121,6 +121,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         return try {
             val jwt = JWT(token)
             jwt.getClaim("role").asString() ?: "unknown"
+            sharedPreferences.edit().putString("role", jwt.getClaim("role").asString()).toString()
         } catch (e: Exception) {
             "unknown"
         }
@@ -170,14 +171,19 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    var updateSuccess by mutableStateOf<Boolean?>(null)
-        private set
+
+    private val _updateSuccess = MutableStateFlow<Boolean?>(null)
+    val updateSuccess: StateFlow<Boolean?> = _updateSuccess
+    private val _isUpdating = MutableStateFlow(false)
+    val isUpdating: StateFlow<Boolean> = _isUpdating
+
     fun resetUpdateStatus() {
-        updateSuccess = null
+        _updateSuccess.value = false
     }
     fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context) {
         viewModelScope.launch {
             try {
+                _isUpdating.value = true
                 Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
                 println("===== Thông tin gửi lên =====")
                 println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
@@ -209,14 +215,18 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
                     getAllUsers()
-                    updateSuccess = true
+                    _updateSuccess.value = true
                 } else {
                     Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
-                    updateSuccess = false
+                    _updateSuccess.value = false
                 }
+                _isUpdating.value = false
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
-                updateSuccess = false
+                _updateSuccess.value = false
+            }
+            finally {
+                _isUpdating.value = false
             }
         }
     }

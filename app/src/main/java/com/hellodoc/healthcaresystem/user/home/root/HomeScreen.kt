@@ -76,7 +76,6 @@ import com.hellodoc.healthcaresystem.responsemodel.*
 import com.hellodoc.healthcaresystem.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.user.post.Post
-import com.hellodoc.healthcaresystem.user.post.PostColumn
 import com.hellodoc.healthcaresystem.user.post.ZoomableImage
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.coroutineScope
@@ -280,7 +279,6 @@ fun HealthMateHomeScreen(
             items(posts) { post ->
                 var showPostReportDialog by remember { mutableStateOf(false) }
                 var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
-
                 Box (modifier = Modifier.fillMaxWidth()) {
                     Post(
                         navHostController = navHostController,
