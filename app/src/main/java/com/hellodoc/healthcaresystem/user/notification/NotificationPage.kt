@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,18 +74,32 @@ fun NotificationPage(
         notificationViewModel.fetchNotificationByUserId(userId)
     }
 
-    Column {
-        Text(
-            text = "Thông báo",
-            fontWeight = FontWeight.Bold,
-            fontSize = 25.sp,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
             modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(15.dp))
-
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "Thông báo",
+                fontWeight = FontWeight.Bold,
+                fontSize = 25.sp,
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(15.dp))
+        }
+        Column (
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
+        ){
         if (notifications.isEmpty()) {
             EmptyList("thông báo")
         } else {
@@ -93,6 +109,7 @@ fun NotificationPage(
                 notificationViewModel = notificationViewModel
             )
         }
+    }
     }
 }
 
@@ -183,18 +200,21 @@ fun NotificationSection(
 ){
     Column (
         modifier = Modifier
-            .background(if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer)
             .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (notification.isRead) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.primaryContainer)
             .clickable {
                 if (!notification.isRead) notificationViewModel.markAsRead(notification.id)
-                navHostController.navigate(notification.navigatePath) }
-        ,
+                navHostController.navigate(notification.navigatePath) },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
         )
     {
-        Row(modifier = Modifier.padding(10.dp))
-        {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ){
             Image(
                 painter = painterResource(R.drawable.baseline_person_24),
                 contentDescription = ""

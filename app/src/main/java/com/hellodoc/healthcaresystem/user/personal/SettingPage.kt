@@ -71,7 +71,6 @@ fun Setting(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .fillMaxWidth()
-                .padding(top = 30.dp)
                 .padding(horizontal = 10.dp)
         ) {
             Row(
