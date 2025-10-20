@@ -1,52 +1,26 @@
 {
   "project_info": {
-    "project_number": "285794153001",
-    "project_id": "hellodoc-8ddb5",
-    "storage_bucket": "hellodoc-8ddb5.firebasestorage.app"
+    "project_number": "53050647293",
+    "project_id": "parkingsystem-a3839",
+    "storage_bucket": "parkingsystem-a3839.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:285794153001:android:1542351f85eedccde2e238",
+        "mobilesdk_app_id": "1:53050647293:android:0f1feee21fe81d44a39494",
         "android_client_info": {
-          "package_name": "com.hellodoc.healthcaresystem"
+          "package_name": "com.parkingSystem.parkingSystem"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "285794153001-i5ogq6rehvnts0s7ndgajm0966nhlhd1.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.hellodoc.healthcaresystem",
-            "certificate_hash": "cd4f80eeac15dd14adff64946936b57e155530cd"
-          }
-        },
-        {
-          "client_id": "285794153001-j9clhsr2ds4j616pg3s5rufuufplddn8.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.hellodoc.healthcaresystem",
-            "certificate_hash": "20b468f8635b774595e4cafd9695b5284b72bd8c"
-          }
-        },
-        {
-          "client_id": "285794153001-5poc0go62k2medpns13c69o98nrn345c.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAyJkfhbiCG5rV5Cx7RzyU-2pqsM-ffKLs"
+          "current_key": "AIzaSyDkCtK7hzmssF7TNUitaE1Hyw2UtXKE-Ts"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "285794153001-5poc0go62k2medpns13c69o98nrn345c.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

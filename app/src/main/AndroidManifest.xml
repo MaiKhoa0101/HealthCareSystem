@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.hellodoc.healthcaresystem">
+    package="com.parkingSystem.parkingSystem">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -14,7 +14,7 @@
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
     <application
         android:allowBackup="true"
-        android:name=".user.home.root.MainApplication"
+        android:name="com.parkingSystem.parkingSystem.user.home.root.MainApplication"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/logo"
@@ -31,7 +31,7 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/logo" /> <!-- Launcher activity -->
         <activity
-            android:name=".admin.AdminRoot"
+            android:name="com.parkingSystem.parkingSystem.admin.AdminRoot"
             android:exported="true"
             android:theme="@style/Theme.HealthCareSystem" >
 <!--            <intent-filter>-->
@@ -41,7 +41,7 @@
 <!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".user.home.root.HomeActivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.root.HomeActivity"
             android:exported="true"
             android:theme="@style/Theme.HealthCareSystem">
 <!--            <intent-filter>-->
@@ -51,19 +51,19 @@
 <!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".user.home.startscreen.SignUpSuccess"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.SignUpSuccess"
             android:exported="false" />
         <activity
-            android:name=".user.home.startscreen.StartScreen"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.StartScreen"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.Intro3"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.Intro3"
             android:exported="false" />
         <activity
-            android:name=".user.home.startscreen.Intro2"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.Intro2"
             android:exported="false" />
         <activity
-            android:name=".user.home.startscreen.Intro1"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.Intro1"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/Theme.HealthCareSystem">
@@ -74,7 +74,7 @@
         </intent-filter>
         </activity>
         <activity
-            android:name=".user.home.startscreen.SignIn"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.SignIn"
             android:exported="true">
 <!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
@@ -83,30 +83,30 @@
 <!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".user.home.startscreen.ForgotPasswordActivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.ForgotPasswordActivity"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.VerifyOtpActivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.VerifyOtpActivity"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.ResetPasswordActivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.ResetPasswordActivity"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.ResetPasswordSuccessActivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.ResetPasswordSuccessActivity"
             android:exported="true" />
 
         <activity
-            android:name=".user.home.startscreen.SignUp"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.SignUp"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.VerifyOtpSignUpAcctivity"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.VerifyOtpSignUpAcctivity"
             android:exported="true" />
         <activity
-            android:name=".user.home.startscreen.SecondSignUp"
+            android:name="com.parkingSystem.parkingSystem.user.home.startscreen.SecondSignUp"
             android:exported="true" />
 
         <service
-            android:name=".notification.MyFirebaseMessagingService"
+            android:name="com.parkingSystem.parkingSystem.notification.MyFirebaseMessagingService"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
