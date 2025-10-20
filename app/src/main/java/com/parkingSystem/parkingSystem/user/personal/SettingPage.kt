@@ -64,7 +64,6 @@ fun Setting(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 10.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
         SectionSetting("Chế độ tối", darkTheme, onToggleTheme)
@@ -90,12 +89,6 @@ fun Setting(
                     navHostController.navigate("editClinic")
                 }
             })
-
-//        SectionSetting(
-//            "Đánh giá ứng dụng",
-//            iconVector = Icons.Default.StarRate,
-//            onPress = {})
-
         SectionSetting(
             "Quản lí hoạt động",
             iconVector = Icons.Default.Info,
