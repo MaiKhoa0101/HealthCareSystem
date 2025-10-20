@@ -10,9 +10,10 @@
     tools:context=".user.home.startscreen.Intro1">
 
     <ImageView
+        android:id="@+id/gifImageView"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:src="@drawable/logo_gopark"/>
+        android:src="@drawable/gifforcar"/>
 <!--    <TextView-->
 <!--        android:layout_width="match_parent"-->
 <!--        android:layout_height="wrap_content"-->

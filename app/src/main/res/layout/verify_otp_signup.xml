@@ -3,7 +3,7 @@
     android:id="@+id/verify_otp_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@drawable/background_gopark"
     android:padding="24dp">
 
     <LinearLayout
@@ -29,8 +29,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Xác minh mã OTP"
-            android:textColor="@color/black"
-            android:textSize="28sp"
+            android:textColor="@color/white"
+            android:textSize="30sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp" />
 
@@ -55,7 +55,7 @@
             android:inputType="number"
             android:maxLength="6"
             android:gravity="center"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textColorHint="@color/gray"
             android:background="@drawable/edit_text_background"
             android:padding="12dp" />
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="XÁC MINH"
-            android:backgroundTint="@color/bluetheme"
+            android:backgroundTint="@color/blueblack"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:paddingVertical="12dp" />
@@ -85,15 +85,17 @@
                 android:layout_height="wrap_content"
                 android:text="Chưa nhận được mã? "
                 android:textColor="@color/black"
-                android:textSize="14sp" />
+                android:textStyle="italic"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/resendOtpText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Gửi lại (15)"
-                android:textColor="#06bb00"
-                android:textSize="14sp"
+                android:textColor="@color/blueblack"
+                android:textStyle="bold"
+                android:textSize="18sp"
                 android:clickable="false"
                 android:focusable="false"
                 android:enabled="false" />
