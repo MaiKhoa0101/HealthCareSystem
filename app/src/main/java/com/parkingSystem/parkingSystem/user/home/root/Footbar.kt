@@ -28,9 +28,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -75,10 +78,10 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
 
         ) {
             BoxItem(nameRoute = "Trang chủ", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
-            BoxItem(nameRoute = "Lịch hẹn", icon = "lichhen","appointment", navHostController,currentRoute)
+            BoxItem(nameRoute = "Lịch sử", icon = "history","history", navHostController,currentRoute)
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
             BoxItem(nameRoute = "Thông báo", icon = "thongbao","notification", navHostController,currentRoute)
-            BoxItem(nameRoute = "Cá nhân", icon = "canhan","personal", navHostController,currentRoute)
+            BoxItem(nameRoute = "Cài đặt", icon = "setting","setting", navHostController,currentRoute)
         }
 
         // Floating button in the center
@@ -109,17 +112,26 @@ fun CircleButton(
         ),
         label = "angleAnim"
     )
+    val infiniteTransitionZoomInOut = rememberInfiniteTransition(label = "zoom" )
+
+    val zoomScale by infiniteTransitionZoomInOut.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500, easing = LinearEasing), // 3s xoay 1
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "zoomAnim"
+    )
 
     // Gradient nhiều màu chạy quanh border
     val brush = Brush.sweepGradient(
         colors = listOf(
-            Color.Magenta,
             Color.Cyan,
-            Color.Green,
-            Color.Yellow,
-            Color.Red,
             Color.Blue,
-            Color.Magenta // nối liền
+            Color.White,
+            Color.Blue,
+            Color.Cyan // nối liền
         ),
         center = Offset.Zero
     )
@@ -143,10 +155,14 @@ fun CircleButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = Icons.Default.QrCodeScanner,
             contentDescription = "Add",
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.size(size * 0.5f)
+                .graphicsLayer {
+                    scaleX=zoomScale
+                    scaleY=zoomScale
+                }
         )
     }
 }
@@ -163,9 +179,9 @@ fun BoxItem(
 ) {
     val iconchange: ImageVector = when (icon) {
         "trangchu" -> Icons.Default.Home
-        "lichhen" -> Icons.Default.CalendarToday
+        "history" -> Icons.Default.History
         "thongbao" -> Icons.Default.Notifications
-        "canhan" -> Icons.Default.Person
+        "setting" -> Icons.Default.Settings
         else -> Icons.Default.Add
     }
 

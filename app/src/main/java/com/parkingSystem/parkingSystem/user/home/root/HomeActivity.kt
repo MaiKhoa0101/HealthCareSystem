@@ -210,8 +210,8 @@ class HomeActivity : BaseActivity() {
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showTopBars = currentRoute in listOf("home")
-        val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
+        val showTopBars = currentRoute in listOf("home", "setting")
+        val showFootBars = currentRoute in listOf("home", "history", "notification", "setting")
         var showFullScreenComment by remember { mutableStateOf(false) } // Local state
 
         Scaffold(
@@ -290,34 +290,11 @@ class HomeActivity : BaseActivity() {
             composable("news_detail") {
                 NewsDetailScreen(navHostController, viewModel = newsViewModel)
             }
-            composable("appointment") {
+            composable("history") {
                 AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
-            }
-            composable("personal") {
-                ProfileUserPage(
-                    sharedPreferences,
-                    navHostController,
-                    onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme)
-            }
-            composable(
-                "otherUserProfile/{userOwnerID}",
-                arguments = listOf(
-                    navArgument("userOwnerID")
-                    { type = NavType.StringType
-                    }
-                )
-            ) { backStackEntry ->
-                val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
-                ProfileOtherUserPage(
-                    navHostController,
-                    sharedPreferences,
-                    postViewModel,
-                    userOwnerID
-                )
             }
             composable("create_post") {
                 CreatePostScreen(context, navHostController, postViewModel)

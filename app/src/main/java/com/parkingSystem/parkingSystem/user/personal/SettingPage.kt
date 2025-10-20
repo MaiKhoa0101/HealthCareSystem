@@ -64,50 +64,9 @@ fun Setting(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(top = 10.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(vertical = 30.dp, horizontal = 10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "backIcon",
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clickable {
-                            navHostController.popBackStack()
-                        }
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .padding(vertical = 30.dp, horizontal = 10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Cài đặt",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-
         SectionSetting("Chế độ tối", darkTheme, onToggleTheme)
 
         SectionSetting(
@@ -240,7 +199,7 @@ fun SectionSetting(nameField:String, darkTheme:Boolean, onPress:()->Unit, ){
     Row (
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .background(MaterialTheme.colorScheme.background)
             .discordClick { onPress() }, // áp dụng hiệu ứng
     ) {
         Row (
