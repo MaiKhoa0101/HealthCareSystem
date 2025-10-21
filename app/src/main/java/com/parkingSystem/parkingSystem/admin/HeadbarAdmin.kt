@@ -33,6 +33,7 @@ package com.parkingSystem.parkingSystem.admin
     import androidx.lifecycle.viewmodel.viewModelFactory
     import com.parkingSystem.parkingSystem.R
     import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
+
     @Composable
     fun HeadbarAdmin(
         sharedPreferences: SharedPreferences,
@@ -56,7 +57,7 @@ package com.parkingSystem.parkingSystem.admin
             modifier = Modifier
                 .height(100.dp)
                 .fillMaxWidth()
-                .background(color = Color.Cyan).padding(vertical = 5.dp),
+                .background(color = Color.Blue).padding(vertical = 5.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             // Center Image (com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon)

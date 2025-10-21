@@ -6,4 +6,5 @@
     <color name="grey">#C0C0C0</color>
     <color name="gray">#D3D3D3</color>
     <color name="notification_text_color">#000000</color>
+    <color name="blueblack">#002E5D</color>
 </resources>

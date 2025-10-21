@@ -2,7 +2,7 @@
     android:id="@+id/sub_sign_up"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@drawable/background_gopark"
     android:padding="24dp">
 
     <LinearLayout
@@ -28,8 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Đăng ký"
-            android:textColor="@color/black"
-            android:textSize="28sp"
+            android:textColor="@color/white"
+            android:textSize="30sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp"/>
 
@@ -182,7 +182,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="ĐĂNG KÝ"
-            android:backgroundTint="@color/bluetheme"
+            android:backgroundTint="@color/blueblack"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:layout_marginTop="24dp"
@@ -200,16 +200,21 @@
                 android:id="@+id/signininvite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đã có tài khoản?" />
+                android:text="Đã có tài khoản?"
+                android:textColor="@color/black"
+                android:textStyle="italic"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/signinlink"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" Đăng nhập tại đây"
-                android:textColor="#06bb00"
+                android:textColor="@color/blueblack"
+                android:textStyle="bold"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:textSize="16sp" />
         </LinearLayout>
 
     </LinearLayout>

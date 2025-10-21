@@ -12,6 +12,7 @@ val LightDarkTheme = Color(0xFFA2A2A2)
 
 val LightTheme = Color(0xFF00D7CE)
 
+val MainColor = Color(0xFF002E5D)  // xanh đậm
 
 val BoxGrey = Color(0xFF3F3F3F)
 val BoxLightGrey = Color(0xFF565656)

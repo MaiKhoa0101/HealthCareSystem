@@ -13,6 +13,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
 data class GradientTheme(
     val primary: Brush
 )
@@ -26,6 +27,7 @@ val LocalGradientTheme = staticCompositionLocalOf {
         )
     )
 }
+
 private val LightGradientTheme = GradientTheme(
     primary = Brush.linearGradient(
         listOf(Color(0xFF002E5D), Color(0xFFFFFFFF))
@@ -61,7 +63,7 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = BoxLightGrey,
     errorContainer = LightRedCustom,
     outlineVariant = AmberCustom,
-    )
+)
 
 private val LightColorScheme = lightColorScheme(
     //Màu chủ đạo app xanh

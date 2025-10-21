@@ -57,7 +57,7 @@ val sidebarItems = listOf(
 //        navigationField = "DoctorManager"
 //    ),
     SidebarItem(
-        nameField = "Quản lý chuyên khoa",
+        nameField = "Quản lý bãi đỗ xe",
         iconField = R.drawable.messagemanage,
         navigationField = "CreateSpecialty"
     ),
@@ -66,27 +66,7 @@ val sidebarItems = listOf(
         iconField = R.drawable.reportmanage,
         navigationField = "ReportManager"
     ),
-    SidebarItem(
-        nameField = "Quản lý tin tức",
-        iconField = R.drawable.edit,
-        navigationField = "NewsManager"
-    ),
-    SidebarItem(
-        nameField = "Quản lý bài viết",
-        iconField = R.drawable.ic_post,
-        navigationField = "PostManager"
-    ),
-    SidebarItem(
-        nameField = "Lịch khám",
-        iconField = R.drawable.appointmentmanage,
-        navigationField = "AppointmentManager"
-    ),
 
-    SidebarItem(
-        nameField = "Xác thực tài khoản",
-        iconField = R.drawable.clarifymanage,
-        navigationField = "ClarifyManager"
-    )
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -137,34 +117,14 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
                     composable("UserManager"){
                         UserListScreen()
                     }
-//                    composable("DoctorManager") {
-//                        DoctorListScreen(sharedPreferences = sharedPreferences)
-//                    }
-                    composable("CreateSpecialty") {
-                        CreateSpecialtyScreen(sharedPreferences)
-                    }
                     composable("ReportManager") {
                         ReportManagerScreen()
-                    }
-                    composable("NewsManager") {
-                        NewsManagerScreen(sharedPreferences = sharedPreferences, navController = navController)
-                    }
-                    composable("CreateNews") {
-                        NewsCreateScreen(sharedPreferences = sharedPreferences, navController = navController)
-                    }
-                    composable("PostManager"){
-                        PostManagerScreen(sharedPreferences = sharedPreferences)
                     }
                     composable("AppointmentManager") {
                         AppointmentManagerScreen(sharedPreferences, dao = dao)
                     }
                     composable("ClarifyManager") {
                         ClarifyManagerScreen(sharedPreferences, navController)
-                    }
-                    composable("pendingDoctorDetail/{userId}") {backStackEntry ->
-                        val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                        PendingDoctorDetailScreen(userId = userId, sharedPreferences = sharedPreferences, navController)
-
                     }
                 }
             }
