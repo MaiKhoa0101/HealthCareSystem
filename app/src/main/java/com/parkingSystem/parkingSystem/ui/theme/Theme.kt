@@ -10,9 +10,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import com.google.firebase.annotations.concurrent.Background
+import kotlin.math.*
 
 data class GradientTheme(
     val primary: Brush
@@ -116,4 +120,36 @@ fun ParkingSystemTheme(
             content = content
         )
     }
+}
+
+object AppGradients {
+    fun angledLinearGradient(
+        angleDeg: Float,
+        colors: List<Color>,
+        width: Float = 1000f,
+        height: Float = 1000f
+    ): Brush {
+        // Đổi góc sang radian
+        val angleRad = Math.toRadians(angleDeg.toDouble())
+        // Tính toạ độ vector hướng theo góc
+        val x = cos(angleRad)
+        val y = sin(angleRad)
+
+        val start = Offset(width * (0.5f - x.toFloat() / 2), height * (0.5f - y.toFloat() / 2))
+        val end = Offset(width * (0.5f + x.toFloat() / 2), height * (0.5f + y.toFloat() / 2))
+
+        return Brush.linearGradient(
+            colors = colors,
+            start = start,
+            end = end
+        )
+    }
+
+    val Background = angledLinearGradient(
+        angleDeg = 135f,
+        colors = listOf(
+            Color.White,
+            MainColor
+        )
+    )
 }
