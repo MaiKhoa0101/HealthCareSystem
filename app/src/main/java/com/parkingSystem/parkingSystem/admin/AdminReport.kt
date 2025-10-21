@@ -39,7 +39,6 @@ import com.parkingSystem.parkingSystem.responsemodel.ComplaintData
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewReportListScreen() {
@@ -90,7 +89,7 @@ fun ReportManagerScreen() {
                 LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     item {
                         Text(
-                            text = "Danh sách khiếu nại",
+                            text = "List of complaints",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -98,7 +97,7 @@ fun ReportManagerScreen() {
                         ComplaintStatsScreen(reportList = reportList)
 
                         Text(
-                            text = "Quản lí khiếu nại",
+                            text = "Complaint Management",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -147,9 +146,9 @@ fun ReportManagerScreen() {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Chi tiết khiếu nại", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text("Complaint Detail", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         Text(
-                            "Đóng",
+                            "Close",
                             color = Color.Red,
                             modifier = Modifier.clickable { selectedComplaint = null }
                         )
@@ -159,7 +158,7 @@ fun ReportManagerScreen() {
                     Text(
                         buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Người báo cáo: ")
+                                append("annunciator: ")
                             }
                             append(selectedComplaint!!.user)
                         },
@@ -169,7 +168,7 @@ fun ReportManagerScreen() {
                     Text(
                         buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Nội dung: ")
+                                append("Content: ")
                             }
                             append(selectedComplaint!!.content)
                         },
@@ -179,7 +178,7 @@ fun ReportManagerScreen() {
                     Text(
                         buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Loại: ")
+                                append("Type: ")
                             }
                             append(selectedComplaint!!.targetType)
                         },
@@ -189,35 +188,12 @@ fun ReportManagerScreen() {
                     Text(
                         buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Ngày tạo: ")
+                                append("Created At: ")
                             }
                             append(selectedComplaint!!.createdDate)
                         },
                         fontSize = 18.sp
                     )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("ID người bị báo cáo: ")
-                            }
-                            append(selectedComplaint?.reportedId ?: "Không rõ")
-                        },
-                        fontSize = 18.sp
-                    )
-                    if (selectedComplaint?.targetType == "Bài viết") {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            buildAnnotatedString {
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("ID bài viết: ")
-                                }
-                                append(selectedComplaint?.postId ?: "Không rõ")
-                            },
-                            fontSize = 18.sp
-                        )
-                    }
-
                 }
             }
         }
@@ -238,7 +214,7 @@ fun TableReport(
                 // Header
                 Row(
                     Modifier
-                        .background(Color(0xFF2196F3))
+                        .background(Color(0xFF002E5D))
                         .padding(vertical = 8.dp)
                 ) {
                     ComplaintTableHeader()
@@ -336,16 +312,16 @@ fun TableReport(
                                                 expanded = false
                                                 coroutineScope.launch {
                                                     if (complaint.status == "opened") {
-                                                        Toast.makeText(context, "Chưa thể xóa khiếu nại đang chờ xử lý", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, "Unable to delete pending complaint", Toast.LENGTH_SHORT).show()
                                                         return@launch
                                                     }
 
                                                     val result = RetrofitInstance.reportService.deleteReport(complaint.reportId)
                                                     if (result.isSuccessful) {
                                                         (reportList as MutableList).remove(complaint)
-                                                        Toast.makeText(context, "Đã xóa khiếu nại", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, "Complaint deleted successfully", Toast.LENGTH_SHORT).show()
                                                     } else {
-                                                        Toast.makeText(context, "Xóa thất bại", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, "Delete failed", Toast.LENGTH_SHORT).show()
                                                     }
                                                 }
                                             }
@@ -368,16 +344,15 @@ fun ComplaintTableHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2196F3))
-            .padding(vertical = 8.dp)
+            .background(Color(0xFF002E5D))
     ) {
         TableCell(text = "ID", isHeader = true, width = 60.dp)
-        TableCell(text = "Người dùng", isHeader = true, width = 100.dp)
-        TableCell(text = "Nội dung", isHeader = true, width = 150.dp)
-        TableCell(text = "Bác sĩ/Ứng dụng", isHeader = true, width = 140.dp)
-        TableCell(text = "Trạng thái", isHeader = true, width = 120.dp)
-        TableCell(text = "Ngày tạo", isHeader = true, width = 100.dp)
-        TableCell(text = "Chức năng", isHeader = true, width = 100.dp)
+        TableCell(text = "User", isHeader = true, width = 100.dp)
+        TableCell(text = "Content", isHeader = true, width = 150.dp)
+        TableCell(text = "Slot", isHeader = true, width = 140.dp)
+        TableCell(text = "Status", isHeader = true, width = 120.dp)
+        TableCell(text = "Created at", isHeader = true, width = 100.dp)
+        TableCell(text = "Action", isHeader = true, width = 100.dp)
     }
 }
 
@@ -395,21 +370,21 @@ fun ComplaintStatsScreen(reportList: List<ComplaintData>) {
             icon = Icons.Default.LocalOffer,
             iconColor = Color(0xFF6A5ACD),
             number = reportList.size.toString(),
-            label = "Tổng khiếu nại"
+            label = "Total of complaints"
         )
 
         ComplaintCard(
             icon = Icons.Default.AccessTime,
             iconColor = Color(0xFFFFC107),
             number = reportList.count {it.status == "pending"}.toString(),
-            label = "Khiếu nại chờ duyệt"
+            label = "Pending complaints"
         )
 
         ComplaintCard(
             icon = Icons.Default.CheckCircle,
             iconColor = Color(0xFF009688),
             number = reportList.count {it.status == "closed"}.toString(),
-            label = "Khiếu nại đóng"
+            label = "Closed complaints"
         )
     }
 }

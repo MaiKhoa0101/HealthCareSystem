@@ -127,6 +127,9 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
                     composable("ClarifyManager") {
                         ClarifyManagerScreen(sharedPreferences, navController)
                     }
+                    composable("CreateSpecialty") {
+                        CreateSpecialtyScreen(sharedPreferences)
+                    }
                 }
             }
         )
