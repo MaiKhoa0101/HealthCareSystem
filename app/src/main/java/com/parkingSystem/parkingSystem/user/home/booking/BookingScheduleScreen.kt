@@ -56,9 +56,6 @@ fun BookingCalendarScreen(
     var availableSlots: List<AvailableSlot> by remember { mutableStateOf<List<AvailableSlot>>(emptyList()) }
     var availableDates by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
 
-
-
-
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf("") }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }

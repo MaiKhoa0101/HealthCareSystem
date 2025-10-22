@@ -107,25 +107,8 @@ class HomeActivity : BaseActivity() {
                 val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
                     initializer { UserViewModel(sharedPreferences) }
                 })
-                val doctorViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
+                val parkingViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
                     initializer { ParkingViewModel(sharedPreferences) }
-                })
-                val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-                    initializer { SpecialtyViewModel(sharedPreferences) }
-                })
-                val medicalOptionViewModel: MedicalOptionViewModel =
-                    viewModel(factory = viewModelFactory {
-                        initializer { MedicalOptionViewModel(sharedPreferences) }
-                    })
-                val remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel =
-                    viewModel(factory = viewModelFactory {
-                        initializer { RemoteMedicalOptionViewModel(sharedPreferences) }
-                    })
-                val newsViewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-                    initializer { NewsViewModel(sharedPreferences) }
-                })
-                val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
-                    initializer { FAQItemViewModel(sharedPreferences) }
                 })
 
                 Index(
@@ -133,14 +116,11 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     userViewModel = userViewModel,
-                    doctorViewModel = doctorViewModel,
-                    specialtyViewModel = specialtyViewModel,
-                    medicalOptionViewModel = medicalOptionViewModel,
-                    remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
-                    faqItemViewModel = faqItemViewModel,
+                    parkingViewModel = parkingViewModel,
                     dao = dao,
                     onToggleTheme = { darkTheme = !darkTheme },
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -169,11 +149,7 @@ class HomeActivity : BaseActivity() {
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         userViewModel: UserViewModel,
-        doctorViewModel: ParkingViewModel,
-        specialtyViewModel: SpecialtyViewModel,
-        medicalOptionViewModel: MedicalOptionViewModel,
-        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-        faqItemViewModel: FAQItemViewModel,
+        parkingViewModel: ParkingViewModel,
         modifier: Modifier = Modifier,
         dao: AppointmentDao,
         onToggleTheme: () -> Unit,
@@ -201,11 +177,7 @@ class HomeActivity : BaseActivity() {
                 navHostController = navHostController,
                 sharedPreferences = sharedPreferences,
                 userViewModel = userViewModel,
-                doctorViewModel = doctorViewModel,
-                specialtyViewModel = specialtyViewModel,
-                medicalOptionViewModel = medicalOptionViewModel,
-                remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
-                faqItemViewModel = faqItemViewModel,
+                parkingViewModel = parkingViewModel,
                 modifier = Modifier.padding(paddingValues),
                 dao,
                 onToggleTheme = onToggleTheme,
@@ -221,11 +193,7 @@ class HomeActivity : BaseActivity() {
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         userViewModel: UserViewModel,
-        doctorViewModel: ParkingViewModel,
-        specialtyViewModel: SpecialtyViewModel,
-        medicalOptionViewModel: MedicalOptionViewModel,
-        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-        faqItemViewModel: FAQItemViewModel,
+        parkingViewModel: ParkingViewModel,
         modifier: Modifier = Modifier,
         dao: AppointmentDao,
         onToggleTheme: () -> Unit,
@@ -244,7 +212,7 @@ class HomeActivity : BaseActivity() {
                     sharedPreferences = sharedPreferences,
                     navHostController = navHostController,
                     userViewModel = userViewModel,
-                    medicalOptionViewModel = medicalOptionViewModel
+                    parkingViewModel = parkingViewModel
                 )
             }
             composable("history") {
@@ -264,12 +232,11 @@ class HomeActivity : BaseActivity() {
                     dao
                 )
             }
-            composable("doctor_list") {
-                ParkingSlot(
-                    context = context,
-                    navHostController = navHostController
-                )
+            composable("slot_list/{parkId}") { backStackEntry ->
+                val parkId = backStackEntry.arguments?.getString("parkId") ?: ""
+                ParkingSlot(context, navHostController, parkId)
             }
+
             composable("booking-calendar") {
                 Column(modifier = Modifier.fillMaxSize()) {
                     BookingCalendarScreen(context = context, navHostController = navHostController)

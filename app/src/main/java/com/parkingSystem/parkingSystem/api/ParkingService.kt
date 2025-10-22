@@ -9,15 +9,15 @@ import retrofit2.http.Path
 
 interface ParkingService {
     @Headers("Content-Type: application/json")
-    @GET("user/get-all-parking-slots/available/:pathName")
+    @GET("user/get-all-parking-slots/available/park")
     suspend fun getAllParkAvailable(): Response<List<Park>>
 
     @Headers("Content-Type: application/json")
-    @GET("user/get-all-parking-slots/:pathName")
-    suspend fun getAllPark(): Response<List<Park>>
+    @GET("manager/get-all-parking-slots/{path}")
+    suspend fun getAllPark(@Path("path") namePath:String): Response<List<Park>>
 
     @Headers("Content-Type: application/json")
-    @GET("user/get-all-parking-slots/available/:pathName")
+    @GET("manager/get-park-by-id/{id}")
     suspend fun getParkById(@Path("id") parkId:String): Response<Park>
 
     @Headers("Content-Type: application/json")

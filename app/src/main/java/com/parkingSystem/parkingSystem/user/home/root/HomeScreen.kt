@@ -62,7 +62,7 @@ fun HealthMateHomeScreen(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
     userViewModel: UserViewModel,
-    medicalOptionViewModel: MedicalOptionViewModel
+    parkingViewModel: ParkingViewModel
 ) {
     val context = LocalContext.current
     val listState = rememberSaveable(
@@ -80,18 +80,16 @@ fun HealthMateHomeScreen(
 
     // Collect states with loading information
     var showReportBox by remember { mutableStateOf(false) }
-    var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
 
+    val parks by parkingViewModel.parks.collectAsState()
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-        medicalOptionViewModel.fetchMedicalOptions()
+        parkingViewModel.fetchAllParksAvailable()
     }
 
 
@@ -112,17 +110,17 @@ fun HealthMateHomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
-//            item(key = "specialties") {
-//                if (specialtyState.isEmpty()) {
-//                    SpecialtySkeletonList()
-//                } else {
-//                    ParkList(
-//                        navHostController = navHostController,
-//                        context = context,
-//                        specialties = specialtyState
-//                    )
-//                }
-//            }
+            item(key = "specialties") {
+                if (parks.isEmpty()) {
+                    SpecialtySkeletonList()
+                } else {
+                    ParkList(
+                        navHostController = navHostController,
+                        context = context,
+                        parks = parks
+                    )
+                }
+            }
         }
 
         if (isScrollButtonVisible) {
@@ -267,9 +265,8 @@ fun SpecialtySkeletonList() {
 fun ParkList(
     navHostController: NavHostController,
     context: Context,
-    specialties: List<GetSpecialtyResponse>
+    parks: List<Park>
 ) {
-    val displayedSpecialties =  specialties
 
     Column {
         // Header row with title and "See more" button
@@ -281,7 +278,7 @@ fun ParkList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Dịch vụ",
+                text = "Parking lot",
                 fontSize = 20.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
@@ -297,18 +294,16 @@ fun ParkList(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            items(
-                items = displayedSpecialties,
-                key = { specialty -> "specialty_${specialty.id ?: specialty.hashCode()}" }
-            ) { specialty ->
-                if (specialties.isEmpty()) {
+            items (parks)
+            { park ->
+                if (parks.isEmpty()) {
                     Text("Không có dịch vụ nào")
                 }
                 else {
-                    SpecialtyItem(
+                    ParkItem(
                         navHostController = navHostController,
-                        specialty = specialty,
-                        onClick = { showToast(context, "Đã chọn: ${specialty.name}") }
+                        park = park,
+                        onClick = { showToast(context, "Đã chọn: ${park.parkName}") }
                     )
                 }
             }
@@ -318,9 +313,9 @@ fun ParkList(
 }
 
 @Composable
-fun SpecialtyItem(
+fun ParkItem(
     navHostController: NavHostController,
-    specialty: GetSpecialtyResponse,
+    park: Park,
     onClick: () -> Unit
 ) {
     Box(
@@ -331,21 +326,18 @@ fun SpecialtyItem(
             .background(MaterialTheme.colorScheme.background)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
             .clickable {
-                firebaseAnalytics.logEvent("specialty_selected", bundleOf(
-                    "ID_specialty" to specialty.id,
-                    "Name_of_specialty" to specialty.name,
+                firebaseAnalytics.logEvent("park_selected", bundleOf(
+                    "ID_park" to park.parkId,
+                    "Name_of_park" to park.parkName,
                 ))
                 onClick()
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyId", specialty.id)
+                    set("parkId", park.parkId)
                 }
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyName", specialty.name)
+                    set("parkName", park.parkName)
                 }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyDesc", specialty.description)
-                }
-                navHostController.navigate("doctor_list")
+                navHostController.navigate("slot_list/${park.parkId}")
             }
             .padding(12.dp),
         contentAlignment = Alignment.Center
@@ -354,27 +346,8 @@ fun SpecialtyItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (!specialty.icon.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(specialty.icon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.doctor),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = specialty.name,
+                text = park.parkName,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center

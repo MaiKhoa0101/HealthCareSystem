@@ -35,26 +35,25 @@ import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 @Composable
 fun ParkingSlot(
     context: Context,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    parkId: String
 ) {
-    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    var parkId by remember { mutableStateOf("") }
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
     val viewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
         initializer { ParkingViewModel(sharedPreferences) }
     })
+
+    LaunchedEffect(Unit) {
+        println("Gọi được launched efect")
+        if (parkId.isNotEmpty()) {
+            viewModel.fetchParkById(parkId)
+        }
+    }
 
     val slots by viewModel.slots.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val currentPark by viewModel.currentPark.collectAsState()
-    LaunchedEffect(Unit) {
-        savedStateHandle?.get<String>("parkId")?.let {
-            parkId = it
-            viewModel.fetchSlotsByPark(parkId)
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -75,17 +74,6 @@ fun ParkingSlot(
                     CircularProgressIndicator()
                 }
             }
-            error != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Lỗi: $error",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
             slots != null -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -100,19 +88,21 @@ fun ParkingSlot(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
+                            currentPark?.parkName?.let {
+                                Text(
+                                    text = it,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
                             Text(
-                                text = currentPark!!.park_name,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                text = "Địa chỉ: ${currentPark!!.address}",
+                                text = "Địa chỉ: ${currentPark?.address}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                             Text(
-                                text = "Giá: ${currentPark!!.price}đ/${currentPark!!.type_vehicle}",
+                                text = "Giá: ${currentPark?.price}đ/${currentPark?.typeVehicle}",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -132,7 +122,7 @@ fun ParkingSlot(
                         LazyRow {
                             item {
                                 ParkingGridLayout(
-                                    slots = currentPark!!.slots,
+                                    slots = currentPark?.slots,
                                     onSpotClick = { slot ->
                                         if (!slot.isBooked) {
 
@@ -227,11 +217,11 @@ fun TopBar(parkName: String, onClick: () -> Unit) {
 
 @Composable
 fun ParkingGridLayout(
-    slots: List<Slot>,
+    slots: List<Slot>?,
     onSpotClick: (Slot) -> Unit
 ) {
-    val maxX = slots.maxOfOrNull { it.pos_x } ?: 0
-    val maxY = slots.maxOfOrNull { it.pos_y } ?: 0
+    val maxX = slots?.maxOfOrNull { it.pos_x } ?: 0
+    val maxY = slots?.maxOfOrNull { it.pos_y } ?: 0
 
     Column(
         modifier = Modifier
@@ -245,7 +235,7 @@ fun ParkingGridLayout(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 for (x in 0..maxX) {
-                    val slot = slots.find { it.pos_x == x && it.pos_y == y }
+                    val slot = slots?.find { it.pos_x == x && it.pos_y == y }
 
                     if (slot != null) {
                         ParkingSpotCell(

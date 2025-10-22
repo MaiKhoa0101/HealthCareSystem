@@ -37,17 +37,20 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
-    fun fetchAllParks() {
+    fun fetchAllParksAvailable() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
+                println("Fetching parks...")
                 val token = sharedPreferences.getString("auth_token", "") ?: ""
-                val response = RetrofitInstance.parking.getAllPark()
+                val response = RetrofitInstance.parking.getAllPark("park")
 
-                if (response.isSuccessful && response.body() != null) {
+                if (response.isSuccessful) {
+                    println("API trả về thành công" + response.body().toString())
                     _parks.value = response.body()!!
                 } else {
+                    println("API khoong trả về thành công" + response.body().toString())
                     _error.value = "Không thể tải danh sách bãi đậu xe"
                 }
             } catch (e: Exception) {
@@ -65,15 +68,17 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     fun fetchParkById(parkId: String){
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
+
             try {
-                val token = sharedPreferences.getString("auth_token", "") ?: ""
+                println ("vao duoc fetch park id")
                 val response = RetrofitInstance.parking.getParkById(parkId)
 
                 if (response.isSuccessful && response.body() != null) {
                     _currentPark.value = response.body()
+                    println("fetchParkById: " + response.body().toString())
                     _slots.value = response.body()!!.slots
                 } else {
+                    println("fetchParkById: " + response.body().toString())
                     _error.value = "Không thể tải thông tin bãi đậu xe"
                 }
             } catch (e: Exception) {

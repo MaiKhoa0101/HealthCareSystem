@@ -6,10 +6,10 @@ import com.google.gson.annotations.SerializedName
 
 // Data classes từ BE
 data class Park(
-    val id: String = "",
-    val park_name: String = "",
+    val parkId: String = "",
+    val parkName: String = "",
     val price: Double = 0.0,
-    val type_vehicle: String = "",
+    val typeVehicle: String = "",
     val slots: List<Slot> = emptyList(),
     val address: String = ""
 )
@@ -18,7 +18,9 @@ data class Slot(
     val slotName: String = "",
     val slotId: String = "",
     val isBooked: Boolean = false,
+    @SerializedName("pos_X")
     val pos_x: Int = 0,  // Đổi từ String sang Int
+    @SerializedName("pos_Y")
     val pos_y: Int = 0   // Đổi từ String sang Int
 )
 
