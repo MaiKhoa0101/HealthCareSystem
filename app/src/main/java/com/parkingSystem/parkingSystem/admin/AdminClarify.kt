@@ -31,7 +31,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.parkingSystem.parkingSystem.responsemodel.PendingDoctorResponse
 import com.parkingSystem.parkingSystem.viewmodel.DoctorViewModel
 
 //@Composable
