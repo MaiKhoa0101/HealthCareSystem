@@ -12,7 +12,20 @@
           "package_name": "com.parkingSystem.parkingSystem"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "53050647293-bnqovgldk6e5odkjot6dq25p32m10793.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.parkingSystem.parkingSystem",
+            "certificate_hash": "20b468f8635b774595e4cafd9695b5284b72bd8c"
+          }
+        },
+        {
+          "client_id": "53050647293-nqfnqugtfbl73jla6ohtcokpvrge96kj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDkCtK7hzmssF7TNUitaE1Hyw2UtXKE-Ts"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "53050647293-nqfnqugtfbl73jla6ohtcokpvrge96kj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

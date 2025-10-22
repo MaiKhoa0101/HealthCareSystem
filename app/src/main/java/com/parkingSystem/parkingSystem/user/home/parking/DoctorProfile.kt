@@ -1,4 +1,4 @@
-package com.parkingSystem.parkingSystem.user.home.doctor
+package com.parkingSystem.parkingSystem.user.home.parking
 
 import android.content.Context
 import android.os.Build
