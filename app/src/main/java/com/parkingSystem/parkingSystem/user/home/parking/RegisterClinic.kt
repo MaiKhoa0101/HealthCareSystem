@@ -1,4 +1,4 @@
-package com.parkingSystem.parkingSystem.user.home.doctor
+package com.parkingSystem.parkingSystem.user.home.parking
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
