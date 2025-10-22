@@ -30,8 +30,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var park_name by remember { mutableStateOf("") }
+    var type_vehicle by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -59,67 +60,61 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("Tạo chuyên khoa", style = MaterialTheme.typography.titleLarge)
+            Text("Create a parking lot ", style = MaterialTheme.typography.titleLarge)
 
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Tên chuyên khoa") },
+                value = park_name,
+                onValueChange = { park_name = it },
+                label = { Text("Parking lot name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Mô tả") },
+                value = type_vehicle,
+                onValueChange = { type_vehicle = it },
+                label = { Text("Describe") },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 4
             )
 
-            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                Text("Chọn ảnh đại diện")
-            }
-
-            imageUri?.let {
-                AsyncImage(
-                    model = it,
-                    contentDescription = "Ảnh chuyên khoa",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            }
+            OutlinedTextField(
+                value = price,
+                onValueChange = { price = it },
+                label = { Text("Price") },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             Button(
                 onClick = {
-                    if (name.isBlank() || description.isBlank() || imageUri == null) {
-                        Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show()
+                    if (park_name.isBlank() || type_vehicle.isBlank() || price.isBlank() || imageUri == null) {
+                        Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                     } else {
                         val request = SpecialtyRequest(
-                            name = name,
+                            park_name = park_name,
                             icon = imageUri,
-                            description = description
+                            type_vehicle = type_vehicle,
+                            price = price.toDouble()
                         )
                         specialtyViewModel.createSpecialty(request, context)
 
-                        // Xoá form sau khi gửi
-                        name = ""
-                        description = ""
+                        // Delete form after create
+                        park_name = ""
+                        type_vehicle = ""
+                        price = ""
                         imageUri = null
 
-                        // Làm mới danh sách chuyên khoa
+                        // reload list parkinglot
                         specialtyViewModel.fetchSpecialties()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Tạo chuyên khoa")
+                Text("Create parking lot")
             }
 
             Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-            Text("Các chuyên khoa hiện có", style = MaterialTheme.typography.titleMedium)
+            Text("List of parking lots", style = MaterialTheme.typography.titleMedium)
         }
 
         Spacer(modifier = Modifier.height(8.dp))

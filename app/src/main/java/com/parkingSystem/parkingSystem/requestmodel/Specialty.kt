@@ -3,8 +3,9 @@ package com.parkingSystem.parkingSystem.requestmodel
 import android.net.Uri
 
 data class SpecialtyRequest(
-    val name: String,
+    val park_name: String,
     val icon: Uri?,
-    val description: String
+    val type_vehicle: String,
+    val price: Double
 )
 
