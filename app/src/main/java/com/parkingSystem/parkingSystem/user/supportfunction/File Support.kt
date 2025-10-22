@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
-import com.parkingSystem.parkingSystem.user.post.ZoomableImage
 import java.io.File
 import java.io.FileOutputStream
 
@@ -133,11 +132,6 @@ fun AvatarDetailDialog(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            ZoomableImage(
-                url = mediaUrls,
-                modifier = Modifier.fillMaxSize()
-            )
-
         }
     }
 }

@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="HealthCareSystem.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-10-21T14:51:20.258222900Z">
+        <DropdownSelection timestamp="2025-10-22T10:29:03.222842200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Hi\.android\avd\Medium_Phone.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=5HZHPF6LVWLRS49H" />
             </handle>
           </Target>
         </DropdownSelection>

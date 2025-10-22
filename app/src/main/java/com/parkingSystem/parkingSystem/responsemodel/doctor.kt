@@ -4,95 +4,31 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.google.gson.annotations.SerializedName
 
-data class GetDoctorResponse (
-    @SerializedName("_id") val id: String,
-    @SerializedName("role") val role: String,
-    @SerializedName("email") val email: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("workingHours") val workHour:List<WorkHour>,
-    val address: String,
-    @SerializedName("phone") val phone: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("specialty") val specialty: Specialty,
-    @SerializedName("experience") val experience: Int?,
-    @SerializedName("description") val description: String?,
-    @SerializedName("avatarURL") val avatarURL: String?,
-    @SerializedName("hospital") val hospital: String?,
-    @SerializedName("certificates")
-    val certificates: String?,
-    @SerializedName("services")
-    val services: List<ServiceOutput>,
-    @SerializedName("patientsCount")
-    val patientsCount: Int?,
-    @SerializedName("ratingsCount")
-    val ratingsCount: Int?,
-    @SerializedName("hasHomeService")
-    val hasHomeService: Boolean?,
-    @SerializedName("isClinicPaused")
-    val isClinicPaused: Boolean?,
-    @SerializedName("verified")
-    val verified: Boolean?
+// Data classes từ BE
+data class Park(
+    val id: String = "",
+    val park_name: String = "",
+    val price: Double = 0.0,
+    val type_vehicle: String = "",
+    val slots: List<Slot> = emptyList(),
+    val address: String = ""
 )
 
-data class Specialty (
-    @SerializedName("_id") val id:String,
-    @SerializedName("name") val name: String
+data class Slot(
+    val slotName: String = "",
+    val slotId: String = "",
+    val isBooked: Boolean = false,
+    val pos_x: Int = 0,  // Đổi từ String sang Int
+    val pos_y: Int = 0   // Đổi từ String sang Int
 )
 
-data class ApplyDoctor(
-    val message: String
-)
+// Enum cho trạng thái hiển thị
+enum class SpotStatus {
+    AVAILABLE,
+    OCCUPIED,
+    BLOCKED
+}
 
-data class WorkHour(
-    val dayOfWeek: Int,
-    val hour: Int,
-    val minute: Int
-)
-
-data class PendingDoctorResponse(
-    @SerializedName("_id") val id: String,
-    val userId: String,
-    val CCCD: String,
-    val license: String,
-    val name: String,
-    val phone: String,
-    val email: String,
-    val specialty: String,
-    val faceUrl: String?,
-    val avatarURL: String?,
-    val licenseUrl: String?,
-    val backCccdUrl: String?,
-    val frontCccdUrl: String?
-)
-
-data class ReturnPendingDoctorResponse(
-    val message: String
-)
-data class DoctorStatsResponse(
-    val patientsCount: Int,
-    val ratingsCount: Int
-)
-
-// Main response data class
-data class DoctorAvailableSlotsResponse(
-    @SerializedName("doctorID")
-    val doctorID: String,
-
-    @SerializedName("doctorName")
-    val doctorName: String,
-
-    @SerializedName("searchPeriod")
-    val searchPeriod: SearchPeriod,
-
-    @SerializedName("availableSlots")
-    val availableSlots: List<AvailableSlot>,
-
-    @SerializedName("totalAvailableDays")
-    val totalAvailableDays: Int,
-
-    @SerializedName("totalAvailableSlots")
-    val totalAvailableSlots: Int
-)
 
 // Search period data class
 data class SearchPeriod(

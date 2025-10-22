@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +52,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.parkingSystem.core.common.skeletonloading.SkeletonBox
 import com.parkingSystem.parkingSystem.responsemodel.*
-import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
 import com.parkingSystem.parkingSystem.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -64,14 +62,7 @@ fun HealthMateHomeScreen(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
     userViewModel: UserViewModel,
-    doctorViewModel: DoctorViewModel,
-    specialtyViewModel: SpecialtyViewModel,
-    medicalOptionViewModel: MedicalOptionViewModel,
-    remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-    geminiViewModel: GeminiViewModel,
-    newsViewModel: NewsViewModel,
-    postViewModel: PostViewModel,
-    faqItemViewModel: FAQItemViewModel
+    medicalOptionViewModel: MedicalOptionViewModel
 ) {
     val context = LocalContext.current
     val listState = rememberSaveable(
@@ -88,7 +79,6 @@ fun HealthMateHomeScreen(
     }
 
     // Collect states with loading information
-    val specialtyState by specialtyViewModel.specialties.collectAsState()
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
@@ -99,16 +89,9 @@ fun HealthMateHomeScreen(
         userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
-        postViewModel.fetchPosts()
         postIndex=10
         println("Gọi 1 voi index: "+ postIndex)
-
-        doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
-        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
-        newsViewModel.getAllNews()
-        faqItemViewModel.fetchFAQItems()
     }
 
 
@@ -118,7 +101,6 @@ fun HealthMateHomeScreen(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures {
-                    postViewModel.closeAllPostMenus()
                     showReportBox = false
                 }
             }
@@ -130,16 +112,17 @@ fun HealthMateHomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
-            item(key = "specialties") {
-                if (specialtyState.isEmpty()) {
-                    SpecialtySkeletonList()
-                } else {
-                    ServiceList(
-                        navHostController = navHostController,
-                        context = context,
-                        specialties = specialtyState)
-                }
-            }
+//            item(key = "specialties") {
+//                if (specialtyState.isEmpty()) {
+//                    SpecialtySkeletonList()
+//                } else {
+//                    ParkList(
+//                        navHostController = navHostController,
+//                        context = context,
+//                        specialties = specialtyState
+//                    )
+//                }
+//            }
         }
 
         if (isScrollButtonVisible) {
@@ -281,7 +264,7 @@ fun SpecialtySkeletonList() {
 
 
 @Composable
-fun ServiceList(
+fun ParkList(
     navHostController: NavHostController,
     context: Context,
     specialties: List<GetSpecialtyResponse>
