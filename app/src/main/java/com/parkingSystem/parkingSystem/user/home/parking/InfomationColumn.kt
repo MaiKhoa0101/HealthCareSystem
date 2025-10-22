@@ -1,4 +1,4 @@
-package com.parkingSystem.parkingSystem.user.home.doctor
+package com.parkingSystem.parkingSystem.user.home.parking
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
