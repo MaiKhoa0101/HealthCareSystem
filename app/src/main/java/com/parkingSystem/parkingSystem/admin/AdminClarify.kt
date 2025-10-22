@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -166,13 +167,19 @@ fun TableCell(text: String, isHeader: Boolean = false, width: Dp) {
     Box(
         modifier = Modifier
             .width(width)
-            .padding(horizontal = 4.dp),
+            .background(
+                if (isHeader) Color(0xFF002E5D)
+                else Color.Transparent
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             textAlign = TextAlign.Center,
             maxLines = 1,
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            color = if (isHeader) Color.White else Color.Black,
+            fontSize = if (isHeader) 14.sp else 13.sp
         )
     }
 }
