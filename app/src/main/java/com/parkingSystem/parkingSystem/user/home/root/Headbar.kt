@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,12 +46,10 @@ fun shortenUserName(fullName: String): String {
 fun Headbar(
     sharedPreferences: SharedPreferences
 ) {
-    val context = LocalContext.current
     val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
     val you by viewModel.user.collectAsState()
-    var userName by remember { mutableStateOf("Người dùng") }
     var role by remember { mutableStateOf("Người dùng") }
 
     val gradientTheme = LocalGradientTheme.current
@@ -97,10 +94,3 @@ fun Headbar(
     }
 }
 
-fun truncateName(name: String, maxLength: Int): String {
-    return if (name.length > maxLength) {
-        name.take(maxLength) + "..."
-    } else {
-        name
-    }
-}

@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -24,79 +26,92 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parkingSystem.parkingSystem.R
+import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewControllerListScreen() {
-    ControllerManagerScreen()
+fun PreviewAdminDashboardScreen() {
+    AdminDashboardScreen()
 }
 
 @Composable
-fun ControllerManagerScreen() {
-    LazyColumn (
-        modifier = Modifier.background(Color(0xFFF7F8FA))
-    ){
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                modifier = Modifier.padding(10.dp),
-                text = "Bảng điều khiển",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ActiveAccount()
-            RevenueReportScreen()
-            NotificationCard()
-            AppointmentRevenueCard()
-            }
-        }
-    }
-
-
-@Composable
-fun ActiveAccount() {
-    Column(
+fun AdminDashboardScreen() {
+    val gradient: Brush = LocalGradientTheme.current.primary
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.Start
+            .background(Color(0xFFF5F7FA))
     ) {
-        Column(
-            modifier = Modifier.background(Color.White)
-        )
-        {
-            Text(
-                "Tài khoản đang hoạt động",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Color.Gray
-            )
-            Row(
+        item {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.SpaceAround
+                    .background(gradient)
+                    .padding(horizontal = 20.dp, vertical = 22.dp)
             ) {
-                InfoCard(
-                    value = "44",
-                    title = "Người dùng đang hoạt động",
-                    backgroundColor = Color(0xFF00BCD4),
-                    icon = R.drawable.submit_arrow
-                )
-                InfoCard(
-                    value = "53",
-                    title = "Bác sĩ đang hoạt động",
-                    backgroundColor = Color(0xFF4CAF50),
-                    icon = R.drawable.submit_arrow
-                )
+                Column {
+                    Text(
+                        text = "Dashboard",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Parking Management System",
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            ParkingLotStatusSection()
+            Spacer(modifier = Modifier.height(16.dp))
+            RevenueReportScreen()
+            Spacer(modifier = Modifier.height(16.dp))
+            VehicleTypeRevenueCard()
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun ParkingLotStatusSection() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(
+            "Overview",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = Color(0xFF2D3748),
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            InfoCard(
+                value = "44",
+                title = "Parked Vehicles",
+                backgroundColor = Brush.linearGradient(
+                    colors = listOf(Color(0xFF36D1DC), Color(0xFF5B86E5))
+                ),
+                icon = R.drawable.submit_arrow,
+                modifier = Modifier.weight(1f)
+            )
+            InfoCard(
+                value = "53",
+                title = "Available Spots",
+                backgroundColor = Brush.linearGradient(
+                    colors = listOf(Color(0xFF11998E), Color(0xFF38EF7D))
+                ),
+                icon = R.drawable.submit_arrow,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -105,57 +120,95 @@ fun ActiveAccount() {
 fun InfoCard(
     value: String,
     title: String,
-    backgroundColor: Color,
-    icon: Int
+    backgroundColor: Brush,
+    icon: Int,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = Modifier
-            .width(150.dp)
-            .height(200.dp)
-            .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-            .padding(4.dp)
+    Card(
+        modifier = modifier
+            .height(140.dp)
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = Color.Black.copy(alpha = 0.1f)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Column(
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.height(100.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundColor)
+                .padding(16.dp)
         ) {
-            Text(
-                text = value,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
-                    .padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "More info",
-                    fontSize = 10.sp,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = value,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                Color.White.copy(alpha = 0.25f),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = icon),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Column {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.95f),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(
+                                Color.White.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "Details",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            painter = painterResource(id = icon),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -163,194 +216,334 @@ fun InfoCard(
 
 @Composable
 fun RevenueReportScreen() {
-    Column(
+    var selectedFilter by remember { mutableStateOf("Month") }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
         ) {
-        var selectedFilter by remember { mutableStateOf("Tháng") }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                "Báo cáo doanh thu",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Color.Gray
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Lọc: ", color = Color.Gray)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Revenue Report",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color(0xFF2D3748)
+                )
                 FilterDropdown(
-                    options = listOf("Ngày", "Tuần", "Tháng", "Trước giờ"),
+                    options = listOf("Day", "Week", "Month", "Year"),
                     selectedOption = selectedFilter,
                     onOptionSelected = { selectedFilter = it }
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(horizontalAlignment = Alignment.Start) {
-                Text("Tháng này", color = Color.Gray)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "$12,582",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .background(Color(0xFFDFF5E6), shape = RoundedCornerShape(4.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text("+15%", color = Color(0xFF27AE60), fontSize = 12.sp)
-                    }
-                }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text("Tháng trước", color = Color.Gray)
-                Text(
-                    text = "$98,741",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "25.2%↑",
-                color = Color(0xFF27AE60),
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("So với tháng trước", color = Color.Gray)
-        }
-    }
-}
-
-@Composable
-fun NotificationCard() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(16.dp),
-        ) {
-        Text(
-            text = "Thông báo",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp,
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            NotificationItem(R.drawable.doctor, "10 tài khoản mới", Color(0xFFB3E5FC), Color.Black)
-            NotificationItem(R.drawable.doctor, "5 lịch hẹn được tạo", Color(0xFFC8FACC), Color.DarkGray)
-            NotificationItem(R.drawable.doctor, "3 tài khoản cần xác thực", Color(0xFFB3E5FC), Color.Black)
-            NotificationItem(R.drawable.doctor, "4 khiếu nại mới", Color(0xFFC8FACC), Color.Black)
-        }
-    }
-}
-
-@Composable
-fun NotificationItem(iconRes: Int, text: String, backgroundColor: Color, iconColor: Color) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black
-        )
-    }
-}
-
-@Composable
-fun AppointmentRevenueCard() {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(Color.Transparent)
-    ) {
-        Column() {
-            var selectedFilter by remember { mutableStateOf("Tháng") }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "Doanh thu từ lịch hẹn",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Color.Gray
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Lọc: ", color = Color.Gray)
-                    FilterDropdown(
-                        options = listOf("Ngày", "Tuần", "Tháng", "Trước giờ"),
-                        selectedOption = selectedFilter,
-                        onOptionSelected = { selectedFilter = it }
+                Column {
+                    Text(
+                        "This Month",
+                        color = Color(0xFF718096),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "$12,582",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 28.sp,
+                            color = Color(0xFF2D3748)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Color(0xFFD1FAE5),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                "+15%",
+                                color = Color(0xFF059669),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "Last Month",
+                        color = Color(0xFF718096),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$10,941",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp,
+                        color = Color(0xFF2D3748)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text("$895.02", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
-            Text("doanh thu tháng này", fontSize = 14.sp, color = Color.Gray)
-
             Spacer(modifier = Modifier.height(16.dp))
+            Divider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(
+                        Color(0xFFF0FDF4),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(12.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "↑ 15%",
+                    color = Color(0xFF059669),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Compared to last month",
+                    color = Color(0xFF6B7280),
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun VehicleTypeRevenueCard() {
+    var selectedFilter by remember { mutableStateOf("Bike") }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Revenue by Vehicle Type",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color(0xFF2D3748)
+                )
+                FilterDropdown(
+                    options = listOf("Bike", "Car", "MotorBike"),
+                    selectedOption = selectedFilter,
+                    onOptionSelected = { selectedFilter = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            val revenueData = when (selectedFilter) {
+                "Bike" -> mapOf(
+                    "Jan" to 2500f, "Feb" to 3200f, "Mar" to 2800f,
+                    "Apr" to 4100f, "May" to 3800f, "Jun" to 4500f
+                )
+                "Car" -> mapOf(
+                    "Jan" to 8500f, "Feb" to 9200f, "Mar" to 8800f,
+                    "Apr" to 10100f, "May" to 9800f, "Jun" to 11500f
+                )
+                else -> mapOf(
+                    "Jan" to 5500f, "Feb" to 6200f, "Mar" to 5800f,
+                    "Apr" to 7100f, "May" to 6800f, "Jun" to 7500f
+                )
+            }
+
+            val totalRevenue = revenueData.values.sum()
+            val avgRevenue = totalRevenue / revenueData.size
+            val maxValue = revenueData.values.maxOrNull() ?: 1f
+            val minValue = revenueData.values.minOrNull() ?: 0f
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatBox(
+                    label = "Total Revenue",
+                    value = "${String.format("%.0f", totalRevenue)}",
+                    color = Color(0xFF3B82F6)
+                )
+                StatBox(
+                    label = "Average",
+                    value = "${String.format("%.0f", avgRevenue)}",
+                    color = Color(0xFF10B981)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .height(220.dp)
+                    .background(Color(0xFFFAFAFA), shape = RoundedCornerShape(12.dp))
+                    .padding(16.dp)
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val path = Path().apply {
-                        moveTo(0f, size.height * 0.7f)
-                        quadraticBezierTo(size.width * 0.2f, size.height * 0.4f, size.width * 0.4f, size.height * 0.7f)
-                        quadraticBezierTo(size.width * 0.6f, size.height * 0.4f, size.width * 0.8f, size.height * 0.7f)
-                        quadraticBezierTo(size.width * 0.9f, size.height * 0.9f, size.width, size.height * 0.7f)
+                    val range = maxValue - minValue
+                    val points = revenueData.values.mapIndexed { index, value ->
+                        val x = if (revenueData.size > 1) {
+                            (size.width / (revenueData.size - 1)) * index
+                        } else size.width / 2
+                        val normalizedValue = if (range > 0) (value - minValue) / range else 0.5f
+                        val y = size.height - (size.height * 0.15f) - (normalizedValue * size.height * 0.7f)
+                        Pair(x, y)
                     }
-                    drawPath(
-                        path = path,
-                        color = Color(0xFF42A5F5),
-                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+
+                    for (i in 0..4) {
+                        val y = size.height * (i / 4f)
+                        drawLine(
+                            color = Color(0xFFE5E7EB),
+                            start = androidx.compose.ui.geometry.Offset(0f, y),
+                            end = androidx.compose.ui.geometry.Offset(size.width, y),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
+
+                    if (points.size > 1) {
+                        val gradientPath = Path().apply {
+                            moveTo(0f, size.height)
+                            lineTo(points.first().first, points.first().second)
+                            for (i in 0 until points.size - 1) {
+                                val current = points[i]
+                                val next = points[i + 1]
+                                val cp1X = current.first + (next.first - current.first) / 3
+                                val cp2X = current.first + 2 * (next.first - current.first) / 3
+                                cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
+                            }
+                            lineTo(size.width, size.height)
+                            close()
+                        }
+                        drawPath(
+                            path = gradientPath,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF3B82F6).copy(alpha = 0.3f),
+                                    Color(0xFF3B82F6).copy(alpha = 0.05f)
+                                )
+                            )
+                        )
+
+                        // Line path
+                        val linePath = Path().apply {
+                            moveTo(points.first().first, points.first().second)
+                            for (i in 0 until points.size - 1) {
+                                val current = points[i]
+                                val next = points[i + 1]
+                                val cp1X = current.first + (next.first - current.first) / 3
+                                val cp2X = current.first + 2 * (next.first - current.first) / 3
+                                cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
+                            }
+                        }
+                        drawPath(
+                            path = linePath,
+                            color = Color(0xFF3B82F6),
+                            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                    }
+                    points.forEach { point ->
+                        drawCircle(
+                            color = Color.White,
+                            radius = 8.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+                        )
+                        drawCircle(
+                            color = Color(0xFF3B82F6),
+                            radius = 5.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                revenueData.keys.forEachIndexed { index, label ->
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                        textAlign = when (index) {
+                            0 -> TextAlign.Start
+                            revenueData.size - 1 -> TextAlign.End
+                            else -> TextAlign.Center
+                        }
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun StatBox(label: String, value: String, color: Color) {
+    Column(
+        modifier = Modifier
+            .background(color.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            label,
+            color = Color(0xFF6B7280),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = color
+        )
     }
 }
 
@@ -366,22 +559,40 @@ fun FilterDropdown(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFEDEDED))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFF3F4F6))
                 .clickable { expanded = true }
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Text(selectedOption, color = Color(0xFF5C6BC0))
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            Text(
+                selectedOption,
+                color = Color(0xFF4F46E5),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown",
+                tint = Color(0xFF4F46E5),
+                modifier = Modifier.size(20.dp)
+            )
         }
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color.White)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = {
+                        Text(
+                            option,
+                            color = if (option == selectedOption) Color(0xFF4F46E5) else Color(0xFF374151),
+                            fontWeight = if (option == selectedOption) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    },
                     onClick = {
                         onOptionSelected(option)
                         expanded = false

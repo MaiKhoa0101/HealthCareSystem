@@ -43,31 +43,26 @@ class AdminRoot : BaseActivity() {
 // Sidebar item list
 val sidebarItems = listOf(
     SidebarItem(
-        nameField = "Bảng điều khiển",
+        nameField = "Control Panel",
         iconField = R.drawable.controller,
         navigationField = "Controller"
     ),
     SidebarItem(
-        nameField = "Quản lý tài khoản",
-        iconField = R.drawable.usermanage,
+        nameField = "User Management",
+        iconField = R.drawable.employeemanage,
         navigationField = "UserManager"
     ),
-//    SidebarItem(
-//        nameField = "Quản lý bác sĩ",
-//        iconField = R.drawable.doctormanage,
-//        navigationField = "DoctorManager"
-//    ),
+
     SidebarItem(
-        nameField = "Quản lý bãi đỗ xe",
-        iconField = R.drawable.messagemanage,
+        nameField = "Parking Lot Management",
+        iconField = R.drawable.car_management,
         navigationField = "CreateSpecialty"
     ),
     SidebarItem(
-        nameField = "Quản lý khiếu nại",
-        iconField = R.drawable.reportmanage,
+        nameField = "Report Management",
+        iconField = R.drawable.report,
         navigationField = "ReportManager"
-    ),
-
+    )
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -113,7 +108,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
                     modifier = Modifier.padding(paddingValues)
                 ) {
                     composable("Controller") {
-                        ControllerManagerScreen()
+                        AdminDashboardScreen()
                     }
                     composable("UserManager"){
                         UserListScreen()

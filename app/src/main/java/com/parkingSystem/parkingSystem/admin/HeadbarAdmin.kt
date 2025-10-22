@@ -83,7 +83,7 @@ fun HeadbarAdmin(
                 Icon(
                     painter = painterResource(id = R.drawable.menu_icon),
                     contentDescription = "Menu Icon",
-                    tint = Color.Unspecified // Keeps the original icon color
+                    tint = Color.White // Keeps the original icon color
                 )
             }
             // Right User Info and Logout
@@ -115,7 +115,7 @@ fun HeadbarAdmin(
                         Icon(
                             painter = painterResource(id = R.drawable.logout),
                             contentDescription = "Logout",
-                            tint = Color.Black,
+                            tint = Color.White,
                             modifier = Modifier.size(30.dp)
                         )
                     }
