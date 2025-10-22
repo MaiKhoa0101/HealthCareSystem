@@ -117,8 +117,8 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
     fun createSpecialty(data: SpecialtyRequest, context: Context) {
         viewModelScope.launch {
             try {
-                val name = MultipartBody.Part.createFormData("name", data.name)
-                val description = MultipartBody.Part.createFormData("description", data.description)
+                val name = MultipartBody.Part.createFormData("name", data.park_name)
+                val description = MultipartBody.Part.createFormData("description", data.type_vehicle)
 
                 val icon = data.icon?.let {
                     prepareFilePart(context, it, "icon")
