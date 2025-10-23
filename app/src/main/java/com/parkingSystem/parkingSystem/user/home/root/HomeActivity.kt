@@ -165,7 +165,7 @@ class HomeActivity : BaseActivity() {
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences)
+                if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences, userViewModel)
             },
             bottomBar = {
                 if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)

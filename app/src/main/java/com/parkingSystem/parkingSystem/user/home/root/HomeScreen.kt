@@ -47,6 +47,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -91,8 +94,8 @@ fun HealthMateHomeScreen(
         println("USERNNAME trong HomeScreen: $username")
 
         println("USERID tronng HomeScreen: ${userViewModel.getUserAttributeString("userId")}")
-
-        userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
+        userViewModel.getAllUserAttributeString()
+        userViewModel.getUser(userViewModel.getUserAttributeString("id"))
         parkingViewModel.fetchAllParksAvailable()
     }
 

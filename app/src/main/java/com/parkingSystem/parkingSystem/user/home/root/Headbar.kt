@@ -44,21 +44,14 @@ fun shortenUserName(fullName: String): String {
 
 @Composable
 fun Headbar(
-    sharedPreferences: SharedPreferences
+    sharedPreferences: SharedPreferences,
+    userViewModel: UserViewModel,
 ) {
-    val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-    val you by viewModel.user.collectAsState()
-    println("DU LIEU USER: " + you)
-    println("TÊN USER: " + you?.name.toString())
-    var role by remember { mutableStateOf("Người dùng") }
+
+    val you by userViewModel.user.collectAsState()
 
     val gradientTheme = LocalGradientTheme.current
-    LaunchedEffect(Unit) {
-        viewModel.getAllUsers()
-        role = viewModel.getUserRole()
-    }
+
     Column(
         modifier = Modifier
             .background(gradientTheme.primary)
