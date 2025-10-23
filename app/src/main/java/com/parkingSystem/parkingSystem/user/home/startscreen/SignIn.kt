@@ -143,6 +143,7 @@ class SignIn : BaseActivity() {
                             if (tokenTask.isSuccessful) {
                                 val idToken = tokenTask.result?.token
                                 if (!idToken.isNullOrEmpty()) {
+                                    println("Gủi token cho backend")
                                     sendTokenToBackend(idToken)
                                 } else {
                                     Toast.makeText(this, "Không lấy được token!", Toast.LENGTH_SHORT).show()
@@ -170,7 +171,21 @@ class SignIn : BaseActivity() {
                         if (!token.isNullOrEmpty()) {
                             saveToken(token)
                             Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this@SignIn, HomeActivity::class.java))
+                            val jwt = JWT(token)
+                            val role = jwt.getClaim("role").asString()
+                            println ("Role la "+ role)
+                            val intent = when (role) {
+                                "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
+                                "User" -> Intent(this@SignIn, HomeActivity::class.java)
+                                else -> {
+                                    Toast.makeText(
+                                        this@SignIn,
+                                        "Vai trò không hợp lệ: $role",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@withContext                                }
+                            }
+                            startActivity(intent)
                             finish()
                         }
                     } else {
@@ -244,7 +259,7 @@ class SignIn : BaseActivity() {
                                         try {
                                             val jwt = JWT(token)
                                             val role = jwt.getClaim("role").asString()
-
+                                            println ("Role la "+ role)
                                             val intent = when (role) {
                                                 "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                                 "User", "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)
