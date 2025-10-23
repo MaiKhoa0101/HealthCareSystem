@@ -33,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 
 @Composable
 fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
@@ -153,11 +154,11 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                             Toast.makeText(context, "Enter the number of columns/rows > 0", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
-                        val list = mutableListOf<ParkingSpot>()
+                        val list = mutableListOf<ParkingSlot>()
                         var n = 1
                         for (y in 1..r) {
                             for (x in 1..c) {
-                                list += ParkingSpot(
+                                list += ParkingSlot(
                                     pos_x = x,
                                     pos_y = y,
                                     spotNumber = n.toString(),
