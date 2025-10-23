@@ -3,7 +3,6 @@ package com.parkingSystem.parkingSystem.requestmodel
 import android.net.Uri
 import com.parkingSystem.parkingSystem.responsemodel.ServiceInput
 import com.parkingSystem.parkingSystem.responsemodel.ServiceOutput
-import com.parkingSystem.parkingSystem.responsemodel.WorkHour
 
 data class ApplyDoctorRequest(
     val license: String,
@@ -18,8 +17,6 @@ data class ApplyDoctorRequest(
 )
 
 data class ModifyClinicRequest(
-    val workingHours: List<WorkHour>,
-    val oldWorkingHours: List<WorkHour>,
     val address: String,
     val description: String,
     val services: List<ServiceInput>,

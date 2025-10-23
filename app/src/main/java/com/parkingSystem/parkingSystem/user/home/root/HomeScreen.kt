@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +52,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.parkingSystem.core.common.skeletonloading.SkeletonBox
 import com.parkingSystem.parkingSystem.responsemodel.*
-import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
 import com.parkingSystem.parkingSystem.viewmodel.*
 import kotlinx.coroutines.launch
 
@@ -64,14 +62,7 @@ fun HealthMateHomeScreen(
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
     userViewModel: UserViewModel,
-    doctorViewModel: DoctorViewModel,
-    specialtyViewModel: SpecialtyViewModel,
-    medicalOptionViewModel: MedicalOptionViewModel,
-    remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-    geminiViewModel: GeminiViewModel,
-    newsViewModel: NewsViewModel,
-    postViewModel: PostViewModel,
-    faqItemViewModel: FAQItemViewModel
+    parkingViewModel: ParkingViewModel
 ) {
     val context = LocalContext.current
     val listState = rememberSaveable(
@@ -88,27 +79,17 @@ fun HealthMateHomeScreen(
     }
 
     // Collect states with loading information
-    val specialtyState by specialtyViewModel.specialties.collectAsState()
     var showReportBox by remember { mutableStateOf(false) }
-    var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
 
+    val parks by parkingViewModel.parks.collectAsState()
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
 
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-
-        doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
-        medicalOptionViewModel.fetchMedicalOptions()
-        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
-        newsViewModel.getAllNews()
-        faqItemViewModel.fetchFAQItems()
+        parkingViewModel.fetchAllParksAvailable()
     }
 
 
@@ -118,7 +99,6 @@ fun HealthMateHomeScreen(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures {
-                    postViewModel.closeAllPostMenus()
                     showReportBox = false
                 }
             }
@@ -131,13 +111,14 @@ fun HealthMateHomeScreen(
             state = listState
         ) {
             item(key = "specialties") {
-                if (specialtyState.isEmpty()) {
+                if (parks.isEmpty()) {
                     SpecialtySkeletonList()
                 } else {
-                    ServiceList(
+                    ParkList(
                         navHostController = navHostController,
                         context = context,
-                        specialties = specialtyState)
+                        parks = parks
+                    )
                 }
             }
         }
@@ -281,12 +262,11 @@ fun SpecialtySkeletonList() {
 
 
 @Composable
-fun ServiceList(
+fun ParkList(
     navHostController: NavHostController,
     context: Context,
-    specialties: List<GetSpecialtyResponse>
+    parks: List<Park>
 ) {
-    val displayedSpecialties =  specialties
 
     Column {
         // Header row with title and "See more" button
@@ -298,7 +278,7 @@ fun ServiceList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Dịch vụ",
+                text = "Parking lot",
                 fontSize = 20.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
@@ -314,18 +294,16 @@ fun ServiceList(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            items(
-                items = displayedSpecialties,
-                key = { specialty -> "specialty_${specialty.id ?: specialty.hashCode()}" }
-            ) { specialty ->
-                if (specialties.isEmpty()) {
+            items (parks)
+            { park ->
+                if (parks.isEmpty()) {
                     Text("Không có dịch vụ nào")
                 }
                 else {
-                    SpecialtyItem(
+                    ParkItem(
                         navHostController = navHostController,
-                        specialty = specialty,
-                        onClick = { showToast(context, "Đã chọn: ${specialty.name}") }
+                        park = park,
+                        onClick = { showToast(context, "Đã chọn: ${park.parkName}") }
                     )
                 }
             }
@@ -335,9 +313,9 @@ fun ServiceList(
 }
 
 @Composable
-fun SpecialtyItem(
+fun ParkItem(
     navHostController: NavHostController,
-    specialty: GetSpecialtyResponse,
+    park: Park,
     onClick: () -> Unit
 ) {
     Box(
@@ -348,21 +326,18 @@ fun SpecialtyItem(
             .background(MaterialTheme.colorScheme.background)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
             .clickable {
-                firebaseAnalytics.logEvent("specialty_selected", bundleOf(
-                    "ID_specialty" to specialty.id,
-                    "Name_of_specialty" to specialty.name,
+                firebaseAnalytics.logEvent("park_selected", bundleOf(
+                    "ID_park" to park.parkId,
+                    "Name_of_park" to park.parkName,
                 ))
                 onClick()
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyId", specialty.id)
+                    set("parkId", park.parkId)
                 }
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyName", specialty.name)
+                    set("parkName", park.parkName)
                 }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("specialtyDesc", specialty.description)
-                }
-                navHostController.navigate("doctor_list")
+                navHostController.navigate("slot_list/${park.parkId}")
             }
             .padding(12.dp),
         contentAlignment = Alignment.Center
@@ -371,27 +346,8 @@ fun SpecialtyItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (!specialty.icon.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(specialty.icon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.doctor),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = specialty.name,
+                text = park.parkName,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center

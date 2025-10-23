@@ -41,12 +41,7 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
-import com.parkingSystem.parkingSystem.user.home.parking.EditClinicServiceScreen
-import com.parkingSystem.parkingSystem.user.home.parking.RegisterClinic
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
-import com.parkingSystem.parkingSystem.user.home.chatAi.GeminiChatScreen
-import com.parkingSystem.parkingSystem.user.home.news.NewsDetailScreen
-import com.parkingSystem.parkingSystem.user.home.bmiChecking.BMICheckerScreen
 import com.parkingSystem.parkingSystem.user.home.booking.AppointmentDetailScreen
 import com.parkingSystem.parkingSystem.user.home.booking.AppointmentListScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
@@ -54,20 +49,12 @@ import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
 import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
-import com.parkingSystem.parkingSystem.user.home.parking.DoctorScreen
 import com.parkingSystem.parkingSystem.user.personal.EditUserProfile
-import com.parkingSystem.parkingSystem.user.personal.CommentHistoryScreen
-import com.parkingSystem.parkingSystem.user.personal.FavouriteHistoryScreen
 import com.parkingSystem.parkingSystem.user.personal.Setting
-import com.parkingSystem.parkingSystem.user.post.PostDetailScreen
-import com.parkingSystem.parkingSystem.user.post.CreatePostScreen
-import com.parkingSystem.parkingSystem.viewmodel.DoctorViewModel
+import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 import com.parkingSystem.parkingSystem.viewmodel.FAQItemViewModel
-import com.parkingSystem.parkingSystem.viewmodel.GeminiHelper
-import com.parkingSystem.parkingSystem.viewmodel.GeminiViewModel
 import com.parkingSystem.parkingSystem.viewmodel.MedicalOptionViewModel
 import com.parkingSystem.parkingSystem.viewmodel.NewsViewModel
-import com.parkingSystem.parkingSystem.viewmodel.PostViewModel
 import com.parkingSystem.parkingSystem.viewmodel.RemoteMedicalOptionViewModel
 import com.parkingSystem.parkingSystem.viewmodel.SpecialtyViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
@@ -120,31 +107,8 @@ class HomeActivity : BaseActivity() {
                 val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
                     initializer { UserViewModel(sharedPreferences) }
                 })
-                val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-                    initializer { DoctorViewModel(sharedPreferences) }
-                })
-                val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-                    initializer { SpecialtyViewModel(sharedPreferences) }
-                })
-                val medicalOptionViewModel: MedicalOptionViewModel =
-                    viewModel(factory = viewModelFactory {
-                        initializer { MedicalOptionViewModel(sharedPreferences) }
-                    })
-                val remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel =
-                    viewModel(factory = viewModelFactory {
-                        initializer { RemoteMedicalOptionViewModel(sharedPreferences) }
-                    })
-                val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
-                    initializer { GeminiViewModel(sharedPreferences) }
-                })
-                val newsViewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-                    initializer { NewsViewModel(sharedPreferences) }
-                })
-                val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-                    initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-                })
-                val faqItemViewModel: FAQItemViewModel = viewModel(factory = viewModelFactory {
-                    initializer { FAQItemViewModel(sharedPreferences) }
+                val parkingViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
+                    initializer { ParkingViewModel(sharedPreferences) }
                 })
 
                 Index(
@@ -152,17 +116,11 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController,
                     sharedPreferences = sharedPreferences,
                     userViewModel = userViewModel,
-                    doctorViewModel = doctorViewModel,
-                    specialtyViewModel = specialtyViewModel,
-                    medicalOptionViewModel = medicalOptionViewModel,
-                    remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
-                    geminiViewModel = geminiViewModel,
-                    newsViewModel = newsViewModel,
-                    postViewModel = postViewModel,
-                    faqItemViewModel = faqItemViewModel,
+                    parkingViewModel = parkingViewModel,
                     dao = dao,
                     onToggleTheme = { darkTheme = !darkTheme },
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -191,14 +149,7 @@ class HomeActivity : BaseActivity() {
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         userViewModel: UserViewModel,
-        doctorViewModel: DoctorViewModel,
-        specialtyViewModel: SpecialtyViewModel,
-        medicalOptionViewModel: MedicalOptionViewModel,
-        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-        geminiViewModel: GeminiViewModel,
-        newsViewModel: NewsViewModel,
-        postViewModel: PostViewModel,
-        faqItemViewModel: FAQItemViewModel,
+        parkingViewModel: ParkingViewModel,
         modifier: Modifier = Modifier,
         dao: AppointmentDao,
         onToggleTheme: () -> Unit,
@@ -226,14 +177,7 @@ class HomeActivity : BaseActivity() {
                 navHostController = navHostController,
                 sharedPreferences = sharedPreferences,
                 userViewModel = userViewModel,
-                doctorViewModel = doctorViewModel,
-                specialtyViewModel = specialtyViewModel,
-                medicalOptionViewModel = medicalOptionViewModel,
-                remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
-                geminiViewModel = geminiViewModel,
-                newsViewModel = newsViewModel,
-                postViewModel = postViewModel,
-                faqItemViewModel = faqItemViewModel,
+                parkingViewModel = parkingViewModel,
                 modifier = Modifier.padding(paddingValues),
                 dao,
                 onToggleTheme = onToggleTheme,
@@ -249,14 +193,7 @@ class HomeActivity : BaseActivity() {
         navHostController: NavHostController,
         sharedPreferences: SharedPreferences,
         userViewModel: UserViewModel,
-        doctorViewModel: DoctorViewModel,
-        specialtyViewModel: SpecialtyViewModel,
-        medicalOptionViewModel: MedicalOptionViewModel,
-        remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-        geminiViewModel: GeminiViewModel,
-        newsViewModel: NewsViewModel,
-        postViewModel: PostViewModel,
-        faqItemViewModel: FAQItemViewModel,
+        parkingViewModel: ParkingViewModel,
         modifier: Modifier = Modifier,
         dao: AppointmentDao,
         onToggleTheme: () -> Unit,
@@ -275,18 +212,8 @@ class HomeActivity : BaseActivity() {
                     sharedPreferences = sharedPreferences,
                     navHostController = navHostController,
                     userViewModel = userViewModel,
-                    doctorViewModel = doctorViewModel,
-                    specialtyViewModel = specialtyViewModel,
-                    medicalOptionViewModel = medicalOptionViewModel,
-                    remoteMedicalOptionViewModel = remoteMedicalOptionViewModel,
-                    geminiViewModel = geminiViewModel,
-                    newsViewModel = newsViewModel,
-                    postViewModel = postViewModel,
-                    faqItemViewModel = faqItemViewModel
+                    parkingViewModel = parkingViewModel
                 )
-            }
-            composable("news_detail") {
-                NewsDetailScreen(navHostController, viewModel = newsViewModel)
             }
             composable("history") {
                 AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
@@ -294,23 +221,8 @@ class HomeActivity : BaseActivity() {
             composable("notification") {
                 NotificationPage(context, navHostController)
             }
-            composable("create_post") {
-                CreatePostScreen(context, navHostController, postViewModel)
-            }
             composable("editProfile") {
                 EditUserProfile(sharedPreferences, navHostController)
-            }
-            composable("doctorRegister") {
-                RegisterClinic(navHostController, sharedPreferences)
-            }
-            composable("editClinic") {
-                EditClinicServiceScreen(sharedPreferences, navHostController)
-            }
-            composable("gemini_help") {
-                GeminiChatScreen(navHostController, sharedPreferences)
-            }
-            composable("other_user_profile") {
-                DoctorScreen(context, navHostController)
             }
             composable("appointment-detail") {
                 AppointmentDetailScreen(
@@ -320,16 +232,11 @@ class HomeActivity : BaseActivity() {
                     dao
                 )
             }
-            composable("doctor_list") {
-                ParkingSlot(
-                    context = context,
-//                    onBack = {
-//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
-//                        startActivity(intent)
-//                    },
-                    navHostController = navHostController
-                )
+            composable("slot_list/{parkId}") { backStackEntry ->
+                val parkId = backStackEntry.arguments?.getString("parkId") ?: ""
+                ParkingSlot(context, navHostController, parkId)
             }
+
             composable("booking-calendar") {
                 Column(modifier = Modifier.fillMaxSize()) {
                     BookingCalendarScreen(context = context, navHostController = navHostController)
@@ -348,36 +255,12 @@ class HomeActivity : BaseActivity() {
             composable("booking-confirm") {
                 ConfirmBookingScreen(context = context, navHostController = navHostController, dao)
             }
-            composable("bmi-checking") {
-                BMICheckerScreen(navHostController)
-            }
             composable("activity_manager") {
                 ActivityManagerScreen(
                     onBack = { navHostController.popBackStack() },
                     navHostController
                 )
             }
-            composable("userComment") {
-                CommentHistoryScreen(navHostController, sharedPreferences)
-            }
-            composable("userFavorite") {
-                FavouriteHistoryScreen(navHostController, sharedPreferences)
-            }
-            composable(
-                route = "edit_post/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                CreatePostScreen(context, navHostController, postViewModel ,postId = postId)
-            }
-            composable(
-                route = "post-detail/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                PostDetailScreen(navHostController,postId, postViewModel, userViewModel)
-            }
-
             composable("setting") {
                 Setting(
                     navHostController,
