@@ -12,7 +12,6 @@ import com.parkingSystem.parkingSystem.api.NotificationService
 import com.parkingSystem.parkingSystem.api.RemoteMedicalOptionService
 import com.parkingSystem.parkingSystem.api.ReportService
 import com.parkingSystem.parkingSystem.api.ReviewService
-import com.parkingSystem.parkingSystem.api.SpecialtyService
 import com.parkingSystem.parkingSystem.api.UserService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -20,7 +19,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit 
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.9:4000"
+   private const val BASE_URL = "http://192.168.1.132:4000"
    //private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 //    private const val BASE_URL = "http://192.168.1.110:4000"
     private val client = OkHttpClient.Builder()
@@ -43,7 +42,6 @@ object RetrofitInstance {
     val admin: AdminService by lazy { retrofit.create(AdminService::class.java) }
     val parking: ParkingService by lazy { retrofit.create(ParkingService::class.java) }
     val appointment: AppointmentService by lazy { retrofit.create(AppointmentService::class.java) }
-    val specialtyService: SpecialtyService by lazy { retrofit.create(SpecialtyService::class.java) }
     val medicalOptionService: MedicalOptionService by lazy { retrofit.create(MedicalOptionService::class.java) }
     val remoteMedicalOptionService: RemoteMedicalOptionService by lazy { retrofit.create(RemoteMedicalOptionService::class.java) }
     val faqItemService: FAQItemService by lazy { retrofit.create(FAQItemService::class.java) }

@@ -14,6 +14,7 @@
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:name="com.parkingSystem.parkingSystem.user.home.root.MainApplication"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

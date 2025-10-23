@@ -55,7 +55,7 @@ fun UserListScreen() {
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "Quản lí tài khoản",
+            text = "User Management",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -63,7 +63,7 @@ fun UserListScreen() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "${users.size} tài khoản",
+            text = "${users.size} accounts",
             color = Color.White,
             modifier = Modifier
                 .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
@@ -81,7 +81,7 @@ fun UserListScreen() {
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                placeholder = { Text("Tìm...") },
+                placeholder = { Text("Search by name or email...") },
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp),
@@ -89,7 +89,6 @@ fun UserListScreen() {
                 textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
             )
 
-            // Lọc theo role
             DropdownMenuRoleSelector(
                 selected = selectedRole,
                 onSelected = { selectedRole = it }
@@ -98,7 +97,6 @@ fun UserListScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
         println("userlist: "+userList)
-        // Lọc danh sách theo email và role
 
         val filteredUsers = users.filter {
             it.email.contains(searchText, ignoreCase = true) &&
@@ -145,15 +143,15 @@ fun AccountTable2(accounts: List<User>, sharedPreferences: SharedPreferences) {
                     .background(Color(0xFF2B544F))
                     .padding(vertical = 8.dp)
             ) {
-                TableCell("ID", isHeader = true, width = 60.dp)
-                TableCell("Name", isHeader = true, width = 100.dp)
-                TableCell("Email", isHeader = true, width = 200.dp)
-                TableCell("Số điện thoại", isHeader = true, width = 150.dp)
-                TableCell("Địa chỉ", isHeader = true, width = 150.dp)
-                TableCell("Ảnh đại diện", isHeader = true, width = 150.dp)
-                TableCell("Ngày tạo", isHeader = true, width = 120.dp)
-                TableCell("Ngày cập nhật", isHeader = true, width = 120.dp)
-                TableCell("Chức năng", isHeader = true, width = 100.dp)
+                TableCell(text = "ID",     isHeader = true, width = 60.dp)
+                TableCell(text = "Name",   isHeader = true, width = 120.dp)
+                TableCell(text = "Email",  isHeader = true, width = 200.dp)
+                TableCell(text = "Phone",  isHeader = true, width = 150.dp)
+                TableCell(text = "Address",isHeader = true, width = 150.dp)
+                TableCell(text = "Avatar", isHeader = true, width = 150.dp)
+                TableCell(text = "Created At", isHeader = true, width = 150.dp)
+                TableCell(text = "Updated At", isHeader = true, width = 150.dp)
+                TableCell(text = "Actions",    isHeader = true, width = 120.dp)
             }
 
             // Content
@@ -208,7 +206,7 @@ fun AccountRow2(id: Int, account: User, sharedPreferences: SharedPreferences) {
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Edit, // hoặc icon tuỳ chọn
+                                imageVector = Icons.Default.Edit,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -226,9 +224,11 @@ fun AccountRow2(id: Int, account: User, sharedPreferences: SharedPreferences) {
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
+                                tint = Color.Red,
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
+
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Remove")
@@ -295,23 +295,28 @@ fun EditUserDialog(
 
                 onDismiss()
             }) {
-                Text("Lưu")
+                Text("Save")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text("Cancel")
             }
         },
-        title = { Text("Chỉnh sửa tài khoản") },
+        title = { Text("Edit account") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Họ tên") })
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full name") })
                 OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
-                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Số điện thoại") })
-                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Địa chỉ") })
-                OutlinedTextField(value = avatarUrl, onValueChange = { avatarUrl = it }, label = { Text("Ảnh đại diện URL") })
-                OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Mật khẩu (để trống nếu không đổi)") }, visualTransformation = PasswordVisualTransformation())
+                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") })
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Address") })
+                OutlinedTextField(value = avatarUrl, onValueChange = { avatarUrl = it }, label = { Text("Avatar URL") })
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("New password (leave blank to keep)") },
+                    visualTransformation = PasswordVisualTransformation()
+                )
             }
         },
         shape = RoundedCornerShape(12.dp)

@@ -88,6 +88,10 @@ fun HealthMateHomeScreen(
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
 
+        println("USERNNAME trong HomeScreen: $username")
+
+        println("USERID tronng HomeScreen: ${userViewModel.getUserAttributeString("userId")}")
+
         userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
         parkingViewModel.fetchAllParksAvailable()
     }

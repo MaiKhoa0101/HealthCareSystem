@@ -2,10 +2,10 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="HealthCareSystem.app">
+      <SelectionState runConfigName="Unnamed">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="Unnamed">
+      <SelectionState runConfigName="HealthCareSystem.app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

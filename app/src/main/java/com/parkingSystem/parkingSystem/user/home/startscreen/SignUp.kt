@@ -54,7 +54,10 @@ class SignUp : BaseActivity() {
                 return@setOnClickListener
             }
 
-            sendOtpToEmailForSignUp(email)
+            //sendOtpToEmailForSignUp(email)
+            val intent = Intent(this@SignUp, SecondSignUp::class.java)
+            intent.putExtra("email", email)
+            startActivity(intent)
         }
     }
 
@@ -66,7 +69,7 @@ class SignUp : BaseActivity() {
                     val otpResponse = response.body()!!
                     Toast.makeText(this@SignUp, otpResponse.message, Toast.LENGTH_SHORT).show()
 
-                    val intent = Intent(this@SignUp, VerifyOtpSignUpAcctivity::class.java)
+                    val intent = Intent(this@SignUp, VerifyOtpSignUpActivity::class.java)
                     intent.putExtra("email", email)
                     startActivity(intent)
                 } else {

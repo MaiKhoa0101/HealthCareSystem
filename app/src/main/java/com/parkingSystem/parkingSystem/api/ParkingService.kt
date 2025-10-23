@@ -1,10 +1,16 @@
 package com.parkingSystem.parkingSystem.api
 
+import com.parkingSystem.parkingSystem.responsemodel.CreateParkingRequest
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface ParkingService {
@@ -24,4 +30,7 @@ interface ParkingService {
     @GET("user/get-by-id/{id}")
     suspend fun getSlotsByParkId(@Path("id") parkId: String): Response<List<Slot>>
 
+    @Headers("Content-Type: application/json")
+    @POST("manager/create-parking-slot")
+    suspend fun createParkingSlot(@Body body: CreateParkingRequest): Response<Park>
 }

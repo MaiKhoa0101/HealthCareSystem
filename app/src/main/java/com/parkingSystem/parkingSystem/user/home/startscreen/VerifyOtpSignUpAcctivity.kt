@@ -12,7 +12,7 @@ import com.parkingSystem.parkingSystem.requestmodel.OtpVerifyRequest
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
-class VerifyOtpSignUpAcctivity : BaseActivity() {
+class VerifyOtpSignUpActivity : BaseActivity() {
 
     private lateinit var otpInput: EditText
     private lateinit var verifyOtpButton: Button
@@ -86,17 +86,17 @@ class VerifyOtpSignUpAcctivity : BaseActivity() {
                 )
                 if (response.isSuccessful && response.body() != null) {
                     val message = response.body()!!.message
-                    Toast.makeText(this@VerifyOtpSignUpAcctivity, message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VerifyOtpSignUpActivity, message, Toast.LENGTH_SHORT).show()
 
                     // Chuyển sang màn hình signup còn lại
-                    val intent = Intent(this@VerifyOtpSignUpAcctivity, SecondSignUp::class.java)
+                    val intent = Intent(this@VerifyOtpSignUpActivity, SecondSignUp::class.java)
                     intent.putExtra("email", email)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@VerifyOtpSignUpAcctivity, "Xác minh thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VerifyOtpSignUpActivity, "Xác minh thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@VerifyOtpSignUpAcctivity, "Lỗi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@VerifyOtpSignUpActivity, "Lỗi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -106,12 +106,12 @@ class VerifyOtpSignUpAcctivity : BaseActivity() {
             try {
                 val response = RetrofitInstance.api.requestOtpSignUp(EmailRequest(email))
                 if (response.isSuccessful && response.body() != null) {
-                    Toast.makeText(this@VerifyOtpSignUpAcctivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VerifyOtpSignUpActivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this@VerifyOtpSignUpAcctivity, "Gửi lại OTP thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VerifyOtpSignUpActivity, "Gửi lại OTP thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@VerifyOtpSignUpAcctivity, "Lỗi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@VerifyOtpSignUpActivity, "Lỗi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }

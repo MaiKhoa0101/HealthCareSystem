@@ -111,3 +111,11 @@ fun TimeSlot.isAvailable(): Boolean {
     // Add your business logic here
     return true
 }
+
+data class CreateParkingRequest(
+    val parkName: String,
+    val address: String,
+    val typeVehicle: String,
+    val price: Double,
+    val slots: List<Slot>
+)

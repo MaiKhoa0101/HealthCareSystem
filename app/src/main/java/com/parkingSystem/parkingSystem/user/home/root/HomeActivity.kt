@@ -56,7 +56,6 @@ import com.parkingSystem.parkingSystem.viewmodel.FAQItemViewModel
 import com.parkingSystem.parkingSystem.viewmodel.MedicalOptionViewModel
 import com.parkingSystem.parkingSystem.viewmodel.NewsViewModel
 import com.parkingSystem.parkingSystem.viewmodel.RemoteMedicalOptionViewModel
-import com.parkingSystem.parkingSystem.viewmodel.SpecialtyViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 
 

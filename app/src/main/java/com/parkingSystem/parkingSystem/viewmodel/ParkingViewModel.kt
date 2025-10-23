@@ -1,8 +1,14 @@
 package com.parkingSystem.parkingSystem.viewmodel
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import android.util.Log.e
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.parkingSystem.parkingSystem.responsemodel.CreateParkingRequest
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
@@ -10,6 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
 
@@ -192,5 +201,50 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         _slots.value = emptyList()
         _error.value = null
         _successMessage.value = null
+    }
+
+    private val _createParkingLotMessage  = MutableStateFlow<Park?>(null)
+    val createParkingLotMessage : StateFlow<Park?> = _createParkingLotMessage
+
+    fun createParkingLot(data: Park, context: Context) {
+        viewModelScope.launch {
+            try {
+                val req = CreateParkingRequest(
+                    parkName = data.parkName,
+                    address = data.address,
+                    typeVehicle = data.typeVehicle,
+                    price = data.price ?: 0.0,
+                    slots = data.slots
+                )
+                val address = MultipartBody.Part.createFormData("address", data.address)
+                val typeVehicle =
+                    MultipartBody.Part.createFormData("type_vehicle", data.typeVehicle)
+                val price =
+                    MultipartBody.Part.createFormData("price", (data.price ?: 0.0).toString())
+
+                // slotsJson (List<Slot> -> String)
+                val slotsJsonStr = Gson().toJson(data.slots)
+                val slotsBody = slotsJsonStr.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+                val response = RetrofitInstance.parking.createParkingSlot(req)
+
+
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    _createParkingLotMessage.value = body
+
+                    Toast.makeText(context, "Create success.", Toast.LENGTH_LONG).show()
+                    Log.d("CreateParkingLot", "success: $body")
+                } else {
+                    val err = response.errorBody()?.string()
+                    Toast.makeText(context, "Create failed.", Toast.LENGTH_LONG).show()
+                    Log.e("CreateParkingLot", "API error: $err")
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                Log.e("CreateParkingLot", "exception", e)
+            }
+        }
     }
 }
