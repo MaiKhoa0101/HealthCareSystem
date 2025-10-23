@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/startscreen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/startscreen"
-    android:orientation="vertical"
+    android:background="@drawable/background_gopark"
     android:gravity="center"
-    android:background="@drawable/background">
+    android:orientation="vertical">
 
     <ImageButton
+        android:id="@+id/returnButton"
         android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_height="38dp"
         android:layout_gravity="start"
         android:layout_margin="10dp"
-        android:id="@+id/returnButton"
         android:background="@null"
         android:clickable="true"
         android:src="@drawable/arrow_back" />
@@ -20,39 +21,48 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
+        android:gravity="center"
         android:text="TRƯỚC KHI BẮT ĐẦU"
-        android:textSize="25dp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:gravity="center"/>
+        android:textColor="@color/white"
+        android:textSize="30dp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
+        android:layout_marginTop="15dp"
+        android:gravity="center"
         android:text="Vui lòng đăng nhập hoặc tạo tài khoản để sử dụng nhé\nKhông tốn nhiều thời gian đâu ^_^"
-        android:textSize="20dp"
-        android:textColor="@color/black"
-        android:gravity="center"/>
+        android:textColor="@color/white"
+        android:textSize="25dp"
+        android:textStyle="normal" />
+
+    <ImageView
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/logo_gopark" />
 
     <Button
         android:id="@+id/btnSignIn"
-        android:layout_marginTop="150dp"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/blueblack"
         android:text="ĐĂNG NHẬP"
-        android:backgroundTint="@color/bluetheme"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white"
+        app:strokeColor="@color/white"
+        app:strokeWidth="1dp"/>
 
     <Button
         android:id="@+id/btnSignUp"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/white"
         android:text="ĐĂNG KÝ"
-        android:backgroundTint="@color/grey"
         android:textColor="@color/black"
-        android:strokeColor="@color/black"
+        android:textStyle="bold"
+        app:strokeColor="@color/black"
+        app:strokeWidth="1dp"
         />
+
 </LinearLayout>
