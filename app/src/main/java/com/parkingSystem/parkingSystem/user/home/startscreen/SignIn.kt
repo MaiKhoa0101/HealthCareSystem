@@ -254,13 +254,20 @@ class SignIn : BaseActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             handleResults(task)
         }
+        else{
+            println("Ko ok "+result.resultCode)
+        }
     }
 
     private fun handleResults(task: Task<GoogleSignInAccount>){
         if(task.isSuccessful){
-            val account: GoogleSignInAccount? = task.result
+            val account = task.result
             if(account != null){
+                Toast.makeText(this, "Có tồn tại tài khoản này", Toast.LENGTH_SHORT).show()
                 updateUI(account)
+            }
+            else{
+                Toast.makeText(this, "Không tồn tại tài khoản này", Toast.LENGTH_SHORT).show()
             }
         } else {
             showToast(this, "SignIn Failed, Try again later")
@@ -279,13 +286,14 @@ class SignIn : BaseActivity() {
 
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        println("Vao duoc login gg")
                         val response = RetrofitInstance.api.loginGoogle(request)
-
+                        println("Response là: "+ response.toString())
                         withContext(Dispatchers.Main) {
                             if (response.isSuccessful) {
                                 val loginResponse = response.body()
                                 val token = loginResponse?.accessToken
-
+                                println("Login thanh cong")
                                 if (!token.isNullOrEmpty()) {
                                     saveToken(token)
 
@@ -323,6 +331,8 @@ class SignIn : BaseActivity() {
                                 }
                             } else {
                                 val errorBody = response.errorBody()?.string()
+                                println("Login that bai")
+
                                 Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                                 Log.e("API_ERROR", "Login failed: $errorBody")
                             }

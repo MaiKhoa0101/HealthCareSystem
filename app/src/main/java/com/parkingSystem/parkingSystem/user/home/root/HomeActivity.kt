@@ -41,8 +41,8 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
-import com.parkingSystem.parkingSystem.user.home.doctor.EditClinicServiceScreen
-import com.parkingSystem.parkingSystem.user.home.doctor.RegisterClinic
+import com.parkingSystem.parkingSystem.user.home.parking.EditClinicServiceScreen
+import com.parkingSystem.parkingSystem.user.home.parking.RegisterClinic
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
 import com.parkingSystem.parkingSystem.user.home.chatAi.GeminiChatScreen
 import com.parkingSystem.parkingSystem.user.home.news.NewsDetailScreen
@@ -51,15 +51,13 @@ import com.parkingSystem.parkingSystem.user.home.booking.AppointmentDetailScreen
 import com.parkingSystem.parkingSystem.user.home.booking.AppointmentListScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
 import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
-import com.parkingSystem.parkingSystem.user.home.doctor.DoctorListScreen
+import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
 import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
-import com.parkingSystem.parkingSystem.user.home.doctor.DoctorScreen
+import com.parkingSystem.parkingSystem.user.home.parking.DoctorScreen
 import com.parkingSystem.parkingSystem.user.personal.EditUserProfile
 import com.parkingSystem.parkingSystem.user.personal.CommentHistoryScreen
 import com.parkingSystem.parkingSystem.user.personal.FavouriteHistoryScreen
-import com.parkingSystem.parkingSystem.user.personal.ProfileOtherUserPage
-import com.parkingSystem.parkingSystem.user.personal.ProfileUserPage
 import com.parkingSystem.parkingSystem.user.personal.Setting
 import com.parkingSystem.parkingSystem.user.post.PostDetailScreen
 import com.parkingSystem.parkingSystem.user.post.CreatePostScreen
@@ -323,7 +321,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("doctor_list") {
-                DoctorListScreen(
+                ParkingSlot(
                     context = context,
 //                    onBack = {
 //                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
