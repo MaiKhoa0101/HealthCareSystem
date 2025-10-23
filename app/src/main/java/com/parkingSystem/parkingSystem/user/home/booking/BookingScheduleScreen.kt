@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.parkingSystem.parkingSystem.responsemodel.AvailableSlot
-import com.parkingSystem.parkingSystem.viewmodel.DoctorViewModel
+import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 import java.time.format.DateTimeFormatter
 
 
@@ -41,8 +41,8 @@ fun BookingCalendarScreen(
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
+    val doctorViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
+        initializer { ParkingViewModel(sharedPreferences) }
     })
 
     // Lấy thông tin chỉnh sửa từ màn hình trước đó
@@ -55,34 +55,6 @@ fun BookingCalendarScreen(
     // Thêm state để lưu trữ available slots data
     var availableSlots: List<AvailableSlot> by remember { mutableStateOf<List<AvailableSlot>>(emptyList()) }
     var availableDates by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
-
-    LaunchedEffect(doctorId) {
-        doctorId.let {
-            doctorViewModel.fetchDoctorById(it)
-            // Gọi API để lấy available slots
-            doctorViewModel.fetchAvailableSlots(it)
-        }
-    }
-
-    val doctor by doctorViewModel.doctor.collectAsState()
-    val availableSlotsData by doctorViewModel.availableWorkingHours.collectAsState()
-
-    // Cập nhật available dates từ API response
-    LaunchedEffect(availableSlotsData) {
-        availableSlotsData?.let { response ->
-            val slots = response.availableSlots
-            availableSlots = slots
-            availableDates = slots.mapNotNull { slot ->
-                try {
-                    LocalDate.parse(slot.date) // date dạng "2025-06-28"
-                } catch (e: Exception) {
-                    null
-                }
-            }.toSet()
-        }
-    }
-
-    val workHours = doctor?.workHour
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf("") }

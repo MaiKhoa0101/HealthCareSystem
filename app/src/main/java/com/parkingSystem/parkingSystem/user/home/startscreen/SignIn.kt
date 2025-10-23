@@ -18,7 +18,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
-import com.parkingSystem.parkingSystem.requestmodel.LoginRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +33,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.admin.AdminRoot
 import com.parkingSystem.parkingSystem.R
+import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.GoogleLoginRequest
 import com.parkingSystem.parkingSystem.user.home.root.HomeActivity
 import com.parkingSystem.parkingSystem.user.home.root.showToast
@@ -97,7 +97,7 @@ class SignIn : BaseActivity() {
                 return@setOnClickListener
             }
 
-            userLogin(email, password)
+            signInWithFirebase(email, password)
         }
 
         nutdangnhapgoogle.setOnClickListener {
@@ -129,63 +129,63 @@ class SignIn : BaseActivity() {
         }
     }
 
-    private fun userLogin(email: String, password: String) {
+
+    private fun signInWithFirebase(email: String, password: String) {
+        showProgressBar()
+
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Lấy idToken từ Firebase user
+                    auth.currentUser?.getIdToken(true)
+                        ?.addOnCompleteListener { tokenTask ->
+                            hideProgressBar()
+                            if (tokenTask.isSuccessful) {
+                                val idToken = tokenTask.result?.token
+                                if (!idToken.isNullOrEmpty()) {
+                                    sendTokenToBackend(idToken)
+                                } else {
+                                    Toast.makeText(this, "Không lấy được token!", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Toast.makeText(this, "Không thể lấy token!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                } else {
+                    hideProgressBar()
+                    Toast.makeText(this, "Email hoặc mật khẩu không đúng!", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun sendTokenToBackend(idToken: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                Log.d("LOGIN", "Starting login for email: $email")
-                val response = RetrofitInstance.api.login(LoginRequest(email, password))
+                val response = RetrofitInstance.api.login(FirebaseLoginRequest(idToken))
 
                 withContext(Dispatchers.Main) {
-                    Log.d("LOGIN", "Response code: ${response.code()}")
-                    Log.d("LOGIN", "Response successful: ${response.isSuccessful}")
-
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         val token = loginResponse?.accessToken
-
-                        Log.d("LOGIN", "Token received: ${!token.isNullOrEmpty()}")
-
                         if (!token.isNullOrEmpty()) {
                             saveToken(token)
-
-                            try {
-                                val jwt = JWT(token)
-                                val role = jwt.getClaim("role").asString()
-
-                                val intent = when (role) {
-                                    "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
-                                    "User" -> Intent(this@SignIn, HomeActivity::class.java)
-                                    "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)
-                                    else -> {
-                                        Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
-                                        return@withContext
-                                    }
-                                }
-
-                                Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                                startActivity(intent)
-                                finish()
-                            } catch (e: Exception) {
-                                Toast.makeText(this@SignIn, "Không thể đọc thông tin người dùng từ token", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            Log.e("LOGIN", "Token is null or empty")
-                            Toast.makeText(this@SignIn, "Token không hợp lệ!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@SignIn, HomeActivity::class.java))
+                            finish()
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Log.e("LOGIN", "Login failed: $errorBody")
                         Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("LOGIN", "Exception occurred: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
+
 
     private fun signInWithGoogle(){
         val signInIntent = googleSignInClient.signInIntent

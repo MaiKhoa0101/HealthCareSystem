@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.parkingSystem.parkingSystem.responsemodel.GetDoctorResponse
 import com.parkingSystem.parkingSystem.responsemodel.modeluser.ContentTitle
 import com.parkingSystem.parkingSystem.responsemodel.modeluser.Contents
 import com.parkingSystem.parkingSystem.responsemodel.modeluser.Images
@@ -36,36 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import coil.compose.rememberAsyncImagePainter
 import com.parkingSystem.parkingSystem.R
+import com.parkingSystem.parkingSystem.responsemodel.Slot
+
 fun formatPrice(price: Int): String {
     val formatter: NumberFormat = DecimalFormat("#,###")
     return formatter.format(price) + "đ"
 }
 @Composable
 fun ViewIntroduce(
-    doctor: GetDoctorResponse?,
+    slot: Slot?,
     onImageClick: (String) -> Unit
 ){
-    println("Đang ở trang thông tin với service là: ${doctor?.services ?: "ko co"}")
-    Introduce(
-        contentTitle = ContentTitle(
-            introduce = "Giới thiệu",
-            certificate = "Bằng cấp & chứng chỉ",
-            workplace = "Địa chỉ",
-            service = "Dịch vụ & Giá cả",
-        ),
-        contents = Contents(
-            introduce = doctor?.description ?: "Chưa cập nhật giới thiệu",
-            certificate = doctor?.certificates ?: "Chưa cập nhật bằng cấp",
-            workplace = doctor?.address ?: "Chưa cập nhật nơi làm việc",
-            services = doctor?.services ?: emptyList()
-        ),
-        images = Images(
-            image1 = R.drawable.image_certif,
-            image2 = R.drawable.image_certif_2,
-            image3 = R.drawable.clarifymanage
-        ),
-        onImageClick
-    )
+
 
 }
 @Composable

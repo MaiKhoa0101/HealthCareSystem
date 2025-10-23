@@ -5,7 +5,6 @@ import com.parkingSystem.parkingSystem.requestmodel.UpdateAppointmentRequest
 import com.parkingSystem.parkingSystem.responsemodel.AppointmentResponse
 import com.parkingSystem.parkingSystem.responsemodel.CancelAppointmentResponse
 import com.parkingSystem.parkingSystem.responsemodel.CreateAppointmentResponse
-import com.parkingSystem.parkingSystem.responsemodel.DoctorStatsResponse
 import com.parkingSystem.parkingSystem.responsemodel.UpdateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -47,8 +46,5 @@ interface AppointmentService {
 
     @PATCH("appointments/confirm/{id}")
     suspend fun confirmAppointment(@Path("id") id: String): Response<UpdateAppointmentResponse>
-
-    @GET("appointments/doctor/{doctorID}/stats")
-    suspend fun getDoctorStats(@Path("doctorID") doctorId: String): Response<DoctorStatsResponse>
 
 }

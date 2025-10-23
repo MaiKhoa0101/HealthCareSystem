@@ -57,7 +57,7 @@ fun ShimmerEffect(
 }
 
 @Composable
-fun UserInfoSkeleton() {
+fun SlotInfoSkeleton() {
     ConstraintLayout(
         modifier = Modifier
             .background(
