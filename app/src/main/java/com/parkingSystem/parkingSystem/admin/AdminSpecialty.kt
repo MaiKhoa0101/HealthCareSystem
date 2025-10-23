@@ -224,36 +224,6 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         )
                     ) { Text("Uncheck") }
                 }
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Danh sách slot", style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Name", fontWeight = FontWeight.SemiBold)
-                            Text("X", fontWeight = FontWeight.SemiBold)
-                            Text("Y", fontWeight = FontWeight.SemiBold)
-                            Text("Booked?", fontWeight = FontWeight.SemiBold)
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        slots.forEach { s ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(s.slotName)
-                                Text(s.pos_x.toString())
-                                Text(s.pos_y.toString())
-                                Text(if (s.isBooked) "Yes" else "No")
-                            }
-                        }
-                    }
-                }
             }
 
             Button(
@@ -271,12 +241,19 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                             price = price!!,
                             address = address
                         )
-                        parkingViewModel.createParkingLot(request, context)
+                        parkingViewModel.createParkingLot(
+                            context = context,
+                            parkName = parkName,
+                            address = address,
+                            typeVehicleInput = typeVehicle,
+                            priceNumber = price!!,
+                            slotsInternal = slots,
+                        )
 
                         // delete form after create
                         parkName = ""
                         typeVehicle = ""
-                        price == null
+                        price = null
                         imageUri = null
                         colsInput = ""; rowsInput = ""; slots = emptyList()
                         selectedKeys = emptySet()

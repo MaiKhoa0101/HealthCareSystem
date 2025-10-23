@@ -112,10 +112,22 @@ fun TimeSlot.isAvailable(): Boolean {
     return true
 }
 
-data class CreateParkingRequest(
-    val parkName: String,
+data class CreateSlotEnvelope(
+    val path: String,          // ví dụ: "park"
+    val data: SlotData
+)
+
+data class SlotData(
+    @SerializedName("park_name") val parkName: String,
     val address: String,
-    val typeVehicle: String,
+    @SerializedName("type_vehicle") val typeVehicle: String,
     val price: Double,
-    val slots: List<Slot>
+    val slots: List<SlotDto>
+)
+
+data class SlotDto(
+    val slotName: String,
+    @SerializedName("pos_X") val posX: String,
+    @SerializedName("pos_Y") val posY: String,
+    val isBooked: Boolean
 )

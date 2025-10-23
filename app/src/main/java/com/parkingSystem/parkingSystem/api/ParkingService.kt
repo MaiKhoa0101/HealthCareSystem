@@ -1,6 +1,6 @@
 package com.parkingSystem.parkingSystem.api
 
-import com.parkingSystem.parkingSystem.responsemodel.CreateParkingRequest
+import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import okhttp3.MultipartBody
@@ -32,5 +32,5 @@ interface ParkingService {
 
     @Headers("Content-Type: application/json")
     @POST("manager/create-parking-slot")
-    suspend fun createParkingSlot(@Body body: CreateParkingRequest): Response<Park>
+    suspend fun createParkingSlot(@Body req: CreateSlotEnvelope): Response<Any>
 }
