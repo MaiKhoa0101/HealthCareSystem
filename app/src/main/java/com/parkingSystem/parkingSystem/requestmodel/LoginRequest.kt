@@ -4,3 +4,8 @@ data class LoginRequest (
     val email: String,
     val password: String
 )
+
+data class FirebaseLoginRequest(
+    val idToken: String
+)
+

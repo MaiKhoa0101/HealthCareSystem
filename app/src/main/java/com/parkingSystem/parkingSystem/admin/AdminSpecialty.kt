@@ -20,34 +20,36 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
-import com.parkingSystem.parkingSystem.requestmodel.SpecialtyRequest
-import com.parkingSystem.parkingSystem.viewmodel.SpecialtyViewModel
-import com.parkingSystem.parkingSystem.user.home.parking.ParkingSpot
-import com.parkingSystem.parkingSystem.user.home.parking.SpotStatus
-
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
+import androidx.compose.ui.text.input.KeyboardType
+import com.parkingSystem.parkingSystem.responsemodel.Park
+import com.parkingSystem.parkingSystem.responsemodel.Slot
+import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 
 @Composable
 fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var park_name by remember { mutableStateOf("") }
-    var type_vehicle by remember { mutableStateOf("") }
+    var parkName by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var typeVehicle by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var price by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf<Double?>(null) }
 
     var colsInput by remember { mutableStateOf("") }
     var rowsInput by remember { mutableStateOf("") }
-    var slots by remember { mutableStateOf(listOf<ParkingSpot>()) }
+    var slots by remember { mutableStateOf(listOf<Slot>()) }
+
+    // multi select for delete
     var selectedKeys by remember { mutableStateOf(setOf<String>()) }
     fun slotKey(x: Int, y: Int) = "${x}_${y}"
 
@@ -55,15 +57,15 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
 
-    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
+    val parkingViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
+        initializer { ParkingViewModel(sharedPreferences) }
     })
 
-    val specialties by specialtyViewModel.specialties.collectAsState()
-    val createResponse by specialtyViewModel.createSpecialtyMessage.collectAsState()
+    val parks  by parkingViewModel.parks.collectAsState()
+    val createParkRespone by parkingViewModel.createParkingLotMessage.collectAsState()
 
     LaunchedEffect(Unit) {
-        specialtyViewModel.fetchSpecialties()
+        parkingViewModel.fetchAllParksAvailable()
     }
 
     Column(
@@ -79,24 +81,35 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
             Text("Create a parking lot", style = MaterialTheme.typography.titleLarge)
 
             OutlinedTextField(
-                value = park_name,
-                onValueChange = { park_name = it },
+                value = parkName,
+                onValueChange = { parkName = it },
                 label = { Text("Parking lot name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = type_vehicle,
-                onValueChange = { type_vehicle = it },
+                value = address,
+                onValueChange = { address = it },
+                label = { Text("Parking lot address") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = typeVehicle,
+                onValueChange = { typeVehicle = it },
                 label = { Text("Type of vehicle") },
                 modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
-                value = price,
-                onValueChange = { price = it },
-                label = { Text("Type of vehicle") },
+                value = price?.toString() ?: "",
+                onValueChange = { input ->
+                    price = input.toDoubleOrNull()
+                },
+                label = { Text("Price") },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
             )
 
             Button(
@@ -138,7 +151,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 OutlinedTextField(
                     value = rowsInput,
                     onValueChange = { rowsInput = it.filter { ch -> ch.isDigit() } },
-                    label = { Text("Số hàng (Y)") },
+                    label = { Text("Rows(Y)") },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
@@ -154,15 +167,16 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                             Toast.makeText(context, "Enter the number of columns/rows > 0", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
-                        val list = mutableListOf<ParkingSlot>()
+                        val list = mutableListOf<Slot>()
                         var n = 1
                         for (y in 1..r) {
                             for (x in 1..c) {
-                                list += ParkingSlot(
+                                list += Slot(
                                     pos_x = x,
                                     pos_y = y,
-                                    spotNumber = n.toString(),
-                                    status = SpotStatus.AVAILABLE
+                                    slotId = (n-1).toString(),
+                                    slotName = n.toString(),
+                                    isBooked = false
                                 )
                                 n++
                             }
@@ -219,9 +233,10 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         Text("Danh sách slot", style = MaterialTheme.typography.titleSmall)
                         Spacer(Modifier.height(8.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Tên", fontWeight = FontWeight.SemiBold)
+                            Text("Name", fontWeight = FontWeight.SemiBold)
                             Text("X", fontWeight = FontWeight.SemiBold)
                             Text("Y", fontWeight = FontWeight.SemiBold)
+                            Text("Booked?", fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(Modifier.height(6.dp))
                         slots.forEach { s ->
@@ -231,9 +246,10 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                                     .padding(vertical = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(s.spotNumber)
+                                Text(s.slotName)
                                 Text(s.pos_x.toString())
                                 Text(s.pos_y.toString())
+                                Text(if (s.isBooked) "Yes" else "No")
                             }
                         }
                     }
@@ -246,25 +262,27 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                     contentColor = Color.White
                 ),
                 onClick = {
-                    if (park_name.isBlank() || type_vehicle.isBlank() || price.isBlank() || imageUri == null) {
+                    if (parkName.isBlank() || typeVehicle.isBlank() || price == null || address.isBlank()) {
                         Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                     } else {
-//                        val request = SpecialtyRequest(
-//                            park_name = park_name,
-//                            icon = imageUri,
-//                            type_vehicle = type_vehicle,
-//                            price = price,
-//                        )
-//                        specialtyViewModel.createSpecialty(request, context)
+                        val request = Park(
+                            parkName = parkName,
+                            typeVehicle = typeVehicle,
+                            price = price!!,
+                            address = address
+                        )
+                        parkingViewModel.createParkingLot(request, context)
 
                         // delete form after create
-                        park_name = ""
-                        type_vehicle = ""
-                        price = ""
+                        parkName = ""
+                        typeVehicle = ""
+                        price == null
                         imageUri = null
+                        colsInput = ""; rowsInput = ""; slots = emptyList()
+                        selectedKeys = emptySet()
 
                         // reload
-                        specialtyViewModel.fetchSpecialties()
+                        parkingViewModel.fetchAllParksAvailable()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -284,9 +302,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            items(specialties) { specialty ->
+            items(parks) { park ->
                 Text(
-                    "- ${specialty.name}",
+                    "- ${park.parkName}",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -297,7 +315,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
 
 @Composable
 private fun MinimalParkingGridLazy(
-    slots: List<ParkingSpot>,
+    slots: List<Slot>,
     selectedKeys: Set<String>,
     onToggle: (Int, Int) -> Unit
 ) {
@@ -314,12 +332,12 @@ private fun MinimalParkingGridLazy(
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = (maxY * 52).dp)
+            .heightIn(min = ((maxY+1) * 52).dp)
     ) {
-        items(maxX) { colIndex ->
+        items(maxX+1) { colIndex ->
             val x = colIndex + 1
             Column {
-                for (y in 1..maxY) {
+                for (y in 0..maxY) {
                     val slot = byPos[x to y]
                     val selected = slot != null && ("${x}_${y}" in selectedKeys)
 
@@ -356,7 +374,7 @@ private fun MinimalParkingGridLazy(
                     ) {
                         if (slot != null) {
                             Text(
-                                slot.spotNumber,
+                                slot.slotName,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
                             )
                         }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
 import com.parkingSystem.parkingSystem.requestmodel.EmailRequest
+import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
 import com.parkingSystem.parkingSystem.responsemodel.OtpResponse
@@ -26,8 +27,8 @@ import java.io.File
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
     //Bien lay 1 user
-    private val _thisUser = MutableStateFlow<User?>(null)
-    val thisUser: StateFlow<User?> get() = _thisUser
+    private val _targetUser = MutableStateFlow<User?>(null)
+    val targetUser: StateFlow<User?> get() = _targetUser
 
     //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
@@ -68,13 +69,11 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private var _isUserLoading = MutableStateFlow(false)
     val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
 
-    fun getUser(id: String) {
+    fun getUser(idToken: String) {
         viewModelScope.launch {
             try {
                 _isUserLoading.value = true
-                val result = RetrofitInstance.userService.getUser(id)
-                _user.value = result
-                println("OK fetch user: $result")
+               ///Chưa có logic
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -88,7 +87,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             try {
                 _isUserLoading.value = true
                 val result = RetrofitInstance.userService.getUser(id)
-                _thisUser.value = result
+                _targetUser.value = result
                 println("OK fetch user: $result")
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
@@ -133,6 +132,43 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             "unknown"
         }
     }
+
+    fun getAllUserAttributeString() {
+        val token = sharedPreferences.getString("access_token", null)
+        if (token.isNullOrEmpty()) {
+            Log.e("JWT", "Token not found")
+            _user.value = null
+            return
+        }
+
+        try {
+            val jwt = JWT(token)
+            val claims = jwt.claims.mapValues { it.value.asString() ?: "" }
+
+            // Dùng .getOrElse để tránh null hoặc thiếu field
+            val userObj = User(
+                id = claims.getOrElse("id") { claims["sub"] ?: "" },
+                name = claims.getOrElse("name") { "" },
+                email = claims.getOrElse("email") { "" },
+                phone = claims.getOrElse("phone") { "" },
+                password = claims.getOrElse("password") { "" },
+                address = claims.getOrElse("address") { "" },
+                role = claims.getOrElse("role") { "" },
+                createdAt = claims.getOrElse("createdAt") { "" },
+                updatedAt = claims.getOrElse("updatedAt") { "" },
+                avatarURL = claims.getOrElse("avatarURL") { "" }
+            )
+
+            _user.value = userObj
+            Log.d("JWT", "Fetched user: $userObj")
+
+        } catch (e: Exception) {
+            _user.value = null
+            Log.e("JWT", "Failed to parse token: ${e.message}")
+        }
+    }
+
+
 
     fun clearToken() {
         sharedPreferences.edit().remove("access_token").apply()

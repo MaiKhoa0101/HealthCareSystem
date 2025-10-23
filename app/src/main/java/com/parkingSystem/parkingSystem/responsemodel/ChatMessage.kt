@@ -1,5 +1,6 @@
 package com.parkingSystem.parkingSystem.responsemodel
 
+import com.parkingSystem.parkingSystem.responsemodel.AppointmentResponse.Specialty
 import java.util.UUID
 
 data class ChatMessage(

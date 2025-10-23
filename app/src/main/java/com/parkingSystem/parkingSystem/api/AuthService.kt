@@ -2,8 +2,8 @@ package com.parkingSystem.parkingSystem.api
 
 
 import com.parkingSystem.parkingSystem.requestmodel.EmailRequest
+import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.GoogleLoginRequest
-import com.parkingSystem.parkingSystem.requestmodel.LoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.OtpVerifyRequest
 import com.parkingSystem.parkingSystem.requestmodel.ResetPasswordRequest
 import com.parkingSystem.parkingSystem.responsemodel.LoginResponse
@@ -21,7 +21,7 @@ interface AuthService {
     suspend fun signUp(@Body request: SignUpRequest): Response<SignUpResponse> //trả về một đối tượng SignUpResponse
 
     @POST("auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+    suspend fun login(@Body request: FirebaseLoginRequest ): Response<LoginResponse>
 
     @POST("auth/login-google")
     suspend fun loginGoogle(@Body request: GoogleLoginRequest): Response<LoginResponse>
