@@ -1,5 +1,4 @@
 package com.parkingSystem.parkingSystem.user.home.root
-import com.parkingSystem.parkingSystem.R
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
@@ -11,7 +10,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,21 +36,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.parkingSystem.core.common.skeletonloading.SkeletonBox
 import com.parkingSystem.parkingSystem.responsemodel.*
 import com.parkingSystem.parkingSystem.viewmodel.*
@@ -98,8 +89,6 @@ fun HealthMateHomeScreen(
         userViewModel.getUser(userViewModel.getUserAttributeString("id"))
         parkingViewModel.fetchAllParksAvailable()
     }
-
-
 
     Box(
         modifier = Modifier
@@ -310,7 +299,7 @@ fun ParkList(
                     ParkItem(
                         navHostController = navHostController,
                         park = park,
-                        onClick = { showToast(context, "Đã chọn: ${park.parkName}") }
+                        onClick = { showToast(context, "Đã chọn: ${park.park_name}") }
                     )
                 }
             }
@@ -334,17 +323,17 @@ fun ParkItem(
             .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
             .clickable {
                 firebaseAnalytics.logEvent("park_selected", bundleOf(
-                    "ID_park" to park.parkId,
-                    "Name_of_park" to park.parkName,
+                    "ID_park" to park.park_id,
+                    "Name_of_park" to park.park_name,
                 ))
                 onClick()
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("parkId", park.parkId)
+                    set("parkId", park.park_id)
                 }
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                    set("parkName", park.parkName)
+                    set("parkName", park.park_name)
                 }
-                navHostController.navigate("slot_list/${park.parkId}")
+                navHostController.navigate("slot_list/${park.park_id}")
             }
             .padding(12.dp),
         contentAlignment = Alignment.Center
@@ -354,7 +343,7 @@ fun ParkItem(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = park.parkName,
+                text = park.park_name,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center

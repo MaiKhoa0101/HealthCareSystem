@@ -8,19 +8,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PedalBike
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,7 +46,6 @@ fun ParkingSlot(
 
     val slots by viewModel.slots.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
     val currentPark by viewModel.currentPark.collectAsState()
 
     Column(
@@ -61,7 +54,7 @@ fun ParkingSlot(
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopBar(
-            parkName = "Bãi đậu xe",
+            title = "Bãi đậu xe",
             onClick = { navHostController.popBackStack() }
         )
 
@@ -88,7 +81,7 @@ fun ParkingSlot(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
-                            currentPark?.parkName?.let {
+                            currentPark?.park_name?.let {
                                 Text(
                                     text = it,
                                     fontSize = 20.sp,
@@ -102,7 +95,7 @@ fun ParkingSlot(
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                             Text(
-                                text = "Giá: ${currentPark?.price}đ/${currentPark?.typeVehicle}",
+                                text = "Giá: ${currentPark?.price}đ/${currentPark?.type_vehicle}",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -112,7 +105,7 @@ fun ParkingSlot(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Sơ đồ bãi đậu xe",
+                            text = "Park Map",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -125,7 +118,18 @@ fun ParkingSlot(
                                     slots = currentPark?.slots,
                                     onSpotClick = { slot ->
                                         if (!slot.isBooked) {
+                                            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                                set("park_id", currentPark?.park_id)
+                                                set("park_name", currentPark?.park_name)
+                                                set("address", currentPark?.address)
+                                                set("price", currentPark?.price)
+                                                set("type_vehicle", currentPark?.type_vehicle)
+                                                set("slotName", slot.slotName)
+                                                set("slotPosX", slot.pos_X)
+                                                set("slotPosY", slot.pos_Y)
 
+                                            }
+                                            navHostController.navigate("booking")
                                         }
                                     }
                                 )
@@ -182,46 +186,13 @@ fun LegendItem(color: Color, text: String) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopBar(parkName: String, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = "Back Button",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable { onClick() }
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = parkName,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-    }
-}
-
 @Composable
 fun ParkingGridLayout(
     slots: List<Slot>?,
     onSpotClick: (Slot) -> Unit
 ) {
-    val maxX = slots?.maxOfOrNull { it.pos_x } ?: 0
-    val maxY = slots?.maxOfOrNull { it.pos_y } ?: 0
+    val maxX = slots?.maxOfOrNull { it.pos_X } ?: 0
+    val maxY = slots?.maxOfOrNull { it.pos_Y } ?: 0
 
     Column(
         modifier = Modifier
@@ -235,7 +206,7 @@ fun ParkingGridLayout(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 for (x in 0..maxX) {
-                    val slot = slots?.find { it.pos_x == x && it.pos_y == y }
+                    val slot = slots?.find { it.pos_X == x && it.pos_Y == y }
 
                     if (slot != null) {
                         ParkingSpotCell(
@@ -285,7 +256,7 @@ fun ParkingSpotCell(slot: Slot, onClick: () -> Unit) {
                 color = Color.Black
             )
             Text(
-                text = "(${slot.pos_x},${slot.pos_y})",
+                text = "(${slot.pos_X},${slot.pos_Y})",
                 fontSize = 8.sp,
                 color = Color.Black.copy(alpha = 0.7f)
             )

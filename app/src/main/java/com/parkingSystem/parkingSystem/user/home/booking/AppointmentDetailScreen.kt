@@ -1,20 +1,14 @@
-package com.parkingSystem.parkingSystem.user.home.booking
+package com.parkingSystem.parkingSystem.user.home.parking
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.os.Build
-import androidx.annotation.RequiresApi
-
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,345 +24,234 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import com.parkingSystem.parkingSystem.requestmodel.UpdateAppointmentRequest
-import com.parkingSystem.parkingSystem.viewmodel.AppointmentViewModel
+import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
-import androidx.compose.runtime.livedata.observeAsState
-import coil.compose.rememberAsyncImagePainter
-import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
-//import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
-//import com.hellodoc.healthcaresystem.user.home.doctor.doctorName
-//import com.hellodoc.healthcaresystem.user.home.doctor.specialtyName
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatDateForServer(input: String): String {
-    val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    return LocalDate.parse(input, inputFormatter).format(outputFormatter)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController, dao: AppointmentDao) {
-
-    println(" appointment detail render duoc")
+fun ParkingBookingDetailScreen(
+    context: Context,
+    navHostController: NavHostController
+) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
 
+    val parkingViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
+        initializer { ParkingViewModel(sharedPreferences) }
+    })
+
+    val scope = rememberCoroutineScope()
+
+    // Trạng thái loading và thông báo
+    var isLoading by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+    var isSuccess by remember { mutableStateOf(false) }
+
     // Biến trạng thái kiểm tra đã load xong data chưa
     var isDataLoaded by remember { mutableStateOf(false) }
-    // Biến kiểm tra xem đang ở chế độ chỉnh sửa hay tạo mới
-    var isEditing by remember { mutableStateOf(false)}
 
-    // All moved state variables
-    var doctorId by remember { mutableStateOf("") }
-    var doctorName by remember { mutableStateOf("") }
-    var doctorAddress by remember { mutableStateOf("") }
-    var doctorAvatar by remember { mutableStateOf("") }
-    var specialtyName by remember { mutableStateOf("") }
-    var patientID by remember { mutableStateOf("") }
-    var patientName by remember { mutableStateOf("") }
-    var patientPhone by remember { mutableStateOf("") }
-    var patientAddress by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
-    var totalCost by remember { mutableStateOf("0") }
-    var reason by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var patientModel by remember { mutableStateOf("") }
-    var appointmentId by remember { mutableStateOf("") }
-    var hasHomeService by remember { mutableStateOf(false) }
+    // Thông tin bãi đậu xe và slot
+    var park_id by remember { mutableStateOf("") }
+    var park_name by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf(0.0) }
+    var type_vehicle by remember { mutableStateOf("") }
 
+    var slotName by remember { mutableStateOf("") }
+    var slotPosX by remember { mutableStateOf(0) }
+    var slotPosY by remember { mutableStateOf(0) }
+
+    // Thông tin người dùng
+    var userId by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var userPhone by remember { mutableStateOf("") }
+    var userAddress by remember { mutableStateOf("") }
+    var vehicleNumber by remember { mutableStateOf("") }
+
+    // Ghi chú
+    var notes by remember { mutableStateOf("") }
+
+    // Lấy thông tin user
     LaunchedEffect(Unit) {
-        patientName = userViewModel.getUserAttributeString("name")
-        println("patientName" + patientName)
-        patientPhone = userViewModel.getUserAttributeString("phone")
-        println("patientPhone" + patientPhone)
-        patientAddress = userViewModel.getUserAttributeString("address")
-        println("patientAddress" + patientAddress)
-        patientID = userViewModel.getUserAttributeString("userId")
-        println("patientId" + patientID)
-        patientModel = userViewModel.getUserAttributeString("role")
+        userId = userViewModel.getUserAttributeString("userId")
+        userName = userViewModel.getUserAttributeString("name")
+        userPhone = userViewModel.getUserAttributeString("phone")
+        userAddress = userViewModel.getUserAttributeString("address")
     }
 
-//    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-//    val selectedDateLiveData = navHostController.currentBackStackEntry
-//        ?.savedStateHandle
-//        ?.getLiveData<String>("selected_date")
-//
-//    val selectedDateState = selectedDateLiveData?.observeAsState()
-//    val selectedDate = selectedDateState?.value ?: remember { mutableStateOf("") }.value
-//
-//    val selectedTimeLiveData = navHostController.currentBackStackEntry
-//        ?.savedStateHandle
-//        ?.getLiveData<String>("selected_time")
-//
-//    val selectedTimeState = selectedTimeLiveData?.observeAsState()
-//    val selectedTime = selectedTimeState?.value ?: ""
-//
-//    LaunchedEffect(selectedDate, selectedTime) {
-//        if (selectedDate.isNotEmpty()) date = selectedDate
-//        if (selectedTime.isNotEmpty()) time = selectedTime
-//    }
-
-    // Lấy ngày giờ từ backstack
+    // Lấy thông tin từ backstack
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
-    val selectedDateState = navHostController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getLiveData<String>("selected_date")
-        ?.observeAsState()
-    val selectedTimeState = navHostController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getLiveData<String>("selected_time")
-        ?.observeAsState()
-
-    LaunchedEffect(selectedDateState?.value, selectedTimeState?.value) {
-        selectedDateState?.value?.let { date = it }
-        selectedTimeState?.value?.let { time = it }
-    }
 
     LaunchedEffect(Unit) {
-        // Kiểm tra xem có đang ở chế độ chỉnh sửa không
-        savedStateHandle?.get<Boolean>("isEditing")?.let { isEditing = it }
-        savedStateHandle?.get<String>("appointmentId")?.let { appointmentId = it }
-        savedStateHandle?.get<String>("doctorId")?.let { doctorId = it }
-        savedStateHandle?.get<String>("doctorName")?.let { doctorName = it }
-        savedStateHandle?.get<String>("doctorAddress")?.let { doctorAddress = it }
-        savedStateHandle?.get<String>("doctorAvatar")?.let { doctorAvatar = it }
-        savedStateHandle?.get<String>("specialtyName")?.let { specialtyName = it }
-        savedStateHandle?.get<String>("notes")?.let { reason = it }
-        savedStateHandle?.get<String>("location")?.let { location = it }
-        savedStateHandle?.get<Boolean>("hasHomeService")?.let { hasHomeService = it }
+        // Lấy thông tin park
+        savedStateHandle?.get<String>("park_id")?.let { park_id = it }
+        savedStateHandle?.get<String>("park_name")?.let { park_name = it }
+        savedStateHandle?.get<String>("address")?.let { address = it }
+        savedStateHandle?.get<Double>("price")?.let { price = it }
+        savedStateHandle?.get<String>("type_vehicle")?.let { type_vehicle = it }
 
-        savedStateHandle?.get<Boolean>("isEditing")?.let {
-            isEditing = it
-            if (isEditing) {
-                // Nếu đang chỉnh sửa, lấy ID của lịch hẹn
-                savedStateHandle.get<String>("appointmentId")?.let {
-                    appointmentId = it
-                }
-            }
-        }
-
-        savedStateHandle?.get<String>("doctorId")?.let {
-            doctorId = it
-        }
-        savedStateHandle?.get<String>("doctorName")?.let {
-            doctorName = it
-        }
-        savedStateHandle?.get<String>("doctorAddress")?.let {
-            doctorAddress = it
-        }
-        savedStateHandle?.get<String>("doctorAvatar")?.let {
-            doctorAvatar = it
-        }
-        savedStateHandle?.get<String>("specialtyName")?.let {
-            specialtyName = it
-        }
-        savedStateHandle?.get<String>("notes")?.let {
-            reason = it
-        }
-        savedStateHandle?.get<String>("location")?.let {
-            location = it
-        }
-        savedStateHandle?.get<Boolean>("hasHomeService")?.let {
-            hasHomeService = it
-        }
+        // Lấy thông tin slot
+        savedStateHandle?.get<String>("slotName")?.let { slotName = it }
+        savedStateHandle?.get<Int>("slotPosX")?.let { slotPosX = it }
+        savedStateHandle?.get<Int>("slotPosY")?.let { slotPosY = it }
 
         isDataLoaded = true
+        println("Park: $park_id - $park_name")
+        println("Slot: $slotName ($slotPosX, $slotPosY)")
     }
 
-    if (isDataLoaded && patientID.isNotBlank() && doctorId.isNotBlank()) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val examinationMethod = remember { mutableStateOf("") }
-//            var notes by remember {
-//                mutableStateOf(savedStateHandle?.get<String>("notes") ?: "")
-//            }
-            var notes by remember { mutableStateOf(reason) }
-
-            val title = if (isEditing) "Chỉnh sửa lịch hẹn khám" else "Chi tiết lịch hẹn khám"
-
-            TopBar(title = title, onClick = { navHostController.popBackStack() })
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+    // Dialog thông báo
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+                if (isSuccess) {
+                    navHostController.popBackStack()
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    if (isSuccess) {
+                        navHostController.popBackStack()
+                    }
+                }) {
+                    Text("OK")
+                }
+            },
+            title = { Text(if (isSuccess) "Thành công" else "Thông báo") },
+            text = { Text(dialogMessage) }
+        )
+    }
+    println("isDataLoaded: $isDataLoaded \nuserId: $userId \nparkId: $park_id")
+    if (isDataLoaded && userId.isNotBlank() && park_id.isNotBlank()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    DoctorInfoSection(
-                        doctorName = doctorName,
-                        doctorAvatar = doctorAvatar,
-                        specialtyName = specialtyName
-                    )
-                }
-                item {
-                    PatientInfoSection(
-                        patientName = patientName,
-                        patientPhone = patientPhone
-                    )
-                }
+                TopBar(
+                    title = "Chi tiết đặt chỗ",
+                    onClick = { navHostController.popBackStack() }
+                )
 
-                item {
-                    VisitMethodSection(
-                        examinationMethod = examinationMethod,
-                        doctorAddress = doctorAddress,
-                        patientAddress = patientAddress,
-                        hasHomeService = hasHomeService
-                    )
-                }
-                item {
-                    AppointmentDateSection(
-                        navHostController = navHostController,
-                        doctorId = doctorId,
-                        date = date,
-                        time = time,
-                        isEditing = isEditing,
-                        appointmentId = appointmentId
-                    )
-                }
-
-
-                item {
-                    NoteToDoctorSection(notes, onNoteChange = { notes = it })
-                }
-
-                item {
-                    FeeSummarySection()
-                }
-
-                item {
-                    if (isEditing) {
-                        UpdateButton(
-                            navHostController = navHostController,
-                            sharedPreferences = sharedPreferences,
-                            examinationMethod = examinationMethod,
-                            notes = notes,
-                            appointmentId = appointmentId,
-                            patientID = patientID,
-                            date = date,
-                            time = time,
-                            dao = dao
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Thông tin bãi đậu xe
+                    item {
+                        ParkingInfoSection(
+                            parkName = park_name,
+                            parkAddress = address,
+                            parkTypeVehicle = type_vehicle
                         )
-                    } else {
-                        BookButton(
-                            navHostController = navHostController,
-                            sharedPreferences = sharedPreferences,
-                            examinationMethod = examinationMethod,
+                    }
+
+                    // Thông tin vị trí đậu xe
+                    item {
+                        SlotInfoSection(
+                            slotName = slotName,
+                            slotPosX = slotPosX,
+                            slotPosY = slotPosY
+                        )
+                    }
+
+                    // Thông tin người đặt
+                    item {
+                        UserInfoSection(
+                            userName = userName,
+                            userPhone = userPhone,
+                            vehicleNumber = vehicleNumber,
+                            onVehicleNumberChange = { vehicleNumber = it }
+                        )
+                    }
+
+                    // Ghi chú
+                    item {
+                        NoteSection(
                             notes = notes,
-                            date = date,
-                            time = time,
-                            doctorId = doctorId,
-                            doctorName = doctorName,
-                            doctorAddress = doctorAddress,
-                            specialtyName = specialtyName,
-                            patientID = patientID,
-                            patientName = patientName,
-                            patientPhone = patientPhone,
-                            patientAddress = patientAddress,
-                            patientModel = patientModel,
-                            totalCost = totalCost,
-                            location = location,
-                            hasHomeService = hasHomeService
+                            onNoteChange = { notes = it }
+                        )
+                    }
+
+                    // Tổng chi phí
+                    item {
+                        FeeSummarySection(
+                            parkPrice = price,
+                            parkTypeVehicle = type_vehicle
+                        )
+                    }
+
+                    // Nút đặt chỗ
+                    item {
+                        BookParkingButton(
+                            vehicleNumber = vehicleNumber,
+                            isLoading = isLoading,
+                            onBookClick = {
+                                if (vehicleNumber.isBlank()) {
+                                    dialogMessage = "Vui lòng nhập biển số xe"
+                                    isSuccess = false
+                                    showDialog = true
+                                } else {
+                                    isLoading = true
+                                    scope.launch {
+                                        try {
+                                            // Gọi API updateSlot
+                                            parkingViewModel.bookSlot(
+                                                parkId = park_id,
+                                                slot_name = slotName,
+                                            )
+
+                                            isLoading = false
+                                            isSuccess = true
+                                            dialogMessage = "Đặt chỗ thành công!"
+                                            showDialog = true
+                                        } catch (e: Exception) {
+                                            isLoading = false
+                                            isSuccess = false
+                                            dialogMessage = "Đặt chỗ thất bại: ${e.message}"
+                                            showDialog = true
+                                        }
+                                    }
+                                }
+                            }
                         )
                     }
                 }
             }
+
+            // Loading overlay
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UpdateButton(
-    navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
-    examinationMethod: MutableState<String>,
-    notes: String,
-    appointmentId: String,
-    patientID: String,
-    date: String,
-    time: String,
-    dao: AppointmentDao
-) {
-    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences, dao) }
-    })
-
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogMessage by remember { mutableStateOf("") }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("OK")
-                }
-            },
-            title = { Text("Thiếu thông tin") },
-            text = { Text(dialogMessage) }
-        )
-    }
-
-    Button(
-        onClick = {
-            when {
-                examinationMethod.value.isBlank() -> {
-                    dialogMessage = "Vui lòng chọn hình thức khám"
-                    showDialog = true
-                }
-                date.isBlank() || time.isBlank() -> {
-                    dialogMessage = "Vui lòng chọn ngày giờ khám"
-                    showDialog = true
-                }
-                else -> {
-                    val updateRequest = UpdateAppointmentRequest(
-                        date = formatDateForServer(date),
-                        time = time,
-                        notes = notes
-                    )
-
-                    appointmentViewModel.updateAppointment(
-                        appointmentId = appointmentId,
-                        appointmentData = updateRequest,
-                        patientID = patientID
-                    )
-                    navHostController.popBackStack("appointment", inclusive = false)
-                }
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    ) {
-        Text("Cập nhật lịch hẹn")
-    }
-    Spacer(modifier = Modifier.height(60.dp))
-}
-
-@Composable
-fun TopBar(title: String,onClick: () -> Unit) {
+fun TopBar(title: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
-//            .statusBarsPadding()
             .height(56.dp)
     ) {
-        // Nút quay lại
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
@@ -379,7 +262,6 @@ fun TopBar(title: String,onClick: () -> Unit) {
                 .clickable { onClick() }
         )
 
-        // Tiêu đề ở giữa
         Text(
             text = title,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -390,12 +272,11 @@ fun TopBar(title: String,onClick: () -> Unit) {
 }
 
 @Composable
-fun DoctorInfoSection(
-    doctorName: String,
-    doctorAvatar: String,
-    specialtyName: String
+fun ParkingInfoSection(
+    parkName: String,
+    parkAddress: String,
+    parkTypeVehicle: String
 ) {
-    println("doctor info render duoc")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -405,30 +286,74 @@ fun DoctorInfoSection(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = rememberAsyncImagePainter(doctorAvatar),
-                contentDescription = "anh bac si",
+            Icon(
+                imageVector = Icons.Default.LocalParking,
+                contentDescription = "Parking Icon",
                 modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(80.dp)
+                    .padding(end = 12.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.width(12.dp))
+
             Column {
-                Text("Bác sĩ", fontWeight = FontWeight.Medium, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(doctorName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(specialtyName, color = MaterialTheme.colorScheme.onBackground)
+                Text("Bãi đậu xe", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(parkName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(parkAddress, fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Loại xe: $parkTypeVehicle", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
 }
 
 @Composable
-fun PatientInfoSection(
-    patientName: String,
-    patientPhone: String
+fun SlotInfoSection(
+    slotName: String,
+    slotPosX: Int,
+    slotPosY: Int
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Vị trí đậu xe", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text("Số vị trí:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
+                    Text(slotName, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Tọa độ:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
+                    Text("($slotPosX, $slotPosY)", fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserInfoSection(
+    userName: String,
+    userPhone: String,
+    vehicleNumber: String,
+    onVehicleNumberChange: (String) -> Unit
 ) {
     var showDetailDialog by remember { mutableStateOf(false) }
 
@@ -437,7 +362,6 @@ fun PatientInfoSection(
             .fillMaxWidth()
             .padding(top = 40.dp)
     ) {
-        // Phần nền dưới
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -458,14 +382,11 @@ fun PatientInfoSection(
                     text = "Xem chi tiết",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 13.sp,
-                    modifier = Modifier.clickable {
-                        showDetailDialog = true
-                    }
+                    modifier = Modifier.clickable { showDetailDialog = true }
                 )
             }
         }
 
-        // Box thông tin
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -480,12 +401,21 @@ fun PatientInfoSection(
                     .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
-                Text("Đặt lịch khám này cho:", fontWeight = FontWeight.Bold)
+                Text("Thông tin người đặt:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow("Họ và tên:", patientName)
-                InfoRow("Giới tính:", "Nam")
-                InfoRow("Ngày sinh:", "11/12/2000")
-                InfoRow("Điện thoại:", patientPhone)
+                InfoRow("Họ và tên:", userName)
+                InfoRow("Điện thoại:", userPhone)
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Biển số xe:", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = vehicleNumber,
+                    onValueChange = onVehicleNumberChange,
+                    placeholder = { Text("Nhập biển số xe") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
             }
         }
     }
@@ -493,13 +423,12 @@ fun PatientInfoSection(
     if (showDetailDialog) {
         AlertDialog(
             onDismissRequest = { showDetailDialog = false },
-            title = { Text("Chi tiết hồ sơ") },
+            title = { Text("Chi tiết thông tin") },
             text = {
                 Column {
-                    InfoRow("Họ và tên:", patientName)
-                    InfoRow("Giới tính:", "Nam")
-                    InfoRow("Ngày sinh:", "11/12/2000")
-                    InfoRow("Điện thoại:", patientPhone)
+                    InfoRow("Họ và tên:", userName)
+                    InfoRow("Điện thoại:", userPhone)
+                    InfoRow("Biển số xe:", vehicleNumber.ifEmpty { "Chưa nhập" })
                 }
             },
             confirmButton = {
@@ -511,141 +440,9 @@ fun PatientInfoSection(
     }
 }
 
-@Composable
-fun VisitMethodSection(
-    examinationMethod: MutableState<String>,
-    doctorAddress: String,
-    patientAddress: String,
-    hasHomeService: Boolean
-) {
-    println("visit method render duoc")
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
-    ) {
-        Text("Phương thức khám", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Khám tại phòng khám
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(
-                    if (examinationMethod.value == "at_clinic") MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
-                )
-                .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
-                .clickable { examinationMethod.value = "at_clinic" }
-                .padding(12.dp)
-                .height(70.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Khám tại phòng khám", fontWeight = FontWeight.Bold)
-            Row {
-                Text("Địa chỉ:", fontSize = 13.sp)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(doctorAddress, fontSize = 13.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (hasHomeService && patientAddress != "Chưa có địa chỉ") {
-            // Khám tại nhà
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        if (examinationMethod.value == "at_home") MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
-                    )
-                    .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
-                    .clickable { examinationMethod.value = "at_home" }
-                    .height(100.dp)
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Khám tại nhà", fontWeight = FontWeight.Bold)
-                    Row {
-                        Text("Địa chỉ:", fontSize = 13.sp)
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(patientAddress, fontSize = 13.sp)
-                    }
-                }
-                Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-            }
-        }
-    }
-}
-
-@Composable
-fun AppointmentDateSection(
-    navHostController: NavHostController,
-    doctorId: String,
-    date: String,
-    time: String,
-    isEditing: Boolean,
-    appointmentId: String
-) {
-    println("appointment date render duoc")
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Text(text = "Ngày khám", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .padding(horizontal = 12.dp, vertical = 14.dp)
-                .clickable {
-                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("isEditing", isEditing)
-                        if (isEditing) set("appointmentId", appointmentId)
-                    }
-                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("doctorId", doctorId)
-                    }
-                    navHostController.navigate("booking-calendar") {
-                        navHostController.previousBackStackEntry?.savedStateHandle?.apply {
-                            set("isEditing", isEditing)
-                            if (isEditing) set("appointmentId", appointmentId)
-                        }
-                    }
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(time)
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(date)
-            }
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
-    println("note doctor render duoc")
+fun NoteSection(notes: String, onNoteChange: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -653,13 +450,13 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text(text = "Lời nhắn cho bác sĩ:", fontWeight = FontWeight.Bold)
+        Text(text = "Ghi chú:", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = notes,
             onValueChange = { onNoteChange(it) },
-            placeholder = { Text("Nhập lời nhắn...") },
+            placeholder = { Text("Nhập ghi chú (nếu có)...") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(90.dp)
@@ -674,97 +471,32 @@ fun NoteToDoctorSection(notes: String, onNoteChange: (String) -> Unit) {
     }
 }
 
-
 @Composable
-fun FeeSummarySection() {
-    println(" fee sumary render duoc")
-    CardSection(title = "Chi phí khám tại phòng khám") {
-        InfoRow("Voucher dịch vụ", "0đ", MaterialTheme.colorScheme.error)
-        InfoRow("Giá dịch vụ", "0đ")
-        InfoRow("Tạm tính giá tiền", "0đ", fontWeight = FontWeight.Bold)
+fun FeeSummarySection(
+    parkPrice: Double,
+    parkTypeVehicle: String
+) {
+    CardSection(title = "Chi phí đậu xe") {
+        InfoRow("Giá/giờ", "${String.format("%,.0f", parkPrice)}đ")
+        InfoRow("Loại xe", parkTypeVehicle)
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        InfoRow(
+            "Tổng tiền",
+            "${String.format("%,.0f", parkPrice)}đ",
+            valueColor = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookButton(
-    navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
-    examinationMethod: MutableState<String>,
-    notes: String,
-    date: String,
-    time: String,
-    doctorId: String,
-    doctorName: String,
-    doctorAddress: String,
-    specialtyName: String,
-    patientID: String,
-    patientName: String,
-    patientPhone: String,
-    patientAddress: String,
-    patientModel: String,
-    totalCost: String,
-    location: String,
-    hasHomeService: Boolean
+fun BookParkingButton(
+    vehicleNumber: String,
+    isLoading: Boolean,
+    onBookClick: () -> Unit
 ) {
-    println("book btn render duoc")
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogMessage by remember { mutableStateOf("") }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("OK")
-                }
-            },
-            title = { Text("Thiếu thông tin") },
-            text = { Text(dialogMessage) }
-        )
-    }
-
     Button(
-        onClick = {
-            when {
-                examinationMethod.value.isBlank() -> {
-                    dialogMessage = "Vui lòng chọn hình thức khám"
-                    showDialog = true
-                }
-                date.isBlank() || time.isBlank() -> {
-                    dialogMessage = "Vui lòng chọn ngày giờ khám"
-                    showDialog = true
-                }
-                else -> {
-                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                        // Thông tin lịch hẹn
-                        set("examinationMethod", examinationMethod.value)
-                        set("notes", notes)
-                        set("date", date)
-                        set("time", time)
-
-                        // Thông tin bác sĩ
-                        set("doctorId", doctorId)
-                        set("doctorName", doctorName)
-                        set("doctorAddress", doctorAddress)
-                        set("specialtyName", specialtyName)
-
-                        // Thông tin bệnh nhân
-                        set("patientID", patientID)
-                        set("patientName", patientName)
-                        set("patientPhone", patientPhone)
-                        set("patientAddress", patientAddress)
-                        set("patientModel", patientModel)
-
-                        // Thông tin khác
-                        set("totalCost", totalCost)
-                        set("location", location)
-                        set("hasHomeService", hasHomeService)
-                    }
-                    navHostController.navigate("booking-confirm")
-                }
-            }
-        },
+        onClick = onBookClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
@@ -772,17 +504,24 @@ fun BookButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground
-        )
+        ),
+        enabled = !isLoading
     ) {
-        Text(
-            text = "Đặt dịch vụ",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        } else {
+            Text(
+                text = "Đặt chỗ ngay",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
     Spacer(modifier = Modifier.height(60.dp))
 }
-
 
 @Composable
 fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
@@ -831,4 +570,3 @@ fun InfoRow(
         )
     }
 }
-

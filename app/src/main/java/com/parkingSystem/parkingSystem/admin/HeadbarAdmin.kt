@@ -35,11 +35,10 @@ import com.parkingSystem.parkingSystem.R
 import com.parkingSystem.parkingSystem.ui.theme.MainColor
 import com.parkingSystem.parkingSystem.ui.theme.MainTheme
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
-
 @Composable
 fun HeadbarAdmin(
     sharedPreferences: SharedPreferences,
-    opendrawer: ()-> Unit
+    openDrawer: () -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
@@ -57,68 +56,71 @@ fun HeadbarAdmin(
 
     Box(
         modifier = Modifier
-            .height(100.dp)
             .fillMaxWidth()
-            .background(color = MainColor).padding(vertical = 5.dp),
-        contentAlignment = Alignment.BottomCenter
+            .height(100.dp)
+            .background(MainColor)
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
+        // Logo ở giữa
         Image(
             painter = painterResource(id = R.drawable.logo),
-            contentDescription = "com.hellodoc.healthcaresystem.user.home.doctor.com.hellodoc.healthcaresystem.user.home.doctor.Doctor Icon",
+            contentDescription = "Logo",
             modifier = Modifier
-                .size(50.dp)
+                .size(60.dp)
+                .align(Alignment.Center)
         )
+
+        // Hàng menu + thông tin user
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .align(Alignment.Center),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Left Icon (Menu)
+            // Nút mở Drawer (bên trái)
             IconButton(
-                onClick = { opendrawer() },
+                onClick = { openDrawer() },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.menu_icon),
-                    contentDescription = "Menu Icon",
-                    tint = Color.White // Keeps the original icon color
+                    contentDescription = "Menu",
+                    tint = Color.White
                 )
             }
-            // Right User Info and Logout
+
+            // Thông tin người dùng (bên phải)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // User Greeting
                 Column(horizontalAlignment = Alignment.End) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "Hello,",
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            text = userName,
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
+                    Text(
+                        text = "Hello,",
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                    Text(
+                        text = userName,
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        maxLines = 1
+                    )
+                }
 
-                    // Logout Button
-                    IconButton(
-                        onClick = { viewModel.logout(context) },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.logout),
-                            contentDescription = "Logout",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
+                // Logout
+                IconButton(
+                    onClick = { viewModel.logout(context) },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logout),
+                        contentDescription = "Logout",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
             }
         }

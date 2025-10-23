@@ -3,6 +3,7 @@ package com.parkingSystem.parkingSystem.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import android.util.Log.e
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,25 +18,33 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
 
-    // ===== State =====
+    // State cho danh sách bãi đậu xe
     private val _parks = MutableStateFlow<List<Park>>(emptyList())
     val parks: StateFlow<List<Park>> = _parks.asStateFlow()
 
+    // State cho bãi đậu xe hiện tại
     private val _currentPark = MutableStateFlow<Park?>(null)
     val currentPark: StateFlow<Park?> = _currentPark.asStateFlow()
 
+    // State cho các slot của bãi đậu xe
     private val _slots = MutableStateFlow<List<Slot>>(emptyList())
     val slots: StateFlow<List<Slot>> = _slots.asStateFlow()
 
+    // State loading
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // State error
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    // State success message
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
@@ -50,70 +59,157 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             _isLoading.value = true
             _error.value = null
             try {
-                Log.d("ParkingVM", "Fetching parks...")
+                println("Fetching parks...")
+                val token = sharedPreferences.getString("auth_token", "") ?: ""
                 val response = RetrofitInstance.parking.getAllPark("park")
-                if (response.isSuccessful && response.body() != null) {
+
+                if (response.isSuccessful) {
+                    println("API trả về thành công" + response.body().toString())
                     _parks.value = response.body()!!
                 } else {
+                    println("API khoong trả về thành công" + response.body().toString())
                     _error.value = "Không thể tải danh sách bãi đậu xe"
-                    Log.e("ParkingVM", "fetchAllParksAvailable error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "fetchAllParksAvailable exception", e)
+                e.printStackTrace()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun fetchParkById(parkId: String) {
+    /**
+     * Lấy thông tin chi tiết một bãi đậu xe theo ID
+     */
+    fun fetchParkById(parkId: String){
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
+
             try {
-                Log.d("ParkingVM", "fetchParkById: $parkId")
+                println ("vao duoc fetch park id")
                 val response = RetrofitInstance.parking.getParkById(parkId)
+
                 if (response.isSuccessful && response.body() != null) {
-                    val park = response.body()!!
-                    _currentPark.value = park
-                    _slots.value = park.slots
+                    _currentPark.value = response.body()
+                    println("fetchParkById: " + response.body().toString())
+                    _slots.value = response.body()!!.slots
                 } else {
+                    println("fetchParkById: " + response.body().toString())
                     _error.value = "Không thể tải thông tin bãi đậu xe"
-                    Log.e("ParkingVM", "fetchParkById error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "fetchParkById exception", e)
+                e.printStackTrace()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    /**
+     * Lấy danh sách slot theo parkId
+     */
     fun fetchSlotsByPark(parkId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
-                Log.d("ParkingVM", "fetchSlotsByPark: $parkId")
+                val token = sharedPreferences.getString("auth_token", "") ?: ""
                 val response = RetrofitInstance.parking.getSlotsByParkId(parkId)
+
                 if (response.isSuccessful && response.body() != null) {
                     _slots.value = response.body()!!
                 } else {
                     _error.value = "Không thể tải danh sách chỗ đậu xe"
-                    Log.e("ParkingVM", "fetchSlotsByPark error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "fetchSlotsByPark exception", e)
+                e.printStackTrace()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    // ===== Helpers =====
+    /**
+     * Đặt chỗ đậu xe
+     */
+    fun bookSlot(parkId: String, slot_name: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val token = sharedPreferences.getString("auth_token", "") ?: ""
+
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái slot (Admin function)
+     */
+    fun updateSlotStatus(parkId: String, slotId: String, isBooked: Boolean) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val token = sharedPreferences.getString("auth_token", "") ?: ""
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Hủy đặt chỗ
+     */
+    fun cancelBooking(parkId: String, slotId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val token = sharedPreferences.getString("auth_token", "") ?: ""
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Clear error message
+     */
+    fun clearError() {
+        _error.value = null
+    }
+
+    /**
+     * Clear success message
+     */
+    fun clearSuccessMessage() {
+        _successMessage.value = null
+    }
+
+    /**
+     * Reset state
+     */
+    fun resetState() {
+        _currentPark.value = null
+        _slots.value = emptyList()
+        _error.value = null
+        _successMessage.value = null
+    }
 
     private fun normalizeVehicle(input: String): String = when (input.trim().lowercase()) {
         "car", "oto", "ô tô", "ôto" -> "Car"
@@ -126,11 +222,11 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         source.map { s ->
             SlotDto(
                 slotName = s.slotName.trim(),
-                posX = s.pos_x.toString(),   // STRING theo DTO BE
-                posY = s.pos_y.toString(),   // STRING theo DTO BE
+                pos_X = s.pos_X.toString(),   // STRING theo DTO BE
+                pos_Y = s.pos_Y.toString(),   // STRING theo DTO BE
                 isBooked = s.isBooked
             )
-        }.filter { it.slotName.isNotBlank() && it.posX.isNotBlank() && it.posY.isNotBlank() }
+        }.filter { it.slotName.isNotBlank() && it.pos_X.isNotBlank() && it.pos_Y.isNotBlank() }
 
     // ===== Create / Update Park (POST /document với { path, data{...} }) =====
 
@@ -147,9 +243,9 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             _error.value = null
             try {
                 val payload = SlotData(
-                    parkName = parkName,
+                    park_name = parkName,
                     address = address,
-                    typeVehicle = normalizeVehicle(typeVehicleInput), // "Car" | "Bike"
+                    type_vehicle = normalizeVehicle(typeVehicleInput), // "Car" | "Bike"
                     price = priceNumber,
                     slots = mapSlotsToDto(slotsInternal)              // map sang DTO
                 )
@@ -184,73 +280,5 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 _isLoading.value = false
             }
         }
-    }
-
-    // ===== (Placeholder) các hàm khác =====
-
-    fun bookSlot(parkId: String, slotId: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                Log.d("ParkingVM", "bookSlot park=$parkId slot=$slotId")
-                // TODO: call booking API
-            } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "bookSlot exception", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun updateSlotStatus(parkId: String, slotId: String, isBooked: Boolean) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                Log.d("ParkingVM", "updateSlotStatus park=$parkId slot=$slotId -> $isBooked")
-                // TODO: call update slot API
-            } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "updateSlotStatus exception", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun cancelBooking(parkId: String, slotId: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                Log.d("ParkingVM", "cancelBooking park=$parkId slot=$slotId")
-                // TODO: call cancel API
-            } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
-                Log.e("ParkingVM", "cancelBooking exception", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    // ===== State utils =====
-
-    fun clearError() {
-        _error.value = null
-    }
-
-    fun clearSuccessMessage() {
-        _successMessage.value = null
-    }
-
-    fun resetState() {
-        _currentPark.value = null
-        _slots.value = emptyList()
-        _error.value = null
-        _successMessage.value = null
-        _createParkingLotMessage.value = null
     }
 }

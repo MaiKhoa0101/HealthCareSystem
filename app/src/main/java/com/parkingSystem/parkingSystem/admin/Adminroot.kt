@@ -94,7 +94,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
             topBar = {
                 HeadbarAdmin(
                     sharedPreferences = sharedPreferences,
-                    opendrawer = {
+                    openDrawer = {
                         scope.launch {
                             drawerState.open()
                         }

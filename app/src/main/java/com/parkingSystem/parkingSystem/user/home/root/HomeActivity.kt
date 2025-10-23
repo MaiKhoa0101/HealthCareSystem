@@ -42,10 +42,10 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
-import com.parkingSystem.parkingSystem.user.home.booking.AppointmentDetailScreen
 import com.parkingSystem.parkingSystem.user.home.booking.AppointmentListScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
 import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
+import com.parkingSystem.parkingSystem.user.home.parking.ParkingBookingDetailScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
 import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
@@ -224,11 +224,9 @@ class HomeActivity : BaseActivity() {
                 EditUserProfile(sharedPreferences, navHostController)
             }
             composable("appointment-detail") {
-                AppointmentDetailScreen(
+                ParkingBookingDetailScreen(
                     context = context,
-                    onBack = { navHostController.popBackStack() },
-                    navHostController = navHostController,
-                    dao
+                    navHostController = navHostController
                 )
             }
             composable("slot_list/{parkId}") { backStackEntry ->
@@ -243,11 +241,9 @@ class HomeActivity : BaseActivity() {
             }
             composable("booking") {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    AppointmentDetailScreen(
+                    ParkingBookingDetailScreen(
                         context = context,
-                        onBack = { navHostController.popBackStack() },
-                        navHostController = navHostController,
-                        dao
+                        navHostController = navHostController
                     )
                 }
             }

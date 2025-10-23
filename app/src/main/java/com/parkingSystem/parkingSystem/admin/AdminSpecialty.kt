@@ -39,9 +39,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var parkName by remember { mutableStateOf("") }
+    var park_name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    var typeVehicle by remember { mutableStateOf("") }
+    var type_vehicle by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var price by remember { mutableStateOf<Double?>(null) }
 
@@ -81,8 +81,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
             Text("Create a parking lot", style = MaterialTheme.typography.titleLarge)
 
             OutlinedTextField(
-                value = parkName,
-                onValueChange = { parkName = it },
+                value = park_name,
+                onValueChange = { park_name = it },
                 label = { Text("Parking lot name") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -95,8 +95,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
             )
 
             OutlinedTextField(
-                value = typeVehicle,
-                onValueChange = { typeVehicle = it },
+                value = type_vehicle,
+                onValueChange = { type_vehicle = it },
                 label = { Text("Type of vehicle") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -110,7 +110,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-            )
+                )
 
             Button(
                 colors = ButtonDefaults.buttonColors(
@@ -144,7 +144,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 OutlinedTextField(
                     value = colsInput,
                     onValueChange = { colsInput = it.filter { ch -> ch.isDigit() } },
-                    label = { Text("Số cột (X)") },
+                    label = { Text("Columns (X)") },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
@@ -172,9 +172,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         for (y in 1..r) {
                             for (x in 1..c) {
                                 list += Slot(
-                                    pos_x = x,
-                                    pos_y = y,
-                                    slotId = (n-1).toString(),
+                                    pos_X = x,
+                                    pos_Y = y,
+                                    slot_id = (n-1).toString(),
                                     slotName = n.toString(),
                                     isBooked = false
                                 )
@@ -210,7 +210,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         ),
                         onClick = {
                             if (selectedKeys.isEmpty()) return@Button
-                            slots = slots.filter { slotKey(it.pos_x, it.pos_y) !in selectedKeys }
+                            slots = slots.filter { slotKey(it.pos_X, it.pos_Y) !in selectedKeys }
                             selectedKeys = emptySet()
                         },
                         enabled = selectedKeys.isNotEmpty()
@@ -232,27 +232,27 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                     contentColor = Color.White
                 ),
                 onClick = {
-                    if (parkName.isBlank() || typeVehicle.isBlank() || price == null || address.isBlank()) {
+                    if (park_name.isBlank() || type_vehicle.isBlank() || price == null || address.isBlank()) {
                         Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                     } else {
                         val request = Park(
-                            parkName = parkName,
-                            typeVehicle = typeVehicle,
+                            park_name = park_name,
+                            type_vehicle = type_vehicle,
                             price = price!!,
                             address = address
                         )
                         parkingViewModel.createParkingLot(
                             context = context,
-                            parkName = parkName,
+                            parkName = park_name,
                             address = address,
-                            typeVehicleInput = typeVehicle,
+                            typeVehicleInput = type_vehicle,
                             priceNumber = price!!,
                             slotsInternal = slots,
                         )
 
                         // delete form after create
-                        parkName = ""
-                        typeVehicle = ""
+                        park_name = ""
+                        type_vehicle = ""
                         price = null
                         imageUri = null
                         colsInput = ""; rowsInput = ""; slots = emptyList()
@@ -281,7 +281,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
         ) {
             items(parks) { park ->
                 Text(
-                    "- ${park.parkName}",
+                    "- ${park.park_name}",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -298,9 +298,9 @@ private fun MinimalParkingGridLazy(
 ) {
     if (slots.isEmpty()) return
 
-    val maxX = slots.maxOf { it.pos_x }
-    val maxY = slots.maxOf { it.pos_y }
-    val byPos = remember(slots) { slots.associateBy { it.pos_x to it.pos_y } }
+    val maxX = slots.maxOf { it.pos_X }
+    val maxY = slots.maxOf { it.pos_Y }
+    val byPos = remember(slots) { slots.associateBy { it.pos_X to it.pos_Y } }
 
     Text("Parking lot map", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
@@ -314,7 +314,7 @@ private fun MinimalParkingGridLazy(
         items(maxX+1) { colIndex ->
             val x = colIndex + 1
             Column {
-                for (y in 0..maxY) {
+                for (y in 1..maxY) {
                     val slot = byPos[x to y]
                     val selected = slot != null && ("${x}_${y}" in selectedKeys)
 

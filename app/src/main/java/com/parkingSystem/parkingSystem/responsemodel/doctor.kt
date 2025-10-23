@@ -6,22 +6,22 @@ import com.google.gson.annotations.SerializedName
 
 // Data classes từ BE
 data class Park(
-    val parkId: String = "",
-    val parkName: String = "",
+    val park_id: String = "",
+    val park_name: String = "",
     val price: Double = 0.0,
-    val typeVehicle: String = "",
+    val type_vehicle: String = "",
     val slots: List<Slot> = emptyList(),
     val address: String = ""
 )
 
 data class Slot(
     val slotName: String = "",
-    val slotId: String = "",
+    val slot_id: String = "",
     val isBooked: Boolean = false,
     @SerializedName("pos_X")
-    val pos_x: Int = 0,  // Đổi từ String sang Int
+    val pos_X: Int = 0,  // Đổi từ String sang Int
     @SerializedName("pos_Y")
-    val pos_y: Int = 0   // Đổi từ String sang Int
+    val pos_Y: Int = 0   // Đổi từ String sang Int
 )
 
 // Enum cho trạng thái hiển thị
@@ -112,22 +112,30 @@ fun TimeSlot.isAvailable(): Boolean {
     return true
 }
 
+data class CreateParkingRequest(
+    val park_name: String,
+    val address: String,
+    val type_vehicle: String,
+    val price: Double,
+    val slots: List<Slot>
+)
+
 data class CreateSlotEnvelope(
     val path: String,          // ví dụ: "park"
     val data: SlotData
 )
 
 data class SlotData(
-    @SerializedName("park_name") val parkName: String,
+    @SerializedName("park_name") val park_name: String,
     val address: String,
-    @SerializedName("type_vehicle") val typeVehicle: String,
+    @SerializedName("type_vehicle") val type_vehicle: String,
     val price: Double,
     val slots: List<SlotDto>
 )
 
 data class SlotDto(
     val slotName: String,
-    @SerializedName("pos_X") val posX: String,
-    @SerializedName("pos_Y") val posY: String,
+    @SerializedName("pos_X") val pos_X: String,
+    @SerializedName("pos_Y") val pos_Y: String,
     val isBooked: Boolean
 )
