@@ -144,7 +144,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                 OutlinedTextField(
                     value = colsInput,
                     onValueChange = { colsInput = it.filter { ch -> ch.isDigit() } },
-                    label = { Text("Columns (X)") },
+                    label = { Text("Số cột (X)") },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
