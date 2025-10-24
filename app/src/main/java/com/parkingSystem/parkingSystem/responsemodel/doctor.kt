@@ -19,9 +19,9 @@ data class Slot(
     val slot_id: String = "",
     val isBooked: Boolean = false,
     @SerializedName("pos_X")
-    val pos_X: Int = 0,  // Đổi từ String sang Int
+    val pos_X: Int = 0,  // String to Int
     @SerializedName("pos_Y")
-    val pos_Y: Int = 0   // Đổi từ String sang Int
+    val pos_Y: Int = 0   // String to Int
 )
 
 // Enum cho trạng thái hiển thị
@@ -35,10 +35,10 @@ enum class SpotStatus {
 // Search period data class
 data class SearchPeriod(
     @SerializedName("from")
-    val from: String, // Format: "2025-06-26"
+    val from: String,
 
     @SerializedName("to")
-    val to: String, // Format: "2025-07-02"
+    val to: String,
 
     @SerializedName("numberOfDays")
     val numberOfDays: Int
@@ -47,7 +47,7 @@ data class SearchPeriod(
 // Available slot for each day
 data class AvailableSlot(
     @SerializedName("date")
-    val date: String, // Format: "2025-06-28"
+    val date: String,
 
     @SerializedName("dayOfWeek")
     val dayOfWeek: Int, // 0 = Sunday, 1 = Monday, etc.
@@ -121,7 +121,7 @@ data class CreateParkingRequest(
 )
 
 data class CreateSlotEnvelope(
-    val path: String,          // ví dụ: "park"
+    val path: String,          // example: "park"
     val data: SlotData
 )
 
