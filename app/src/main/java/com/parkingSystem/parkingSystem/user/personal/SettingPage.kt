@@ -55,12 +55,6 @@ fun Setting(
     darkTheme: Boolean
 ) {
     val context = LocalContext.current
-    val clinicButtonText =  if (user?.role == "User") {
-        "Đăng kí phòng khám"
-    } else {
-        "Quản lý phòng khám"
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,28 +68,6 @@ fun Setting(
             onPress = {
                 navHostController.navigate("editProfile")
             })
-
-        SectionSetting(
-            clinicButtonText,
-            iconVector = Icons.Default.Person,
-            onPress = {
-                if (user == null) {
-                    return@SectionSetting
-                }
-                else if (user.role=="User"){
-                    navHostController.navigate("doctorRegister")
-                }
-                else{
-                    navHostController.navigate("editClinic")
-                }
-            })
-        SectionSetting(
-            "Quản lí hoạt động",
-            iconVector = Icons.Default.Info,
-            onPress = {
-                navHostController.navigate("activity_manager")
-            })
-
         SectionSetting(
             nameField = "Đăng xuất",
             iconVector = Icons.Default.Logout,

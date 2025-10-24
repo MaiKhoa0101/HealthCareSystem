@@ -89,11 +89,3 @@ fun Headbar(
         }
     }
 }
-
-fun truncateName(name: String, maxLength: Int): String {
-    return if (name.length > maxLength) {
-        name.take(maxLength) + "..."
-    } else {
-        name
-    }
-}

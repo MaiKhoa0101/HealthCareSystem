@@ -36,7 +36,6 @@ fun ParkingSlot(
     val viewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
         initializer { ParkingViewModel(sharedPreferences) }
     })
-
     LaunchedEffect(Unit) {
         println("Gọi được launched efect")
         if (parkId.isNotEmpty()) {
@@ -55,8 +54,9 @@ fun ParkingSlot(
     ) {
         TopBar(
             title = "Bãi đậu xe",
-            onClick = { navHostController.popBackStack() }
+            onClick = { navHostController.popBackStack() },
         )
+
 
         when {
             isLoading -> {
@@ -123,6 +123,7 @@ fun ParkingSlot(
                                                 set("park_name", currentPark?.park_name)
                                                 set("address", currentPark?.address)
                                                 set("price", currentPark?.price)
+                                                set("slotId", slot.slot_id)
                                                 set("type_vehicle", currentPark?.type_vehicle)
                                                 set("slotName", slot.slotName)
                                                 set("slotPosX", slot.pos_X)

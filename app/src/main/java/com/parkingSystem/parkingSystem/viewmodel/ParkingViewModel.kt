@@ -3,26 +3,67 @@ package com.parkingSystem.parkingSystem.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import android.util.Log.e
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.parkingSystem.parkingSystem.api.MakeReservationBody
+import com.parkingSystem.parkingSystem.api.ReservationResponse
+import com.parkingSystem.parkingSystem.api.UserApi
 import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.SlotData
 import com.parkingSystem.parkingSystem.responsemodel.SlotDto
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.withContext
+
 
 class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+
+    lateinit var api: UserApi
+
+    // ParkingViewModel.kt
+    suspend fun bookSlot(
+        parkId: String,
+        slotId: String,
+        userId: String,
+        startTimeIso: String,
+        endTimeIso: String,
+        numberPlate: String?
+    ): ReservationResponse = withContext(Dispatchers.IO) {
+
+        val body = MakeReservationBody(
+            parkId = parkId,
+            slotId = slotId,
+            userId = userId,
+            startTime = startTimeIso,
+            endTime = endTimeIso,
+            numberPlate = numberPlate,
+            paymentMethod = "cash",
+            statusPayment = "unpaid"
+        )
+
+        val res = api.makeReservation(body)
+        println("makeReservation -> code=${res.code()} success=${res.isSuccessful}")
+
+        if (res.isSuccessful) {
+            return@withContext ReservationResponse(
+                message = "Đặt chỗ thành công!",
+                reservation = null
+            )
+        } else {
+            val err = res.errorBody()?.string()
+            throw Exception("HTTP ${res.code()}: ${err ?: "Unknown error"}")
+        }
+    }
+
+
 
     // State cho danh sách bãi đậu xe
     private val _parks = MutableStateFlow<List<Park>>(emptyList())
@@ -282,3 +323,5 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         }
     }
 }
+
+

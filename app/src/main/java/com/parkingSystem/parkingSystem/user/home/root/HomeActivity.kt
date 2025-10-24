@@ -29,12 +29,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
@@ -52,10 +50,6 @@ import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
 import com.parkingSystem.parkingSystem.user.personal.EditUserProfile
 import com.parkingSystem.parkingSystem.user.personal.Setting
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
-import com.parkingSystem.parkingSystem.viewmodel.FAQItemViewModel
-import com.parkingSystem.parkingSystem.viewmodel.MedicalOptionViewModel
-import com.parkingSystem.parkingSystem.viewmodel.NewsViewModel
-import com.parkingSystem.parkingSystem.viewmodel.RemoteMedicalOptionViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 
 
