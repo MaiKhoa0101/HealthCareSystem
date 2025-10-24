@@ -143,7 +143,7 @@ fun AppointmentScreenUI(
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
-            text = "Danh sách lịch hẹn",
+            text = "Lịch sử đặt chỗ",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
