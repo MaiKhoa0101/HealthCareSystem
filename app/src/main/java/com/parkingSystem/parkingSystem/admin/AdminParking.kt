@@ -33,7 +33,7 @@ import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 
 @Composable
-fun CreateSpecialtyScreen(
+fun AdminParkingScreen(
     sharedPreferences: SharedPreferences,
 ) {
     val context = LocalContext.current

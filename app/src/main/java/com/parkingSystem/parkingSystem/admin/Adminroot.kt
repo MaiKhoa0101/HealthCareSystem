@@ -119,8 +119,8 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
                     composable("AppointmentManager") {
                         AppointmentManagerScreen(sharedPreferences, dao = dao)
                     }
-                    composable("CreateSpecialty") {
-                        CreateSpecialtyScreen(sharedPreferences)
+                    composable("AdminParking") {
+                        AdminParkingScreen(sharedPreferences)
                     }
                 }
             }

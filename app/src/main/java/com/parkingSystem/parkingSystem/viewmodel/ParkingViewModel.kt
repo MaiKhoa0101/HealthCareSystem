@@ -179,7 +179,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             try {
                 val token = sharedPreferences.getString("auth_token", "") ?: ""
             } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
+                _error.value = "Error: ${e.message}"
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false
@@ -290,8 +290,8 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             try {
                 val resp = RetrofitInstance.parking.updateParkById(parkId, park)
                 if (resp.isSuccessful) {
-                    _successMessage.value = "Cập nhật bãi đậu xe thành công."
-                    // Cập nhật _currentPark nếu đang mở đúng park
+                    _successMessage.value = "Update parkinglot success."
+                    // update _currentPark
                     if (_currentPark.value?.park_id == parkId) {
                         // refetch để đồng bộ slots
                         fetchParkById(parkId)
@@ -301,7 +301,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                     }
                     onDone?.invoke()
                 } else {
-                    _error.value = "Cập nhật thất bại"
+                    _error.value = "Update failed"
                 }
             } catch (e: Exception) {
                 _error.value = "Lỗi: ${e.message}"
@@ -321,7 +321,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 val resp = RetrofitInstance.parking.deleteParkById(parkId)
                 if (resp.isSuccessful) {
                     _successMessage.value = "Delete parkinglot success."
-                    // reset local states nếu đang xem đúng park
+                    // reset local states during view park
                     if (_currentPark.value?.park_id == parkId) {
                         resetState()
                     }
@@ -329,7 +329,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                     fetchAllParksAvailable()
                     onDone?.invoke()
                 } else {
-                    _error.value = "Xóa thất bại"
+                    _error.value = "Delete failed"
                 }
             } catch (e: Exception) {
                 _error.value = "Lỗi: ${e.message}"
@@ -348,17 +348,17 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             try {
                 val resp = RetrofitInstance.parking.deleteSlotById(parkId, slotId)
                 if (resp.isSuccessful) {
-                    _successMessage.value = "Xóa slot thành công."
-                    // refresh slots của park đang mở
+                    _successMessage.value = "Delete slot success."
+                    // refresh slots của park
                     if (_currentPark.value?.park_id == parkId) {
-                        fetchParkById(parkId) // sẽ cập nhật _slots
+                        fetchParkById(parkId) // will update _slots
                     }
                     onDone?.invoke()
                 } else {
-                    _error.value = "Xóa slot thất bại"
+                    _error.value = "Delete slots failed"
                 }
             } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
+                _error.value = "Error: ${e.message}"
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false
