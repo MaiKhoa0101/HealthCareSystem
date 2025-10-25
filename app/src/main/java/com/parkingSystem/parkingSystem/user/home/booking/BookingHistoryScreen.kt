@@ -336,19 +336,6 @@ private fun BookingCard(
             )
 
             Spacer(Modifier.height(10.dp))
-
-            Text(
-                "Bắt đầu: $startText",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-                )
-            )
-            Text(
-                "Kết thúc: $endText",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-                )
-            )
             Text(
                 "Tạo lúc: $createdText",
                 style = MaterialTheme.typography.bodySmall.copy(
@@ -368,7 +355,6 @@ private fun BookingCard(
                 )
             }
 
-            // Nút huỷ: chỉ show nếu pending
             if (b.status?.lowercase() == "pending" && b.id != null) {
                 Spacer(Modifier.height(12.dp))
 

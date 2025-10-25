@@ -16,5 +16,7 @@ data class BookingDto(
 
     val status: String? = null,
     val price: Double? = null,
-    val type_vehicle: String? = null
+    val type_vehicle: String? = null,
+    val paymentMethod: String? = null,
+    val statusPayment: String? = null,
 )

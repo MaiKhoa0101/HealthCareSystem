@@ -144,7 +144,6 @@ fun BookingDetailScreen(
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
 
-                        // ====== THÔNG TIN BOOKING ======
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
@@ -193,8 +192,8 @@ fun BookingDetailScreen(
 
                                 Divider()
 
-                                InfoRow(label = "Bắt đầu", value = startText)
-                                InfoRow(label = "Kết thúc", value = endText)
+                                InfoRow(label = "Phương thức thanh toán", value = b.paymentMethod?: "--")
+                                InfoRow(label = "Trạng thái thanh toán", value = b.statusPayment?: "--")
                                 InfoRow(label = "Tạo lúc", value = createdText)
 
                                 if (b.price != null && b.type_vehicle != null) {
@@ -208,14 +207,10 @@ fun BookingDetailScreen(
                             }
                         }
 
-                        // ====== ACTION BUTTONS ======
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-
-                            // NÚT HIỂN THỊ QR
-                            // tuỳ logic của bạn: cho phép QR nếu chưa bị huỷ
                             if (b.status?.lowercase() == "pending" || b.status?.lowercase() == "done") {
                                 Button(
                                     modifier = Modifier.fillMaxWidth(),
@@ -225,8 +220,6 @@ fun BookingDetailScreen(
                                     ),
                                     shape = RoundedCornerShape(12.dp),
                                     onClick = {
-                                        // Điều hướng sang màn QR
-                                        // -> bạn sẽ tạo composable booking_qr/{bookingId}
                                         navHostController.navigate("booking_qr/${b.id}")
                                     }
                                 ) {
@@ -237,7 +230,6 @@ fun BookingDetailScreen(
                                 }
                             }
 
-                            // NÚT HỦY (chỉ khi pending)
                             if (b.status?.lowercase() == "pending") {
                                 Button(
                                     modifier = Modifier.fillMaxWidth(),
@@ -257,8 +249,6 @@ fun BookingDetailScreen(
                                     Text("Huỷ đặt chỗ", fontWeight = FontWeight.Bold)
                                 }
                             }
-
-                            // NÚT QUAY LẠI
                             OutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
