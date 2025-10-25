@@ -11,11 +11,10 @@ data class UpdateUser(
 )
 
 data class UpdateUserInput(
-    val avatarURL: Uri?,
-    val address: String,
-    val name: String,
-    val email: String,
-    val phone: String,
-    val password: String,
-    val role: String,
+    val address: String? = null,
+    val name: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val password: String? = null,
+    val role: String? = null,
 )
