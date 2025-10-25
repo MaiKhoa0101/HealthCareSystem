@@ -35,6 +35,7 @@ import com.parkingSystem.parkingSystem.admin.AdminRoot
 import com.parkingSystem.parkingSystem.R
 import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.GoogleLoginRequest
+import com.parkingSystem.parkingSystem.staff.StaffActivityScreen
 import com.parkingSystem.parkingSystem.user.home.root.HomeActivity
 import com.parkingSystem.parkingSystem.user.home.root.showToast
 
@@ -93,7 +94,7 @@ class SignIn : BaseActivity() {
             val password = passwordInput.text.toString().trim()
 
             if(email.isEmpty() || password.isEmpty()){
-                Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please fill in all information", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -143,18 +144,18 @@ class SignIn : BaseActivity() {
                             if (tokenTask.isSuccessful) {
                                 val idToken = tokenTask.result?.token
                                 if (!idToken.isNullOrEmpty()) {
-                                    println("Gủi token cho backend")
+                                    println("Send token to backend")
                                     sendTokenToBackend(idToken)
                                 } else {
-                                    Toast.makeText(this, "Không lấy được token!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this, "Cannot get tokens!", Toast.LENGTH_SHORT).show()
                                 }
                             } else {
-                                Toast.makeText(this, "Không thể lấy token!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Cannot get tokens!", Toast.LENGTH_SHORT).show()
                             }
                         }
                 } else {
                     hideProgressBar()
-                    Toast.makeText(this, "Email hoặc mật khẩu không đúng!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Email or password is incorrect!", Toast.LENGTH_SHORT).show()
                 }
             }
     }
@@ -170,13 +171,14 @@ class SignIn : BaseActivity() {
                         val token = loginResponse?.accessToken
                         if (!token.isNullOrEmpty()) {
                             saveToken(token)
-                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@SignIn, "Login success!", Toast.LENGTH_SHORT).show()
                             val jwt = JWT(token)
                             val role = jwt.getClaim("role").asString()
                             println ("Role la "+ role)
                             val intent = when (role) {
                                 "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                 "User" -> Intent(this@SignIn, HomeActivity::class.java)
+//                                "Staff" -> Intent(this@SignIn, StaffActivityScreen::class.java)
                                 else -> {
                                     Toast.makeText(
                                         this@SignIn,

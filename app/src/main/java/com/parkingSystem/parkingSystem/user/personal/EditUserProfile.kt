@@ -96,25 +96,25 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
                 onImageSelected = { avatarURL = it }) }
             item {
                 ContentEditUser(
-                    nameText, { nameText = it },
-                    emailText, { emailText = it },
-                    phoneText, { phoneText = it },
-                    addressText, { addressText = it },
+                    nameText!!, { nameText = it },
+                    emailText!!, { emailText = it },
+                    phoneText!!, { phoneText = it },
+                    addressText!!, { addressText = it },
                     passwordText, { passwordText = it },
                     repasswordText, { repasswordText = it },
                 )
             }
             item {
                 AcceptEditButton(
-                    userId = user!!.id,
-                    nameText,
-                    emailText,
-                    phoneText,
-                    addressText,
+                    userId = user!!.uid,
+                    nameText!!,
+                    emailText!!,
+                    phoneText!!,
+                    addressText!!,
                     passwordText,
                     repasswordText,
                     avatarURL = avatarURL,
-                    role = user!!.role,
+                    role = user!!.role.toString(),
                     viewModel = userViewModel,
                     navHostController
                 )
@@ -197,53 +197,6 @@ fun ChangeAvatar(
                 // Chưa có quyền, xin quyền
                 permissionLauncher.launch(permission)
             }
-        }
-    }
-
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.clickable {
-                checkAndRequestPermission()
-            }
-        ) {
-            if (imageUri != null) {
-                AsyncImage(
-                    model = imageUri,
-                    contentDescription = "avatar",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
-                )
-            } else {
-                AsyncImage(
-                    model = user.avatarURL,
-                    contentDescription = "Avatar",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
-                )
-            }
-            Icon(
-                painter = painterResource(R.drawable.camera),
-                contentDescription = "Change Avatar",
-                tint = MaterialTheme.colorScheme.background,
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), CircleShape)
-                    .padding(6.dp)
-                    .clip(CircleShape)
-            )
         }
     }
 
@@ -341,7 +294,6 @@ fun AcceptEditButton(
                     email = email,
                     phone = phone,
                     address = address,
-                    avatarURL = avatarURL,
                     role = role,
                     password = password
                 )

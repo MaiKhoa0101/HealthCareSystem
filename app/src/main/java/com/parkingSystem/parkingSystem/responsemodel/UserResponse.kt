@@ -4,21 +4,19 @@ import com.google.gson.annotations.SerializedName
 
 
 data class UserResponse(
-    val users: List<User>,
-    val doctors: List<User>
+    val users: List<User> =emptyList(),
 )
 
 data class User(
-    @SerializedName("_id") val id: String,
-    val name: String,
-    val email: String,
-    val phone: String,
-    val password: String,
-    val address: String,
-    val role: String,
-    val createdAt: String,
-    val updatedAt: String,
-    val avatarURL: String
+    @SerializedName("id") val uid: String = "",
+    val name: String? = null ,
+    val email: String? = null,
+    val phone: String? = null,
+    val password: String? = null,
+    val address: String? = null,
+    val role: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
 )
 
 data class DeleteUserResponse(

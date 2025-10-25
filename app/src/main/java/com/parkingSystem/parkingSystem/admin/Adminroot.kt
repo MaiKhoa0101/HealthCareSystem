@@ -56,7 +56,7 @@ val sidebarItems = listOf(
     SidebarItem(
         nameField = "Parking Lot Management",
         iconField = R.drawable.car_management,
-        navigationField = "CreateSpecialty"
+        navigationField = "AdminParking"
     ),
     SidebarItem(
         nameField = "Report Management",

@@ -13,11 +13,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
 import com.parkingSystem.parkingSystem.requestmodel.EmailRequest
-import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
+import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
 import com.parkingSystem.parkingSystem.responsemodel.OtpResponse
-import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
 import com.parkingSystem.parkingSystem.responsemodel.User
 import com.parkingSystem.parkingSystem.responsemodel.UserResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,11 +25,9 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    //Bien lay 1 user
     private val _targetUser = MutableStateFlow<User?>(null)
     val targetUser: StateFlow<User?> get() = _targetUser
 
-    //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
@@ -51,9 +48,8 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 val response = RetrofitInstance.admin.getAllUser()
                 if (response.isSuccessful) {
                     response.body()?.let { userResponse ->
-                        val combinedList = userResponse.doctors + userResponse.users
-                        _users.value = combinedList          // <-- gán danh sách hiển thị
-                        _allUser.value = userResponse        // <-- lưu đầy đủ nếu cần sau này
+                        _users.value = userResponse.users           // <-- chỉ users
+                        _allUser.value = userResponse
                     } ?: run {
                         Log.e("UserViewModel", "Response body is null")
                     }
@@ -147,7 +143,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             // Dùng .getOrElse để tránh null hoặc thiếu field
             val userObj = User(
-                id = claims.getOrElse("id") { claims["sub"] ?: "" },
+                uid = claims.getOrElse("id") { claims["sub"] ?: "" },
                 name = claims.getOrElse("name") { "" },
                 email = claims.getOrElse("email") { "" },
                 phone = claims.getOrElse("phone") { "" },
@@ -156,7 +152,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                 role = claims.getOrElse("role") { "" },
                 createdAt = claims.getOrElse("createdAt") { "" },
                 updatedAt = claims.getOrElse("updatedAt") { "" },
-                avatarURL = claims.getOrElse("avatarURL") { "" }
             )
 
             _user.value = userObj
@@ -213,52 +208,23 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun resetUpdateStatus() {
         _updateSuccess.value = false
     }
-    fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context) {
+    fun updateUser(uid: String, updateData: UpdateUserInput, context: Context) {
         viewModelScope.launch {
             try {
                 _isUpdating.value = true
-                Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
-                println("===== Thông tin gửi lên =====")
-                println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
-                println("Name: ${updatedUser.name}")
-                println("Address: ${updatedUser.address}")
-                println("Email: ${updatedUser.email}")
-                println("Phone: ${updatedUser.phone}")
-                println("Password: ${updatedUser.password}")
-
-                val avatar = updatedUser.avatarURL?.let {
-                    prepareFilePart(context, it, "avatarURL")
-                }
-                val name = MultipartBody.Part.createFormData("name", updatedUser.name)
-                val email = MultipartBody.Part.createFormData("email", updatedUser.email)
-                val phone = MultipartBody.Part.createFormData("phone", updatedUser.phone)
-                val address = MultipartBody.Part.createFormData("address", updatedUser.address)
-                val password = MultipartBody.Part.createFormData("password", updatedUser.password!!)
-
-                val response = RetrofitInstance.admin.updateUserByID(
-                    id,
-                    avatar,
-                    address,
-                    name,
-                    email,
-                    phone,
-                    password
-                )
-
+                val response = RetrofitInstance.admin.updateUserInfo(uid, updateData)
                 if (response.isSuccessful) {
-                    Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
+                    Log.d("UserViewModel", "Update success User ID: $uid")
                     getAllUsers()
                     _updateSuccess.value = true
                 } else {
-                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
+                    Log.e("UserViewModel", "Update failed: ${response.code()} - ${response.errorBody()?.string()}")
                     _updateSuccess.value = false
                 }
-                _isUpdating.value = false
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
+                Log.e("UserViewModel", "Error updating user: ${e.message}")
                 _updateSuccess.value = false
-            }
-            finally {
+            } finally {
                 _isUpdating.value = false
             }
         }
@@ -274,7 +240,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     Log.e("FCM", "Lỗi gửi fcmToken: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
-                Log.e("FCM", "Lỗi: ${e.localizedMessage}")
+                Log.e("FCM", "E: ${e.localizedMessage}")
             }
         }
     }
