@@ -1,5 +1,6 @@
 package com.parkingSystem.parkingSystem.api
 
+import com.parkingSystem.parkingSystem.responsemodel.BookingDto
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -28,12 +29,18 @@ interface UserApi {
     @GET("user/available-slots/{parkId}")
     suspend fun getAvailableSlots(@Path("parkId") parkId: String): Response<List<JsonMap>>
 
-    @GET("user/booking-history")
-    suspend fun getBookingHistory(@Query("userId") userId: String): Response<List<JsonMap>>
+    @GET("user/view-booking-history/{userId}")
+    suspend fun getBookingHistory(
+        @Path("userId") userId: String
+    ): Response<List<BookingDto>>
 
-    @GET("user/booking/{bookingId}")
-    suspend fun getBookingDetail(@Path("bookingId") bookingId: String): Response<JsonMap>
+    @GET("user/booking/details/api/{bookingId}")
+    suspend fun getBookingDetails(
+        @Path("bookingId") bookingId: String
+    ): Response<BookingDto>
 
     @POST("user/cancel-reservation/{bookingId}")
-    suspend fun cancelReservation(@Path("bookingId") bookingId: String): Response<JsonMap>
+    suspend fun cancelReservation(
+        @Path("bookingId") bookingId: String
+    ): Response<Any>
 }

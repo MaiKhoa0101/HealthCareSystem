@@ -40,8 +40,10 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
-import com.parkingSystem.parkingSystem.user.home.booking.AppointmentListScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingHistoryScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingQrScreen
 import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingBookingDetailScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
@@ -209,7 +211,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("history") {
-                AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
+                BookingHistoryScreen(sharedPreferences, navHostController)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
@@ -259,6 +261,30 @@ class HomeActivity : BaseActivity() {
                     darkTheme = darkTheme
                 )
             }
+            composable("booking_history") {
+                BookingHistoryScreen(
+                    sharedPreferences = sharedPreferences,
+                    navHostController = navHostController
+                )
+            }
+
+            composable("booking_detail/{bookingId}") { backStackEntry ->
+                val bookingIdArg = backStackEntry.arguments?.getString("bookingId") ?: ""
+                BookingDetailScreen(
+                    sharedPreferences = sharedPreferences,
+                    navHostController = navHostController,
+                    bookingId = bookingIdArg
+                )
+            }
+            composable("booking_qr/{bookingId}") { backStackEntry ->
+                val bookingIdArg = backStackEntry.arguments?.getString("bookingId") ?: ""
+                BookingQrScreen(
+                    bookingId = bookingIdArg,
+                    navHostController = navHostController
+                )
+            }
+
+
         }
 
     }

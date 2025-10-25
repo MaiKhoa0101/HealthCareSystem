@@ -71,7 +71,7 @@ fun NotificationPage(
         userId = userViewModel.getUserAttributeString("userId")
         notificationViewModel.fetchNotificationByUserId(userId)
     }
-
+    val gradientTheme = LocalGradientTheme.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -80,7 +80,7 @@ fun NotificationPage(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(gradientTheme.primary)
         ) {
             Spacer(modifier = Modifier.height(15.dp))
             Text(

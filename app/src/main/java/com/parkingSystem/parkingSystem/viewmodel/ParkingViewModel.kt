@@ -269,7 +269,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             )
         }.filter { it.slotName.isNotBlank() && it.pos_X.isNotBlank() && it.pos_Y.isNotBlank() }
 
-    // ===== Create / Update Park (POST /document với { path, data{...} }) =====
+    // Create / Update
 
     fun createParkingLot(
         context: Context,
@@ -277,7 +277,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         address: String,
         typeVehicleInput: String,
         priceNumber: Double,
-        slotsInternal: List<Slot>             // ← nhận từ UI
+        slotsInternal: List<Slot>             // ← receive from UI
     ) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -292,29 +292,29 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 )
 
                 val req = CreateSlotEnvelope(
-                    path = "park",   // đồng bộ với getAllPark("park")
+                    path = "park",   // getAllPark("park")
                     data = payload
                 )
 
-                // Log JSON để debug nhanh khi 400
+                // Log JSON for debug during run 400
                 val json = Gson().toJson(req)
                 Log.d("ParkingVM", "createParkingLot REQUEST = $json")
 
                 val resp = RetrofitInstance.parking.createParkingSlot(req)
                 if (resp.isSuccessful) {
-                    val bodyStr = resp.body()?.toString() ?: "Tạo thành công."
+                    val bodyStr = resp.body()?.toString() ?: "Create success."
                     _createParkingLotMessage.value = bodyStr
-                    _successMessage.value = "Tạo/ cập nhật bãi đỗ thành công."
+                    _successMessage.value = "Create/update success."
                     Toast.makeText(context, "Create success.", Toast.LENGTH_LONG).show()
                     Log.d("ParkingVM", "createParkingLot success: $bodyStr")
                 } else {
                     val err = resp.errorBody()?.string()
-                    _error.value = "Tạo thất bại"
+                    _error.value = "Create failed."
                     Log.e("ParkingVM", "createParkingLot API error: $err")
                     Toast.makeText(context, "Create failed.", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
+                _error.value = "Error: ${e.message}"
                 Log.e("ParkingVM", "createParkingLot exception", e)
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
@@ -322,6 +322,88 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             }
         }
     }
+
+    //update
+    fun updateParkById(parkId: String, park: Park, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.updateParkById(parkId, park)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Update parkinglot success."
+                    // update _currentPark
+                    if (_currentPark.value?.park_id == parkId) {
+                        // refetch để đồng bộ slots
+                        fetchParkById(parkId)
+                    } else {
+                        // refresh list chung
+                        fetchAllParksAvailable()
+                    }
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Update failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    //deletePark
+    fun deleteParkById(parkId: String, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.deleteParkById(parkId)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Delete parkinglot success."
+                    // reset local states during view park
+                    if (_currentPark.value?.park_id == parkId) {
+                        resetState()
+                    }
+                    // reload list
+                    fetchAllParksAvailable()
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Delete failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    //delete slot
+    fun deleteSlotById(parkId: String, slotId: String, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.deleteSlotById(parkId, slotId)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Delete slot success."
+                    // refresh slots của park
+                    if (_currentPark.value?.park_id == parkId) {
+                        fetchParkById(parkId) // will update _slots
+                    }
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Delete slots failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 }
-
-
