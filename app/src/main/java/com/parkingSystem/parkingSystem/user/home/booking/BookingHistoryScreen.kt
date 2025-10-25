@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ fun BookingHistoryScreen(
     val bookings by vm.bookings.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val error by vm.error.collectAsState()
+    val justCancelled by vm.justCancelled.collectAsState()
 
     val token = sharedPreferences.getString("access_token", null)
     val jwt = remember(token) { token?.let { runCatching { JWT(it) }.getOrNull() } }
@@ -53,6 +55,13 @@ fun BookingHistoryScreen(
 
     LaunchedEffect(userId) {
         userId?.let { vm.fetchBookingHistory(it) }
+    }
+
+    LaunchedEffect(justCancelled) {
+        if (justCancelled) {
+            selectedTab = 2
+            vm.consumeJustCancelledFlag()
+        }
     }
 
     val gradient = LocalGradientTheme.current
@@ -72,6 +81,7 @@ fun BookingHistoryScreen(
                 .padding(top = 48.dp, bottom = 16.dp)
                 .align(Alignment.CenterHorizontally)
         )
+
         Surface(
             modifier = Modifier
                 .fillMaxSize(),
@@ -155,31 +165,17 @@ fun BookingHistoryScreen(
                                 )
                             }
                         }
+
+                        // --- filter list theo tab ---
                         val filteredBookings = remember(selectedTab, bookings) {
                             when (selectedTab) {
-                                0 -> bookings.filter { b ->
-                                    when (b.status?.lowercase()) {
-                                        "pending" -> true
-                                        else -> false
-                                    }
-                                }
-
-                                1 -> bookings.filter { b ->
-                                    when (b.status?.lowercase()) {
-                                        "done" -> true
-                                        else -> false
-                                    }
-                                }
-                                2 -> bookings.filter { b ->
-                                    when (b.status?.lowercase()) {
-                                        "cancelled"-> true
-                                        else -> false
-                                    }
-                                }
-
+                                0 -> bookings.filter { it.status?.lowercase() == "pending" }
+                                1 -> bookings.filter { it.status?.lowercase() == "done" }
+                                2 -> bookings.filter { it.status?.lowercase() == "cancelled" }
                                 else -> bookings
                             }
                         }
+
                         if (filteredBookings.isEmpty()) {
                             Box(
                                 Modifier
@@ -212,6 +208,9 @@ fun BookingHistoryScreen(
                                         b = booking,
                                         onClick = { bookingId ->
                                             navHostController.navigate("booking_detail/$bookingId")
+                                        },
+                                        onCancel = { bookingId ->
+                                            vm.cancelReservation(bookingId)
                                         }
                                     )
                                 }
@@ -223,6 +222,7 @@ fun BookingHistoryScreen(
         }
     }
 }
+
 
 
 @Composable
@@ -246,13 +246,12 @@ private fun CenterMessage(
         )
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun BookingCard(
     b: BookingDto,
-    onClick: (String) -> Unit
-
+    onClick: (String) -> Unit,
+    onCancel: (String) -> Unit
 ) {
     val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
@@ -289,6 +288,8 @@ private fun BookingCard(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
+
+            // header hàng đầu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -366,7 +367,29 @@ private fun BookingCard(
                     )
                 )
             }
+
+            // Nút huỷ: chỉ show nếu pending
+            if (b.status?.lowercase() == "pending" && b.id != null) {
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = { onCancel(b.id) },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        brush = SolidColor(MaterialTheme.colorScheme.error)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Huỷ đặt chỗ",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
-
