@@ -35,7 +35,7 @@ import com.parkingSystem.parkingSystem.admin.AdminRoot
 import com.parkingSystem.parkingSystem.R
 import com.parkingSystem.parkingSystem.requestmodel.FirebaseLoginRequest
 import com.parkingSystem.parkingSystem.requestmodel.GoogleLoginRequest
-import com.parkingSystem.parkingSystem.staff.StaffActivityScreen
+import com.parkingSystem.parkingSystem.staff.StaffScreen
 import com.parkingSystem.parkingSystem.user.home.root.HomeActivity
 import com.parkingSystem.parkingSystem.user.home.root.showToast
 
@@ -178,7 +178,7 @@ class SignIn : BaseActivity() {
                             val intent = when (role) {
                                 "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                 "User" -> Intent(this@SignIn, HomeActivity::class.java)
-//                                "Staff" -> Intent(this@SignIn, StaffActivityScreen::class.java)
+                                "Staff" -> Intent(this@SignIn, StaffScreen::class.java)
                                 else -> {
                                     Toast.makeText(
                                         this@SignIn,
