@@ -4,10 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/intro2"
-    android:background="@drawable/background"
+    android:background="@drawable/background_gopark"
     android:orientation="vertical"
     android:gravity="center"
     >
+
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -15,40 +17,39 @@
         android:text="CHÀO MỪNG"
         android:textSize="35dp"
         android:textStyle="bold"
-        android:textColor="@color/black"/>
+        android:textColor="@color/white"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ĐẾN VỚI HELLODOC"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        android:textStyle="bold"
         android:layout_margin="10dp"
-        />
+        android:text="ĐẾN VỚI GOPARK"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <ImageView
-        android:layout_width="230dp"
-        android:layout_height="230dp"
-        android:src="@drawable/logo"
-        />
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/logo_gopark" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chẩn đoán nhanh\nan tâm sống khoẻ!"
+        android:layout_margin="30dp"
+        android:text="Đi đâu cũng có chỗ gửi"
+        android:textColor="@color/blueblack"
         android:textSize="25dp"
-        android:layout_margin="50dp"
-        android:textStyle="bold"
-        android:textColor="@color/bluetheme"/>
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnNext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="30dp"
-        android:backgroundTint="@color/bluetheme"
-        android:text="Tiếp tục"
+        android:backgroundTint="@color/blueblack"
+        android:text="TIẾP TỤC"
+        android:textStyle="bold"
         android:textColor="@color/white" />
 
 </LinearLayout>

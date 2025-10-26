@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.hellodoc.healthcaresystem.FirstFragment"
+        android:name="com.parkingSystem.parkingSystem.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first" >
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="com.hellodoc.healthcaresystem.SecondFragment"
+        android:name="com.parkingSystem.parkingSystem.SecondFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second" >
 

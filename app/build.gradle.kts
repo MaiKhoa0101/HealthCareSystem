@@ -13,11 +13,11 @@ plugins {
 }
 val localProperties = gradleLocalProperties(rootDir, providers)
 android {
-    namespace = "com.hellodoc.healthcaresystem"
+    namespace = "com.parkingSystem.parkingSystem"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.hellodoc.healthcaresystem"
+        applicationId = "com.parkingSystem.parkingSystem"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -76,13 +76,14 @@ dependencies {
     implementation("com.google.accompanist:accompanist-flowlayout:0.26.5-rc")
     implementation("io.coil-kt:coil-compose:2.4.0")
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     dependencies {
         val nav_version = "2.8.9"
 
@@ -130,4 +131,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
+    implementation ("com.github.bumptech.glide:glide:5.0.5")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.3")
 }
