@@ -5,13 +5,20 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +26,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -29,8 +40,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -44,35 +57,31 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.R
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CircleWordMenu(onChoice: (String) -> Unit) {
-
+fun CircleWordMenu(
+    onChoice: (String) -> Unit,
+    onExtend: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.8f),
         contentAlignment = Alignment.Center
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-
         var count = 1
+
         alignmentAndDirection.forEach { item ->
-            val content by remember { mutableStateOf(
-                if (item.alignment=="Top"){
-                    listWordUp.get(0)
-                }
-                else if (item.alignment=="Left"){
-                    listWordsLeft.get(0)
-                }
-                else if (item.alignment=="Bottom"){
-                    listWordDown.get(0)
-                }
-                else{
-                    listWordsRight.get(0)
-                }
-            ) }
-            // Xác định góc dựa theo alignment
+            val groupWord = when (item.alignment) {
+                "Top" -> listWordUp
+                "Left" -> listWordsLeft
+                "Bottom" -> listWordDown
+                "Right" -> listWordsRight
+                else -> emptyList()
+            }
+
+            val content = groupWord.firstOrNull() ?: ""
+
             Box(
                 modifier = Modifier
                     .align(
@@ -85,13 +94,13 @@ fun CircleWordMenu(onChoice: (String) -> Unit) {
                         }
                     )
                     .size(120.dp)
-                    .clickable{
-                        println("Bấm chọn: "+ content)
-                        onChoice(content)
-                    },
+                    .combinedClickable(
+                        onClick = { onChoice(content) },
+                        onLongClick = { onExtend(item.alignment) },
+                        onDoubleClick = {}
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                // Ảnh mũi tên
                 Image(
                     painter = painterResource(id = R.drawable.arrow_area),
                     contentDescription = null,
@@ -102,18 +111,17 @@ fun CircleWordMenu(onChoice: (String) -> Unit) {
                     contentScale = ContentScale.Fit
                 )
 
-                // Text đè giữa mũi tên
                 Text(
-                    text = content,
+                    text = "$content$count",
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 )
             }
+
             count++
         }
 
-        // Nút trung tâm
         Box(
             modifier = Modifier
                 .size(150.dp)
@@ -121,16 +129,15 @@ fun CircleWordMenu(onChoice: (String) -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             CircleButtonWord(
-                onClick = {
-                    onChoice(it)
-                },
-                modifier = Modifier
-                    .align(Alignment.Center),
-                word="tôi"
+                onClick = { onChoice(it) },
+                modifier = Modifier.align(Alignment.Center),
+                word = "tôi"
             )
         }
     }
 }
+
+
 @Composable
 fun CircleButtonWord(
     onClick: (String) -> Unit,
@@ -198,6 +205,48 @@ fun CircleButtonWord(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ExtendingChoice(
+    onChoice: (String) -> Unit,
+    groupWord: List<String>
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier
+            .fillMaxSize(),
+        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        items (groupWord) { word ->
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .combinedClickable(
+                        onClick = { onChoice(word) },
+                        onLongClick = { /* giữ lâu */ },
+                        onDoubleClick = { /* nhấn đôi */ }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = word,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+
+
+}
+
+
 
 
 data class AlignmentAndDirection(
@@ -240,7 +289,7 @@ val listWordUp = listOf(
     "cơm",
     "canh",
     "cá",
-    "Hủ tiếu"
+    "hủ tiếu"
 )
 val listWordDown = listOf(
     "Tôi",

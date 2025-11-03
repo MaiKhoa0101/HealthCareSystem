@@ -35,6 +35,8 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.R
 import android.Manifest
 import android.speech.SpeechRecognizer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun FastTalk(
@@ -44,72 +46,139 @@ fun FastTalk(
     context: Context
 ) {
     var yourSentence by remember { mutableStateOf("") }
+    var theirsSentence by remember { mutableStateOf("") }
     var tempSpeech by remember { mutableStateOf("") }
+    var tempTheirSpeech by remember { mutableStateOf("") }
     var isRecording by remember { mutableStateOf(false) }
 
-    // Giữ 1 reference để stop được
+    // ✅ Hướng đang mở rộng
+    var extendedAlignment by remember { mutableStateOf<String?>(null) }
+
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box( // dùng Box để overlay được các layer
+        modifier = Modifier.fillMaxSize()
     ) {
-        HeaderFastTalk(navHostController, "Hỗ trợ nói chuyện")
-        InputConversation()
-
-        ConversationSections(
-            yourSentence + if (tempSpeech.isNotEmpty()) " $tempSpeech" else "",
-            onInput = { newText -> yourSentence = newText },
-            onDelete = {
-                yourSentence = if (yourSentence.lastIndexOf(" ") != -1)
-                    yourSentence.substring(0, yourSentence.lastIndexOf(" "))
-                else ""
-            }
-        )
-
-        CircleWordMenu(
-            onChoice = { content -> yourSentence += " $content" }
-        )
-
-        BottomSectionFastTalk(
-            isRecording = isRecording,
-            onMicToggle = {
-                if (!isRecording) {
-                    // Chưa ghi âm → bắt đầu
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            HeaderFastTalk(navHostController, "Hỗ trợ nói chuyện")
+            InputConversation(
+                onMicToggle = {
+                    if (!isRecording) {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                            != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+                        } else {
+                            isRecording = true
+                            startSpeechToTextRealtime(
+                                context,
+                                speechRecognizer,
+                                onPartial = { tempTheirSpeech = it },
+                                onFinal = { result ->
+                                    theirsSentence += " $result"
+                                    tempTheirSpeech = ""
+                                    isRecording = false
+                                },
+                                onEnd = { isRecording = false }
+                            )
+                        }
                     } else {
-                        isRecording = true
-                        startSpeechToTextRealtime(
-                            context,
-                            speechRecognizer,
-                            onPartial = { tempSpeech = it },
-                            onFinal = { result ->
-                                yourSentence += " $result"
-                                tempSpeech = ""
-                                isRecording = false
-                            },
-                            onEnd = {
-                                isRecording = false
-                            }
-                        )
+                        isRecording = false
+                        speechRecognizer.stopListening()
                     }
-                } else {
-                    // Đang ghi âm → dừng lại
-                    isRecording = false
-                    speechRecognizer.stopListening()
+                },
+                onDelete={
+                    theirsSentence=""
+                },
+                theirsSentence +
+                        if (tempTheirSpeech.isNotEmpty())
+                            " $tempTheirSpeech"
+                        else "",
+                isRecording
+            )
+            ConversationsLine { content -> yourSentence = " $content" }
+
+            ConversationSections(
+                yourSentence +
+                        if (tempSpeech.isNotEmpty())
+                            " $tempSpeech"
+                        else "",
+                onInput = { newText -> yourSentence = newText }, onDelete = { yourSentence = if (yourSentence.lastIndexOf(" ") != -1) yourSentence.substring(0, yourSentence.lastIndexOf(" ")) else "" } )
+
+            CircleWordMenu(
+                onChoice = { yourSentence += " $it" },
+                onExtend = { alignment ->
+                    extendedAlignment = alignment
                 }
-            },
-            onPronounce = {
-                if (yourSentence.isNotBlank()) {
-                    speakText(context, yourSentence)
-                } else {
-                    Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
+            )
+
+            BottomSectionFastTalk(
+                isRecording = isRecording,
+                onMicToggle = {
+                    if (!isRecording) {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                            != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+                        } else {
+                            isRecording = true
+                            startSpeechToTextRealtime(
+                                context,
+                                speechRecognizer,
+                                onPartial = { tempSpeech = it },
+                                onFinal = { result ->
+                                    yourSentence += " $result"
+                                    tempSpeech = ""
+                                    isRecording = false
+                                },
+                                onEnd = { isRecording = false }
+                            )
+                        }
+                    } else {
+                        isRecording = false
+                        speechRecognizer.stopListening()
+                    }
+                },
+                onPronounce = {
+                    if (yourSentence.isNotBlank()) {
+                        speakText(context, yourSentence)
+                    } else {
+                        Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
+                    }
                 }
+            )
+        }
+
+        // ✅ Overlay menu mở rộng — đè lên mọi thứ
+        if (extendedAlignment != null) {
+            val groupWord = when (extendedAlignment) {
+                "Top" -> listWordUp
+                "Left" -> listWordsLeft
+                "Bottom" -> listWordDown
+                "Right" -> listWordsRight
+                else -> emptyList()
             }
-        )
+
+            // Màn che + menu mở rộng
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f)) // mờ nền
+                    .clickable { extendedAlignment = null }, // click ra ngoài để tắt
+                contentAlignment = Alignment.Center
+            ) {
+                ExtendingChoice(
+                    groupWord = groupWord,
+                    onChoice = {
+                        yourSentence += " $it"
+                        extendedAlignment = null // tắt overlay sau khi chọn
+                    }
+                )
+            }
+        }
     }
 }
 

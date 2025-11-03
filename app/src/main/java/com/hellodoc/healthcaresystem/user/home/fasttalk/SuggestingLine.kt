@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,14 +29,18 @@ import com.hellodoc.healthcaresystem.responsemodel.SuggestLine
 
 @Composable
 fun ConversationsLine(onChoice: (String) -> Unit){
+    Divider(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        thickness = 1.dp,
+    )
     Column (
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer),
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
+    ) {
         Text(
             text = "Gợi ý",
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding( 8.dp),
+            modifier = Modifier.padding(8.dp),
         )
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
@@ -44,14 +49,20 @@ fun ConversationsLine(onChoice: (String) -> Unit){
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            item{
+            item {
                 Spacer(modifier = Modifier.width(16.dp))
             }
             items(conversations) { conversation ->
-                ConversationLine(conversation,onChoice)
+                ConversationLine(conversation, onChoice)
             }
 
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Divider(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            thickness = 1.dp,
+        )
     }
 }
 
@@ -64,8 +75,8 @@ fun ConversationLine(conversation: SuggestLine,onChoice: (String) -> Unit){
             .clickable {
                 onChoice(conversation.content)
             }
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
-            .border( 1.dp, MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(6.dp))
+            .background(color = MaterialTheme.colorScheme.background)
+            .border( 1.dp, MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(6.dp))
             .padding(15.dp)
 
 

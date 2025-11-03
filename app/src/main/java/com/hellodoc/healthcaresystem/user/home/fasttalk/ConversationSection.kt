@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.user.home.fasttalk
 
+import android.inputmethodservice.Keyboard.Row
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,9 +14,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -80,12 +84,37 @@ fun ConversationSections(yourSentence:String, onInput:(String)->Unit, onDelete:(
 }
 
 @Composable
-fun InputConversation(){
-    Column(
+fun InputConversation(onMicToggle: () -> Unit,onDelete:()->Unit,inputText:String,isRecording:Boolean){
+    Row (
         modifier = Modifier.fillMaxWidth().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ){
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Anh đã ăn gì chưa", fontWeight = FontWeight.Bold)
+        Text(inputText,
+            modifier = Modifier.fillMaxWidth(0.7f),
+            fontWeight = FontWeight.Bold
+        )
+        if (inputText=="" || isRecording) {
+            Image(
+                imageVector = if (isRecording) Icons.Default.Hearing else Icons.Default.Mic,
+                contentDescription = if (isRecording) "Đang ghi âm" else "Bắt đầu ghi âm",
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(10.dp)
+                    .clip(CircleShape)
+                    .clickable { onMicToggle() }
+            )
+        }
+        else{
+            Icon(
+                imageVector = Icons.Default.Backspace,
+                contentDescription = "Xóa cả câu",
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .size(46.dp)
+                    .clickable { onDelete() }
+                    .padding(10.dp)
+            )
+        }
     }
 }
