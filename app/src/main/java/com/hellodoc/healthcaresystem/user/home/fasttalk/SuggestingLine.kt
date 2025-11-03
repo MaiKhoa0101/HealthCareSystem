@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.user.home.fasttalk
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,7 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.responsemodel.SuggestLine
 
 @Composable
-fun ConversationsLine(navHostController: NavHostController){
+fun ConversationsLine(onChoice: (String) -> Unit){
     Column (
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -47,7 +48,7 @@ fun ConversationsLine(navHostController: NavHostController){
                 Spacer(modifier = Modifier.width(16.dp))
             }
             items(conversations) { conversation ->
-                ConversationLine(conversation)
+                ConversationLine(conversation,onChoice)
             }
 
         }
@@ -55,14 +56,18 @@ fun ConversationsLine(navHostController: NavHostController){
 }
 
 @Composable
-fun ConversationLine(conversation: SuggestLine){
+fun ConversationLine(conversation: SuggestLine,onChoice: (String) -> Unit){
     Text(
         text = conversation.content,
         modifier = Modifier
             .clip(shape = RoundedCornerShape(6.dp))
+            .clickable {
+                onChoice(conversation.content)
+            }
             .background(color = MaterialTheme.colorScheme.secondaryContainer)
             .border( 1.dp, MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(6.dp))
             .padding(15.dp)
+
 
 
     )

@@ -1,6 +1,10 @@
 package com.hellodoc.healthcaresystem.user.home.fasttalk
 
+import android.app.Activity
+import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,28 +28,86 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.R
+import android.Manifest
+import android.speech.SpeechRecognizer
 
 @Composable
-fun FastTalk(navHostController: NavHostController, sharedPreferences: SharedPreferences, userViewModel: UserViewModel){
+fun FastTalk(
+    navHostController: NavHostController,
+    sharedPreferences: SharedPreferences,
+    userViewModel: UserViewModel,
+    context: Context
+) {
     var yourSentence by remember { mutableStateOf("") }
+    var tempSpeech by remember { mutableStateOf("") }
+    var isRecording by remember { mutableStateOf(false) }
+
+    // Giữ 1 reference để stop được
+    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
+    ) {
         HeaderFastTalk(navHostController, "Hỗ trợ nói chuyện")
+        InputConversation()
+
         ConversationSections(
-            yourSentence,
-            onInput = { newText ->
-                yourSentence = newText // khi người dùng gõ thì cập nhật
+            yourSentence + if (tempSpeech.isNotEmpty()) " $tempSpeech" else "",
+            onInput = { newText -> yourSentence = newText },
+            onDelete = {
+                yourSentence = if (yourSentence.lastIndexOf(" ") != -1)
+                    yourSentence.substring(0, yourSentence.lastIndexOf(" "))
+                else ""
             }
         )
-        ConversationsLine(navHostController)
+
         CircleWordMenu(
-            onChoice = { content ->
-                yourSentence += " $content" // nối thêm vào câu hiện có
+            onChoice = { content -> yourSentence += " $content" }
+        )
+
+        BottomSectionFastTalk(
+            isRecording = isRecording,
+            onMicToggle = {
+                if (!isRecording) {
+                    // Chưa ghi âm → bắt đầu
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                        != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+                    } else {
+                        isRecording = true
+                        startSpeechToTextRealtime(
+                            context,
+                            speechRecognizer,
+                            onPartial = { tempSpeech = it },
+                            onFinal = { result ->
+                                yourSentence += " $result"
+                                tempSpeech = ""
+                                isRecording = false
+                            },
+                            onEnd = {
+                                isRecording = false
+                            }
+                        )
+                    }
+                } else {
+                    // Đang ghi âm → dừng lại
+                    isRecording = false
+                    speechRecognizer.stopListening()
+                }
+            },
+            onPronounce = {
+                if (yourSentence.isNotBlank()) {
+                    speakText(context, yourSentence)
+                } else {
+                    Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }
