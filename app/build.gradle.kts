@@ -9,7 +9,8 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
-    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    id ("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 val localProperties = gradleLocalProperties(rootDir, providers)
 android {
@@ -130,4 +131,6 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
+    implementation ("com.google.dagger:hilt-android:2.57.1")
+    ksp ("com.google.dagger:hilt-compiler:2.57.1")
 }
