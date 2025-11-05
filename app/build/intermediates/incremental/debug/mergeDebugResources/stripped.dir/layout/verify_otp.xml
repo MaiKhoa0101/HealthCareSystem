@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/verify_otp_scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="10dp">
+
+        <!-- Nút quay lại -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/arrow_back"
+            android:contentDescription="Quay lại"
+            android:layout_gravity="start" />
+
+        <!-- Tiêu đề -->
+        <TextView
+            android:id="@+id/otpTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Xác minh mã OTP"
+            android:textColor="@color/black"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <!-- Mô tả -->
+        <TextView
+            android:id="@+id/otpDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nhập mã OTP đã gửi đến email của bạn"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:gravity="center" />
+
+        <!-- Trường nhập OTP -->
+        <EditText
+            android:id="@+id/otpInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:hint="123456"
+            android:inputType="number"
+            android:maxLength="6"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textColorHint="@color/gray"
+            android:background="@drawable/edit_text_background"
+            android:padding="12dp" />
+
+        <!-- Nút xác minh -->
+        <Button
+            android:id="@+id/verifyOtpButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="XÁC MINH"
+            android:backgroundTint="@color/bluetheme"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:paddingVertical="12dp" />
+
+        <!-- Gửi lại mã -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/resendDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chưa nhận được mã? "
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/resendOtpText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gửi lại (15)"
+                android:textColor="#06bb00"
+                android:textSize="14sp"
+                android:clickable="false"
+                android:focusable="false"
+                android:enabled="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

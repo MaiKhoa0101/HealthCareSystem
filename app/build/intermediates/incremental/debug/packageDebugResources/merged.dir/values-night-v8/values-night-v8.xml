@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notification_text_color">#FFFFFF</color>
+    <style name="Base.Theme.HealthCareSystem" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        
+    </style>
+</resources>
