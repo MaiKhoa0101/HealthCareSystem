@@ -15,11 +15,11 @@ import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
 import com.hellodoc.healthcaresystem.requestmodel.Part
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
-import com.hellodoc.healthcaresystem.responsemodel.CreatePostResponse
-import com.hellodoc.healthcaresystem.responsemodel.CommentPostResponse
-import com.hellodoc.healthcaresystem.responsemodel.PostResponse
-import com.hellodoc.healthcaresystem.responsemodel.ManagerResponse
-import com.hellodoc.healthcaresystem.responsemodel.UiState
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CreatePostResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

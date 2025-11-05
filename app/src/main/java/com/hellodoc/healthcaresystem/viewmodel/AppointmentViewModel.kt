@@ -2,12 +2,11 @@ package com.hellodoc.healthcaresystem.viewmodel
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.hellodoc.healthcaresystem.responsemodel.AppointmentResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance

@@ -13,11 +13,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
-import com.hellodoc.healthcaresystem.responsemodel.DoctorAvailableSlotsResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.DoctorAvailableSlotsResponse
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
-import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PendingDoctorResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ServiceInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

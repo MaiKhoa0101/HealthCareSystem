@@ -5,9 +5,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
@@ -17,11 +14,11 @@ import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
-import com.hellodoc.healthcaresystem.user.home.startscreen.SignIn
-import com.hellodoc.healthcaresystem.responsemodel.OtpResponse
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
-import com.hellodoc.healthcaresystem.responsemodel.User
-import com.hellodoc.healthcaresystem.responsemodel.UserResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
