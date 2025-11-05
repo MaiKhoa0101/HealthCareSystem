@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-102:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
                     "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\55f2503021969a17710d01ba1578578a\\transformed\\play-services-auth-21.3.0\\res\\values-watch-v20\\values.xml",

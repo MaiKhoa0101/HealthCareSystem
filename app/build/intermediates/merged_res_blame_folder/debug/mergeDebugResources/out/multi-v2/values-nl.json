@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-nl/values-nl.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-102:/values-nl/values-nl.xml",
             "map": [
                 {
                     "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\db8a013dec273c2757838195b3293f74\\transformed\\navigation-ui-2.8.9\\res\\values-nl\\values-nl.xml",
