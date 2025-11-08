@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-86:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\DELL\\.gradle\\caches\\8.9\\transforms\\7f6bae5718319ccd61ea2dfd8fab24da\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

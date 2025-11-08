@@ -1,0 +1,54 @@
+[
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_start_screen.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_start_screen.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/sign_in.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/sign_in.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_intro2.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_intro2.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/reset_password.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/reset_password.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_main_page.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_main_page.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_intro3.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_intro3.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/sign_up.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/sign_up.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/verify_otp.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/verify_otp.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_intro1.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_intro1.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/activity_signup_success.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/activity_signup_success.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/forgot_password.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/forgot_password.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/reset_password_success.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/reset_password_success.xml"
+    },
+    {
+        "merged": "com.hellodoc.healthcaresystem.app-mergeReleaseResources-87:/layout/notification.xml",
+        "source": "com.hellodoc.healthcaresystem.app-main-89:/layout/notification.xml"
+    }
+]

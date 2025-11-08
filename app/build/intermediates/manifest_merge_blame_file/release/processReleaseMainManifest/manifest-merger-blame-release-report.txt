@@ -1,0 +1,554 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.hellodoc.healthcaresystem"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10    <!-- Cấp quyền truy cập Internet -->
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:6:5-67
+11-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:6:22-64
+12    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+12-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:7:5-80
+12-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:7:22-77
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:22:5-79
+13-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:22:22-76
+14    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+14-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:23:5-77
+14-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:23:22-74
+15    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Required by older versions of Google Play services to create IID tokens -->
+15-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:24:5-68
+15-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:24:22-65
+16    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+16-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:26:5-82
+16-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:26:22-79
+17    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
+17-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:26:5-110
+17-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:26:22-107
+18    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+18-->[com.google.android.gms:play-services-measurement-impl:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bc05123ac5b96ae52650443b245d054c\transformed\play-services-measurement-impl-22.4.0\AndroidManifest.xml:27:5-79
+18-->[com.google.android.gms:play-services-measurement-impl:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bc05123ac5b96ae52650443b245d054c\transformed\play-services-measurement-impl-22.4.0\AndroidManifest.xml:27:22-76
+19    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" />
+19-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:26:5-88
+19-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:26:22-85
+20    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" />
+20-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:27:5-82
+20-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:27:22-79
+21    <uses-permission android:name="android.permission.REORDER_TASKS" />
+21-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:24:5-72
+21-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:24:22-69
+22
+23    <permission
+23-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:22:5-24:47
+24        android:name="com.hellodoc.healthcaresystem.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+24-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:23:9-81
+25        android:protectionLevel="signature" />
+25-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:24:9-44
+26
+27    <uses-permission android:name="com.hellodoc.healthcaresystem.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+27-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:26:5-97
+27-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:26:22-94
+28
+29    <application
+29-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:9:5-99:19
+30        android:allowBackup="true"
+30-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:10:9-35
+31        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+31-->[androidx.core:core:1.15.0] C:\Users\DELL\.gradle\caches\8.9\transforms\c3880ddfabfcb155eb5060cbcce95ad1\transformed\core-1.15.0\AndroidManifest.xml:28:18-86
+32        android:dataExtractionRules="@xml/data_extraction_rules"
+32-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:11:9-65
+33        android:extractNativeLibs="false"
+34        android:fullBackupContent="@xml/backup_rules"
+34-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:12:9-54
+35        android:icon="@mipmap/ic_launcher"
+35-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:13:9-43
+36        android:label="@string/app_name"
+36-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:14:9-41
+37        android:networkSecurityConfig="@xml/network_security_config"
+37-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:15:9-69
+38        android:roundIcon="@mipmap/ic_launcher_round"
+38-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:16:9-54
+39        android:screenOrientation="portrait"
+39-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:17:9-45
+40        android:supportsRtl="true"
+40-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:18:9-35
+41        android:theme="@style/Theme.HealthCareSystem" >
+41-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:19:9-54
+42        <activity
+42-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:21:9-25:61
+43            android:name="com.hellodoc.healthcaresystem.user.home.booking.DoctorListActivity"
+43-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:22:13-65
+44            android:exported="false"
+44-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:23:13-37
+45            android:label="@string/title_activity_booking"
+45-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:24:13-59
+46            android:theme="@style/Theme.HealthCareSystem" />
+46-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:25:13-58
+47
+48        <meta-data
+48-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:27:9-29:54
+49            android:name="com.google.firebase.messaging.default_notification_icon"
+49-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:28:13-83
+50            android:resource="@mipmap/ic_launcher" /> <!-- Launcher activity -->
+50-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:29:13-51
+51        <activity
+51-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:30:9-39:20
+52            android:name="com.hellodoc.healthcaresystem.admin.AdminRoot"
+52-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:31:13-44
+53            android:exported="true"
+53-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:32:13-36
+54            android:theme="@style/Theme.HealthCareSystem" >
+54-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:33:13-58
+55
+56            <!-- <intent-filter> -->
+57            <!-- <action android:name="android.intent.action.MAIN" /> -->
+58
+59
+60            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+61            <!-- </intent-filter> -->
+62        </activity>
+63        <activity
+63-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:40:9-49:20
+64            android:name="com.hellodoc.healthcaresystem.user.home.HomeActivity"
+64-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:41:13-51
+65            android:exported="true"
+65-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:42:13-36
+66            android:theme="@style/Theme.HealthCareSystem" >
+66-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:43:13-58
+67
+68            <!-- <intent-filter> -->
+69            <!-- <action android:name="android.intent.action.MAIN" /> -->
+70
+71
+72            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+73            <!-- </intent-filter> -->
+74        </activity>
+75        <activity
+75-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:50:9-52:40
+76            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.SignUpSuccess"
+76-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:51:13-64
+77            android:exported="false" />
+77-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:52:13-37
+78        <activity
+78-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:53:9-55:39
+79            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.StartScreen"
+79-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:54:13-62
+80            android:exported="true" />
+80-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:55:13-36
+81        <activity
+81-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:56:9-58:40
+82            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.Intro3"
+82-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:57:13-57
+83            android:exported="false" />
+83-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:58:13-37
+84        <activity
+84-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:59:9-61:40
+85            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.Intro2"
+85-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:60:13-57
+86            android:exported="false" />
+86-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:61:13-37
+87        <activity
+87-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:62:9-65:61
+88            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.Intro1"
+88-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:63:13-57
+89            android:exported="true"
+89-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:64:13-36
+90            android:theme="@style/Theme.HealthCareSystem" />
+90-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:65:13-58
+91        <activity
+91-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:66:9-74:20
+92            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.SignIn"
+92-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:67:13-57
+93            android:exported="true" >
+93-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:68:13-36
+94            <intent-filter>
+94-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:69:13-73:29
+95                <action android:name="android.intent.action.MAIN" />
+95-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:70:17-69
+95-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:70:25-66
+96
+97                <category android:name="android.intent.category.LAUNCHER" />
+97-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:17-77
+97-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:27-74
+98            </intent-filter>
+99        </activity>
+100        <activity
+100-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:75:9-77:39
+101            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.ForgotPasswordActivity"
+101-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:76:13-73
+102            android:exported="true" />
+102-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:77:13-36
+103        <activity
+103-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:78:9-80:39
+104            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.VerifyOtpActivity"
+104-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:79:13-68
+105            android:exported="true" />
+105-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:80:13-36
+106        <activity
+106-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:81:9-83:39
+107            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.ResetPasswordActivity"
+107-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:82:13-72
+108            android:exported="true" />
+108-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:83:13-36
+109        <activity
+109-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:84:9-86:39
+110            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.ResetPasswordSuccessActivity"
+110-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:85:13-79
+111            android:exported="true" />
+111-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:86:13-36
+112        <activity
+112-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:88:9-90:39
+113            android:name="com.hellodoc.healthcaresystem.user.home.startscreen.SignUp"
+113-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:89:13-57
+114            android:exported="true" />
+114-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:90:13-36
+115
+116        <service
+116-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:92:9-98:19
+117            android:name="com.hellodoc.healthcaresystem.features.notification.MyFirebaseMessagingService"
+117-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:93:13-77
+118            android:exported="true" >
+118-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:94:13-36
+119            <intent-filter>
+119-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:95:13-97:29
+120                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+120-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:96:17-78
+120-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:96:25-75
+121            </intent-filter>
+122        </service>
+123
+124        <receiver
+124-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:29:9-40:20
+125            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+125-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:30:13-78
+126            android:exported="true"
+126-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:31:13-36
+127            android:permission="com.google.android.c2dm.permission.SEND" >
+127-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:32:13-73
+128            <intent-filter>
+128-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:33:13-35:29
+129                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+129-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:34:17-81
+129-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:34:25-78
+130            </intent-filter>
+131
+132            <meta-data
+132-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:37:13-39:40
+133                android:name="com.google.android.gms.cloudmessaging.FINISHED_AFTER_HANDLED"
+133-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:38:17-92
+134                android:value="true" />
+134-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:39:17-37
+135        </receiver>
+136        <!--
+137             FirebaseMessagingService performs security checks at runtime,
+138             but set to not exported to explicitly avoid allowing another app to call it.
+139        -->
+140        <service
+140-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:46:9-53:19
+141            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+141-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:47:13-82
+142            android:directBootAware="true"
+142-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:48:13-43
+143            android:exported="false" >
+143-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:49:13-37
+144            <intent-filter android:priority="-500" >
+144-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:95:13-97:29
+145                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+145-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:96:17-78
+145-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:96:25-75
+146            </intent-filter>
+147        </service>
+148        <service
+148-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:54:9-63:19
+149            android:name="com.google.firebase.components.ComponentDiscoveryService"
+149-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:55:13-84
+150            android:directBootAware="true"
+150-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:32:13-43
+151            android:exported="false" >
+151-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:56:13-37
+152            <meta-data
+152-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:57:13-59:85
+153                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingKtxRegistrar"
+153-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:58:17-122
+154                android:value="com.google.firebase.components.ComponentRegistrar" />
+154-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:59:17-82
+155            <meta-data
+155-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:60:13-62:85
+156                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+156-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:61:17-119
+157                android:value="com.google.firebase.components.ComponentRegistrar" />
+157-->[com.google.firebase:firebase-messaging:24.1.1] C:\Users\DELL\.gradle\caches\8.9\transforms\31bb4a63dba41109791938a2a569bcac\transformed\firebase-messaging-24.1.1\AndroidManifest.xml:62:17-82
+158            <meta-data
+158-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:33:13-35:85
+159                android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
+159-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:34:17-139
+160                android:value="com.google.firebase.components.ComponentRegistrar" />
+160-->[com.google.android.gms:play-services-measurement-api:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\a981259e824eaf8976ced9ae336d5c32\transformed\play-services-measurement-api-22.4.0\AndroidManifest.xml:35:17-82
+161            <meta-data
+161-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:15:13-17:85
+162                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+162-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:16:17-130
+163                android:value="com.google.firebase.components.ComponentRegistrar" />
+163-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:17:17-82
+164            <meta-data
+164-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:18:13-20:85
+165                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+165-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:19:17-127
+166                android:value="com.google.firebase.components.ComponentRegistrar" />
+166-->[com.google.firebase:firebase-installations:18.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\d6c0f82118a2a5cee324a7da72fa10f4\transformed\firebase-installations-18.0.0\AndroidManifest.xml:20:17-82
+167            <meta-data
+167-->[com.google.firebase:firebase-common-ktx:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\f63cc57b9f64d4fa3a85216239360a8d\transformed\firebase-common-ktx-21.0.0\AndroidManifest.xml:12:13-14:85
+168                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+168-->[com.google.firebase:firebase-common-ktx:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\f63cc57b9f64d4fa3a85216239360a8d\transformed\firebase-common-ktx-21.0.0\AndroidManifest.xml:13:17-116
+169                android:value="com.google.firebase.components.ComponentRegistrar" />
+169-->[com.google.firebase:firebase-common-ktx:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\f63cc57b9f64d4fa3a85216239360a8d\transformed\firebase-common-ktx-21.0.0\AndroidManifest.xml:14:17-82
+170            <meta-data
+170-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:35:13-37:85
+171                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+171-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:36:17-109
+172                android:value="com.google.firebase.components.ComponentRegistrar" />
+172-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:37:17-82
+173            <meta-data
+173-->[com.google.firebase:firebase-datatransport:18.2.0] C:\Users\DELL\.gradle\caches\8.9\transforms\9d6a75985a0d508cf5b3f75a558f8749\transformed\firebase-datatransport-18.2.0\AndroidManifest.xml:25:13-27:85
+174                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+174-->[com.google.firebase:firebase-datatransport:18.2.0] C:\Users\DELL\.gradle\caches\8.9\transforms\9d6a75985a0d508cf5b3f75a558f8749\transformed\firebase-datatransport-18.2.0\AndroidManifest.xml:26:17-115
+175                android:value="com.google.firebase.components.ComponentRegistrar" />
+175-->[com.google.firebase:firebase-datatransport:18.2.0] C:\Users\DELL\.gradle\caches\8.9\transforms\9d6a75985a0d508cf5b3f75a558f8749\transformed\firebase-datatransport-18.2.0\AndroidManifest.xml:27:17-82
+176        </service>
+177
+178        <receiver
+178-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:29:9-33:20
+179            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+179-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:30:13-85
+180            android:enabled="true"
+180-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:31:13-35
+181            android:exported="false" >
+181-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:32:13-37
+182        </receiver>
+183
+184        <service
+184-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:35:9-38:40
+185            android:name="com.google.android.gms.measurement.AppMeasurementService"
+185-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:36:13-84
+186            android:enabled="true"
+186-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:37:13-35
+187            android:exported="false" />
+187-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:38:13-37
+188        <service
+188-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:39:9-43:72
+189            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+189-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:40:13-87
+190            android:enabled="true"
+190-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:41:13-35
+191            android:exported="false"
+191-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:42:13-37
+192            android:permission="android.permission.BIND_JOB_SERVICE" />
+192-->[com.google.android.gms:play-services-measurement:22.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\6276e75ee5dca38500c0088ce95b5f5e\transformed\play-services-measurement-22.4.0\AndroidManifest.xml:43:13-69
+193
+194        <provider
+194-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:23:9-28:39
+195            android:name="com.google.firebase.provider.FirebaseInitProvider"
+195-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:24:13-77
+196            android:authorities="com.hellodoc.healthcaresystem.firebaseinitprovider"
+196-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:25:13-72
+197            android:directBootAware="true"
+197-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:26:13-43
+198            android:exported="false"
+198-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:27:13-37
+199            android:initOrder="100" />
+199-->[com.google.firebase:firebase-common:21.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\28c5653be155c7352c1797446a43c1f2\transformed\firebase-common-21.0.0\AndroidManifest.xml:28:13-36
+200
+201        <service
+201-->[androidx.room:room-runtime-android:2.7.0] C:\Users\DELL\.gradle\caches\8.9\transforms\14f5c8ce9e840d24a2eefc37f5629398\transformed\room-runtime-release\AndroidManifest.xml:24:9-28:63
+202            android:name="androidx.room.MultiInstanceInvalidationService"
+202-->[androidx.room:room-runtime-android:2.7.0] C:\Users\DELL\.gradle\caches\8.9\transforms\14f5c8ce9e840d24a2eefc37f5629398\transformed\room-runtime-release\AndroidManifest.xml:25:13-74
+203            android:directBootAware="true"
+203-->[androidx.room:room-runtime-android:2.7.0] C:\Users\DELL\.gradle\caches\8.9\transforms\14f5c8ce9e840d24a2eefc37f5629398\transformed\room-runtime-release\AndroidManifest.xml:26:13-43
+204            android:exported="false" />
+204-->[androidx.room:room-runtime-android:2.7.0] C:\Users\DELL\.gradle\caches\8.9\transforms\14f5c8ce9e840d24a2eefc37f5629398\transformed\room-runtime-release\AndroidManifest.xml:27:13-37
+205
+206        <activity
+206-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:27:9-34:20
+207            android:name="androidx.test.core.app.InstrumentationActivityInvoker$BootstrapActivity"
+207-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:28:13-99
+208            android:exported="true"
+208-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:29:13-36
+209            android:theme="@style/WhiteBackgroundTheme" >
+209-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:30:13-56
+210            <intent-filter android:priority="-100" >
+210-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:13-33:29
+210-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:28-51
+211                <category android:name="android.intent.category.LAUNCHER" />
+211-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:17-77
+211-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:27-74
+212            </intent-filter>
+213        </activity>
+214        <activity
+214-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:35:9-42:20
+215            android:name="androidx.test.core.app.InstrumentationActivityInvoker$EmptyActivity"
+215-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:36:13-95
+216            android:exported="true"
+216-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:37:13-36
+217            android:theme="@style/WhiteBackgroundTheme" >
+217-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:38:13-56
+218            <intent-filter android:priority="-100" >
+218-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:13-33:29
+218-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:28-51
+219                <category android:name="android.intent.category.LAUNCHER" />
+219-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:17-77
+219-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:27-74
+220            </intent-filter>
+221        </activity>
+222        <activity
+222-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:43:9-50:20
+223            android:name="androidx.test.core.app.InstrumentationActivityInvoker$EmptyFloatingActivity"
+223-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:44:13-103
+224            android:exported="true"
+224-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:45:13-36
+225            android:theme="@style/WhiteBackgroundDialogTheme" >
+225-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:46:13-62
+226            <intent-filter android:priority="-100" >
+226-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:13-33:29
+226-->[androidx.test:core:1.6.1] C:\Users\DELL\.gradle\caches\8.9\transforms\d3691c35c7379cbcceaecea2337afac2\transformed\core-1.6.1\AndroidManifest.xml:31:28-51
+227                <category android:name="android.intent.category.LAUNCHER" />
+227-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:17-77
+227-->D:\Personal Project\mobile\HealthCareSystem\app\src\main\AndroidManifest.xml:72:27-74
+228            </intent-filter>
+229        </activity>
+230
+231        <provider
+231-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+232            android:name="androidx.startup.InitializationProvider"
+232-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+233            android:authorities="com.hellodoc.healthcaresystem.androidx-startup"
+233-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+234            android:exported="false" >
+234-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+235            <meta-data
+235-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+236                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+236-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+237                android:value="androidx.startup" />
+237-->[androidx.emoji2:emoji2:1.3.0] C:\Users\DELL\.gradle\caches\8.9\transforms\bcc713850650a7a06716e45bf5d54ee1\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+238            <meta-data
+238-->[androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\DELL\.gradle\caches\8.9\transforms\fe34543537eefc395b917aad643e31a4\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:29:13-31:52
+239                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+239-->[androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\DELL\.gradle\caches\8.9\transforms\fe34543537eefc395b917aad643e31a4\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:30:17-78
+240                android:value="androidx.startup" />
+240-->[androidx.lifecycle:lifecycle-process:2.8.7] C:\Users\DELL\.gradle\caches\8.9\transforms\fe34543537eefc395b917aad643e31a4\transformed\lifecycle-process-2.8.7\AndroidManifest.xml:31:17-49
+241            <meta-data
+241-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:29:13-31:52
+242                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+242-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:30:17-85
+243                android:value="androidx.startup" />
+243-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:31:17-49
+244        </provider>
+245
+246        <uses-library
+246-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:25:9-27:40
+247            android:name="androidx.window.extensions"
+247-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:26:13-54
+248            android:required="false" />
+248-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:27:13-37
+249        <uses-library
+249-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:28:9-30:40
+250            android:name="androidx.window.sidecar"
+250-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:29:13-51
+251            android:required="false" />
+251-->[androidx.window:window:1.0.0] C:\Users\DELL\.gradle\caches\8.9\transforms\82d2f430de2ad1887e314ea7eb87a1d5\transformed\window-1.0.0\AndroidManifest.xml:30:13-37
+252        <uses-library
+252-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] C:\Users\DELL\.gradle\caches\8.9\transforms\7bd3bf0c2de8bb9272672e5c8688167e\transformed\ads-adservices-1.1.0-beta11\AndroidManifest.xml:23:9-25:40
+253            android:name="android.ext.adservices"
+253-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] C:\Users\DELL\.gradle\caches\8.9\transforms\7bd3bf0c2de8bb9272672e5c8688167e\transformed\ads-adservices-1.1.0-beta11\AndroidManifest.xml:24:13-50
+254            android:required="false" />
+254-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] C:\Users\DELL\.gradle\caches\8.9\transforms\7bd3bf0c2de8bb9272672e5c8688167e\transformed\ads-adservices-1.1.0-beta11\AndroidManifest.xml:25:13-37
+255
+256        <activity
+256-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\3ff4d5b0ec7cf0f55c20b852efe5ae2f\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:9-173
+257            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+257-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\3ff4d5b0ec7cf0f55c20b852efe5ae2f\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:19-85
+258            android:exported="false"
+258-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\3ff4d5b0ec7cf0f55c20b852efe5ae2f\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:146-170
+259            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+259-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\3ff4d5b0ec7cf0f55c20b852efe5ae2f\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:86-145
+260
+261        <meta-data
+261-->[com.google.android.gms:play-services-basement:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\ed162d5ffd2e5bbd650657df4f0e2944\transformed\play-services-basement-18.5.0\AndroidManifest.xml:21:9-23:69
+262            android:name="com.google.android.gms.version"
+262-->[com.google.android.gms:play-services-basement:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\ed162d5ffd2e5bbd650657df4f0e2944\transformed\play-services-basement-18.5.0\AndroidManifest.xml:22:13-58
+263            android:value="@integer/google_play_services_version" />
+263-->[com.google.android.gms:play-services-basement:18.5.0] C:\Users\DELL\.gradle\caches\8.9\transforms\ed162d5ffd2e5bbd650657df4f0e2944\transformed\play-services-basement-18.5.0\AndroidManifest.xml:23:13-66
+264
+265        <service
+265-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:28:9-34:19
+266            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+266-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:29:13-103
+267            android:exported="false" >
+267-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:30:13-37
+268            <meta-data
+268-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:31:13-33:39
+269                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+269-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:32:17-94
+270                android:value="cct" />
+270-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\75e19499ece9dc56ac365d47a8ffa2ff\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:33:17-36
+271        </service>
+272        <service
+272-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:26:9-30:19
+273            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+273-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:27:13-117
+274            android:exported="false"
+274-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:28:13-37
+275            android:permission="android.permission.BIND_JOB_SERVICE" >
+275-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:29:13-69
+276        </service>
+277
+278        <receiver
+278-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:32:9-34:40
+279            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+279-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:33:13-132
+280            android:exported="false" />
+280-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\DELL\.gradle\caches\8.9\transforms\abc4596d8f1ed9019f93a3fd63dabf95\transformed\transport-runtime-3.1.9\AndroidManifest.xml:34:13-37
+281        <receiver
+281-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:34:9-52:20
+282            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+282-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:35:13-76
+283            android:directBootAware="false"
+283-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:36:13-44
+284            android:enabled="true"
+284-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:37:13-35
+285            android:exported="true"
+285-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:38:13-36
+286            android:permission="android.permission.DUMP" >
+286-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:39:13-57
+287            <intent-filter>
+287-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:40:13-42:29
+288                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+288-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:17-91
+288-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:25-88
+289            </intent-filter>
+290            <intent-filter>
+290-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:43:13-45:29
+291                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+291-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:17-85
+291-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:25-82
+292            </intent-filter>
+293            <intent-filter>
+293-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:46:13-48:29
+294                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+294-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:17-88
+294-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:25-85
+295            </intent-filter>
+296            <intent-filter>
+296-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:49:13-51:29
+297                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+297-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:17-95
+297-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\DELL\.gradle\caches\8.9\transforms\7508a6fe58374f64560822d77e14b7d2\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:25-92
+298            </intent-filter>
+299        </receiver>
+300    </application>
+301
+302</manifest>

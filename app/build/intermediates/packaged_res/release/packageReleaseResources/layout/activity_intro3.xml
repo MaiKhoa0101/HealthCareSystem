@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:id="@+id/intro3"
+    android:background="@drawable/background"
+    >
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/doctor"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LÀ 1 DIỄN ĐÀN VÌ\nSỨC KHỎE NGƯỜI VIỆT"
+        android:textSize="25dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sẵn sàng giải đáp và hỗ trợ"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="150dp"
+        android:textColor="@color/black"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_margin="10dp">
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="140dp"
+            android:layout_height="60dp"
+            android:text="TRỞ LẠI"
+            android:layout_margin="20dp"
+            android:backgroundTint="@color/grey"
+            android:textColor="@color/black"/>
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="140dp"
+            android:layout_height="60dp"
+            android:layout_margin="20dp"
+            android:text="TIẾP TỤC"
+            android:backgroundTint="@color/bluetheme"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+</LinearLayout>
