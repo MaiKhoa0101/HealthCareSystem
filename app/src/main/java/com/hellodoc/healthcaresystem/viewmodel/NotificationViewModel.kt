@@ -8,12 +8,13 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NotificationR
 import com.hellodoc.healthcaresystem.model.repository.NotificationRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class NotificationViewModel(
+class NotificationViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferences,
     private val notificationRepository: NotificationRepository
 ) : ViewModel() {

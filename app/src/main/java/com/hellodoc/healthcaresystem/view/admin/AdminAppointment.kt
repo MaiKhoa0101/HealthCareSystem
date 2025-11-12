@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -27,10 +28,10 @@ import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 
 @Composable
-fun AppointmentManagerScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
-    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences, dao) }
-    })
+fun AppointmentManagerScreen(
+    appointViewModel: AppointmentViewModel = hiltViewModel(),
+    sharedPreferences: SharedPreferences, dao: AppointmentDao
+) {
 
     val searchQuery = remember { mutableStateOf("") }
     val filteredAppointments by appointViewModel.filteredAppointments.collectAsState()
@@ -70,6 +71,7 @@ fun AppointmentManagerScreen(sharedPreferences: SharedPreferences, dao: Appointm
 
             // Gọi bảng danh sách đã lọc
             TableDesign(
+                appointViewModel = appointViewModel,
                 sharedPreferences = sharedPreferences,
                 filteredAppointments = filteredAppointments,
                 dao
@@ -114,10 +116,12 @@ fun SearchBar() {
 }
 
 @Composable
-fun TableDesign(sharedPreferences: SharedPreferences, filteredAppointments: List<AppointmentResponse>, dao: AppointmentDao) {
-    val appointViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences, dao) }
-    })
+fun TableDesign(
+    appointViewModel: AppointmentViewModel = hiltViewModel(),
+    sharedPreferences: SharedPreferences,
+    filteredAppointments: List<AppointmentResponse>,
+    dao: AppointmentDao
+) {
 
     var appointmentToDelete by remember { mutableStateOf<String?>(null) }
 

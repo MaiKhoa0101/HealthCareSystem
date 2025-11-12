@@ -65,10 +65,7 @@ object ApiKeyManager {
 }
 
 // Helper class để xử lý media và gọi API
-@HiltViewModel
-class GeminiHelper @Inject constructor(
-    postRepository: PostRepository
-) {
+class GeminiHelper() {
 
     // Gửi yêu cầu đến Gemini API với logic xoay key
     private suspend fun sendRequestWithRetry(request: GeminiRequest): String {

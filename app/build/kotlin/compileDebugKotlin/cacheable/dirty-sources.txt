@@ -16,6 +16,7 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\datacl
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\doctor\RegisterClinic.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\core\common\activity\BaseActivity.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\startscreen\StartScreen.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\FAQRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\admin\AdminNews.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\admin\verifyPage.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\viewmodel\RemoteMedicalOptionViewModel.kt
@@ -28,11 +29,14 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\datacl
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\AdminRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\startscreen\VerifyOtpSignUpAcctivity.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\personal\FavoriteManager.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\DoctorRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\responsemodel\modeluser\DataProfile.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\AppointmentRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\core\common\skeletonloading\SkeletonBox.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\booking\ui\theme\Color.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\root\MainApplication.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\FAQItemService.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\NewsRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\viewmodel\notification\MyFirebaseMessagingService.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\viewmodel\AppointmentViewModel.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\responsemodel\Notification.kt
@@ -48,6 +52,7 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\ho
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\doctor\RatingReviewColumn.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\fasttalk\BottomSection.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\startscreen\SignIn.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\NotificationRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\responsemodel\ChatMessage.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\MedicalOptionService.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\doctor\DoctorProfile.kt
@@ -77,8 +82,10 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\datacl
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\startscreen\SecondSignUp.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\post\InteractPostManager.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\core\common\utils\PhoneCallUtils.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\GeminiRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\ui\theme\Theme.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\ReviewRequest.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\PostRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\googleSignInRequest.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\AdminService.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\PostService.kt
@@ -123,6 +130,7 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\ho
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\GeminiRequest.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\root\Footbar.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\UpdateUser.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\MedicalOptionRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\Notification.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\UserRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\viewmodel\ReportViewModel.kt
@@ -140,6 +148,7 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\po
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\booking\ui\theme\Theme.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\doctor\InfomationColumn.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\startscreen\Intro2.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\SpecialtyRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\ReviewService.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\fasttalk\FastTalk.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\ui\theme\Color.kt

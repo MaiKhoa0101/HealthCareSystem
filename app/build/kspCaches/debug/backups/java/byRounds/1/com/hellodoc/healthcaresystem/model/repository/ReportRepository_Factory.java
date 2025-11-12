@@ -8,7 +8,7 @@ import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
 import javax.annotation.processing.Generated;
 
-@ScopeMetadata
+@ScopeMetadata("javax.inject.Singleton")
 @QualifierMetadata
 @DaggerGenerated
 @Generated(
