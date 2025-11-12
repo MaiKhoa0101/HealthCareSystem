@@ -17,8 +17,12 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ChatMessage
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Specialty
+import com.hellodoc.healthcaresystem.model.repository.DoctorRepository
+import com.hellodoc.healthcaresystem.model.repository.PostRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.view.user.supportfunction.extractFrames
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,7 +65,10 @@ object ApiKeyManager {
 }
 
 // Helper class để xử lý media và gọi API
-class GeminiHelper {
+@HiltViewModel
+class GeminiHelper @Inject constructor(
+    postRepository: PostRepository
+) {
 
     // Gửi yêu cầu đến Gemini API với logic xoay key
     private suspend fun sendRequestWithRetry(request: GeminiRequest): String {
@@ -250,7 +257,12 @@ class GeminiHelper {
     private fun ByteArray.encodeBase64(): String = Base64.encodeToString(this, Base64.NO_WRAP)
 }
 
-class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+@HiltViewModel
+class GeminiViewModel @Inject constructor(
+    private val sharedPreferences: SharedPreferences,
+    private val postRepository: PostRepository,
+    private val doctorRepository:DoctorRepository
+) : ViewModel() {
     private val _question = MutableStateFlow("")
     val question: StateFlow<String> get() = _question
 
@@ -443,7 +455,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     // Xử lý query về bài viết
     private suspend fun handleArticleQuery(originalQuery: String, analysis: QueryAnalysis) {
         Log.d("GeminiViewModel", "Handling article query: ${analysis.articleKeyword}")
-        val searchResponse = RetrofitInstance.postService.searchAdvanced(analysis.articleKeyword)
+        val searchResponse = postRepository.searchAdvanced(analysis.articleKeyword)
 
         if (!searchResponse.isSuccessful) {
             _chatMessages.update {
@@ -614,7 +626,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     // Helper functions để tìm kiếm database
     private suspend fun searchDoctorByName(doctorName: String): List<GetDoctorResponse> {
         return try {
-            val response = RetrofitInstance.doctor.getDoctorByName(doctorName)
+            val response = doctorRepository.getDoctorByName(doctorName)
             if (response.isSuccessful) response.body() ?: emptyList() else emptyList()
         } catch (e: Exception) {
             emptyList()
@@ -623,7 +635,7 @@ class GeminiViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
     private suspend fun searchDoctorsBySpecialty(specialty: String): List<GetDoctorResponse> {
         return try {
-            val response = RetrofitInstance.doctor.getDoctorBySpecialtyName(specialty)
+            val response = doctorRepository.getDoctorBySpecialtyName(specialty)
             if (response.isSuccessful) response.body() ?: emptyList() else emptyList()
         } catch (e: Exception) {
             emptyList()

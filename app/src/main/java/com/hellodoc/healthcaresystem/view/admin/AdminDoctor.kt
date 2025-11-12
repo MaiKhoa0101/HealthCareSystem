@@ -31,7 +31,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 @Composable
 fun DoctorListScreen(
     modifier: Modifier = Modifier,
-    userViewModel: UserViewModel = hiltViewModel() // ✅ Dùng Hilt
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 

@@ -15,10 +15,10 @@ import javax.annotation.processing.Generated;
 
 @Generated("dagger.hilt.android.processor.internal.viewmodel.ViewModelProcessor")
 @OriginatingElement(
-    topLevelClass = UserViewModel.class
+    topLevelClass = GeminiViewModel.class
 )
-public final class UserViewModel_HiltModules {
-  private UserViewModel_HiltModules() {
+public final class GeminiViewModel_HiltModules {
+  private GeminiViewModel_HiltModules() {
   }
 
   @Module
@@ -29,9 +29,9 @@ public final class UserViewModel_HiltModules {
 
     @Binds
     @IntoMap
-    @LazyClassKey(UserViewModel.class)
+    @LazyClassKey(GeminiViewModel.class)
     @HiltViewModelMap
-    public abstract ViewModel binds(UserViewModel vm);
+    public abstract ViewModel binds(GeminiViewModel vm);
   }
 
   @Module
@@ -42,7 +42,7 @@ public final class UserViewModel_HiltModules {
 
     @Provides
     @IntoMap
-    @LazyClassKey(UserViewModel.class)
+    @LazyClassKey(GeminiViewModel.class)
     @HiltViewModelMap.KeySet
     public static boolean provide() {
       return true;

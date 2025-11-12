@@ -1,7 +1,7 @@
-package com.hellodoc.healthcaresystem.viewmodel;
+package com.hellodoc.healthcaresystem.model.repository;
 
 import android.content.SharedPreferences;
-import com.hellodoc.healthcaresystem.model.repository.UserRepository;
+import com.hellodoc.healthcaresystem.api.GeminiService;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Provider;
@@ -25,29 +25,29 @@ import javax.annotation.processing.Generated;
     "deprecation",
     "nullness:initialization.field.uninitialized"
 })
-public final class UserViewModel_Factory implements Factory<UserViewModel> {
-  private final Provider<UserRepository> repositoryProvider;
+public final class GeminiRepository_Factory implements Factory<GeminiRepository> {
+  private final Provider<GeminiService> geminiServiceProvider;
 
   private final Provider<SharedPreferences> sharedPreferencesProvider;
 
-  private UserViewModel_Factory(Provider<UserRepository> repositoryProvider,
+  private GeminiRepository_Factory(Provider<GeminiService> geminiServiceProvider,
       Provider<SharedPreferences> sharedPreferencesProvider) {
-    this.repositoryProvider = repositoryProvider;
+    this.geminiServiceProvider = geminiServiceProvider;
     this.sharedPreferencesProvider = sharedPreferencesProvider;
   }
 
   @Override
-  public UserViewModel get() {
-    return newInstance(repositoryProvider.get(), sharedPreferencesProvider.get());
+  public GeminiRepository get() {
+    return newInstance(geminiServiceProvider.get(), sharedPreferencesProvider.get());
   }
 
-  public static UserViewModel_Factory create(Provider<UserRepository> repositoryProvider,
+  public static GeminiRepository_Factory create(Provider<GeminiService> geminiServiceProvider,
       Provider<SharedPreferences> sharedPreferencesProvider) {
-    return new UserViewModel_Factory(repositoryProvider, sharedPreferencesProvider);
+    return new GeminiRepository_Factory(geminiServiceProvider, sharedPreferencesProvider);
   }
 
-  public static UserViewModel newInstance(UserRepository repository,
+  public static GeminiRepository newInstance(GeminiService geminiService,
       SharedPreferences sharedPreferences) {
-    return new UserViewModel(repository, sharedPreferences);
+    return new GeminiRepository(geminiService, sharedPreferences);
   }
 }

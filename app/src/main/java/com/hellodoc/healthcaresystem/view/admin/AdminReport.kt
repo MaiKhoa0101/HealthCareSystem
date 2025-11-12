@@ -31,54 +31,39 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import kotlinx.coroutines.launch
 
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewReportListScreen() {
-    ReportManagerScreen()
-}
-
-@Composable
-fun ReportManagerScreen() {
+fun ReportManagerScreen(
+    reportViewModel: ReportViewModel = hiltViewModel() // (1) Lấy VM từ Hilt
+) {
     val backgroundColor = Color(0xFFF4F5F7)
-    val reportList = remember { mutableStateListOf<ComplaintData>() }
-    val coroutineScope = rememberCoroutineScope()
+
+    // (2) Lấy dữ liệu TRỰC TIẾP từ ViewModel StateFlow
+    val reportList by reportViewModel.reportList.collectAsState()
+
+    // XÓA: val reportList = remember { mutableStateListOf<ComplaintData>() }
+    // XÓA: val coroutineScope = rememberCoroutineScope()
+
     var selectedComplaint by remember { mutableStateOf<ComplaintData?>(null) }
     val navController = rememberNavController()
 
+    // (3) Yêu cầu ViewModel tải dữ liệu khi màn hình khởi động
     LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            try {
-                val response = RetrofitInstance.reportService.getAllReports()
-                reportList.clear()
-                response.forEachIndexed { index, report ->
-                    reportList.add(
-                        ComplaintData(
-                            id = (index + 1).toString(),
-                            reportId = report._id,
-                            user = report.reporter?.name ?: "Không rõ",
-                            content = report.content ?: "Không có nội dung",
-                            targetType = report.type ?: "Không xác định",
-                            status = report.status ?: "opened",
-                            createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
-                            reportedId = report.reportedId ?: "Không rõ",
-                            postId = report.postId
-                        )
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        reportViewModel.getAllReport()
     }
+
+    // XÓA: LaunchedEffect(Unit) { ... gọi RetrofitInstance ... }
+
     NavHost(navController = navController, startDestination = "ReportMain") {
         composable("ReportMain") {
             Box(
@@ -95,6 +80,7 @@ fun ReportManagerScreen() {
                             fontWeight = FontWeight.Bold
                         )
 
+                        // (4) Truyền `reportList` từ state vào
                         ComplaintStatsScreen(reportList = reportList)
 
                         Text(
@@ -107,9 +93,10 @@ fun ReportManagerScreen() {
                                 .padding(16.dp)
                         )
                         TableReport(
-                            reportList = reportList,
+                            reportList = reportList, // (5) Truyền `reportList` từ state vào
                             onDetailClick = { selectedComplaint = it },
-                            navController = navController
+                            navController = navController,
+                            reportViewModel = reportViewModel // (6) Truyền VM xuống để xử lý 'delete'
                         )
                     }
                 }
@@ -228,10 +215,10 @@ fun ReportManagerScreen() {
 fun TableReport(
     reportList: List<ComplaintData>,
     onDetailClick: (ComplaintData) -> Unit,
-    navController: NavController
+    navController: NavController,
+    reportViewModel: ReportViewModel
 ){
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     LazyRow {
         item {
             Column {
@@ -334,20 +321,7 @@ fun TableReport(
                                             },
                                             onClick = {
                                                 expanded = false
-                                                coroutineScope.launch {
-                                                    if (complaint.status == "opened") {
-                                                        Toast.makeText(context, "Chưa thể xóa khiếu nại đang chờ xử lý", Toast.LENGTH_SHORT).show()
-                                                        return@launch
-                                                    }
-
-                                                    val result = RetrofitInstance.reportService.deleteReport(complaint.reportId)
-                                                    if (result.isSuccessful) {
-                                                        (reportList as MutableList).remove(complaint)
-                                                        Toast.makeText(context, "Đã xóa khiếu nại", Toast.LENGTH_SHORT).show()
-                                                    } else {
-                                                        Toast.makeText(context, "Xóa thất bại", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                }
+                                                reportViewModel.deleteReport(complaint.reportId, context)
                                             }
 
                                         )

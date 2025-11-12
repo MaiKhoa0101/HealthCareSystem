@@ -41,6 +41,7 @@ E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\ho
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\responsemodel\ReviewResponse.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\responsemodel\SignUpResponse.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\api\SpecialtyService.kt
+E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\repository\ReportRepository.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\admin\AdminClarify.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\model\dataclass\requestmodel\AdminRequest.kt
 E:\HealthCareSystem\app\src\main\java\com\hellodoc\healthcaresystem\view\user\home\booking\Appointment.kt

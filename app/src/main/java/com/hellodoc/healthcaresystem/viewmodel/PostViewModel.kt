@@ -20,7 +20,10 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostRe
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
-import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.repository.GeminiRepository
+import com.hellodoc.healthcaresystem.model.repository.PostRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -45,9 +48,14 @@ import kotlin.collections.plus
 import kotlin.text.trim
 
 
-class PostViewModel(
+@HiltViewModel
+class PostViewModel @Inject constructor(
+    private val postRepository: PostRepository,
+    private val geminiRepository: GeminiRepository,
     private val sharedPreferences: SharedPreferences,
     private val geminiHelper: GeminiHelper
+
+
     ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
@@ -95,7 +103,7 @@ class PostViewModel(
         if (_isLoading.value) return false
         _isLoading.value = true
         return try {
-            val response = RetrofitInstance.postService.getAllPosts(skip, limit)
+            val response = postRepository.getAllPosts(skip, limit)
             if (response.isSuccessful) {
                 println("Get post: "+response.body())
                 val result = response.body()
@@ -133,7 +141,7 @@ class PostViewModel(
         _isLoading.value = true
 
         return try {
-            val response = RetrofitInstance.postService.getPostByUserId(userId, skip, limit)
+            val response = postRepository.getPostByUserId(userId, skip, limit)
 
             if (response.isSuccessful) {
                 println("Get post: " + response.body())
@@ -169,7 +177,7 @@ class PostViewModel(
 
     suspend fun fetchComments(postId: String, skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
         return try {
-            val response = RetrofitInstance.postService.getCommentByPostId(postId, skip, limit)
+            val response = postRepository.getCommentByPostId(postId, skip, limit)
             if (response.isSuccessful) {
                 val result = response.body()
                 val comments = result?.comments ?: emptyList()
@@ -225,7 +233,7 @@ class PostViewModel(
             try {
                 // 1) Lấy post chi tiết
                 val postResult = withContext(Dispatchers.IO) {
-                    RetrofitInstance.postService.getPostById(id)
+                    postRepository.getPostById(id)
                 }
 
                 if (!postResult.isSuccessful) {
@@ -274,7 +282,7 @@ class PostViewModel(
 
     private suspend fun generateEmbedding(id: String, keywords: String) {
         try{
-            val response = RetrofitInstance.postService.createEmbedding(id, keywords)
+            val response = postRepository.createEmbedding(id, keywords)
             if (response.isSuccessful) {
                 Log.d("PostViewModel", "Tạo embedding thành công cho post $id")
             } else {
@@ -340,7 +348,7 @@ class PostViewModel(
     private suspend fun updatePostKeywords(postId: String, keywords: List<String>) {
         try {
             val request = UpdateKeywordsRequest(keywords.joinToString(","))
-            val response = RetrofitInstance.postService.addKeywords(postId, request)
+            val response = postRepository.addKeywords(postId, request)
 
             if (response.isSuccessful) {
                 Log.d("PostViewModel", "Cập nhật keywords thành công cho post $postId")
@@ -389,7 +397,7 @@ class PostViewModel(
                 while (attempts < maxAttempts) {
                     val apiKey = ApiKeyManager.getCurrentKey()
                     try {
-                        val response = RetrofitInstance.geminiService.askGemini(apiKey, request)
+                        val response = geminiRepository.askGemini(apiKey, request)
 
                         if (response.isSuccessful && !response.body()?.candidates.isNullOrEmpty()) {
                             val aiResponse = response.body()!!.candidates.first().content.parts.first().text
@@ -444,11 +452,11 @@ class PostViewModel(
                 val mediaUri = request.media
 
                 val mediaKeywords = async (Dispatchers.IO){
-                        if (mediaUri.isNotEmpty()) {
-                            geminiHelper.readImageAndVideo(context, mediaUri)
-                        }
-                        else emptyList()
+                    if (mediaUri.isNotEmpty()) {
+                        geminiHelper.readImageAndVideo(context, mediaUri)
                     }
+                    else emptyList()
+                }
                 val allKeywords = (contentKeywords.await() + mediaKeywords.await())
                     .map { it.trim() }.filter { it.isNotEmpty() }.distinct().take(10)
 
@@ -502,7 +510,7 @@ class PostViewModel(
                 }
 
                 // 4) Gọi API — tiến trình nhảy mỗi khi 1 file xong
-                val response = RetrofitInstance.postService.createPost(
+                val response = postRepository.createPost(
                     userIdPart, userModelPart, contentPart, imageParts, keywordsPart
                 )
 
@@ -531,9 +539,9 @@ class PostViewModel(
                 println("Lỗi: ${e.message}")
             } finally {
                 // Cho người dùng thấy 100% một nhịp rồi reset (tùy bạn):
-                 delay(2000)
-                 _uploadProgress.value = 0f
-                 _uiStatePost.value = UiState.Idle
+                delay(2000)
+                _uploadProgress.value = 0f
+                _uiStatePost.value = UiState.Idle
             }
         }
     }
@@ -594,7 +602,7 @@ class PostViewModel(
     fun fetchFavoriteForPost(postId: String, userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getFavoriteByPostId(postId, userId)
+                val response = postRepository.getFavoriteByPostId(postId, userId)
                 if (response.isSuccessful) {
                     val isFavorited = response.body()?.isFavorited ?: false
                     val totalFavorites = response.body()?.totalFavorites?.toString() ?: "0"
@@ -612,7 +620,7 @@ class PostViewModel(
         viewModelScope.launch {
             try {
                 println("updateFavoriteForPost: $postId, $userFavouriteId, $userFavouriteModel")
-                val response = RetrofitInstance.postService.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userFavouriteId, userFavouriteModel))
+                val response = postRepository.updateFavoriteByPostId(postId, UpdateFavoritePostRequest(userFavouriteId, userFavouriteModel))
                 if (response.isSuccessful) {
                     println("updateFavoriteForPost thanh cong")
                     val isFavorited = response.body()?.isFavorited ?: false
@@ -633,7 +641,7 @@ class PostViewModel(
                 print("DATA truyen tu send comment $userId, $userModel, $content")
                 Log.d("sendComment", "➡ Gửi comment với postId=$postId, userId=$userId, userModel=$userModel, content=$content")
 
-                val response = RetrofitInstance.postService.createCommentByPostId(
+                val response = postRepository.createCommentByPostId(
                     postId,
                     CreateCommentPostRequest(userId, userModel, content)
                 )
@@ -655,7 +663,7 @@ class PostViewModel(
     fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
             try {
-                RetrofitInstance.postService.updateCommentById(
+                postRepository.updateCommentById(
                     commentId,
                     CreateCommentPostRequest(userId, userModel, content)
                 )
@@ -671,7 +679,7 @@ class PostViewModel(
     fun getPostCommentByUserId(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getCommentByUserId(userId)
+                val response = postRepository.getCommentByUserId(userId)
                 if (response.isSuccessful) {
                     _userComments.value = response.body() ?: emptyList()
                     Log.d("userCommentManager", "Get user comment success")
@@ -687,7 +695,7 @@ class PostViewModel(
     fun deleteComment(commentId: String, postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.deleteCommentById(commentId)
+                val response = postRepository.deleteCommentById(commentId)
                 if (response.isSuccessful) {
                     fetchComments(postId) // Refresh danh sách bình luận
                 } else {
@@ -705,7 +713,7 @@ class PostViewModel(
     fun getPostFavoriteByUserId(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getUserFavoritePost(userId)
+                val response = postRepository.getUserFavoritePost(userId)
                 if (response.isSuccessful) {
                     _userFavorites.value = response.body() ?: emptyList()
                     Log.d("userFavoriteManager", "Get user favorite success")
@@ -721,7 +729,7 @@ class PostViewModel(
     fun deletePost(postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.deletePostById(postId)
+                val response = postRepository.deletePostById(postId)
                 if (response.isSuccessful) {
                     fetchPosts() // cập nhật lại danh sách
                 } else {
@@ -762,7 +770,7 @@ class PostViewModel(
                     }
                 } ?: emptyList()
 
-                val response = RetrofitInstance.postService.updatePost(
+                val response = postRepository.updatePost(
                     postId = postId,
                     content = contentPart,
                     media = mediaParts,
@@ -800,7 +808,7 @@ class PostViewModel(
     fun getSimilarPosts(postId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.postService.getSimilarPosts(postId, 10, 0.6)
+                val response = postRepository.getSimilarPosts(postId, 10, 0.6)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
                     val similarPostsResponse = response.body() ?: emptyList()
@@ -808,7 +816,7 @@ class PostViewModel(
                 } else {
                     Log.e("PostViewModel", "Get Similar Posts failed: ${response.errorBody()?.string()}")
                 }
-                }
+            }
             catch (e: Exception) {
                 Log.e("PostViewModel", "Get Similar Posts Error", e)
             }

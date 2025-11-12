@@ -127,7 +127,7 @@ interface PostService {
 
     @GET("post/{id}/similar")
     suspend fun getSimilarPosts(
-        @Path("id") id: String,
+        @Path("id") postId: String,
         @Query("limit") limit: Int = 5,
         @Query("minSimilarity") minSimilarity: Double = 0.6
     ): Response<List<SimilarPostResponse>>

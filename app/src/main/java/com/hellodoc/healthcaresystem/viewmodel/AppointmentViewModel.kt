@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.model.repository.AppointmentRepository
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
@@ -15,9 +16,13 @@ import com.hellodoc.healthcaresystem.roomDb.mapper.isValid
 import com.hellodoc.healthcaresystem.roomDb.mapper.toEntity
 import com.hellodoc.healthcaresystem.roomDb.mapper.toEntitySafe
 import com.hellodoc.healthcaresystem.roomDb.mapper.toResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.launch
 
-class AppointmentViewModel(
+@HiltViewModel
+class AppointmentViewModel @Inject constructor(
+    private val appointmentRepository: AppointmentRepository,
     private val sharedPreferences: SharedPreferences,
     private val appointmentDao: AppointmentDao
 ) : ViewModel() {
@@ -57,7 +62,7 @@ class AppointmentViewModel(
         viewModelScope.launch {
             try {
                 println("Bắt đầu fetch appointments...")
-                val response = RetrofitInstance.appointment.getAllAppointments()
+                val response = appointmentRepository.getAllAppointments()
 
                 if (response.isSuccessful) {
                     val appointments = response.body() ?: emptyList()
@@ -130,7 +135,7 @@ class AppointmentViewModel(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val response = RetrofitInstance.appointment.getAppointmentUser(patientId)
+                val response = appointmentRepository.getAppointmentUser(patientId)
                 if(response.isSuccessful){
                     val apiData = response.body()?.reversed() ?: emptyList()
                     _appointmentsUser.value = apiData
@@ -194,7 +199,7 @@ class AppointmentViewModel(
     fun getAppointmentDoctor(doctorId: String) {
         viewModelScope.launch {
             try {
-                val response  = RetrofitInstance.appointment.getAppointmentDoctor(doctorId)
+                val response  = appointmentRepository.getAppointmentDoctor(doctorId)
                 if(response .isSuccessful){
                     val apiData = response.body() ?: emptyList()
                     _appointmentsDoctor.value = apiData
@@ -258,7 +263,7 @@ class AppointmentViewModel(
         if (token != null) {
             viewModelScope.launch {
                 try {
-                    val response = RetrofitInstance.appointment.createAppointment(token, createAppointmentRequest)
+                    val response = appointmentRepository.createAppointment(token, createAppointmentRequest)
                     if (response.isSuccessful) {
                         val result = response.body()
                         Log.d("Book", "Thành công: ${result?.message}")
@@ -293,7 +298,7 @@ class AppointmentViewModel(
     fun cancelAppointment(appointmentId: String, userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.appointment.cancelAppointment(appointmentId)
+                val response = appointmentRepository.cancelAppointment(appointmentId)
                 if(response.isSuccessful) {
                     val result = response.body()
                     Log.d("Cancel", "Thành công: ${result?.message}")
@@ -313,7 +318,7 @@ class AppointmentViewModel(
     fun updateAppointment(patientID: String, appointmentId: String, appointmentData: UpdateAppointmentRequest){
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.appointment.updateAppointment(appointmentId, appointmentData)
+                val response = appointmentRepository.updateAppointment(appointmentId, appointmentData)
                 if(response.isSuccessful) {
                     val result = response.body()
                     Log.d("Update", "Thành công: ${result?.message}")
@@ -333,7 +338,7 @@ class AppointmentViewModel(
     fun deleteAppointment(appointmentId: String, userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.appointment.deleteAppointmentById(appointmentId)
+                val response = appointmentRepository.deleteAppointmentById(appointmentId)
                 if(response.isSuccessful) {
                     val result = response.body()
                     Log.d("Delete", "Thành công: ${result?.message}")
@@ -353,7 +358,7 @@ class AppointmentViewModel(
     fun adminDeleteAppointment(appointmentId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.appointment.deleteAppointmentById(appointmentId)
+                val response = appointmentRepository.deleteAppointmentById(appointmentId)
                 if(response.isSuccessful) {
                     val result = response.body()
                     Log.d("Delete", "Thành công: ${result?.message}")
@@ -372,7 +377,7 @@ class AppointmentViewModel(
     fun confirmAppointmentDone(appointmentId: String, userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.appointment.confirmAppointment(appointmentId)
+                val response = appointmentRepository.confirmAppointment(appointmentId)
                 if (response.isSuccessful) {
                     Log.d("Confirm", "Xác nhận đã hoàn thành")
                     getAppointmentUser(userId)

@@ -22,21 +22,21 @@ import javax.annotation.processing.Generated;
     "deprecation",
     "nullness:initialization.field.uninitialized"
 })
-public final class UserViewModel_HiltModules_KeyModule_ProvideFactory implements Factory<Boolean> {
+public final class ReportViewModel_HiltModules_KeyModule_ProvideFactory implements Factory<Boolean> {
   @Override
   public Boolean get() {
     return provide();
   }
 
-  public static UserViewModel_HiltModules_KeyModule_ProvideFactory create() {
+  public static ReportViewModel_HiltModules_KeyModule_ProvideFactory create() {
     return InstanceHolder.INSTANCE;
   }
 
   public static boolean provide() {
-    return UserViewModel_HiltModules.KeyModule.provide();
+    return ReportViewModel_HiltModules.KeyModule.provide();
   }
 
   private static final class InstanceHolder {
-    static final UserViewModel_HiltModules_KeyModule_ProvideFactory INSTANCE = new UserViewModel_HiltModules_KeyModule_ProvideFactory();
+    static final ReportViewModel_HiltModules_KeyModule_ProvideFactory INSTANCE = new ReportViewModel_HiltModules_KeyModule_ProvideFactory();
   }
 }

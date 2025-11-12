@@ -8,8 +8,8 @@ import javax.annotation.processing.Generated;
  */
 @AggregatedDeps(
     components = "dagger.hilt.android.components.ActivityRetainedComponent",
-    modules = "com.hellodoc.healthcaresystem.viewmodel.UserViewModel_HiltModules.KeyModule"
+    modules = "com.hellodoc.healthcaresystem.viewmodel.ReportViewModel_HiltModules.KeyModule"
 )
 @Generated("dagger.hilt.processor.internal.aggregateddeps.AggregatedDepsGenerator")
-public class _com_hellodoc_healthcaresystem_viewmodel_UserViewModel_HiltModules_KeyModule {
+public class _com_hellodoc_healthcaresystem_viewmodel_ReportViewModel_HiltModules_KeyModule {
 }

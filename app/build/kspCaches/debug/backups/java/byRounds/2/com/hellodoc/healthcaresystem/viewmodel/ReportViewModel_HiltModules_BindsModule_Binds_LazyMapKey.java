@@ -20,9 +20,9 @@ import javax.annotation.processing.Generated;
     "deprecation",
     "nullness:initialization.field.uninitialized"
 })
-public final class UserViewModel_HiltModules_BindsModule_Binds_LazyMapKey {
+public final class ReportViewModel_HiltModules_BindsModule_Binds_LazyMapKey {
   @KeepFieldType
-  static UserViewModel keepFieldType;
+  static ReportViewModel keepFieldType;
 
-  public static String lazyClassKeyName = "com.hellodoc.healthcaresystem.viewmodel.UserViewModel";
+  public static String lazyClassKeyName = "com.hellodoc.healthcaresystem.viewmodel.ReportViewModel";
 }
