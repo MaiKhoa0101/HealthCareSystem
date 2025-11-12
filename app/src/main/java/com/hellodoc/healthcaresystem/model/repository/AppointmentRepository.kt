@@ -41,6 +41,11 @@ class AppointmentRepository @Inject constructor(
         appointmentId,
         appointmentData
     )
+    suspend fun getDoctorStats(
+        doctorId: String
+    ) = appointmentService.getDoctorStats(doctorId)
+
+
     suspend fun clearAppointments() = appointmentDao.clearAppointments()
     suspend fun clearPatientAppointments(patientId: String) = appointmentDao.clearPatientAppointments(patientId)
     suspend fun clearDoctorAppointments(doctorId: String) = appointmentDao.clearDoctorAppointments(doctorId)
