@@ -8,9 +8,11 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.view.admin.AdminRoot
 import com.hellodoc.healthcaresystem.view.user.home.root.HomeActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class Intro1 : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

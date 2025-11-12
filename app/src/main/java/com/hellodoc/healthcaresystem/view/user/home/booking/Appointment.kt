@@ -47,7 +47,7 @@ import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(navHostController: NavHostController, dao: AppointmentDao) {
+fun AppointmentListScreen(navHostController: NavHostController) {
 
     val userViewModel: UserViewModel = hiltViewModel()
     val appointmentViewModel: AppointmentViewModel = hiltViewModel()

@@ -2,6 +2,20 @@ package com.hellodoc.healthcaresystem.view.user.home.root;
 
 import com.hellodoc.healthcaresystem.model.di.DatabaseModule;
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance;
+import com.hellodoc.healthcaresystem.view.admin.AdminRoot_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ForgotPasswordActivity_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro1_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro3_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordActivity_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordSuccessActivity_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SecondSignUp_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUpSuccess_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUp_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpActivity_GeneratedInjector;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpSignUpAcctivity_GeneratedInjector;
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel_HiltModules;
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel_HiltModules;
 import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel_HiltModules;
@@ -204,7 +218,22 @@ public final class MyApp_HiltComponents {
       }
   )
   @ActivityScoped
-  public abstract static class ActivityC implements ActivityComponent,
+  public abstract static class ActivityC implements AdminRoot_GeneratedInjector,
+      HomeActivity_GeneratedInjector,
+      ForgotPasswordActivity_GeneratedInjector,
+      Intro1_GeneratedInjector,
+      Intro2_GeneratedInjector,
+      Intro3_GeneratedInjector,
+      ResetPasswordActivity_GeneratedInjector,
+      ResetPasswordSuccessActivity_GeneratedInjector,
+      SecondSignUp_GeneratedInjector,
+      SignIn_GeneratedInjector,
+      SignUpSuccess_GeneratedInjector,
+      SignUp_GeneratedInjector,
+      StartScreen_GeneratedInjector,
+      VerifyOtpActivity_GeneratedInjector,
+      VerifyOtpSignUpAcctivity_GeneratedInjector,
+      ActivityComponent,
       DefaultViewModelFactories.ActivityEntryPoint,
       HiltWrapper_HiltViewModelFactory_ActivityCreatorEntryPoint,
       FragmentComponentManager.FragmentComponentBuilderEntryPoint,

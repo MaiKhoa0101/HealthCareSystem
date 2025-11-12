@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun ConfirmBookingScreen(context: Context, navHostController: NavHostController, dao: AppointmentDao) {
+fun ConfirmBookingScreen(context: Context, navHostController: NavHostController) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val appointmentViewModel: AppointmentViewModel = hiltViewModel()
 

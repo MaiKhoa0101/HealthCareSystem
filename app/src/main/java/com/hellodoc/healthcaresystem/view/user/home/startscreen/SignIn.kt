@@ -37,7 +37,9 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.GoogleLoginRequest
 import com.hellodoc.healthcaresystem.view.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.view.user.home.root.showToast
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SignIn : BaseActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var progressBar: ProgressBar

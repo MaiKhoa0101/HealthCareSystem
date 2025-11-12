@@ -54,6 +54,20 @@ import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance_ProvideSpec
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance_ProvideUserServiceFactory;
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao;
 import com.hellodoc.healthcaresystem.roomDb.data.database.AppDatabase;
+import com.hellodoc.healthcaresystem.view.admin.AdminRoot;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ForgotPasswordActivity;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro1;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro3;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordActivity;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordSuccessActivity;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SecondSignUp;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUp;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUpSuccess;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpActivity;
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpSignUpAcctivity;
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel;
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel_HiltModules;
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
@@ -448,6 +462,67 @@ public final class DaggerMyApp_HiltComponents_SingletonC {
       this.activityRetainedCImpl = activityRetainedCImpl;
 
 
+    }
+
+    @Override
+    public void injectAdminRoot(AdminRoot adminRoot) {
+    }
+
+    @Override
+    public void injectHomeActivity(HomeActivity homeActivity) {
+    }
+
+    @Override
+    public void injectForgotPasswordActivity(ForgotPasswordActivity forgotPasswordActivity) {
+    }
+
+    @Override
+    public void injectIntro1(Intro1 intro1) {
+    }
+
+    @Override
+    public void injectIntro2(Intro2 intro2) {
+    }
+
+    @Override
+    public void injectIntro3(Intro3 intro3) {
+    }
+
+    @Override
+    public void injectResetPasswordActivity(ResetPasswordActivity resetPasswordActivity) {
+    }
+
+    @Override
+    public void injectResetPasswordSuccessActivity(
+        ResetPasswordSuccessActivity resetPasswordSuccessActivity) {
+    }
+
+    @Override
+    public void injectSecondSignUp(SecondSignUp secondSignUp) {
+    }
+
+    @Override
+    public void injectSignIn(SignIn signIn) {
+    }
+
+    @Override
+    public void injectSignUpSuccess(SignUpSuccess signUpSuccess) {
+    }
+
+    @Override
+    public void injectSignUp(SignUp signUp) {
+    }
+
+    @Override
+    public void injectStartScreen(StartScreen startScreen) {
+    }
+
+    @Override
+    public void injectVerifyOtpActivity(VerifyOtpActivity verifyOtpActivity) {
+    }
+
+    @Override
+    public void injectVerifyOtpSignUpAcctivity(VerifyOtpSignUpAcctivity verifyOtpSignUpAcctivity) {
     }
 
     @Override

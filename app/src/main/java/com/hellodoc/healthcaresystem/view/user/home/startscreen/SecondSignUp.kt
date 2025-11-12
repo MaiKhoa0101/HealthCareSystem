@@ -16,6 +16,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
+import dagger.hilt.android.AndroidEntryPoint
 //import com.example.healthcaresystem.user.SignIn
 //import com.example.healthcaresystem.user.SignUpSuccess
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
+@AndroidEntryPoint
 class SecondSignUp : BaseActivity() {
     private lateinit var email: String
 

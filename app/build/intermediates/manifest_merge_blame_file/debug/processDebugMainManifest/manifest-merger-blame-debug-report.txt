@@ -84,8 +84,8 @@
 41
 42    <application
 42-->E:\HealthCareSystem\app\src\main\AndroidManifest.xml:16:5-116:19
-43        android:name="com.hellodoc.healthcaresystem.view.user.home.root.MainApplication"
-43-->E:\HealthCareSystem\app\src\main\AndroidManifest.xml:18:9-60
+43        android:name="com.hellodoc.healthcaresystem.view.user.home.root.MyApp"
+43-->E:\HealthCareSystem\app\src\main\AndroidManifest.xml:18:9-50
 44        android:allowBackup="true"
 44-->E:\HealthCareSystem\app\src\main\AndroidManifest.xml:17:9-35
 45        android:appComponentFactory="androidx.core.app.CoreComponentFactory"

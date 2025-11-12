@@ -12,8 +12,10 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class ForgotPasswordActivity : BaseActivity() {
     private lateinit var emailInput: EditText
     private lateinit var sendOtpButton: Button

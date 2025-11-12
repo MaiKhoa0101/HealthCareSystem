@@ -3,7 +3,6 @@ package com.hellodoc.healthcaresystem.view.user.home.root
 import android.Manifest
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -27,9 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -66,15 +62,8 @@ import com.hellodoc.healthcaresystem.view.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.view.user.personal.Setting
 import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
-import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
-import com.hellodoc.healthcaresystem.viewmodel.FAQItemViewModel
-import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
-import com.hellodoc.healthcaresystem.viewmodel.GeminiViewModel
-import com.hellodoc.healthcaresystem.viewmodel.MedicalOptionViewModel
-import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
-import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
-import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
 
@@ -82,6 +71,7 @@ public lateinit var firebaseAnalytics: FirebaseAnalytics
 @HiltAndroidApp
 class MyApp : Application()
 
+@AndroidEntryPoint
 class HomeActivity : BaseActivity() {
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -113,7 +103,6 @@ class HomeActivity : BaseActivity() {
         firebaseAnalytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
-        val dao = (application as MainApplication).database.appointmentDao()
 
         enableEdgeToEdge()
         setContent {
@@ -127,7 +116,6 @@ class HomeActivity : BaseActivity() {
                 Index(
                     context = context,
                     navHostController = navHostController,
-                    dao = dao,
                     onToggleTheme = { darkTheme = !darkTheme },
                     darkTheme = darkTheme
                 )
@@ -158,7 +146,6 @@ class HomeActivity : BaseActivity() {
         context: Context,
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao,
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
@@ -183,7 +170,6 @@ class HomeActivity : BaseActivity() {
                 context = context,
                 navHostController = navHostController,
                 modifier = Modifier.padding(paddingValues),
-                dao,
                 onToggleTheme = onToggleTheme,
                 darkTheme = darkTheme
             )
@@ -196,7 +182,6 @@ class HomeActivity : BaseActivity() {
         context: Context,
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
-        dao: AppointmentDao,
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
@@ -222,7 +207,7 @@ class HomeActivity : BaseActivity() {
                 NewsDetailScreen(navHostController)
             }
             composable("appointment") {
-                AppointmentListScreen(navHostController, dao = dao)
+                AppointmentListScreen(navHostController)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
@@ -267,8 +252,7 @@ class HomeActivity : BaseActivity() {
             composable("appointment-detail") {
                 AppointmentDetailScreen(
                     context = context,
-                    navHostController = navHostController,
-                    dao
+                    navHostController = navHostController
                 )
             }
             composable("doctor_list") {
@@ -290,13 +274,12 @@ class HomeActivity : BaseActivity() {
                 Column(modifier = Modifier.fillMaxSize()) {
                     AppointmentDetailScreen(
                         context = context,
-                        navHostController = navHostController,
-                        dao
+                        navHostController = navHostController
                     )
                 }
             }
             composable("booking-confirm") {
-                ConfirmBookingScreen(context = context, navHostController = navHostController, dao)
+                ConfirmBookingScreen(context = context, navHostController = navHostController)
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)

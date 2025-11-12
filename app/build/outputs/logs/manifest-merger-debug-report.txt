@@ -366,7 +366,7 @@ MERGED from [com.google.android.play:core-common:2.0.3] C:\Users\Hi\.gradle\cach
 	android:dataExtractionRules
 		ADDED from E:\HealthCareSystem\app\src\main\AndroidManifest.xml:19:9-65
 	android:name
-		ADDED from E:\HealthCareSystem\app\src\main\AndroidManifest.xml:18:9-60
+		ADDED from E:\HealthCareSystem\app\src\main\AndroidManifest.xml:18:9-50
 meta-data#com.google.firebase.messaging.default_notification_icon
 ADDED from E:\HealthCareSystem\app\src\main\AndroidManifest.xml:31:9-33:49
 	android:resource

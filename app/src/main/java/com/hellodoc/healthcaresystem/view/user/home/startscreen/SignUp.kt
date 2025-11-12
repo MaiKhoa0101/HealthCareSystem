@@ -14,11 +14,12 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.AndroidEntryPoint
 //import com.example.healthcaresystem.user.SignIn
 //import com.example.healthcaresystem.user.SignUpSuccess
 import kotlinx.coroutines.launch
 
-
+@AndroidEntryPoint
 class SignUp : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

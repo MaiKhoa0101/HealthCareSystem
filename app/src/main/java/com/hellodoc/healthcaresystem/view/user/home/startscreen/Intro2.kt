@@ -9,7 +9,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class Intro2 : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

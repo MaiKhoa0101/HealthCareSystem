@@ -15,7 +15,7 @@
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
     <application
         android:allowBackup="true"
-        android:name=".view.user.home.root.MainApplication"
+        android:name=".view.user.home.root.MyApp"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/logo"

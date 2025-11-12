@@ -54,8 +54,7 @@ fun formatDateForServer(input: String): String {
 @Composable
 fun AppointmentDetailScreen(
     context: Context,
-    navHostController: NavHostController,
-    dao: AppointmentDao
+    navHostController: NavHostController
 ) {
 
     println(" appointment detail render duoc")
@@ -251,14 +250,12 @@ fun AppointmentDetailScreen(
                     if (isEditing) {
                         UpdateButton(
                             navHostController = navHostController,
-                            sharedPreferences = sharedPreferences,
                             examinationMethod = examinationMethod,
                             notes = notes,
                             appointmentId = appointmentId,
                             patientID = patientID,
                             date = date,
                             time = time,
-                            dao = dao
                         )
                     } else {
                         BookButton(
@@ -292,14 +289,12 @@ fun AppointmentDetailScreen(
 @Composable
 fun UpdateButton(
     navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
     examinationMethod: MutableState<String>,
     notes: String,
     appointmentId: String,
     patientID: String,
     date: String,
     time: String,
-    dao: AppointmentDao
 ) {
     val appointmentViewModel: AppointmentViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }

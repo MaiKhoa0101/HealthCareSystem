@@ -22,8 +22,10 @@ import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SidebarItem
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.view.user.home.root.MainApplication
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class AdminRoot : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,9 +33,8 @@ class AdminRoot : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
-            val dao = (application as MainApplication).database.appointmentDao()
             HealthCareSystemTheme {
-                AdminScreen(sharedPreferences, dao = dao)
+                AdminScreen(sharedPreferences)
             }
         }
     }
@@ -91,7 +92,7 @@ val sidebarItems = listOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
+fun AdminScreen(sharedPreferences: SharedPreferences) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
