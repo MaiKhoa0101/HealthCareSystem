@@ -28,6 +28,7 @@ package com.hellodoc.healthcaresystem.view.admin
     import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
+    import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
     import androidx.lifecycle.viewmodel.compose.viewModel
     import androidx.lifecycle.viewmodel.initializer
     import androidx.lifecycle.viewmodel.viewModelFactory
@@ -36,21 +37,19 @@ package com.hellodoc.healthcaresystem.view.admin
 
     @Composable
     fun HeadbarAdmin(
-        sharedPreferences: SharedPreferences,
-        opendrawer: ()-> Unit
+        opendrawer: ()-> Unit,
+        userViewModel: UserViewModel = hiltViewModel()
     ) {
         val context = LocalContext.current
-        val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
-            initializer { UserViewModel(sharedPreferences) }
-        })
-        val users by viewModel.users.collectAsState()
+
+        val users by userViewModel.users.collectAsState()
         var userName by remember { mutableStateOf("Người dùng") }
         var role by remember { mutableStateOf("Người dùng") }
 
         LaunchedEffect(Unit) {
-            viewModel.getAllUsers()
-            userName = viewModel.getUserNameFromToken()
-            role = viewModel.getUserRole()
+            userViewModel.getAllUsers()
+            userName = userViewModel.getUserAttribute("name", context)
+            role = userViewModel.getUserAttribute("role",context)
         }
 
         Box(
@@ -107,7 +106,7 @@ package com.hellodoc.healthcaresystem.view.admin
 
                     // Logout Button
                     IconButton(
-                        onClick = { viewModel.logout(context) },
+                        onClick = { userViewModel.logout(context) },
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(

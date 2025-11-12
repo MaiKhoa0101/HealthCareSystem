@@ -48,7 +48,7 @@ class ForgotPasswordActivity : BaseActivity() {
     private fun sendOtpToEmail(email: String) {
         lifecycleScope.launch {
             try {
-                val response = RetrofitInstance.api.requestOtp(EmailRequest(email))
+                val response = RetrofitInstance.api.requestOtp(email)
                 if (response.isSuccessful && response.body() != null) {
                     val otpResponse = response.body()!!
                     Toast.makeText(this@ForgotPasswordActivity, otpResponse.message, Toast.LENGTH_SHORT).show()

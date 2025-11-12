@@ -46,11 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.view.user.personal.InputEditField
@@ -61,12 +59,9 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 @Composable
 fun RegisterClinic(
     navHostController: NavHostController,
-    sharedPreferences: SharedPreferences
 ) {
 
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
 
     Scaffold(
         topBar = { HeadbarResClinic(navHostController) }
@@ -78,7 +73,7 @@ fun RegisterClinic(
                 .padding(horizontal = 10.dp)
         ) {
             item {
-                ContentRegistrationForm(doctorViewModel, sharedPreferences, navHostController = navHostController)
+                ContentRegistrationForm(doctorViewModel, navHostController = navHostController)
             }
         }
     }
@@ -115,15 +110,12 @@ fun HeadbarResClinic(navHostController: NavHostController) {
 @Composable
 fun ContentRegistrationForm(
     viewModel: DoctorViewModel,
-    sharedPreferences: SharedPreferences,
     navHostController: NavHostController
 ) {
     var userId by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
-    })
+    val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
     val specialties by specialtyViewModel.specialties.collectAsState()
 
     val isLoading = viewModel.loading.value
@@ -147,26 +139,21 @@ fun ContentRegistrationForm(
                 frontCccdUri != null && backCccdUri != null && faceUri != null && licenseUri != null
     }
 
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
 
-    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
-
-    val applyMessage by viewModel.applyMessage.collectAsState()
+    val applyMessage by doctorViewModel.applyMessage.collectAsState()
 
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
-        userId = userViewModel.getUserAttributeString("userId")
+        userId = userViewModel.getUserAttribute("userId",context)
     }
 
     LaunchedEffect(applyMessage) {
         Log.d("DEBUG", "applyMessage changed: $applyMessage")
         if (applyMessage == "success") {
             navHostController.popBackStack()
-            viewModel.setApplyMessage("")
+            doctorViewModel.setApplyMessage("")
         }
     }
 
@@ -313,7 +300,7 @@ fun ContentRegistrationForm(
                         backCccdUrl = backCccdUri
                     )
 
-                    viewModel.applyForDoctor(userId, request, context)
+                    doctorViewModel.applyForDoctor(userId, request, context)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = isFormValid

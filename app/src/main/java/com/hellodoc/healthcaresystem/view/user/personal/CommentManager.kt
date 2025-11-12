@@ -17,9 +17,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -34,17 +36,13 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommentHistoryScreen(navHostController: NavHostController, sharedPreferences: SharedPreferences) {
+fun CommentHistoryScreen(navHostController: NavHostController) {
     var userId by remember { mutableStateOf("") }
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-
+    val postViewModel: PostViewModel = hiltViewModel()
+    val userViewModel: UserViewModel = hiltViewModel()
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
+        userId = userViewModel.getUserAttribute("userId", context)
     }
 
     val userComments by postViewModel.userComments.collectAsState()

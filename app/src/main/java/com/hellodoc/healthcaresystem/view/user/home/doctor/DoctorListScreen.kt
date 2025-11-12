@@ -41,9 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
@@ -59,10 +57,7 @@ fun DoctorListScreen(
     var specialtyId by remember { mutableStateOf("") }
     var specialtyName by remember { mutableStateOf("") }
     var specialtyDesc by remember { mutableStateOf("") }
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val viewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
-    })
+    val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
 
     var isDataLoaded by remember { mutableStateOf(false) }
 
@@ -82,10 +77,10 @@ fun DoctorListScreen(
 
 
     LaunchedEffect(specialtyId) {
-        viewModel.fetchSpecialtyDoctor(specialtyId)
+        specialtyViewModel.fetchSpecialtyDoctor(specialtyId)
     }
 
-    val doctors by viewModel.filteredDoctors.collectAsState()
+    val doctors by specialtyViewModel.filteredDoctors.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
 
     if (isDataLoaded) {
@@ -97,7 +92,7 @@ fun DoctorListScreen(
         ) {
             TopBar(onClick = {
                 navHostController.popBackStack()
-            }, viewModel)
+            }, specialtyViewModel)
 
 
             Column(
@@ -167,7 +162,7 @@ fun DoctorListScreen(
                             specialtyName = specialtyName,
                             specialtyId = specialtyId,
                             specialtyDesc = specialtyDesc,
-                            viewModel = viewModel
+                            viewModel = specialtyViewModel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

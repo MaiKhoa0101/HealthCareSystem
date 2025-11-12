@@ -100,7 +100,7 @@ class VerifyOtpActivity : BaseActivity() {
     private fun resendOtp(email: String) {
         lifecycleScope.launch {
             try {
-                val response = RetrofitInstance.api.requestOtp(EmailRequest(email))
+                val response = RetrofitInstance.api.requestOtp(email)
                 if (response.isSuccessful && response.body() != null) {
                     Toast.makeText(this@VerifyOtpActivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
                 } else {

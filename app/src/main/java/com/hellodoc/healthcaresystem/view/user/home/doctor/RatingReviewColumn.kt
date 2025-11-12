@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,10 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ReviewResponse
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.skeleton.SkeletonReviewItem
+import com.hellodoc.healthcaresystem.viewmodel.ReviewViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,35 +61,23 @@ fun ViewRating(
     onDeleteReview: () -> Unit,
     userId: String
 ) {
-    val reviews = remember { mutableStateOf<List<ReviewResponse>>(emptyList()) }
-    val coroutineScope = rememberCoroutineScope()
     var selectedRating by remember { mutableStateOf(0) }
-    var isLoading by remember { mutableStateOf(true) }
 
+    val reviewViewModel: ReviewViewModel= hiltViewModel()
+    val reviews by reviewViewModel.reviews.collectAsState()
+    val isLoading by reviewViewModel.isLoading.collectAsState()
     LaunchedEffect(doctorId, refreshTrigger) {
-        coroutineScope.launch {
-            try {
-                isLoading = true
-                val response = RetrofitInstance.reviewService.getReviewsByDoctor(doctorId)
-                if (response.isSuccessful) {
-                    reviews.value = response.body()?.sortedByDescending { it.createdAt } ?: emptyList()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                isLoading = false
-            }
-        }
+        reviewViewModel.getReviewsByDoctor(doctorId)
     }
 
-    val averageRating = if (reviews.value.isNotEmpty()) {
-        reviews.value.mapNotNull { it.rating }.average()
+    val averageRating = if (reviews.isNotEmpty()) {
+        reviews.mapNotNull { it.rating }.average()
     } else 0.0
 
     val filteredReviews = if (selectedRating == 0) {
-        reviews.value
+        reviews
     } else {
-        reviews.value.filter { it.rating == selectedRating }
+        reviews.filter { it.rating == selectedRating }
     }
 
     Column(
@@ -97,7 +88,7 @@ fun ViewRating(
     ) {
         RatingSummary(
             average = averageRating,
-            count = reviews.value.size,
+            count = reviews.size,
             selectedRating = selectedRating,
             onRatingSelected = { selectedRating = it }
         )
@@ -205,10 +196,8 @@ fun ReviewItem(
     currentUserId: String
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-
     val canEditOrDelete = currentUserId == review.user?.id
-
+    val reviewViewModel: ReviewViewModel = hiltViewModel()
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -304,17 +293,7 @@ fun ReviewItem(
                         onClick = {
                             showMenu = false
                             review.id?.let { id ->
-                                coroutineScope.launch {
-                                    try {
-                                        val response =
-                                            RetrofitInstance.reviewService.deleteReview(id)
-                                        if (response.isSuccessful) {
-                                            onDeleteClick(id)
-                                        }
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
+                                reviewViewModel.deleteReview(id, onDeleteClick)
                             }
                         }
                     )

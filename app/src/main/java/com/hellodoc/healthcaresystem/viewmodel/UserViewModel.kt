@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
@@ -27,11 +28,11 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import androidx.core.content.edit
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val repository: UserRepository,
-    private val sharedPreferences: SharedPreferences
+    private val repository: UserRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -48,6 +49,9 @@ class UserViewModel @Inject constructor(
 
     private val _isUserLoading = MutableStateFlow(false)
     val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
+
+    private val _you = MutableStateFlow<User?>(null)
+    val you: StateFlow<User?> get() = _you
 
     fun getAllUsers() {
         viewModelScope.launch {
@@ -67,6 +71,19 @@ class UserViewModel @Inject constructor(
             _isUserLoading.value = true
             try {
                 _user.value = repository.getUser(id)
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
+            } finally {
+                _isUserLoading.value = false
+            }
+        }
+    }
+
+    fun getYou(context: Context){
+        viewModelScope.launch {
+            _isUserLoading.value = true
+            try {
+                _you.value = repository.getUser(getUserAttribute("userId", context))
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -170,7 +187,9 @@ class UserViewModel @Inject constructor(
     }
 
     // --- Token decode ---
-    fun getUserAttribute(attribute: String): String {
+    fun getUserAttribute(attribute: String, context: Context): String {
+        val sharedPreferences: SharedPreferences =
+            context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
         return try {
             val jwt = JWT(token)
@@ -180,10 +199,12 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun clearToken() = sharedPreferences.edit().remove("access_token").apply()
+    fun clearToken(sharedPreferences: SharedPreferences) = sharedPreferences.edit() { remove("access_token") }
 
     fun logout(context: Context) {
-        clearToken()
+        val sharedPreferences: SharedPreferences =
+            context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+        clearToken(sharedPreferences)
         val intent = Intent(context, SignIn::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)

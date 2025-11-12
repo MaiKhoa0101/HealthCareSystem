@@ -59,11 +59,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -86,18 +88,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileUserPage(
-    sharedPreferences: SharedPreferences,
-    navHostController: NavHostController,
-    onToggleTheme: () -> Unit,
-    darkTheme: Boolean
+    navHostController: NavHostController
 ) {
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
 
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
+    val postViewModel: PostViewModel = hiltViewModel()
 
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
     val user by userViewModel.user.collectAsState()
@@ -114,11 +109,11 @@ fun ProfileUserPage(
         LazyListState()
     }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-
+    val context = LocalContext.current
     // Lấy userId, role từ SharedPreferences chỉ 1 lần
     LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userModel = userViewModel.getUserAttributeString("role")
+        userId = userViewModel.getUserAttribute("userId", context)
+        userModel = userViewModel.getUserAttribute("role", context)
 
         if (userId.isNotEmpty()) {
             userViewModel.getUser(userId)

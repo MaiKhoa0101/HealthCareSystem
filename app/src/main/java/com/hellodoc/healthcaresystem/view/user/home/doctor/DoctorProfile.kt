@@ -41,6 +41,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResp
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
@@ -63,22 +64,13 @@ fun DoctorScreen(
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
 
     val context = LocalContext.current
     var shouldReloadPosts by remember { mutableStateOf(false) }
 
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
+    val postViewModel: PostViewModel = hiltViewModel()
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
     var selectedTab by remember { mutableIntStateOf(0) }
     val showWriteReviewScreen = remember { mutableStateOf(false) }
 
@@ -90,7 +82,7 @@ fun DoctorScreen(
     val reloadTrigger =
         navEntry?.savedStateHandle?.getLiveData<Boolean>("shouldReload")?.observeAsState()
     val youTheCurrentUserUseThisApp by userViewModel.user.collectAsState()
-    val doctor by viewModel.doctor.collectAsState()
+    val doctor by doctorViewModel.doctor.collectAsState()
 
     var userId by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("") }
@@ -108,7 +100,7 @@ fun DoctorScreen(
     var showMediaDetail by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val userId = userViewModel.getUserAttributeString("userId")
+        val userId = userViewModel.getUserAttribute("userId", context)
         userViewModel.getUser(userId)
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
@@ -126,19 +118,19 @@ fun DoctorScreen(
     LaunchedEffect(currentDoctorId) {
         if (currentDoctorId.isNotEmpty()) {
             // Reset loading states
-            viewModel.resetStates()
+            doctorViewModel.resetStates()
 
             // Fetch doctor data
-            viewModel.fetchDoctorById(currentDoctorId)
-            viewModel.fetchDoctorWithStats(currentDoctorId)
+            doctorViewModel.fetchDoctorById(currentDoctorId)
+            doctorViewModel.fetchDoctorWithStats(currentDoctorId)
 
             // Reset tab về 0 khi chuyển sang bác sĩ khác
             selectedTab = 0
         }
     }
 
-    val isLoading by viewModel.isLoading.collectAsState()
-    val isLoadingStat by viewModel.isLoadingStats.collectAsState()
+    val isLoading by doctorViewModel.isLoading.collectAsState()
+    val isLoadingStat by doctorViewModel.isLoadingStats.collectAsState()
     doctorId = doctor?.id ?: ""
 
     doctorName = doctor?.name ?: ""
@@ -238,7 +230,7 @@ fun DoctorScreen(
                     DoctorProfileScreen(
                         navHostController = navHostController,
                         doctor = doctor,
-                        youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp!!,
+                        currentUser = youTheCurrentUserUseThisApp!!,
                         selectedTab = selectedTab,
                         onTabSelected = { selectedTab = it },
                         showWriteReviewScreen = showWriteReviewScreen,
@@ -469,7 +461,7 @@ fun UserInfo(
 fun DoctorProfileScreen(
     navHostController: NavHostController,
     doctor: GetDoctorResponse?,
-    youTheCurrentUserUseThisApp: User,
+    currentUser: User,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     showWriteReviewScreen: MutableState<Boolean>,
@@ -479,36 +471,12 @@ fun DoctorProfileScreen(
 
 ) {
     val tabs = listOf("Thông tin", "Đánh giá", "Bài viết")
-    val context = LocalContext.current
-    val sharedPreferences = remember {
-        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    }
-    val token = remember { sharedPreferences.getString("access_token", null) }
-
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
-    val posts by postViewModel.posts.collectAsState()
-
-    val jwt = remember(token) {
-        runCatching { JWT(token ?: throw IllegalArgumentException("Token is null")) }
-            .onFailure { it.printStackTrace() }
-            .getOrNull()
-    }
-
-    val currentUserId = remember(jwt) {
-        jwt?.getClaim("userId")?.asString() ?: ""
-    }
-
+    val postViewModel: PostViewModel = hiltViewModel()
     var refreshReviewsTrigger by rememberSaveable { mutableStateOf(false) }
     var editingReviewId by remember { mutableStateOf<String?>(null) }
     var editingRating by remember { mutableStateOf<Int?>(null) }
     var editingComment by remember { mutableStateOf<String?>(null) }
 
-    var reportedPostId by remember { mutableStateOf<String?>(null) }
-    var showReportDialog by remember { mutableStateOf(false) }
-    var showFullScreenComment by remember { mutableStateOf(false) }
-    var selectedPostIdForComment by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let {
             postViewModel.getPostByUserId(it)
@@ -552,7 +520,7 @@ fun DoctorProfileScreen(
                 if (showWriteReviewScreen.value) {
                     WriteReviewScreen(
                         doctorId = doctor?.id ?: "",
-                        userId = currentUserId,
+                        userId = currentUser.id,
                         initialRating = editingRating,
                         initialComment = editingComment,
                         reviewId = editingReviewId,
@@ -583,15 +551,13 @@ fun DoctorProfileScreen(
                         onDeleteReview = {
                             refreshReviewsTrigger = !refreshReviewsTrigger
                         },
-                        userId = currentUserId
+                        userId = currentUser.id
                     )
                 }
             }
 
             2 -> PostColumn(
                 navHostController = navHostController,
-                idUserOfPost = doctor?.id ?: "",
-                userWhoInteractWithThisPost = youTheCurrentUserUseThisApp,
                 postViewModel = postViewModel
             )
         }

@@ -30,7 +30,6 @@ import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 @Composable
 fun AppointmentManagerScreen(
     appointViewModel: AppointmentViewModel = hiltViewModel(),
-    sharedPreferences: SharedPreferences, dao: AppointmentDao
 ) {
 
     val searchQuery = remember { mutableStateOf("") }
@@ -72,9 +71,7 @@ fun AppointmentManagerScreen(
             // Gọi bảng danh sách đã lọc
             TableDesign(
                 appointViewModel = appointViewModel,
-                sharedPreferences = sharedPreferences,
                 filteredAppointments = filteredAppointments,
-                dao
             )
         }
     }
@@ -118,9 +115,7 @@ fun SearchBar() {
 @Composable
 fun TableDesign(
     appointViewModel: AppointmentViewModel = hiltViewModel(),
-    sharedPreferences: SharedPreferences,
     filteredAppointments: List<AppointmentResponse>,
-    dao: AppointmentDao
 ) {
 
     var appointmentToDelete by remember { mutableStateOf<String?>(null) }

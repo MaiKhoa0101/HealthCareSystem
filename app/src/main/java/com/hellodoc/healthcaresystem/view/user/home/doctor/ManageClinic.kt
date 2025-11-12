@@ -1,5 +1,7 @@
 package com.hellodoc.healthcaresystem.view.user.home.doctor
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -48,14 +51,14 @@ import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 
 @Composable
-fun EditClinicServiceScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
+fun EditClinicServiceScreen(navHostController: NavHostController) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             HeadbarEditClinic(navHostController)
         }
     ) { innerPadding ->
-        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding), sharedPreferences,navHostController)
+        BodyEditClinicServiceScreen(modifier = Modifier.padding(innerPadding),navHostController)
     }
 }
 
@@ -88,35 +91,21 @@ fun HeadbarEditClinic(navHostController: NavHostController) {
 }
 
 @Composable
-fun BodyEditClinicServiceScreen(modifier:Modifier, sharedPreferences: SharedPreferences, navHostController:NavHostController) {
+fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostController) {
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
 
-    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
-    })
-
+    val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
     val specialty by specialtyViewModel.specialties.collectAsState()
 
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
     }
 
-    val token = sharedPreferences.getString("access_token", null)
-
-    val jwt = remember(token) {
-        try {
-            JWT(token ?: throw IllegalArgumentException("Token is null"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    val doctorId = jwt?.getClaim("userId")?.asString()
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val doctorId = doctorViewModel.getDoctorAttribute("userId",sharedPreferences)
     var oldSchedule by remember { mutableStateOf(listOf<WorkHour>())}
     var servicesInput by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
     var servicesCreated by remember { mutableStateOf(listOf<ServiceOutput>()) }

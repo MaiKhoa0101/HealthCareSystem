@@ -37,9 +37,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.requestmodel.ReviewRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateReviewRequest
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.viewmodel.ReviewViewModel
 import kotlinx.coroutines.launch
 
 //@OptIn(ExperimentalMaterial3Api::class)
@@ -232,8 +234,7 @@ fun WriteReviewScreen(
 ) {
     var selectedStar by remember { mutableStateOf(initialRating ?: 5) }
     var commentText by remember { mutableStateOf(initialComment ?: "") }
-    val coroutineScope = rememberCoroutineScope()
-
+    val reviewViewModel: ReviewViewModel = hiltViewModel()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -315,8 +316,7 @@ fun WriteReviewScreen(
                     end.linkTo(parent.end)
                 }
             ) {
-                coroutineScope.launch {
-                    handleReviewSubmit(
+                reviewViewModel.handleReviewSubmit(
                         reviewId,
                         userId,
                         doctorId,
@@ -328,7 +328,7 @@ fun WriteReviewScreen(
             }
         }
     }
-}
+
 
 @Composable
 fun StarRating(
@@ -397,28 +397,5 @@ fun SubmitButton(
             .height(50.dp)
     ) {
         Text("Đăng", fontSize = 20.sp)
-    }
-}
-suspend fun handleReviewSubmit(
-    reviewId: String?,
-    userId: String,
-    doctorId: String,
-    rating: Int,
-    comment: String,
-    onSubmitClick: (Int, String) -> Unit
-) {
-    try {
-        val response = if (reviewId == null) {
-            val reviewRequest = ReviewRequest(userId, doctorId, rating, comment)
-            RetrofitInstance.reviewService.createReview(reviewRequest)
-        } else {
-            val updateRequest = UpdateReviewRequest(rating, comment)
-            RetrofitInstance.reviewService.updateReview(reviewId, updateRequest)
-        }
-
-        onSubmitClick(rating, comment)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        onSubmitClick(rating, comment)
     }
 }

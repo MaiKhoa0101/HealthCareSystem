@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -41,14 +42,10 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ChatMessage
 
 @Composable
 fun GeminiChatScreen(
-    navHostController: NavHostController,
-    sharedPreferences: SharedPreferences
+    navHostController: NavHostController
 ) {
 //    val savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle
-    val geminiViewModel: GeminiViewModel = viewModel(factory = viewModelFactory {
-        initializer { GeminiViewModel(sharedPreferences) }
-    })
-
+    val geminiViewModel: GeminiViewModel = hiltViewModel()
     // Cập nhật giá trị nếu có trong savedStateHandle
     val savedStateHandle = navHostController
         .previousBackStackEntry
@@ -426,64 +423,4 @@ fun ArticleBubble(
             }
         }
     }
-}
-
-@Preview(showBackground = true, name = "Gemini Chat Screen Preview")
-@Composable
-fun GeminiChatScreenPreview() {
-    val fakeNavController = rememberNavController()
-    val fakePrefs = FakeSharedPreferences()
-    GeminiChatScreen(
-        navHostController = fakeNavController,
-        sharedPreferences = fakePrefs
-//        onDateTimeSelected = { date, time ->
-//            // Cho preview thì mình không cần xử lý gì ở đây
-//        }
-    )
-}
-
-class FakeSharedPreferences : SharedPreferences {
-    override fun getAll(): MutableMap<String, Any?> = mutableMapOf()
-
-    override fun getString(key: String?, defValue: String?): String? = "preview_user"
-
-    override fun getStringSet(
-        key: String?,
-        defValues: MutableSet<String>?
-    ): MutableSet<String>? = defValues
-
-    override fun getInt(key: String?, defValue: Int): Int = defValue
-
-    override fun getLong(key: String?, defValue: Long): Long = defValue
-
-    override fun getFloat(key: String?, defValue: Float): Float = defValue
-
-    override fun getBoolean(key: String?, defValue: Boolean): Boolean = defValue
-
-    override fun contains(key: String?): Boolean = false
-
-    override fun edit(): SharedPreferences.Editor = object : SharedPreferences.Editor {
-        override fun putString(key: String?, value: String?): SharedPreferences.Editor = this
-        override fun putStringSet(
-            key: String?,
-            values: MutableSet<String>?
-        ): SharedPreferences.Editor = this
-
-        override fun putInt(key: String?, value: Int): SharedPreferences.Editor = this
-        override fun putLong(key: String?, value: Long): SharedPreferences.Editor = this
-        override fun putFloat(key: String?, value: Float): SharedPreferences.Editor = this
-        override fun putBoolean(key: String?, value: Boolean): SharedPreferences.Editor = this
-        override fun remove(key: String?): SharedPreferences.Editor = this
-        override fun clear(): SharedPreferences.Editor = this
-        override fun commit(): Boolean = true
-        override fun apply() {}
-    }
-
-    override fun registerOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?
-    ) {}
-
-    override fun unregisterOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener?
-    ) {}
 }

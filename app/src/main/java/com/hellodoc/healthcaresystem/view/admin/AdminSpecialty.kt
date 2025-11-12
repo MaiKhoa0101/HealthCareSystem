@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.view.admin
 
-import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -25,7 +25,9 @@ import com.hellodoc.healthcaresystem.requestmodel.SpecialtyRequest
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 
 @Composable
-fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
+fun CreateSpecialtyScreen(
+    specialtyViewModel: SpecialtyViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -37,9 +39,6 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
 
-    val specialtyViewModel: SpecialtyViewModel = viewModel(factory = viewModelFactory {
-        initializer { SpecialtyViewModel(sharedPreferences) }
-    })
 
     val specialties by specialtyViewModel.specialties.collectAsState()
 

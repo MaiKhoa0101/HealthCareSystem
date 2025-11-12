@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -39,11 +40,10 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 //}
 
 @Composable
-fun ClarifyManagerScreen(sharedPreferences: SharedPreferences, navController: NavHostController) {
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
-
+fun ClarifyManagerScreen(
+    navController: NavHostController,
+    doctorViewModel: DoctorViewModel = hiltViewModel()
+) {
     LaunchedEffect(Unit) {
         doctorViewModel.fetchPendingDoctor()
     }

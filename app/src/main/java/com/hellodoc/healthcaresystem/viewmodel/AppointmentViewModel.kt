@@ -10,8 +10,6 @@ import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.repository.AppointmentRepository
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
-import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.roomDb.mapper.isValid
 import com.hellodoc.healthcaresystem.roomDb.mapper.toEntity
 import com.hellodoc.healthcaresystem.roomDb.mapper.toEntitySafe
@@ -23,8 +21,6 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AppointmentViewModel @Inject constructor(
     private val appointmentRepository: AppointmentRepository,
-    private val sharedPreferences: SharedPreferences,
-    private val appointmentDao: AppointmentDao
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -72,7 +68,7 @@ class AppointmentViewModel @Inject constructor(
                         println("Bắt đầu lưu vào database...")
 
                         // Clear database
-                        appointmentDao.clearAppointments()
+                        appointmentRepository.clearAppointments()
                         println("Đã xóa dữ liệu cũ")
 
                         // Convert và insert
@@ -80,7 +76,7 @@ class AppointmentViewModel @Inject constructor(
                             println("Converting: ${it.id}")
                             it.toEntity()
                         }
-                        appointmentDao.insertAppointments(entities)
+                        appointmentRepository.insertAppointments(entities)
                         println("Đã lưu ${entities.size} entities vào database")
 
                         // Update StateFlow
@@ -105,7 +101,7 @@ class AppointmentViewModel @Inject constructor(
                     println("Error body: ${response.errorBody()?.string()}")
 
                     try {
-                        val localData = appointmentDao.getAllAppointments().map { it.toResponse() }
+                        val localData = appointmentRepository.getAllAppointmentsFromRoom().map { it.toResponse() }
                         println("Lấy từ local: ${localData.size} items")
                         _appointmentsUser.value = localData
                         filterAppointmentsByDoctorName(currentSearchQuery)
@@ -119,7 +115,7 @@ class AppointmentViewModel @Inject constructor(
                 e.printStackTrace()
 
                 try {
-                    val localData = appointmentDao.getAllAppointments().map { it.toResponse() }
+                    val localData = appointmentRepository.getAllAppointmentsFromRoom().map { it.toResponse() }
                     println("Fallback local data: ${localData.size} items")
                     _appointmentsUser.value = localData
                     filterAppointmentsByDoctorName(currentSearchQuery)
@@ -144,7 +140,7 @@ class AppointmentViewModel @Inject constructor(
                         println("Bắt đầu lưu vào database")
 
                         // Chỉ xóa dữ liệu của user hiện tại, không xóa hết
-                        appointmentDao.clearPatientAppointments(patientId)
+                        appointmentRepository.clearPatientAppointments(patientId)
                         println("Đã xóa dữ liệu cũ của patient: $patientId")
 
                         // Convert và insert
@@ -156,7 +152,7 @@ class AppointmentViewModel @Inject constructor(
                                 null
                             }
                         }
-                        appointmentDao.insertAppointments(entities)
+                        appointmentRepository.insertAppointments(entities)
                         println("Đã lưu ${entities.size} appointments vào database")
 
                     } catch (dbError: Exception) {
@@ -176,7 +172,7 @@ class AppointmentViewModel @Inject constructor(
                 e.printStackTrace()
 
                 try {
-                    val localData = appointmentDao.getPatientAppointments(patientId)
+                    val localData = appointmentRepository.getPatientAppointments(patientId)
                     println("Dữ liệu local: ${localData.size} items")
 
                     if (localData.isNotEmpty()) {
@@ -208,7 +204,7 @@ class AppointmentViewModel @Inject constructor(
                         println("Bắt đầu lưu vào database")
 
                         // Chỉ xóa dữ liệu của user hiện tại, không xóa hết
-                        appointmentDao.clearDoctorAppointments(doctorId)
+                        appointmentRepository.clearDoctorAppointments(doctorId)
                         println("Đã xóa dữ liệu cũ của patient: $doctorId")
 
                         // Convert và insert
@@ -220,7 +216,7 @@ class AppointmentViewModel @Inject constructor(
                                 null
                             }
                         }
-                        appointmentDao.insertAppointments(entities)
+                        appointmentRepository.insertAppointments(entities)
                         println("Đã lưu ${entities.size} appointments vào database")
 
                     } catch (dbError: Exception) {
@@ -240,7 +236,7 @@ class AppointmentViewModel @Inject constructor(
                 e.printStackTrace()
 
                 try {
-                    val localData = appointmentDao.getDoctorAppointments(doctorId)
+                    val localData = appointmentRepository.getDoctorAppointmentsFromRoom(doctorId)
                     println("Dữ liệu local: ${localData.size} items")
 
                     if (localData.isNotEmpty()) {
@@ -258,8 +254,7 @@ class AppointmentViewModel @Inject constructor(
         }
     }
 
-    fun createAppointment(createAppointmentRequest: CreateAppointmentRequest) {
-        val token = sharedPreferences.getString("access_token", null)
+    fun createAppointment(token:String?,createAppointmentRequest: CreateAppointmentRequest) {
         if (token != null) {
             viewModelScope.launch {
                 try {

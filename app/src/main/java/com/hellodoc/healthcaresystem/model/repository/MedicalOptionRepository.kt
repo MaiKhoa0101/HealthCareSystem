@@ -7,4 +7,6 @@ class MedicalOptionRepository @Inject constructor(
     private val medicalOptionService: MedicalOptionService
 ){
     suspend fun getMedicalOptions() = medicalOptionService.getMedicalOptions()
+    suspend fun getRemoteMedicalOptions() = medicalOptionService.getRemoteMedicalOptions()
+
 }

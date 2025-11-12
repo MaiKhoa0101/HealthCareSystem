@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
@@ -41,12 +42,10 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PostManagerScreen(
+    postViewModel: PostViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
 ) {
-    val postViewModel: PostViewModel = viewModel(factory = viewModelFactory {
-        initializer { PostViewModel(sharedPreferences, GeminiHelper()) }
-    })
+
     val posts by postViewModel.posts.collectAsState()
 
     LaunchedEffect(Unit) {

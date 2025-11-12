@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -40,10 +41,7 @@ fun BookingCalendarScreen(
     context: Context,
     navHostController: NavHostController
 ) {
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val doctorViewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
 
     // Lấy thông tin chỉnh sửa từ màn hình trước đó
     val doctorId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("doctorId") ?: ""

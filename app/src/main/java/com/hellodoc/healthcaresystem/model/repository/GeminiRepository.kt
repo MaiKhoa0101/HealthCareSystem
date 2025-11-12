@@ -7,8 +7,7 @@ import com.hellodoc.healthcaresystem.requestmodel.GeminiRequest
 import jakarta.inject.Inject
 
 class GeminiRepository @Inject constructor(
-    private val geminiService: GeminiService,
-    private val sharedPreferences: SharedPreferences
+    private val geminiService: GeminiService
 ) {
     suspend fun askGemini(
         apiKey: String,

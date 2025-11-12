@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -50,6 +51,7 @@ import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsCreateScreen(
+    newsViewModel: NewsViewModel = hiltViewModel(),
     sharedPreferences: SharedPreferences,
     navController: NavController
 ) {
@@ -57,9 +59,6 @@ fun NewsCreateScreen(
     var content by remember { mutableStateOf("") }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val context = LocalContext.current
-    val viewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-        initializer { NewsViewModel(sharedPreferences) }
-    })
 
     val token = sharedPreferences.getString("access_token", null)
 
@@ -238,7 +237,7 @@ fun NewsCreateScreen(
                     if (title.isBlank() || content.isBlank()) {
                         Toast.makeText(context, "Vui lòng nhập đầy đủ tiêu đề và nội dung", Toast.LENGTH_SHORT).show()
                     } else {
-                        viewModel.createNews(
+                        newsViewModel.createNews(
                             adminId = adminId,
                             title = title,
                             content = content,
@@ -248,7 +247,7 @@ fun NewsCreateScreen(
                             title = ""
                             content = ""
                             selectedImageUris = emptyList()
-                            viewModel.getAllNews() // cập nhật lại danh sách
+                            newsViewModel.getAllNews() // cập nhật lại danh sách
                         }
                     }
                 },
@@ -266,7 +265,6 @@ fun NewsCreateScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsManagerScreen(
-    sharedPreferences: SharedPreferences,
     navController: NavController
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -277,23 +275,20 @@ fun NewsManagerScreen(
             Text("+ Tạo tin tức mới")
         }
 
-        NewsListScreen(sharedPreferences = sharedPreferences)
+        NewsListScreen()
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsListScreen(
+    newsViewModel: NewsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
 ) {
-    val viewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-        initializer { NewsViewModel(sharedPreferences) }
-    })
-    val newsList by viewModel.newsList.collectAsState()
+    val newsList by newsViewModel.newsList.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getAllNews()
+        newsViewModel.getAllNews()
     }
 
     Column(
@@ -306,7 +301,7 @@ fun NewsListScreen(
         if (newsList.isEmpty()) {
             EmptyPostList()
         } else {
-            NewsList(news = newsList, newsViewModel = viewModel)
+            NewsList(news = newsList, newsViewModel = newsViewModel)
         }
     }
 }
@@ -323,17 +318,13 @@ fun NewsList(news: List<NewsResponse>, newsViewModel: NewsViewModel) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel) {
+fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel = hiltViewModel()) {
     var showDetail by remember { mutableStateOf(false) }
     var showImageDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var isCheckingComments by remember { mutableStateOf(false) }
     var showCommentsDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("your_pref_name", Context.MODE_PRIVATE)
-    val viewModel: NewsViewModel = viewModel(factory = viewModelFactory {
-        initializer { NewsViewModel(sharedPreferences) }
-    })
     val commentsMap by newsViewModel.newsComments.collectAsState()
     val comments = commentsMap[news.id] ?: emptyList()
     val favoriteCountMap by newsViewModel.favoriteCountMap.collectAsState()
@@ -543,7 +534,7 @@ fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(
-                                    onClick = { viewModel.deleteComment(comment.id, news.id) },
+                                    onClick = { newsViewModel.deleteComment(comment.id, news.id) },
                                     modifier = Modifier.size(40.dp)
                                 ) {
                                     Icon(
@@ -641,7 +632,7 @@ fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel) {
                 onDismissRequest = { showDeleteConfirm = false },
                 confirmButton = {
                     TextButton(onClick = {
-                        viewModel.deleteNews(news.id, context)
+                        newsViewModel.deleteNews(news.id, context)
                         showDeleteConfirm = false
                     }) {
                         Text("Xoá")

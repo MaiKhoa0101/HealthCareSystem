@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -78,17 +79,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HealthMateHomeScreen(
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
-    userViewModel: UserViewModel,
-    doctorViewModel: DoctorViewModel,
-    specialtyViewModel: SpecialtyViewModel,
-    medicalOptionViewModel: MedicalOptionViewModel,
-    remoteMedicalOptionViewModel: RemoteMedicalOptionViewModel,
-    geminiViewModel: GeminiViewModel,
-    newsViewModel: NewsViewModel,
-    postViewModel: PostViewModel,
-    faqItemViewModel: FAQItemViewModel
 ) {
     val context = LocalContext.current
     val listState = rememberSaveable(
@@ -103,6 +94,15 @@ fun HealthMateHomeScreen(
             listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
         }
     }
+
+    val doctorViewModel: DoctorViewModel = hiltViewModel()
+    val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
+    val medicalOptionViewModel: MedicalOptionViewModel = hiltViewModel()
+    val geminiViewModel: GeminiViewModel = hiltViewModel()
+    val postViewModel: PostViewModel = hiltViewModel()
+    val newsViewModel: NewsViewModel = hiltViewModel()
+    val userViewModel: UserViewModel = hiltViewModel()
+    val faqItemViewModel: FAQItemViewModel = hiltViewModel()
 
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
@@ -119,12 +119,11 @@ fun HealthMateHomeScreen(
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
-
     LaunchedEffect(Unit) {
-        username = userViewModel.getUserAttributeString("name")
-        userModel = userViewModel.getUserAttributeString("role")
+        username = userViewModel.getUserAttribute("name", context)
+        userModel = userViewModel.getUserAttribute("role", context)
 
-        userViewModel.getUser(userViewModel.getUserAttributeString("userId"))
+        userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
         postViewModel.fetchPosts()
         postIndex=10
         println("Gọi 1 voi index: "+ postIndex)
@@ -132,7 +131,7 @@ fun HealthMateHomeScreen(
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
-        remoteMedicalOptionViewModel.fetchRemoteMedicalOptions()
+        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
     }

@@ -10,7 +10,6 @@ import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.NewsService
 import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.api.PostService
-import com.hellodoc.healthcaresystem.api.RemoteMedicalOptionService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.api.SpecialtyService
@@ -50,6 +49,22 @@ object RetrofitInstance {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
+        .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
+        .readTimeout(60, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
+        .build()
+
+    // Tạo instance Retrofit duy nhất
+    private val retrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create()) // Dùng gson để chuyển JSON thành obj
+            .build()
+    }
+
+    val api: AuthService by lazy { retrofit.create(AuthService::class.java) }
 
     // Cung cấp các API Service
     @Provides fun provideUserService(retrofit: Retrofit): UserService = retrofit.create(UserService::class.java)
@@ -57,16 +72,15 @@ object RetrofitInstance {
     @Provides fun providePostService(retrofit: Retrofit): PostService = retrofit.create(PostService::class.java)
     @Provides fun provideNewsService(retrofit: Retrofit): NewsService = retrofit.create(NewsService::class.java)
     @Provides fun provideMedicalOptionService(retrofit: Retrofit): MedicalOptionService = retrofit.create(MedicalOptionService::class.java)
-    @Provides fun provideRemoteMedicalOptionService(retrofit: Retrofit): RemoteMedicalOptionService = retrofit.create(RemoteMedicalOptionService::class.java)
     @Provides fun provideSpecialtyService(retrofit: Retrofit): SpecialtyService = retrofit.create(SpecialtyService::class.java)
     @Provides fun provideFAQItemService(retrofit: Retrofit): FAQItemService = retrofit.create(FAQItemService::class.java)
-    @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideAppointmentService(retrofit: Retrofit): AppointmentService = retrofit.create(AppointmentService::class.java)
     @Provides fun provideNotificationService(retrofit: Retrofit): NotificationService = retrofit.create(NotificationService::class.java)
     @Provides fun provideReportService(retrofit: Retrofit): ReportService = retrofit.create(ReportService::class.java)
     @Provides fun provideReviewService(retrofit: Retrofit): ReviewService = retrofit.create(ReviewService::class.java)
     @Provides fun provideAdminService(retrofit: Retrofit): AdminService = retrofit.create(AdminService::class.java)
-
+    @Provides fun provideGeminiService(retrofit: Retrofit): GeminiService = retrofit.create(GeminiService::class.java)
+    @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()
             .baseUrl("https://generativelanguage.googleapis.com/")

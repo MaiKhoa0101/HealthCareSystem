@@ -51,11 +51,7 @@ import kotlin.text.trim
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val geminiRepository: GeminiRepository,
-    private val sharedPreferences: SharedPreferences,
-    private val geminiHelper: GeminiHelper
-
-
+    private val geminiRepository: GeminiRepository
     ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
@@ -295,7 +291,7 @@ class PostViewModel @Inject constructor(
 
     private suspend fun generateAndUpdateKeywords(post: PostResponse, context: Context): String? {
         return try {
-
+            val geminiHelper = GeminiHelper()
             var contentKeywords= emptyList<String>()
             // Phân tích từ khóa từ nội dung text
             post.content?.let { content ->
@@ -446,6 +442,7 @@ class PostViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Đang đăng bài...", Toast.LENGTH_SHORT).show()
                 }
+                val geminiHelper = GeminiHelper()
 
                 // 1) Phân tích từ khóa
                 val contentKeywords = async(Dispatchers.Default) {analyzeContentKeywords(request.content)}

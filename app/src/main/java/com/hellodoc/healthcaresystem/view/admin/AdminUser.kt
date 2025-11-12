@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.view.admin
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -33,16 +33,10 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
-fun UserListScreen() {
+fun UserListScreen(
+    userViewModel: UserViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
-    val sharedPreferences = remember {
-        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    }
-
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-
     val userList by userViewModel.allUser.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("User") }
@@ -105,7 +99,7 @@ fun UserListScreen() {
                     it.role.equals(selectedRole, ignoreCase = true)
         }
 
-        AccountTable2(filteredUsers, sharedPreferences)
+        AccountTable2(filteredUsers)
     }
 }
 
@@ -135,7 +129,7 @@ fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
 }
 
 @Composable
-fun AccountTable2(accounts: List<User>, sharedPreferences: SharedPreferences) {
+fun AccountTable2(accounts: List<User>, userViewModel: UserViewModel = hiltViewModel()) {
     // Cho phép cuộn ngang
     Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
         Column {
@@ -159,21 +153,20 @@ fun AccountTable2(accounts: List<User>, sharedPreferences: SharedPreferences) {
             // Content
             LazyColumn {
                 itemsIndexed(accounts) { index, account ->
-                    AccountRow2(index + 1, account, sharedPreferences)
+                    AccountRow2(index + 1, account)
                 }
             }
         }
     }
 }
 @Composable
-fun AccountRow2(id: Int, account: User, sharedPreferences: SharedPreferences) {
+fun AccountRow2(
+    id: Int, account: User,
+    userViewModel: UserViewModel = hiltViewModel()
+) {
     var expanded by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<User?>(null) }
-
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
 
     Row(
         modifier = Modifier

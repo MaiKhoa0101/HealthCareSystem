@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -70,23 +71,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun ProfileOtherUserPage(
     navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
-    postViewModel: PostViewModel,
     userOwnerID: String
 ) {
-    val userViewModel: UserViewModel = viewModel(
-        key = "user_${userOwnerID}",
-        factory = viewModelFactory {
-            initializer { UserViewModel(sharedPreferences) }
-        }
-    )
+    val userViewModel: UserViewModel = hiltViewModel()
+    val postViewModel: PostViewModel = hiltViewModel()
 
 
     val context = LocalContext.current
 
     // State
     val userOfThisProfile by userViewModel.user.collectAsState()
-    val youTheCurrentUserUseThisApp by userViewModel.thisUser.collectAsState()
+    val youTheCurrentUserUseThisApp by userViewModel.you.collectAsState()
     val posts by postViewModel.posts.collectAsState()
     val hasMore by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
@@ -99,8 +94,7 @@ fun ProfileOtherUserPage(
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
     LaunchedEffect(userOwnerID) {
-        val myId = userViewModel.getUserAttributeString("userId")
-        userViewModel.getYou(myId)
+        userViewModel.getYou(context)
 
         postViewModel.clearPosts() // reset về rỗng
 
@@ -250,7 +244,6 @@ fun ProfileOtherUserPage(
                     youTheCurrentUserUseThisApp!!,
                     userOfThisProfile,
                     onClickShowReportDialog = { showReportBox = !showReportBox },
-                    sharedPreferences,
                 )
             }
         }

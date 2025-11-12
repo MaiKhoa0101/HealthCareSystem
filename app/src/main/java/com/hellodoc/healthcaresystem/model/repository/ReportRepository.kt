@@ -5,6 +5,7 @@ import com.hellodoc.healthcaresystem.api.ReportService
 // Import các mô hình dữ liệu
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ReportResponse // Giả sử đây là mô hình API thô
+import com.hellodoc.healthcaresystem.requestmodel.AdminResponseRequest
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 import jakarta.inject.Inject
 import javax.inject.Singleton
@@ -72,4 +73,14 @@ class ReportRepository @Inject constructor(private val reportService: ReportServ
             Result.failure(e)
         }
     }
+
+    suspend fun sendAdminResponse(
+        id: String,
+        responseContent: String,
+        responseTime: String
+    ) = reportService.sendAdminResponse(
+        id = id,
+        response =AdminResponseRequest(responseContent, responseTime)
+    )
+    
 }

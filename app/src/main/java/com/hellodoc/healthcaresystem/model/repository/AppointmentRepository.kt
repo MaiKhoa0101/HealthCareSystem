@@ -5,6 +5,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentRe
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
+import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
 import javax.inject.Inject
 
 class AppointmentRepository @Inject constructor(
@@ -47,6 +48,9 @@ class AppointmentRepository @Inject constructor(
 
 
     suspend fun clearAppointments() = appointmentDao.clearAppointments()
+    suspend fun insertAppointments(appointments: List<AppointmentEntity>) = appointmentDao.insertAppointments(appointments)
+    suspend fun getAllAppointmentsFromRoom() = appointmentDao.getAllAppointments()
+    suspend fun getDoctorAppointmentsFromRoom(doctorId: String) = appointmentDao.getDoctorAppointments(doctorId)
     suspend fun clearPatientAppointments(patientId: String) = appointmentDao.clearPatientAppointments(patientId)
     suspend fun clearDoctorAppointments(doctorId: String) = appointmentDao.clearDoctorAppointments(doctorId)
     suspend fun getPatientAppointments(

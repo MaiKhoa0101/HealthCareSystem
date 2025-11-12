@@ -117,7 +117,6 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
         Scaffold(
             topBar = {
                 HeadbarAdmin(
-                    sharedPreferences = sharedPreferences,
                     opendrawer = {
                         scope.launch {
                             drawerState.open()
@@ -141,29 +140,32 @@ fun AdminScreen(sharedPreferences: SharedPreferences, dao: AppointmentDao) {
 //                        DoctorListScreen(sharedPreferences = sharedPreferences)
 //                    }
                     composable("CreateSpecialty") {
-                        CreateSpecialtyScreen(sharedPreferences)
+                        CreateSpecialtyScreen()
                     }
                     composable("ReportManager") {
                         ReportManagerScreen()
                     }
                     composable("NewsManager") {
-                        NewsManagerScreen(sharedPreferences = sharedPreferences, navController = navController)
+                        NewsManagerScreen(navController = navController)
                     }
                     composable("CreateNews") {
                         NewsCreateScreen(sharedPreferences = sharedPreferences, navController = navController)
                     }
                     composable("PostManager"){
-                        PostManagerScreen(sharedPreferences = sharedPreferences)
+                        PostManagerScreen()
                     }
                     composable("AppointmentManager") {
-                        AppointmentManagerScreen(sharedPreferences, dao = dao)
+                        AppointmentManagerScreen()
                     }
                     composable("ClarifyManager") {
-                        ClarifyManagerScreen(sharedPreferences, navController)
+                        ClarifyManagerScreen(navController)
                     }
                     composable("pendingDoctorDetail/{userId}") {backStackEntry ->
                         val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                        PendingDoctorDetailScreen(userId = userId, sharedPreferences = sharedPreferences, navController)
+                        PendingDoctorDetailScreen(
+                            userId = userId,
+                            navController = navController
+                        )
 
                     }
                 }

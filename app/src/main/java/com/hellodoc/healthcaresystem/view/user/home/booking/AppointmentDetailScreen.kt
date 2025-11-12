@@ -34,6 +34,7 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 //import com.hellodoc.healthcaresystem.user.home.doctor.doctorAvatar
@@ -51,13 +52,15 @@ fun formatDateForServer(input: String): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostController: NavHostController, dao: AppointmentDao) {
+fun AppointmentDetailScreen(
+    context: Context,
+    navHostController: NavHostController,
+    dao: AppointmentDao
+) {
 
     println(" appointment detail render duoc")
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
 
     // Biến trạng thái kiểm tra đã load xong data chưa
     var isDataLoaded by remember { mutableStateOf(false) }
@@ -84,15 +87,15 @@ fun AppointmentDetailScreen(context: Context, onBack: () -> Unit, navHostControl
     var hasHomeService by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        patientName = userViewModel.getUserAttributeString("name")
+        patientName = userViewModel.getUserAttribute("name",context)
         println("patientName" + patientName)
-        patientPhone = userViewModel.getUserAttributeString("phone")
+        patientPhone = userViewModel.getUserAttribute("phone",context)
         println("patientPhone" + patientPhone)
-        patientAddress = userViewModel.getUserAttributeString("address")
+        patientAddress = userViewModel.getUserAttribute("address",context)
         println("patientAddress" + patientAddress)
-        patientID = userViewModel.getUserAttributeString("userId")
+        patientID = userViewModel.getUserAttribute("userId",context)
         println("patientId" + patientID)
-        patientModel = userViewModel.getUserAttributeString("role")
+        patientModel = userViewModel.getUserAttribute("role",context)
     }
 
 //    val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
@@ -298,10 +301,7 @@ fun UpdateButton(
     time: String,
     dao: AppointmentDao
 ) {
-    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences, dao) }
-    })
-
+    val appointmentViewModel: AppointmentViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 

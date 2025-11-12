@@ -32,6 +32,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.view.user.notification.timeAgoInVietnam
@@ -43,9 +44,9 @@ import kotlin.collections.get
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsDetailScreen(
-    navHostController: NavHostController,
-    viewModel: NewsViewModel
+    navHostController: NavHostController
 ) {
+    val newsViewModel: NewsViewModel = hiltViewModel()
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
@@ -61,8 +62,8 @@ fun NewsDetailScreen(
     Log.d("NewsDetail", "Loaded news: ${news?.title}, id: ${news?.id}")
 
 
-    val isFavoritedMap by viewModel.favoriteMap.collectAsState()
-    val totalFavoritesMap by viewModel.favoriteCountMap.collectAsState()
+    val isFavoritedMap by newsViewModel.favoriteMap.collectAsState()
+    val totalFavoritesMap by newsViewModel.favoriteCountMap.collectAsState()
     val isFavorited = isFavoritedMap[news?.id] ?: false
     val totalFavorites = totalFavoritesMap[news?.id] ?: "0"
 
@@ -78,8 +79,8 @@ fun NewsDetailScreen(
     }
 
     LaunchedEffect(news?.id) {
-        news?.id?.let { viewModel.getFavorite(it, currentUserId) }
-        news?.id?.let { viewModel.getComments(it) }
+        news?.id?.let { newsViewModel.getFavorite(it, currentUserId) }
+        news?.id?.let { newsViewModel.getComments(it) }
     }
 
     if (news == null) {
@@ -179,7 +180,7 @@ fun NewsDetailScreen(
                             .clickable {
                                 Log.d("NewsDetail", "Nút like được nhấn")
                                 news?.id?.let {
-                                    viewModel.toggleFavoriteNews(
+                                    newsViewModel.toggleFavoriteNews(
                                         it,
                                         currentUserId,
                                         currentUserModel
@@ -228,7 +229,7 @@ fun NewsDetailScreen(
             navHostController = navHostController,
             newsId = news.id,
             onClose = { showFullScreenComment = false },
-            newsViewModel = viewModel,
+            newsViewModel = newsViewModel,
             currentUserId = currentUserId,
             currentUserModel = currentUserModel
         )

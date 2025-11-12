@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
@@ -68,21 +69,18 @@ import kotlinx.coroutines.launch
 fun PostDetailScreen(
     navHostController: NavHostController,
     postId: String,
-    postViewModel: PostViewModel,
-    userViewModel: UserViewModel
+    postViewModel: PostViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
-    val youTheCurrentUserUseThisApp by userViewModel.thisUser.collectAsState()
+    val youTheCurrentUserUseThisApp by userViewModel.you.collectAsState()
     val post by postViewModel.post.collectAsState()
     val similarPosts by postViewModel.similarPosts.collectAsState()
-
+    val context = LocalContext.current
     // Reset và lấy bài viết mới mỗi khi postId thay đổi
     LaunchedEffect(Unit, postId) {
         // Reset dữ liệu cũ
-        userViewModel.clearUsers()
         postViewModel.clearPosts()
-
-        val userId = userViewModel.getUserAttributeString("userId")
-        userViewModel.getYou(userId)
+        userViewModel.getYou(context)
 
         if (postId.isNotEmpty() ) {
             postViewModel.getPostById(postId, navHostController.context)

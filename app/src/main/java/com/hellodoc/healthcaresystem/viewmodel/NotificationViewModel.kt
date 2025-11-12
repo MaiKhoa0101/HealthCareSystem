@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
     private val notificationRepository: NotificationRepository
 ) : ViewModel() {
     private val _notifications = MutableStateFlow<List<NotificationResponse>>(emptyList())

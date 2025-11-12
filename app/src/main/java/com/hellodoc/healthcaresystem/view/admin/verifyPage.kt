@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -31,19 +32,17 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 @Composable
 fun PendingDoctorDetailScreen(
     userId: String,
-    sharedPreferences: SharedPreferences,
+    doctorViewModel: DoctorViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    val viewModel: DoctorViewModel = viewModel(factory = viewModelFactory {
-        initializer { DoctorViewModel(sharedPreferences) }
-    })
 
-    val doctor by viewModel.pendingDoctor.collectAsState()
-    val verificationMessage by viewModel.verificationMessage.collectAsState()
+
+    val doctor by doctorViewModel.pendingDoctor.collectAsState()
+    val verificationMessage by doctorViewModel.verificationMessage.collectAsState()
     var expandedImageUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userId) {
-        viewModel.fetchPendingDoctorById(userId)
+        doctorViewModel.fetchPendingDoctorById(userId)
     }
 
     LaunchedEffect(verificationMessage) {
@@ -127,7 +126,7 @@ fun PendingDoctorDetailScreen(
 
         // Nút xác minh
         Button(
-            onClick = { doctor?.userId?.let { viewModel.verifyDoctor(it) } },
+            onClick = { doctor?.userId?.let { doctorViewModel.verifyDoctor(it) } },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)

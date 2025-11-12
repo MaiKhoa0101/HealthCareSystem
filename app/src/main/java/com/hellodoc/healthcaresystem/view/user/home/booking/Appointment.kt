@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,30 +47,14 @@ import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostController: NavHostController, dao: AppointmentDao) {
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+fun AppointmentListScreen(navHostController: NavHostController, dao: AppointmentDao) {
 
-    val appointmentViewModel: AppointmentViewModel = viewModel(factory = viewModelFactory {
-        initializer { AppointmentViewModel(sharedPreferences, dao ) }
-    })
-
+    val userViewModel: UserViewModel = hiltViewModel()
+    val appointmentViewModel: AppointmentViewModel = hiltViewModel()
     val appointmentsUser by appointmentViewModel.appointmentsUser.collectAsState()
     val appointmentsDoc by appointmentViewModel.appointmentsDoctor.collectAsState()
-
-    val token = sharedPreferences.getString("access_token", null)
-
-    val jwt = remember(token) {
-        try {
-            JWT(token ?: throw IllegalArgumentException("Token is null"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    val userId = jwt?.getClaim("userId")?.asString()
+    val context = LocalContext.current
+    val userId = userViewModel.getUserAttribute("userId", context)
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     LaunchedEffect(navBackStackEntry) {
         navBackStackEntry?.lifecycle?.addObserver(
@@ -97,7 +83,6 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostControlle
     AppointmentScreenUI(
         appointmentsUser = appointmentsUser,
         userId,
-        sharedPreferences = sharedPreferences,
         navHostController = navHostController,
         appointmentViewModel = appointmentViewModel
     )
@@ -108,23 +93,16 @@ fun AppointmentListScreen(sharedPreferences: SharedPreferences, navHostControlle
 fun AppointmentScreenUI(
     appointmentsUser: List<AppointmentResponse>,
     userID: String,
-    sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
-    appointmentViewModel: AppointmentViewModel
+    appointmentViewModel: AppointmentViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val appointmentsDoc by appointmentViewModel.appointmentsDoctor.collectAsState()
-
+    val context = LocalContext.current
     val roles = listOf("Đã đặt", "Được đặt")
     val tabs = listOf("Chờ khám", "Khám xong", "Đã huỷ")
-    val jwt = remember {
-        try {
-            JWT(sharedPreferences.getString("access_token", null) ?: "")
-        } catch (e: Exception) {
-            null
-        }
-    }
-    val userRole = jwt?.getClaim("role")?.asString() ?: "User"
+    val userViewModel: UserViewModel = hiltViewModel()
+    val userRole = userViewModel.getUserAttribute("role", context)
     val isPatient = userRole == "User"
     val isDoctor = userRole == "Doctor"
     var roleSelectedTab by remember { mutableStateOf(if (isDoctor) 1 else 0) }
@@ -241,10 +219,8 @@ fun AppointmentScreenUI(
                             userID,
                             selectedTab = selectedTab,
                             roleSelectedTab = roleSelectedTab,
-                            sharedPreferences = sharedPreferences,
                             navHostController = navHostController,
-                            appointmentViewModel = appointmentViewModel,
-                            onDoneConfirmed = { selectedTab = 1 }
+                            appointmentViewModel = appointmentViewModel
                         )
                     }
                 }
@@ -260,10 +236,8 @@ fun AppointmentCard(
     userID: String,
     selectedTab: Int,
     roleSelectedTab: Int,
-    sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
     appointmentViewModel: AppointmentViewModel,
-    onDoneConfirmed: () -> Unit
 ) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1

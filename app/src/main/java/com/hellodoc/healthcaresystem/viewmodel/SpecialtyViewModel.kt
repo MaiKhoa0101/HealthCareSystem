@@ -24,8 +24,7 @@ import java.io.File
 
 @HiltViewModel
 class SpecialtyViewModel @Inject constructor(
-    private val specialtyRepository: SpecialtyRepository,
-    private val sharedPreferences: SharedPreferences
+    private val specialtyRepository: SpecialtyRepository
 ) : ViewModel() {
     private val _specialties = MutableStateFlow<List<GetSpecialtyResponse>>(emptyList())
     val specialties: StateFlow<List<GetSpecialtyResponse>> get() = _specialties

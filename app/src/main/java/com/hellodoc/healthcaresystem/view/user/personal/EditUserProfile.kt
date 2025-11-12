@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -44,24 +45,13 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
 @Composable
-fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: NavHostController) {
+fun EditUserProfile(navHostController: NavHostController) {
 // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
 
-    val token = sharedPreferences.getString("access_token", null)
+    val context = LocalContext.current
 
-    val jwt = remember(token) {
-        try {
-            JWT(token ?: throw IllegalArgumentException("Token is null"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    val userId = jwt?.getClaim("userId")?.asString()
+    val userId = userViewModel.getUserAttribute("userId", context)
 
     // Gọi API để fetch user từ server
     LaunchedEffect(userId) {
@@ -309,7 +299,7 @@ fun AcceptEditButton(
     repassword: String,
     avatarURL: Uri?,
     role: String,
-    viewModel: UserViewModel,
+    viewModel: UserViewModel= hiltViewModel(),
     navHostController: NavHostController
 ) {
     val context = LocalContext.current
@@ -320,7 +310,6 @@ fun AcceptEditButton(
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
             navHostController.navigate("personal")
-            viewModel.resetUpdateStatus()
         }
     }
 

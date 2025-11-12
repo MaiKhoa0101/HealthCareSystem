@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
@@ -10,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
@@ -35,8 +37,7 @@ import java.io.File
 @HiltViewModel
 class DoctorViewModel @Inject constructor(
     private val doctorRepository: DoctorRepository,
-    private val appointmentRepository: AppointmentRepository,
-    private val sharedPreferences: SharedPreferences
+    private val appointmentRepository: AppointmentRepository
 ) : ViewModel() {
     private val _doctors = MutableStateFlow<List<GetDoctorResponse>>(emptyList())
     val doctors: StateFlow<List<GetDoctorResponse>> get() = _doctors
@@ -84,6 +85,17 @@ class DoctorViewModel @Inject constructor(
             }
         }
     }
+
+    fun getDoctorAttribute(attribute: String, sharedPreferences: SharedPreferences): String {
+        val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
+        return try {
+            val jwt = JWT(token)
+            jwt.getClaim(attribute).asString() ?: "unknown"
+        } catch (e: Exception) {
+            "unknown"
+        }
+    }
+
 
     fun fetchDoctorById(doctorId: String) {
         viewModelScope.launch {
@@ -417,8 +429,6 @@ class DoctorViewModel @Inject constructor(
             }
         }
     }
-
-
 
     fun resetStates() {
         _isLoading.value = false

@@ -14,8 +14,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class FAQItemViewModel @Inject constructor(
-    private val faqItemRepository: FAQItemRepository,
-    private val sharedPreferences: SharedPreferences
+    private val faqItemRepository: FAQItemRepository
 ) : ViewModel() {
     private val _faqItems = MutableStateFlow<List<GetFAQItemResponse>>(emptyList())
     val faqItems: StateFlow<List<GetFAQItemResponse>> get() = _faqItems

@@ -30,9 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.requestmodel.AdminResponseRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,7 +43,8 @@ import java.util.Locale
 @Composable
 fun ReportResponseScreen(
     complaint: ComplaintData,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    reportViewModel: ReportViewModel = hiltViewModel()
 ) {
     var responseContent by remember { mutableStateOf("") }
     val date = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
@@ -103,26 +106,12 @@ fun ReportResponseScreen(
 
         Button(
             onClick = {
-                coroutineScope.launch {
-                    if (responseContent.isBlank()) {
-                        Toast.makeText(context, "Vui lòng nhập nội dung phản hồi", Toast.LENGTH_SHORT).show()
-                        return@launch
-                    }
-                    val result = RetrofitInstance.reportService.sendAdminResponse(
-                        id = complaint.reportId, // ID report từ backend
-                        response = AdminResponseRequest(
-                            responseContent = responseContent,
-                            responseTime = date
-                        )
-                    )
-                    if (result.isSuccessful) {
-                        complaint.status = "closed"
-                        Toast.makeText(context, "Phản hồi đã được gửi", Toast.LENGTH_SHORT).show()
-                        onBack()
-                    } else {
-                        Toast.makeText(context, "Gửi phản hồi thất bại", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                reportViewModel.sendAdminResponse(
+                    id = complaint.reportId,
+                    responseContent = responseContent,
+                    responseTime = date,
+                    context = context
+                )
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)

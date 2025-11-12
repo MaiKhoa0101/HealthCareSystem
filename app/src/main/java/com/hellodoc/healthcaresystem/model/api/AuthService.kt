@@ -30,7 +30,7 @@ interface AuthService {
     suspend fun generateToken(@Body request: genToken): Response<LoginResponse>
 
     @POST("auth/request-otp")
-    suspend fun requestOtp(@Body request: EmailRequest): Response<OtpResponse>
+    suspend fun requestOtp(@Body request: String): Response<OtpResponse>
 
     @POST("auth/request-otp-signup")
     suspend fun requestOtpSignUp(@Body request: EmailRequest): Response<OtpResponse>

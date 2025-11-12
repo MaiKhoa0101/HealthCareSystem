@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -44,20 +45,16 @@ fun shortenUserName(fullName: String): String {
 }
 
 @Composable
-fun Headbar(
-    sharedPreferences: SharedPreferences
-) {
+fun Headbar() {
     val context = LocalContext.current
-    val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val viewModel: UserViewModel = hiltViewModel()
     val you by viewModel.user.collectAsState()
     var userName by remember { mutableStateOf("Người dùng") }
     var role by remember { mutableStateOf("Người dùng") }
 
     LaunchedEffect(Unit) {
         viewModel.getAllUsers()
-        role = viewModel.getUserRole()
+        role = viewModel.getUserAttribute("role",context)
     }
     Column(
         modifier = Modifier

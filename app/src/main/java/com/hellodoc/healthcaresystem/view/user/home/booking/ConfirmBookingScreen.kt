@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -38,13 +39,9 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ConfirmBookingScreen(context: Context, navHostController: NavHostController, dao: AppointmentDao) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val appointmentViewModel: AppointmentViewModel = viewModel( factory = viewModelFactory {
-            initializer { AppointmentViewModel(sharedPreferences, dao) }
-        })
+    val appointmentViewModel: AppointmentViewModel = hiltViewModel()
 
-    val notificationViewModel: NotificationViewModel = viewModel(factory = viewModelFactory {
-        initializer { NotificationViewModel(sharedPreferences) }
-    })
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
 
     var notes by remember { mutableStateOf("") }
     var examinationMethod by remember { mutableStateOf("") }
@@ -220,7 +217,9 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
 
                 Button(
                     onClick = {
+                        val token = sharedPreferences.getString("access_token", null)
                         appointmentViewModel.createAppointment(
+                            token,
                             CreateAppointmentRequest(
                                 doctorID = doctorId,
                                 patientID = patientID,

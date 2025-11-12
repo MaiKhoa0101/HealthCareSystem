@@ -38,7 +38,7 @@ class UserRepository @Inject constructor(
 
     suspend fun requestOtp(email: String): Result<OtpResponse> {
         return try {
-            val response = authenService.requestOtp(EmailRequest(email))
+            val response = authenService.requestOtp(email)
             if (response.isSuccessful) Result.success(response.body()!!)
             else Result.failure(Exception("Gửi OTP thất bại"))
         } catch (e: Exception) {

@@ -27,8 +27,7 @@ import java.io.File
 
 @HiltViewModel
 class NewsViewModel @Inject constructor(
-    private val newsRepository: NewsRepository,
-    private val sharedPreferences: SharedPreferences
+    private val newsRepository: NewsRepository
 ) : ViewModel() {
     private val _newsList = MutableStateFlow<List<NewsResponse>>(emptyList())
     val newsList: StateFlow<List<NewsResponse>> = _newsList

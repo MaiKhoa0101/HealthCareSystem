@@ -68,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -98,7 +99,7 @@ import kotlinx.coroutines.withContext
 fun CreatePostScreen(
     context: Context,
     navController: NavHostController,
-    postViewModel: PostViewModel,
+    postViewModel: PostViewModel= hiltViewModel(),
     postId: String? = null
 ) {
     val storagePermissionState: PermissionState = rememberPermissionState(
@@ -113,10 +114,7 @@ fun CreatePostScreen(
     var showPermissionDialog by remember { mutableStateOf(false) }
 
     // User info
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
+    val userViewModel: UserViewModel = hiltViewModel()
 
     val user by userViewModel.user.collectAsState()
     var userId by remember { mutableStateOf("") }
@@ -169,8 +167,8 @@ fun CreatePostScreen(
 
     // Load user info & post data
     LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        userRole = userViewModel.getUserAttributeString("role")
+        userId = userViewModel.getUserAttribute("userId", context)
+        userRole = userViewModel.getUserAttribute("role", context)
         userViewModel.getUser(userId)
 
         postId?.let { id -> postViewModel.getPostById(id, context) }

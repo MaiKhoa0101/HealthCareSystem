@@ -8,18 +8,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
 import com.hellodoc.healthcaresystem.model.repository.ReportRepository
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.requestmodel.AdminResponseRequest
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
 // XÓA: import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ReportViewModel @Inject constructor(
-    private val repository: ReportRepository,
-    private val sharedPreferences: SharedPreferences
+    private val reportRepository: ReportRepository
 ) : ViewModel() {
 
     // Sửa lỗi: Khởi tạo là emptyList(), không phải null
@@ -39,7 +39,7 @@ class ReportViewModel @Inject constructor(
             println(/*...*/) // Giữ lại log của bạn
 
             // Repository giờ trả về Result
-            val result = repository.sendReport(
+            val result = reportRepository.sendReport(
                 ReportRequest(
                     reporter = reportedId,
                     reporterModel = reporterModel,
@@ -63,7 +63,7 @@ class ReportViewModel @Inject constructor(
     fun getAllReport() {
         viewModelScope.launch {
             // Repository trả về Result<List<ComplaintData>>
-            val result = repository.getAllReports()
+            val result = reportRepository.getAllReports()
 
             // Dùng .fold để xử lý cả thành công và thất bại
             result.fold(
@@ -93,7 +93,7 @@ class ReportViewModel @Inject constructor(
             }
 
             // 2. Gọi Repository
-            val result = repository.deleteReport(reportId)
+            val result = reportRepository.deleteReport(reportId)
 
             // 3. Xử lý kết quả
             if (result.isSuccess) {
@@ -106,4 +106,27 @@ class ReportViewModel @Inject constructor(
             }
         }
     }
+
+    fun sendAdminResponse(
+        id: String,
+        responseContent: String,
+        responseTime: String,
+        context: Context
+    ) {
+        viewModelScope.launch {
+            if (responseContent.isBlank()) {
+                Toast.makeText(context, "Vui lòng nhập nội dung phản hồi", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val result = reportRepository.sendAdminResponse(id, responseContent, responseTime)
+
+            if (result.isSuccessful) {
+                Toast.makeText(context, "Phản hồi đã được gửi", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Gửi phản hồi thất bại", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+    }
+
 }

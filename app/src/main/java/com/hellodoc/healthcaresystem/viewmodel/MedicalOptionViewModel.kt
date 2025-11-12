@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetMedicalOptionResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetRemoteMedicalOptionResponse
 import com.hellodoc.healthcaresystem.model.repository.MedicalOptionRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,12 +15,28 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MedicalOptionViewModel @Inject constructor(
-    private val medicalOptionRepository: MedicalOptionRepository,
-    private val sharedPreferences: SharedPreferences
+    private val medicalOptionRepository: MedicalOptionRepository
 ) : ViewModel() {
     private val _medicalOptions = MutableStateFlow<List<GetMedicalOptionResponse>>(emptyList())
     val medicalOptions: StateFlow<List<GetMedicalOptionResponse>> get() = _medicalOptions
+    private val _remoteMedicalOptions = MutableStateFlow<List<GetRemoteMedicalOptionResponse>>(emptyList())
+    val remoteMedicalOptions: StateFlow<List<GetRemoteMedicalOptionResponse>> get() = _remoteMedicalOptions
 
+    fun fetchRemoteMedicalOptions() {
+        viewModelScope.launch {
+            try {
+                val response = medicalOptionRepository.getRemoteMedicalOptions()
+                if (response.isSuccessful) {
+                    _remoteMedicalOptions.value = response.body() ?: emptyList()
+                    println("OK 1" + response.body())
+                } else {
+                    println("Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
     fun fetchMedicalOptions() {
         viewModelScope.launch {
             try {

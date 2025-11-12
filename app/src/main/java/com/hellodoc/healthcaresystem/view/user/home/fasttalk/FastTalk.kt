@@ -36,12 +36,12 @@ import com.hellodoc.healthcaresystem.R
 import android.Manifest
 import android.speech.SpeechRecognizer
 import androidx.compose.foundation.layout.Box
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun FastTalk(
     navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
-    userViewModel: UserViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
     context: Context
 ) {
     var yourSentence by remember { mutableStateOf("") }

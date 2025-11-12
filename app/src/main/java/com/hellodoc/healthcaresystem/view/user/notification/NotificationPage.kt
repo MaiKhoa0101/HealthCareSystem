@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -47,9 +48,6 @@ import java.time.ZonedDateTime
 import java.time.Duration
 import java.time.format.DateTimeFormatter
 
-
-var userId: String = ""
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationPage(
@@ -57,19 +55,12 @@ fun NotificationPage(
     navHostController: NavHostController
 ){
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
-
-    val notificationViewModel: NotificationViewModel = viewModel(factory = viewModelFactory {
-        initializer { NotificationViewModel(sharedPreferences) }
-    })
-
+    val userViewModel: UserViewModel = hiltViewModel()
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
     val notifications by notificationViewModel.notifications.collectAsState()
 
     LaunchedEffect(Unit) {
-        userId = userViewModel.getUserAttributeString("userId")
-        notificationViewModel.fetchNotificationByUserId(userId)
+        notificationViewModel.fetchNotificationByUserId(userViewModel.getUserAttribute("userId", context))
     }
 
     Column(

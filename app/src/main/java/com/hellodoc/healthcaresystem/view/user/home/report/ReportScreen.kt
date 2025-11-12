@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -50,9 +51,7 @@ fun ReportDoctor(
     onClickShowReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
 ) {
-    val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
-        initializer { ReportViewModel(sharedPreferences) }
-    })
+    val reportViewModel: ReportViewModel = hiltViewModel()
 
     var selectedType by remember { mutableStateOf("Bác sĩ") }
     var reportContent by remember { mutableStateOf("") }
@@ -133,11 +132,8 @@ fun ReportUser(
     youTheCurrentUserUseThisApp: User?,
     reportedUser: User?,
     onClickShowReportDialog: () -> Unit,
-    sharedPreferences: SharedPreferences,
 ) {
-    val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
-        initializer { ReportViewModel(sharedPreferences) }
-    })
+    val reportViewModel: ReportViewModel = hiltViewModel()
 
     var selectedType by remember { mutableStateOf("Người dùng") }
     var reportContent by remember { mutableStateOf("") }
@@ -220,10 +216,7 @@ fun ReportPostDoctor(
     onClickShowPostReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
 ) {
-    val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
-        initializer { ReportViewModel(sharedPreferences) }
-    })
-
+    val reportViewModel: ReportViewModel = hiltViewModel()
     var selectedType by remember { mutableStateOf("Bài viết") }
     var reportContent by remember { mutableStateOf("") }
 
@@ -301,10 +294,7 @@ fun ReportPostUser(
     onClickShowPostReportDialog: () ->Unit,
     sharedPreferences: SharedPreferences,
     ) {
-    val reportViewModel: ReportViewModel = viewModel(factory = viewModelFactory {
-        initializer { ReportViewModel(sharedPreferences) }
-    })
-
+    val reportViewModel: ReportViewModel = hiltViewModel()
 
     var selectedType by remember { mutableStateOf("Bài viết") }
     var reportContent by remember { mutableStateOf("") }

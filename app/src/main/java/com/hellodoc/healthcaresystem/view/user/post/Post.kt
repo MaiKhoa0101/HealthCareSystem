@@ -75,6 +75,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -87,6 +88,7 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
@@ -97,14 +99,13 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun PostColumn(
     navHostController: NavHostController,
-    idUserOfPost: String = "",
-    userWhoInteractWithThisPost: User,
     postViewModel: PostViewModel
 ) {
     val posts by postViewModel.posts.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
-
+    val userViewModel: UserViewModel = hiltViewModel()
+    val userWhoInteractWithThisPost by userViewModel.you.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -118,7 +119,7 @@ fun PostColumn(
                     navHostController = navHostController,
                     postViewModel = postViewModel,
                     post = post,
-                    userWhoInteractWithThisPost = userWhoInteractWithThisPost,
+                    userWhoInteractWithThisPost = userWhoInteractWithThisPost!!,
                     onClickReport = {
 //                        showOptionsMenu = true
                         showPostReportDialog = !showPostReportDialog

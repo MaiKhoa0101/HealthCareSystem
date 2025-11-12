@@ -66,7 +66,6 @@ object ApiKeyManager {
 
 // Helper class để xử lý media và gọi API
 class GeminiHelper() {
-
     // Gửi yêu cầu đến Gemini API với logic xoay key
     private suspend fun sendRequestWithRetry(request: GeminiRequest): String {
         var attempts = 0
@@ -256,7 +255,6 @@ class GeminiHelper() {
 
 @HiltViewModel
 class GeminiViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
     private val postRepository: PostRepository,
     private val doctorRepository:DoctorRepository
 ) : ViewModel() {
