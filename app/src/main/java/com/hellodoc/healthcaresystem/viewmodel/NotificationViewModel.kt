@@ -5,19 +5,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.requestmodel.CreateNotificationRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NotificationResponse
+import com.hellodoc.healthcaresystem.model.repository.NotificationRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class NotificationViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+@HiltViewModel
+class NotificationViewModel(
+    private val sharedPreferences: SharedPreferences,
+    private val notificationRepository: NotificationRepository
+) : ViewModel() {
     private val _notifications = MutableStateFlow<List<NotificationResponse>>(emptyList())
     val notifications: StateFlow<List<NotificationResponse>> get() = _notifications
 
     fun fetchNotificationByUserId(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.notificationService.getNotificationByUserId(userId)
+                val response = notificationRepository.getNotificationByUserId(userId)
                 if (response.isSuccessful) {
                     _notifications.value = response.body() ?: emptyList()
                     println("OK 1" + response.body())
@@ -33,7 +39,7 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
     fun createNotification(userId: String, userModel: String, type: String, content: String, navigatePath: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.notificationService.createNotification(CreateNotificationRequest(userId, userModel, type, content, navigatePath))
+                val response = notificationRepository.createNotification(CreateNotificationRequest(userId, userModel, type, content, navigatePath))
                 if (response.isSuccessful) {
                     response.body()?.let { newNotification ->
                         _notifications.value += newNotification
@@ -52,7 +58,7 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
         viewModelScope.launch {
             try {
                 // Gọi API markAsRead
-                val response = RetrofitInstance.notificationService.markAsRead(notificationId)
+                val response = notificationRepository.markAsRead(notificationId)
                 if (response.isSuccessful) {
                     println("Cập nhật trạng thái đã đọc thành công")
                     // Cập nhật trạng thái thông báo trong danh sách
