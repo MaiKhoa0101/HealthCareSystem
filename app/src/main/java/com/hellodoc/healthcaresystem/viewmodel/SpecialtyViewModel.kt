@@ -9,8 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
+import com.hellodoc.healthcaresystem.model.repository.SpecialtyRepository
 import com.hellodoc.healthcaresystem.requestmodel.SpecialtyRequest
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,7 +22,11 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+@HiltViewModel
+class SpecialtyViewModel @Inject constructor(
+    private val specialtyRepository: SpecialtyRepository,
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
     private val _specialties = MutableStateFlow<List<GetSpecialtyResponse>>(emptyList())
     val specialties: StateFlow<List<GetSpecialtyResponse>> get() = _specialties
 
@@ -29,7 +36,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
 
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.specialtyService.getSpecialties()
+                val response = specialtyRepository.getSpecialties()
                 if (response.isSuccessful) {
                     _specialties.value = response.body() ?: emptyList()
                     //println("OK 1" + response.body())
@@ -68,7 +75,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
     fun fetchSpecialtyDoctor(specialtyID: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.specialtyService.getSpecialtyById(specialtyID)
+                val response = specialtyRepository.getSpecialtyById(specialtyID)
                 if (response.isSuccessful) {
                     val specialtyResponse = response.body()
                     if (specialtyResponse != null) {
@@ -125,7 +132,7 @@ class SpecialtyViewModel(private val sharedPreferences: SharedPreferences) : Vie
                 }
 
                 val response = icon?.let {
-                    RetrofitInstance.specialtyService.createSpecialty(
+                    specialtyRepository.createSpecialty(
                         name,
                         it,
                         description
