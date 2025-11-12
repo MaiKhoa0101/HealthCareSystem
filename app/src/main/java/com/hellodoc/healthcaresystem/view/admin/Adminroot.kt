@@ -20,8 +20,6 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SidebarItem
-import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.view.user.home.root.MainApplication
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
