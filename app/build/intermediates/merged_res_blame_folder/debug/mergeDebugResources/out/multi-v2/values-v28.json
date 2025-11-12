@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-v28/values-v28.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-101:/values-v28/values-v28.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\441b85e0bdfdb8931267df6ed92c2c52\\transformed\\material-1.10.0\\res\\values-v28\\values-v28.xml",
+                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\ba53426687ed6e6b820369a39178cbb2\\transformed\\material-1.10.0\\res\\values-v28\\values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\13920923056cb233a443ed42eb08a31e\\transformed\\appcompat-1.6.1\\res\\values-v28\\values-v28.xml",
+                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\ff09911655012bc9f0aaa27732dd963e\\transformed\\appcompat-1.6.1\\res\\values-v28\\values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,8",
                         "startColumns": "4,4,4,4",
@@ -42,7 +42,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\4b2f0c55e3579f7e8bd03388ebd3d47a\\transformed\\core-1.6.1\\res\\values-v28\\values.xml",
+                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\fdc005f7e47fa764e8a5b73050c734b1\\transformed\\core-1.6.1\\res\\values-v28\\values.xml",
                     "from": {
                         "startLines": "4,13",
                         "startColumns": "0,0",

@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"හකුළන්න"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"මුරපදය"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"මුරයතුර"</string>
+    <string msgid="389117264260014992" name="autofill">"ස්වයං පිරවුම"</string>
     <string name="bottomsheet_action_collapse">පහළම පත්‍රය හකුළන්න</string>
     <string name="bottomsheet_action_expand">පහළම පත්‍රය දිග හරින්න</string>
     <string name="bottomsheet_action_expand_halfway">අඩක් දිග හරින්න</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"පරාස ආරම්භය"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"සෙවීම"</string>
     <string msgid="6043586758067023" name="selected">"තෝරන ලදි"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"ඇඟවීම"</string>
     <string msgid="4139871816613051306" name="state_empty">"හිස්"</string>
     <string msgid="5834637030682409883" name="state_off">"ක්‍රියාවිරහිතයි"</string>
     <string msgid="1490883874751719580" name="state_on">"ක්‍රියාත්මකයි"</string>

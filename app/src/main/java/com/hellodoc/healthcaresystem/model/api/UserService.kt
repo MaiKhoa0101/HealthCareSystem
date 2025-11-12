@@ -2,10 +2,13 @@ package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface UserService {
@@ -18,4 +21,15 @@ interface UserService {
         @Body tokenRequest: TokenRequest
     ): Response<Void>
 
+    @Multipart
+    @PUT("admin/updateUser/{id}")
+    suspend fun updateUserByID(
+        @Path("id") id: String,
+        @Part avatarURL: MultipartBody.Part?,
+        @Part name: MultipartBody.Part?,
+        @Part email: MultipartBody.Part?,
+        @Part address: MultipartBody.Part?,
+        @Part phone: MultipartBody.Part?,
+        @Part password: MultipartBody.Part?,
+    ):  Response<User>
 }

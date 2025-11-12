@@ -46,7 +46,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ReviewResponse
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.skeleton.SkeletonReviewItem
 import kotlinx.coroutines.launch
 

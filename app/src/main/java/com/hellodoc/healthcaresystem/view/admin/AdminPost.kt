@@ -458,13 +458,3 @@ fun String.timeInVietnam(): String {
         "Không xác định"
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPostManagerScreen() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    HealthCareSystemTheme {
-        DoctorListScreen(sharedPreferences = sharedPreferences)
-    }
-}

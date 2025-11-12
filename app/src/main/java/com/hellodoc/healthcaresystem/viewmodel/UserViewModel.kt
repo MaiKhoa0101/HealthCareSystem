@@ -7,7 +7,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,17 +19,21 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
+import com.hellodoc.healthcaresystem.model.repository.UserRepository
+import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-    //Bien lay 1 user
-    private val _thisUser = MutableStateFlow<User?>(null)
-    val thisUser: StateFlow<User?> get() = _thisUser
+@HiltViewModel
+class UserViewModel @Inject constructor(
+    private val repository: UserRepository,
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
 
-    //Bien lay 1 user
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
@@ -39,42 +43,30 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
 
+    private val _otpResult = MutableStateFlow<Result<OtpResponse>?>(null)
+    val otpResult: StateFlow<Result<OtpResponse>?> get() = _otpResult
 
-    fun clearUsers() {
-        _user.value = null
-    }
+    private val _isUserLoading = MutableStateFlow(false)
+    val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
 
     fun getAllUsers() {
         viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.admin.getAllUser()
-                if (response.isSuccessful) {
-                    response.body()?.let { userResponse ->
-                        val combinedList = userResponse.doctors + userResponse.users
-                        _users.value = combinedList          // <-- gán danh sách hiển thị
-                        _allUser.value = userResponse        // <-- lưu đầy đủ nếu cần sau này
-                    } ?: run {
-                        Log.e("UserViewModel", "Response body is null")
-                    }
-                } else {
-                    Log.e("UserViewModel", "Response failed: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Exception: ${e.message}")
+            _isUserLoading.value = true
+            val response = repository.getAllUsers()
+            response?.let {
+                val combined = it.doctors + it.users
+                _users.value = combined
+                _allUser.value = it
             }
+            _isUserLoading.value = false
         }
     }
-
-    private var _isUserLoading = MutableStateFlow(false)
-    val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
 
     fun getUser(id: String) {
         viewModelScope.launch {
+            _isUserLoading.value = true
             try {
-                _isUserLoading.value = true
-                val result = RetrofitInstance.userService.getUser(id)
-                _user.value = result
-                println("OK fetch user: $result")
+                _user.value = repository.getUser(id)
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -83,48 +75,102 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun getYou(id: String) {
+    fun sendFcmToken(userId: String, role: String, token: String) {
+        viewModelScope.launch {
+            try {
+                val res = repository.updateFcmToken(userId, token, role)
+                if (res.isSuccessful)
+                    Log.d("FCM", "Gửi token thành công")
+                else Log.e("FCM", "Gửi token thất bại: ${res.code()}")
+            } catch (e: Exception) {
+                Log.e("FCM", "Lỗi gửi FCM: ${e.message}")
+            }
+        }
+    }
+
+    fun requestOtp(email: String) {
+        viewModelScope.launch {
+            _otpResult.value = repository.requestOtp(email)
+        }
+    }
+
+    fun deleteUser(id: String) {
+        viewModelScope.launch {
+            try {
+                val res = repository.deleteUser(id)
+                if (res.isSuccessful) {
+                    Log.d("UserViewModel", "Xóa thành công")
+                    getAllUsers()
+                }
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Lỗi khi xóa user: ${e.message}")
+            }
+        }
+    }
+
+    private val _updateSuccess = MutableStateFlow<Boolean?>(null)
+    val updateSuccess: StateFlow<Boolean?> = _updateSuccess
+    private val _isUpdating = MutableStateFlow(false)
+    val isUpdating: StateFlow<Boolean> = _isUpdating
+
+    fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context){
         viewModelScope.launch {
             try {
                 _isUserLoading.value = true
-                val result = RetrofitInstance.userService.getUser(id)
-                _thisUser.value = result
-                println("OK fetch user: $result")
+                Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
+                println("===== Thông tin gửi lên =====")
+                println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
+                println("Name: ${updatedUser.name}")
+                println("Address: ${updatedUser.address}")
+                println("Email: ${updatedUser.email}")
+                println("Phone: ${updatedUser.phone}")
+                println("Password: ${updatedUser.password}")
+                val avatar = updatedUser.avatarURL?.let {
+                    prepareFilePart(context, it, "avatarURL")
+                }
+                val name = MultipartBody.Part.createFormData(
+                    "name", updatedUser.name
+                )
+                val email = MultipartBody.Part.createFormData(
+                    "email",
+                    updatedUser.email
+                )
+                val phone = MultipartBody.Part.createFormData(
+                    "phone",
+                    updatedUser.phone
+                )
+                val address = MultipartBody.Part.createFormData(
+                    "address",
+                    updatedUser.address
+                )
+                val password = MultipartBody.Part.createFormData(
+                    "password",
+                    updatedUser.password!!
+                )
+                val response = repository.updateUserByID(
+                    id, avatar, address, name, email, phone, password
+                )
+                if (response.isSuccessful) {
+                    Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
+                    getAllUsers()
+                    _updateSuccess.value = true
+                }
+                else {
+                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
+                    _updateSuccess.value = false
+                }
+                _isUpdating.value = false
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
-            } finally {
-                _isUserLoading.value = false
+                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
+                _updateSuccess.value = false }
+            finally {
+                _isUpdating.value = false
             }
         }
     }
 
-
-    fun getUserNameFromToken(): String {
-        val token = sharedPreferences.getString("access_token", null) ?: return "Người dùng"
-        return decodeToken(token)
-    }
-
-    private fun decodeToken(token: String): String {
-        return try {
-            val jwt = JWT(token)
-            jwt.getClaim("name").asString() ?: "Người dùng"
-        } catch (e: Exception) {
-            "Người dùng"
-        }
-    }
-
-    fun getUserRole(): String {
-        val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
-        return try {
-            val jwt = JWT(token)
-            jwt.getClaim("role").asString() ?: "unknown"
-            sharedPreferences.edit().putString("role", jwt.getClaim("role").asString()).toString()
-        } catch (e: Exception) {
-            "unknown"
-        }
-    }
-
-    fun getUserAttributeString(attribute: String): String {
+    // --- Token decode ---
+    fun getUserAttribute(attribute: String): String {
         val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
         return try {
             val jwt = JWT(token)
@@ -134,146 +180,26 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun clearToken() {
-        sharedPreferences.edit().remove("access_token").apply()
-    }
-
+    fun clearToken() = sharedPreferences.edit().remove("access_token").apply()
 
     fun logout(context: Context) {
-        clearToken() // Xóa token trước khi đăng xuất
-
-        // Chuyển về màn hình đăng nhập
+        clearToken()
         val intent = Intent(context, SignIn::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
     }
 
-    private fun prepareFilePart(
-        context: Context,
-        fileUri: Uri,
-        partName: String
-    ): MultipartBody.Part? {
+    // --- upload helper ---
+    private fun prepareFilePart(context: Context, uri: Uri, name: String): MultipartBody.Part? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(fileUri)
-            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
-            tempFile.outputStream().use { outputStream ->
-                inputStream?.copyTo(outputStream)
-            }
-
-            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val temp = File.createTempFile("upload_", ".jpg", context.cacheDir)
+            temp.outputStream().use { out -> inputStream?.copyTo(out) }
+            val reqFile = temp.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(name, temp.name, reqFile)
         } catch (e: Exception) {
-            Log.e("UserViewModel", "Error preparing file part", e)
+            Log.e("UserViewModel", "prepareFilePart error", e)
             null
-        }
-    }
-
-
-    private val _updateSuccess = MutableStateFlow<Boolean?>(null)
-    val updateSuccess: StateFlow<Boolean?> = _updateSuccess
-    private val _isUpdating = MutableStateFlow(false)
-    val isUpdating: StateFlow<Boolean> = _isUpdating
-
-    fun resetUpdateStatus() {
-        _updateSuccess.value = false
-    }
-    fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context) {
-        viewModelScope.launch {
-            try {
-                _isUpdating.value = true
-                Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
-                println("===== Thông tin gửi lên =====")
-                println("Avatar URL: ${updatedUser.avatarURL ?: "Không có"}")
-                println("Name: ${updatedUser.name}")
-                println("Address: ${updatedUser.address}")
-                println("Email: ${updatedUser.email}")
-                println("Phone: ${updatedUser.phone}")
-                println("Password: ${updatedUser.password}")
-
-                val avatar = updatedUser.avatarURL?.let {
-                    prepareFilePart(context, it, "avatarURL")
-                }
-                val name = MultipartBody.Part.createFormData("name", updatedUser.name)
-                val email = MultipartBody.Part.createFormData("email", updatedUser.email)
-                val phone = MultipartBody.Part.createFormData("phone", updatedUser.phone)
-                val address = MultipartBody.Part.createFormData("address", updatedUser.address)
-                val password = MultipartBody.Part.createFormData("password", updatedUser.password!!)
-
-                val response = RetrofitInstance.admin.updateUserByID(
-                    id,
-                    avatar,
-                    address,
-                    name,
-                    email,
-                    phone,
-                    password
-                )
-
-                if (response.isSuccessful) {
-                    Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
-                    getAllUsers()
-                    _updateSuccess.value = true
-                } else {
-                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
-                    _updateSuccess.value = false
-                }
-                _isUpdating.value = false
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
-                _updateSuccess.value = false
-            }
-            finally {
-                _isUpdating.value = false
-            }
-        }
-    }
-
-    fun sendFcmToken(userId: String, userModel: String, token: String) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.userService.updateFcmToken(userId, TokenRequest(token, userModel))
-                if (response.isSuccessful) {
-                    Log.d("FCM", "Đã gửi fcmToken lên server")
-                } else {
-                    Log.e("FCM", "Lỗi gửi fcmToken: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("FCM", "Lỗi: ${e.localizedMessage}")
-            }
-        }
-    }
-
-    private val _otpResult = MutableStateFlow<Result<OtpResponse>?>(null)
-    val otpResult: StateFlow<Result<OtpResponse>?> get() = _otpResult
-
-    fun requestOtp(email: String) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.api.requestOtp(EmailRequest(email))
-                if (response.isSuccessful) {
-                    _otpResult.value = Result.success(response.body()!!)
-                } else {
-                    _otpResult.value = Result.failure(Exception("Gửi OTP thất bại"))
-                }
-            } catch (e: Exception) {
-                _otpResult.value = Result.failure(e)
-            }
-        }
-    }
-
-    fun deleteUser(userID: String) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.admin.deleteUser(userID)
-                if(response.isSuccessful) {
-                    Log.d("Xóa User", "Thành công")
-                    getAllUsers()
-                }else {
-                    Log.e("xóa user", "thất bại")
-                }
-            } catch (e: Exception) {
-                Log.e("xóa user", "Lỗi khi xóa user: ${e.message}")
-            }
         }
     }
 }

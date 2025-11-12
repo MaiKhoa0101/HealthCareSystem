@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"સંકુચિત કરો"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"પાસવર્ડ"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"પાસકી"</string>
+    <string msgid="389117264260014992" name="autofill">"ઑટોમૅટિક રીતે ભરવાની સુવિધા"</string>
     <string name="bottomsheet_action_collapse">બોટમ શીટ નાની કરો</string>
     <string name="bottomsheet_action_expand">બોટમ શીટ મોટી કરો</string>
     <string name="bottomsheet_action_expand_halfway">અડધે સુધી મોટું કરો</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"રેંજની શરૂઆત"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"શોધો"</string>
     <string msgid="6043586758067023" name="selected">"પસંદગી કરી"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"અલર્ટ"</string>
     <string msgid="4139871816613051306" name="state_empty">"ખાલી"</string>
     <string msgid="5834637030682409883" name="state_off">"બંધ છે"</string>
     <string msgid="1490883874751719580" name="state_on">"ચાલુ છે"</string>

@@ -23,8 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
@@ -32,21 +31,14 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 @Composable
 fun DoctorListScreen(
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences
+    userViewModel: UserViewModel = hiltViewModel() // ✅ Dùng Hilt
 ) {
     val context = LocalContext.current
-    val viewModel: UserViewModel = viewModel(factory = viewModelFactory {
-        initializer { UserViewModel(sharedPreferences) }
-    })
 
-    val users by viewModel.users.collectAsState()
-    var userName by remember { mutableStateOf("Người dùng") }
-    var role by remember { mutableStateOf("Người dùng") }
+    val users by userViewModel.users.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getAllUsers()
-        userName = viewModel.getUserNameFromToken()
-        role = viewModel.getUserRole()
+        userViewModel.getAllUsers()
     }
 
     Column(
@@ -65,7 +57,7 @@ fun DoctorListScreen(
         if (users.isEmpty()) {
             EmptyUserList()
         } else {
-            UserList(users = users, viewModel = viewModel)
+            UserList(users = users, userViewModel = userViewModel)
         }
     }
 }
@@ -85,21 +77,21 @@ fun EmptyUserList() {
 }
 
 @Composable
-fun UserList(users: List<User>, viewModel: UserViewModel) {
+fun UserList(users: List<User>, userViewModel: UserViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 10.dp)
     ) {
         items(users) { user ->
-            DoctorItem(user = user, viewModel = viewModel)
+            DoctorItem(user = user, userViewModel = userViewModel)
         }
     }
 }
 
 
 @Composable
-fun DoctorItem(user: User, viewModel: UserViewModel) {
+fun DoctorItem(user: User, userViewModel: UserViewModel) {
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
@@ -250,7 +242,7 @@ fun DoctorItem(user: User, viewModel: UserViewModel) {
                 )
                 Log.d("UserItem", "User ID to update: ${user.id}")
                 Log.d("UserItem", "Data sent to API: $updatedUser")
-                viewModel.updateUser(user.id, updatedUser, context)
+                userViewModel.updateUser(user.id, updatedUser, context)
                 isEditing = false
             },
             onDismiss = { isEditing = false }
@@ -324,12 +316,4 @@ fun EditDoctorDialog(
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewDoctorListScreen() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    HealthCareSystemTheme {
-        DoctorListScreen(sharedPreferences = sharedPreferences)
-    }
-}
+

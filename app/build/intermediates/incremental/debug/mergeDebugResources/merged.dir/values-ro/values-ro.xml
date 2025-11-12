@@ -53,6 +53,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Restrângeți"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"Parolă"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"Cheie de acces"</string>
+    <string msgid="389117264260014992" name="autofill">"Completare automată"</string>
     <string name="bottomsheet_action_collapse">Restrângeți foaia din partea de jos</string>
     <string name="bottomsheet_action_expand">Extindeți foaia din partea de jos</string>
     <string name="bottomsheet_action_expand_halfway">Extinde pe ecran complet</string>
@@ -271,6 +272,7 @@
     <string msgid="7097486360902471446" name="range_start">"Început de interval"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Căutați"</string>
     <string msgid="6043586758067023" name="selected">"Selectat"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"Alertă"</string>
     <string msgid="4139871816613051306" name="state_empty">"Gol"</string>
     <string msgid="5834637030682409883" name="state_off">"Dezactivat"</string>
     <string msgid="1490883874751719580" name="state_on">"Activat"</string>

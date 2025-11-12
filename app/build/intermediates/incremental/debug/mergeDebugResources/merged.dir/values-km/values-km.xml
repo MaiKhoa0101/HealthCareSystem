@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"បង្រួម"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"ពាក្យសម្ងាត់"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"កូដសម្ងាត់"</string>
+    <string msgid="389117264260014992" name="autofill">"បំពេញ​ស្វ័យ​ប្រវត្តិ"</string>
     <string name="bottomsheet_action_collapse">បង្រួមសន្លឹក​ខាងក្រោម</string>
     <string name="bottomsheet_action_expand">ពង្រីកសន្លឹក​ខាងក្រោម</string>
     <string name="bottomsheet_action_expand_halfway">ពង្រីក​ពាក់កណ្ដាល</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"ចំណុចចាប់ផ្ដើម"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ស្វែងរក"</string>
     <string msgid="6043586758067023" name="selected">"បានជ្រើសរើស"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"ជូន​ដំណឹង"</string>
     <string msgid="4139871816613051306" name="state_empty">"ទទេ"</string>
     <string msgid="5834637030682409883" name="state_off">"បិទ"</string>
     <string msgid="1490883874751719580" name="state_on">"បើក"</string>

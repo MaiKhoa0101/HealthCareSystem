@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-w600dp-v13/values-w600dp-v13.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-101:/values-w600dp-v13/values-w600dp-v13.xml",
             "map": [
                 {
                     "source": "E:\\HealthCareSystem\\app\\src\\main\\res\\values-w600dp\\dimens.xml",

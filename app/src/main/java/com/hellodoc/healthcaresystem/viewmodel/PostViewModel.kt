@@ -20,7 +20,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostRe
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay

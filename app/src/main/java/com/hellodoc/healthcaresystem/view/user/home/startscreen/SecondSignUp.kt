@@ -14,7 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
 //import com.example.healthcaresystem.user.SignIn
 //import com.example.healthcaresystem.user.SignUpSuccess

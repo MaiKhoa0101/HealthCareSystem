@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Doctor
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.requestmodel.SpecialtyRequest
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

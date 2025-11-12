@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"ሰብስብ"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"የይለፍ ቃል"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"የይለፍ ቁልፍ"</string>
+    <string msgid="389117264260014992" name="autofill">"ራስ-ሙላ"</string>
     <string name="bottomsheet_action_collapse">የግርጌ ሉሁን ይሰብስቡ</string>
     <string name="bottomsheet_action_expand">የግርጌ ሉሁን ይዘርጉ</string>
     <string name="bottomsheet_action_expand_halfway">ግማሽ መንገድ ዘርጋ</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"የክልል መጀመሪያ"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ፍለጋ"</string>
     <string msgid="6043586758067023" name="selected">"ተመርጧል"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"ማንቂያ"</string>
     <string msgid="4139871816613051306" name="state_empty">"ባዶ"</string>
     <string msgid="5834637030682409883" name="state_off">"ጠፍቷል"</string>
     <string msgid="1490883874751719580" name="state_on">"በርቷል"</string>

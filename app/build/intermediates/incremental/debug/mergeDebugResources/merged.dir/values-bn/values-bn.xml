@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"সঙ্কুচিত করুন"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"পাসওয়ার্ড"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"পাসকী"</string>
+    <string msgid="389117264260014992" name="autofill">"অটোফিল"</string>
     <string name="bottomsheet_action_collapse">স্ক্রিনের নিচে অ্যাটাচ করা শিট আড়াল করুন</string>
     <string name="bottomsheet_action_expand">স্ক্রিনের নিচে অ্যাটাচ করা শিট বড় করুন</string>
     <string name="bottomsheet_action_expand_halfway">অর্ধেক প্রসারিত করুন</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"রেঞ্জ শুরু"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"সার্চ করুন"</string>
     <string msgid="6043586758067023" name="selected">"বেছে নেওয়া হয়েছে"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"সতর্কতা"</string>
     <string msgid="4139871816613051306" name="state_empty">"ফাঁকা"</string>
     <string msgid="5834637030682409883" name="state_off">"বন্ধ আছে"</string>
     <string msgid="1490883874751719580" name="state_on">"চালু আছে"</string>

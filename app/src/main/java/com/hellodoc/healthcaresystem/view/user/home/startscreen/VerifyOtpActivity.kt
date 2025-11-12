@@ -9,7 +9,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.OtpVerifyRequest
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
 class VerifyOtpActivity : BaseActivity() {

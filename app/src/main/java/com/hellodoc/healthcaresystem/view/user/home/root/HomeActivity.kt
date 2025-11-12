@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.view.user.home.root
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -74,9 +75,13 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.RemoteMedicalOptionViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import dagger.hilt.android.HiltAndroidApp
 
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
+@HiltAndroidApp
+class MyApp : Application()
+
 class HomeActivity : BaseActivity() {
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

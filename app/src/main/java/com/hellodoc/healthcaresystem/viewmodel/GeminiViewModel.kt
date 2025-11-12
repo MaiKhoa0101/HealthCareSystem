@@ -17,7 +17,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ChatMessage
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Specialty
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.view.user.supportfunction.extractFrames
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.requestmodel.AdminResponseRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date

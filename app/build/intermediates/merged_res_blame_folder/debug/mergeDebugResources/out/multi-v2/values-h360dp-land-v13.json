@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-h360dp-land-v13/values-h360dp-land-v13.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-101:/values-h360dp-land-v13/values-h360dp-land-v13.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\441b85e0bdfdb8931267df6ed92c2c52\\transformed\\material-1.10.0\\res\\values-h360dp-land-v13\\values-h360dp-land-v13.xml",
+                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\ba53426687ed6e6b820369a39178cbb2\\transformed\\material-1.10.0\\res\\values-h360dp-land-v13\\values-h360dp-land-v13.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10",
                         "startColumns": "4,4,4,4,4,4,4,4,4",

@@ -50,6 +50,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"कोलॅप्स करा"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"पासवर्ड"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"पासकी"</string>
+    <string msgid="389117264260014992" name="autofill">"ऑटोफिल"</string>
     <string name="bottomsheet_action_collapse">तळाशी असलेली शीट कोलॅप्स करा</string>
     <string name="bottomsheet_action_expand">तळाशी असलेल्या शीटचा विस्तार करा</string>
     <string name="bottomsheet_action_expand_halfway">पूर्णपणे विस्तृत करा</string>
@@ -268,6 +269,7 @@
     <string msgid="7097486360902471446" name="range_start">"रेंजची सुरुवात"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"शोध"</string>
     <string msgid="6043586758067023" name="selected">"निवडला"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"सूचना"</string>
     <string msgid="4139871816613051306" name="state_empty">"रिक्त"</string>
     <string msgid="5834637030682409883" name="state_off">"बंद आहे"</string>
     <string msgid="1490883874751719580" name="state_on">"सुरू आहे"</string>

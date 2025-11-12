@@ -46,6 +46,7 @@
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Recolher"</string>
     <string msgid="8397015543330865059" name="android.credentials.TYPE_PASSWORD_CREDENTIAL">"Senha"</string>
     <string msgid="3929015085059320822" name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL">"Chave de acesso"</string>
+    <string msgid="389117264260014992" name="autofill">"Preenchimento automático"</string>
     <string msgid="881409763997275156" name="call_notification_answer_action">"Atender"</string>
     <string msgid="8793775615905189152" name="call_notification_answer_video_action">"Vídeo"</string>
     <string msgid="3229508546291798546" name="call_notification_decline_action">"Recusar"</string>
@@ -178,6 +179,7 @@
     <string msgid="7097486360902471446" name="range_start">"Início do intervalo"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Pesquisar"</string>
     <string msgid="6043586758067023" name="selected">"Selecionado"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"Alerta"</string>
     <string msgid="4139871816613051306" name="state_empty">"Vazio"</string>
     <string msgid="5834637030682409883" name="state_off">"Desativado"</string>
     <string msgid="1490883874751719580" name="state_on">"Ativado"</string>

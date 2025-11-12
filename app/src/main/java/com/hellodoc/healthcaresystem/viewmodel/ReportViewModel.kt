@@ -4,13 +4,18 @@ import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.model.repository.ReportRepository
 import com.hellodoc.healthcaresystem.requestmodel.ReportRequest
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.launch
 
-class ReportViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
-
-
+@HiltViewModel
+class ReportViewModel @Inject constructor(
+    private val repository: ReportRepository,
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
 
     fun createReport(
         context: android.content.Context,
@@ -28,7 +33,7 @@ class ReportViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                         "\nSelectedType: $selectedType" +
                         "\nReporterId:$reporterId" +
                         "\nReportedId: $reportedId"+"\nReporterModel: $reporterModel"+"\npostId: $postId")
-                val response = RetrofitInstance.reportService.sendReport(
+                val response = repository.sendReport(
                     ReportRequest(
                         reporter = reportedId,
                         reporterModel = reporterModel,

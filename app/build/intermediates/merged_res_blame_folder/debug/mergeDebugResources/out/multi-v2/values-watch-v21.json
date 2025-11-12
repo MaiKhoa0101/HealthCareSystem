@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-100:/values-watch-v21/values-watch-v21.xml",
+            "outputFile": "com.hellodoc.healthcaresystem.app-mergeDebugResources-101:/values-watch-v21/values-watch-v21.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\13920923056cb233a443ed42eb08a31e\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
+                    "source": "C:\\Users\\Hi\\.gradle\\caches\\8.11.1\\transforms\\ff09911655012bc9f0aaa27732dd963e\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
                     "from": {
                         "startLines": "2,6,10",
                         "startColumns": "4,4,4",

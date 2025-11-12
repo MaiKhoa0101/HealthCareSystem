@@ -9,8 +9,8 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
-    id ("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 val localProperties = gradleLocalProperties(rootDir, providers)
 android {
@@ -131,6 +131,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    implementation ("com.google.dagger:hilt-android:2.57.1")
-    ksp ("com.google.dagger:hilt-compiler:2.57.1")
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+    ksp("androidx.hilt:hilt-compiler:1.3.0")
+
+
 }

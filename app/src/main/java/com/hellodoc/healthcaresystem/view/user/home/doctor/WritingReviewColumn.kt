@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.hellodoc.healthcaresystem.requestmodel.ReviewRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateReviewRequest
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
 //@OptIn(ExperimentalMaterial3Api::class)

@@ -1,446 +1,446 @@
 [
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/anim_slide_out_left.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/anim/slide_out_left.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_reset_password.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/reset_password.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_reset_password.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/reset_password.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_lock_icon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/lock_icon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_appointment.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_appointment.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_arrow_back.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/arrow_back.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_home.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/home.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_blankfield.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/blankfield.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_menu_icon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/menu_icon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_logout.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/logout.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_second_sign_up.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/second_sign_up.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_time_icon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/time_icon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_edit.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/edit.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_second_sign_up.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/second_sign_up.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_verify_otp_signup.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/verify_otp_signup.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_camera.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/camera.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_threestick.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/threestick.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_image_certif_2.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/image_certif_2.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_appointmentmanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/appointmentmanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_intro3.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_intro3.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_calendarbtn.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/calendarbtn.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_start_screen.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_start_screen.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-hdpi_ic_launcher_round.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-hdpi/ic_launcher_round.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xhdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_settingbtn.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/settingbtn.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_launcher_foreground.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_comment.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/comment.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_usermanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/usermanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ticked.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ticked.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_plusmark.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/plusmark.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_first_sign_up.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/first_sign_up.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_linkicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/linkicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-mdpi_ic_launcher.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-mdpi/ic_launcher.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_google_logo.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/google_logo.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_image.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_image.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_logo.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/logo.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_checkedbigicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/checkedbigicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_notification.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/notification.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_arrowdown.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/arrowdown.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xxhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_seachicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/seachicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_appointment.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_appointment.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_intro2.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_intro2.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_edit_text_background.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/edit_text_background.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-mdpi_ic_launcher_round.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-mdpi/ic_launcher_round.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_liked.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/liked.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_hospital.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_hospital.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_minus.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/minus.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_calendarbigicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/calendarbigicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_arrow_down.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/arrow_down.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_categoryicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/categoryicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_remove_red_eye_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_remove_red_eye_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_doctor.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/doctor.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-anydpi-v26/ic_launcher_round.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xxhdpi_ic_launcher.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xxhdpi/ic_launcher.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_hospital.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_hospital.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_time_icon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/time_icon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_notification.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/notification.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/xml_network_security_config.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/xml/network_security_config.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_home.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_home.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xxxhdpi/ic_launcher_round.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_post.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_post.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/navigation_nav_graph.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/navigation/nav_graph.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_image.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_image.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_signup_success.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_signup_success.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_submit_arrow.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/submit_arrow.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-anydpi-v26_ic_healthmate.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-anydpi-v26/ic_healthmate.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_threestick.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/threestick.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_email_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_email_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_calendar.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_calendar.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_controller.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/controller.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_calendarbtn.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/calendarbtn.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_appointment.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/appointment.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_verify_otp_signup.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/verify_otp_signup.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_home.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_home.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_contact_phone_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_contact_phone_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xhdpi_ic_launcher.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xhdpi/ic_launcher.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-mdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_arrow_area.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/arrow_area.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_categoryicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/categoryicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/xml_backup_rules.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/xml/backup_rules.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_panorama_fish_eye_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_panorama_fish_eye_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_disabled_visible_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_disabled_visible_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_checkedbigicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/checkedbigicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_remove_red_eye_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_remove_red_eye_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/xml_backup_rules.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/xml/backup_rules.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_post.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_post.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_verify_otp.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/verify_otp.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_usermanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/usermanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-mdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_calendar.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_calendar.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/anim_slide_out_right.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/anim/slide_out_right.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_linkicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/linkicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_image_certif_2.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/image_certif_2.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-hdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xxxhdpi_ic_launcher.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xxxhdpi/ic_launcher.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_menu_icon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/menu_icon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_plusmark.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/plusmark.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/xml_network_security_config.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/xml/network_security_config.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_reset_password_success.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/reset_password_success.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_heart.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/heart.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/anim_slide_out_right.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/anim/slide_out_right.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/xml_data_extraction_rules.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/xml/data_extraction_rules.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_employeemanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/employeemanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_calendarbigicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/calendarbigicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_camera.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/camera.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_notification.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/notification.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/navigation_nav_graph.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/navigation/nav_graph.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/xml_data_extraction_rules.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/xml/data_extraction_rules.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xxxhdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_arrow_down.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/arrow_down.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_reportmanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/reportmanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_image_certif.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/image_certif.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_personal.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/personal.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_contact_phone_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_contact_phone_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_arrow_area.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/arrow_area.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_attach_file.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_attach_file.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_seachicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/seachicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_heart.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/heart.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_arrowdown.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/arrowdown.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_minus.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/minus.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_google_button_border.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/google_button_border.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_liked.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/liked.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_plusbtn.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/plusbtn.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_clarifymanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/clarifymanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_settingbtn.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/settingbtn.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_close.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/close.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_clarifymanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/clarifymanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_searchicon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/searchicon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xxxhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_edit_text_background.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/edit_text_background.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_messagemanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/messagemanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/anim_slide_in_right.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/anim/slide_in_right.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-xxhdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_logo.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/logo.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_folder_plus.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/folder_plus.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xhdpi_ic_launcher_round.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xhdpi/ic_launcher_round.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_appointment.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/appointment.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_verify_otp.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/verify_otp.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_personal.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_personal.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_personal.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/personal.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_disabled_visible_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_disabled_visible_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_intro1.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_intro1.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ticked.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ticked.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_logout.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/logout.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_image_certif.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/image_certif.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_reportmanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/reportmanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_email_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_email_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_confirmed.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_confirmed.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_signup_success.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_signup_success.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_forgot_password.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/forgot_password.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_controller.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/controller.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_start_screen.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_start_screen.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_forgot_password.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/forgot_password.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/anim_slide_in_left.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/anim/slide_in_left.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_background.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/background.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_notification.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/notification.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_main_page.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_main_page.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_img.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/img.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_home.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/home.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_main_page.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_main_page.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_searchicon.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/searchicon.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_background.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/background.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_intro1.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_intro1.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_more.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_more.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_attach_file.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_attach_file.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_like.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/like.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/anim_slide_in_left.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/anim/slide_in_left.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_sign_in.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/sign_in.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_doctormanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/doctormanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_doctormanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/doctormanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_speak.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/speak.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-hdpi_ic_launcher.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-hdpi/ic_launcher.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-anydpi-v26_ic_healthmate.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-anydpi-v26/ic_healthmate.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-xxhdpi/ic_launcher_round.webp"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_arrow_up.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/arrow_up.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_submit_arrow.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/submit_arrow.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_doctor.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/doctor.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_arrow_up.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/arrow_up.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_untick.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/untick.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_google_logo.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/google_logo.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_first_sign_up.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/first_sign_up.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_notification.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_notification.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_info_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_info_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_lock_icon.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/lock_icon.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_activity_intro2.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/activity_intro2.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_launcher_background.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_launcher_background.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/anim_slide_out_left.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/anim/slide_out_left.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_speak.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/speak.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_appointmentmanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/appointmentmanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_untick.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/untick.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_sign_in.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/sign_in.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-anydpi-v26/ic_launcher_round.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_edit.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/edit.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_blankfield.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/blankfield.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_baseline_person_24.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/baseline_person_24.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_messagemanage.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/messagemanage.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/anim_slide_in_right.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/anim/slide_in_right.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_panorama_fish_eye_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_panorama_fish_eye_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_comment.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/comment.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_folder_plus.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/folder_plus.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_employeemanage.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/employeemanage.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_google_button_border.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/google_button_border.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_close.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/close.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_launcher_foreground.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_launcher_background.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/mipmap-hdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_person_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_person_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_img.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/img.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_plusbtn.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/plusbtn.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/layout_reset_password_success.xml.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/layout/reset_password_success.xml"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_arrow_back.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/arrow_back.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_more.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_more.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_baseline_info_24.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/baseline_info_24.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_confirmed.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_confirmed.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/layout_activity_intro3.xml.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/layout/activity_intro3.xml"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_ic_notification.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/ic_notification.png"
     },
     {
-        "merged": "com.hellodoc.healthcaresystem.app-debug-102:/drawable_ic_personal.png.flat",
-        "source": "com.hellodoc.healthcaresystem.app-main-104:/drawable/ic_personal.png"
+        "merged": "com.hellodoc.healthcaresystem.app-debug-103:/drawable_like.png.flat",
+        "source": "com.hellodoc.healthcaresystem.app-main-105:/drawable/like.png"
     }
 ]
