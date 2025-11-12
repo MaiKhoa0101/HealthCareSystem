@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.view.user.home.root
 import android.Manifest
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -54,6 +55,9 @@ import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro1
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.view.user.personal.FavouriteHistoryScreen
@@ -110,15 +114,24 @@ class HomeActivity : BaseActivity() {
             val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            HealthCareSystemTheme(darkTheme=darkTheme) {
-                val context = LocalContext.current
-
-                Index(
-                    context = context,
-                    navHostController = navHostController,
-                    onToggleTheme = { darkTheme = !darkTheme },
-                    darkTheme = darkTheme
-                )
+            val userViewModel: UserViewModel = hiltViewModel()
+            val user = userViewModel.getUserAttribute("userId", this)
+            if (user!="unknown") {
+                println("Tim duoc user: "+user)
+                HealthCareSystemTheme(darkTheme = darkTheme) {
+                    val context = LocalContext.current
+                    Index(
+                        context = context,
+                        navHostController = navHostController,
+                        onToggleTheme = { darkTheme = !darkTheme },
+                        darkTheme = darkTheme
+                    )
+                }
+            }
+            else{
+                val intent = Intent(this, Intro2::class.java)
+                startActivity(intent)
+                finish()
             }
         }
     }
@@ -156,7 +169,6 @@ class HomeActivity : BaseActivity() {
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
         var showFullScreenComment by remember { mutableStateOf(false) } // Local state
-
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
@@ -174,6 +186,7 @@ class HomeActivity : BaseActivity() {
                 darkTheme = darkTheme
             )
         }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
