@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.hellodoc.healthcaresystem.viewmodel.PostViewModel
