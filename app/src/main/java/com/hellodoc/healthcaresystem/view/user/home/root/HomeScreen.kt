@@ -233,7 +233,7 @@ fun HealthMateHomeScreen(
                     println("Dich vụ gồm: "+medicalOptionState)
                     GridServiceList(medicalOptionState) { medicalOption ->
                         when (medicalOption.name) {
-                            "Tính BMI" -> navHostController.navigate("bmi-checking4")
+                            "Tính BMI" -> navHostController.navigate("bmi-checking")
                             "Fast Talk" -> navHostController.navigate("fast_talk")
                             else -> {
 

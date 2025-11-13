@@ -103,35 +103,44 @@ class HomeActivity : BaseActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Obtain the FirebaseAnalytics instance.
-        firebaseAnalytics = Firebase.analytics
+        // (1) GỌI SUPER.ONCREATE ĐẦU TIÊN
+        // Đây là yêu cầu bắt buộc của Android và Hilt.
         super.onCreate(savedInstanceState)
+
+        // (2) LOGIC KIỂM TRA ĐĂNG NHẬP (Giữ nguyên)
+        val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val token = sharedPreferences.getString("access_token", null)
+
+        if (token == null || token == "unknown") {
+            // (3) CHƯA ĐĂNG NHẬP: Chuyển hướng về Intro
+            Log.d("AuthCheck", "Không tìm thấy token, chuyển hướng tới Intro2...")
+            val intent = Intent(this, Intro2::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish() // Đóng HomeActivity
+            return   // Dừng hàm onCreate
+        }
+
+        // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
+        Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
+
+        firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
 
         enableEdgeToEdge()
         setContent {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
-            val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            val userViewModel: UserViewModel = hiltViewModel()
-            val user = userViewModel.getUserAttribute("userId", this)
-            if (user!="unknown") {
-                println("Tim duoc user: "+user)
-                HealthCareSystemTheme(darkTheme = darkTheme) {
-                    val context = LocalContext.current
-                    Index(
-                        context = context,
-                        navHostController = navHostController,
-                        onToggleTheme = { darkTheme = !darkTheme },
-                        darkTheme = darkTheme
-                    )
-                }
-            }
-            else{
-                val intent = Intent(this, Intro2::class.java)
-                startActivity(intent)
-                finish()
+
+            HealthCareSystemTheme(darkTheme = darkTheme) {
+                val context = LocalContext.current
+                Index(
+                    context = context,
+                    navHostController = navHostController,
+                    onToggleTheme = { darkTheme = !darkTheme },
+                    darkTheme = darkTheme
+                )
             }
         }
     }
@@ -146,9 +155,12 @@ class HomeActivity : BaseActivity() {
                     Log.d("FCM", "FCM Token: $token")
                     val userId = userViewModel.getUserAttribute("userId", context)
                     val userModel = userViewModel.getUserAttribute("role",context)
-                    if (userId.isNotEmpty() && userModel.isNotEmpty()) {
+                    if (userId !="unknown" || userModel!="unknown") {
                         userViewModel.sendFcmToken(userId, userModel, token)
                     }
+                    println("Token: $token")
+                    println("User Id:"+userId)
+                    println("User Model:"+userModel)
                 }
             }
         }

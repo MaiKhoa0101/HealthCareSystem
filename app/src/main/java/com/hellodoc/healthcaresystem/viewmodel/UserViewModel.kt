@@ -36,10 +36,10 @@ class UserViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
-    val user: StateFlow<User?> get() = _user
+    val user: StateFlow<User?> = _user
 
     private val _users = MutableStateFlow<List<User>>(emptyList())
-    val users: StateFlow<List<User>> get() = _users
+    val users: StateFlow<List<User>> = _users
 
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
@@ -48,10 +48,10 @@ class UserViewModel @Inject constructor(
     val otpResult: StateFlow<Result<OtpResponse>?> get() = _otpResult
 
     private val _isUserLoading = MutableStateFlow(false)
-    val isUserLoading: StateFlow<Boolean> get() = _isUserLoading
+    val isUserLoading: StateFlow<Boolean> = _isUserLoading
 
     private val _you = MutableStateFlow<User?>(null)
-    val you: StateFlow<User?> get() = _you
+    val you: StateFlow<User?> = _you
 
     fun getAllUsers() {
         viewModelScope.launch {
@@ -84,6 +84,10 @@ class UserViewModel @Inject constructor(
             _isUserLoading.value = true
             try {
                 _you.value = repository.getUser(getUserAttribute("userId", context))
+                if (_you.value == null) {
+                    Log.e("UserViewModel", "Không tìm thấy user hiện tại")
+                }
+                else Log.d("UserViewModel", "User hiện tại: ${_you.value}")
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -186,14 +190,17 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    // --- Token decode ---
+
     fun getUserAttribute(attribute: String, context: Context): String {
         val sharedPreferences: SharedPreferences =
-            context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+            context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
+        println("Token: $token")
         return try {
             val jwt = JWT(token)
-            jwt.getClaim(attribute).asString() ?: "unknown"
+            val result = jwt.getClaim(attribute).asString() ?: "unknown"
+            println("Ket qua lay duoc tu get user $attribute:" +result)
+            result
         } catch (e: Exception) {
             "unknown"
         }
@@ -203,7 +210,7 @@ class UserViewModel @Inject constructor(
 
     fun logout(context: Context) {
         val sharedPreferences: SharedPreferences =
-            context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+            context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         clearToken(sharedPreferences)
         val intent = Intent(context, SignIn::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

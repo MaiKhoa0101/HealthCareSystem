@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.view.user.home.root
 
-import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -27,9 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -47,14 +43,11 @@ fun shortenUserName(fullName: String): String {
 @Composable
 fun Headbar() {
     val context = LocalContext.current
-    val viewModel: UserViewModel = hiltViewModel()
-    val you by viewModel.user.collectAsState()
-    var userName by remember { mutableStateOf("Người dùng") }
-    var role by remember { mutableStateOf("Người dùng") }
+    val userViewModel: UserViewModel = hiltViewModel()
+    val you by userViewModel.you.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getAllUsers()
-        role = viewModel.getUserAttribute("role",context)
+        userViewModel.getYou(context)
     }
     Column(
         modifier = Modifier
@@ -78,7 +71,7 @@ fun Headbar() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val shortName = you?.name.toString().let { shortenUserName(it) }
-
+                println("name lay ra duoc la "+ you?.name)
                 Text(
                     text = "Xin chào\n$shortName",
                     fontSize = 15.sp,
