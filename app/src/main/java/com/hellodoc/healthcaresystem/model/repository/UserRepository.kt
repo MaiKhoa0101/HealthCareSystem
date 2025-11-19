@@ -3,10 +3,9 @@ package com.hellodoc.healthcaresystem.model.repository
 import android.util.Log
 import com.hellodoc.healthcaresystem.api.AdminService
 import com.hellodoc.healthcaresystem.api.AuthService
-import com.hellodoc.healthcaresystem.api.UserService
+import com.hellodoc.healthcaresystem.model.api.UserService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
-import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import okhttp3.MultipartBody

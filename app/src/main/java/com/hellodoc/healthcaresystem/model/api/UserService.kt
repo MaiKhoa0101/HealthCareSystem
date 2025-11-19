@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.api
+package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
@@ -12,7 +12,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface UserService {
-    @GET("admin/userbyid/{id}")
+    @GET("user/getuserbyid/{id}")
     suspend fun getUser(@Path("id") id: String): User
 
     @PUT("user/{id}/fcm-token")

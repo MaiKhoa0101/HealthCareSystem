@@ -39,7 +39,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -55,9 +54,7 @@ import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro1
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.view.user.personal.FavouriteHistoryScreen
@@ -184,7 +181,7 @@ class HomeActivity : BaseActivity() {
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showTopBars && !showFullScreenComment) Headbar()
+                if (showTopBars && !showFullScreenComment) HeadBar()
             },
             bottomBar = {
                 if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)

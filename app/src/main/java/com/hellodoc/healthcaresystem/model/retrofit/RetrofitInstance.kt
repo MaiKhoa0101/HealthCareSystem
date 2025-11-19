@@ -12,8 +12,8 @@ import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
-import com.hellodoc.healthcaresystem.api.SpecialtyService
-import com.hellodoc.healthcaresystem.api.UserService
+import com.hellodoc.healthcaresystem.model.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.UserService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-//    private const val BASE_URL = "http://192.168.1.217:4000"
-   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
+    private const val BASE_URL = "http://192.168.1.20:4000"
+//   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 //    private const val BASE_URL = "http://192.168.1.110:4000"
 
 

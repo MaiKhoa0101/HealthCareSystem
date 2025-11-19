@@ -83,7 +83,10 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isUserLoading.value = true
             try {
-                _you.value = repository.getUser(getUserAttribute("userId", context))
+                val userId = getUserAttribute("userId", context = context)
+                println("get user id "+userId)
+                _you.value = repository.getUser(userId)
+                println("get user"+_you.value)
                 if (_you.value == null) {
                     Log.e("UserViewModel", "Không tìm thấy user hiện tại")
                 }

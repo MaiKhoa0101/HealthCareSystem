@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.model.repository
 
-import com.hellodoc.healthcaresystem.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import jakarta.inject.Inject
 import okhttp3.MultipartBody
 

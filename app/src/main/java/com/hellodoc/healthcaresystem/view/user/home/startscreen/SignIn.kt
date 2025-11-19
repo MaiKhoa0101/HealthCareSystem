@@ -153,7 +153,7 @@ class SignIn : BaseActivity() {
                             try {
                                 val jwt = JWT(token)
                                 val role = jwt.getClaim("role").asString()
-
+                                println("Goi o 1: $role")
                                 val intent = when (role) {
                                     "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                     "User" -> Intent(this@SignIn, HomeActivity::class.java)
@@ -238,7 +238,7 @@ class SignIn : BaseActivity() {
                                         try {
                                             val jwt = JWT(token)
                                             val role = jwt.getClaim("role").asString()
-
+                                            println("Goi o 211: $role")
                                             val intent = when (role) {
                                                 "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                                 "User", "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)

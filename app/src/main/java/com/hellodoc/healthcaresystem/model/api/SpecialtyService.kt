@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.api
+package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
 import okhttp3.MultipartBody
@@ -15,7 +15,7 @@ interface SpecialtyService {
     @GET("specialty/get-all")
     suspend fun getSpecialties(): Response<List<GetSpecialtyResponse>>
 
-    @GET("doctor/specialty/{id}")
+    @GET("specialty/doctors/{id}")
     suspend fun getSpecialtyById(@Path("id") specialtyId: String): Response<GetSpecialtyResponse>
 
     @Multipart
