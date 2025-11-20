@@ -131,7 +131,7 @@ fun HealthMateHomeScreen(
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
-        medicalOptionViewModel.fetchRemoteMedicalOptions()
+//        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
         faqItemViewModel.fetchFAQItems()
     }

@@ -83,8 +83,7 @@ fun AppointmentListScreen(navHostController: NavHostController) {
     AppointmentScreenUI(
         appointmentsUser = appointmentsUser,
         userId,
-        navHostController = navHostController,
-        appointmentViewModel = appointmentViewModel
+        navHostController = navHostController
     )
 }
 
@@ -93,9 +92,9 @@ fun AppointmentListScreen(navHostController: NavHostController) {
 fun AppointmentScreenUI(
     appointmentsUser: List<AppointmentResponse>,
     userID: String,
-    navHostController: NavHostController,
-    appointmentViewModel: AppointmentViewModel = hiltViewModel()
+    navHostController: NavHostController
 ) {
+    val appointmentViewModel: AppointmentViewModel = hiltViewModel()
     var selectedTab by remember { mutableStateOf(0) }
     val appointmentsDoc by appointmentViewModel.appointmentsDoctor.collectAsState()
     val context = LocalContext.current
