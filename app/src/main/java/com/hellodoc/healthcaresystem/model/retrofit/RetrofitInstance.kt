@@ -12,7 +12,7 @@ import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
-import com.hellodoc.healthcaresystem.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import dagger.Module
 import dagger.Provides

@@ -101,9 +101,12 @@ class DoctorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+                println("ID BAC SI: " + doctorId)
                 val response = doctorRepository.getDoctorById(doctorId)
                 if (response.isSuccessful) {
                     _doctor.value = response.body()
+
+                    println("DOCTOR value nhan duoc la " + response.body())
                 } else {
                     println("Lỗi lấy doctor theo id: ${response.errorBody()?.string()}")
                 }

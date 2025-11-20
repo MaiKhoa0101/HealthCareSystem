@@ -72,7 +72,7 @@ fun DoctorListScreen(
             specialtyDesc = it
         }
         isDataLoaded = true
-        println(specialtyId + " " + specialtyName + " " + specialtyDesc)
+        println("SPECIALTY ID" + specialtyId + " " + specialtyName + " " + specialtyDesc)
     }
 
 

@@ -6,6 +6,7 @@ import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
+import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
 import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import okhttp3.MultipartBody

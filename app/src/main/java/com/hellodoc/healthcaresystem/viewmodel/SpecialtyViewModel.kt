@@ -81,13 +81,13 @@ class SpecialtyViewModel @Inject constructor(
                         _specialty.value = specialtyResponse
                         _doctors.value = specialtyResponse.doctors
                         _filteredDoctors.value = specialtyResponse.doctors
-                        //println("OK: Successfully retrieved ${specialtyResponse.doctors.size} doctors")
+                        println("OK: Successfully retrieved ${specialtyResponse.doctors}")
                     } else {
                         _doctors.value = emptyList()
                         println("API returned null response body")
                     }
                 } else {
-                    println("API Error: ${response.errorBody()?.string()}")
+                    println("API fetch doctor by specialty Error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 println("Exception: ${e.message}")
