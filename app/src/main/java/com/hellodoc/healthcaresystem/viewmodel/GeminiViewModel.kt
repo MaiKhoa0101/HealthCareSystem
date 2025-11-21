@@ -487,7 +487,7 @@ class GeminiViewModel @Inject constructor(
                     type = MessageType.ARTICLE,
                     articleId = article.id,
                     articleImgUrl = article?.media?.firstOrNull(),
-                    articleAuthor = article.user?.name
+                    articleAuthor = article.userInfo?.name
                 )
             }
         }
