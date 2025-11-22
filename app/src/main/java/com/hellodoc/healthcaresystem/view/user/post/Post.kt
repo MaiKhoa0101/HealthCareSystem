@@ -131,7 +131,7 @@ fun PostColumn(
                 )
 
                 if (showPostReportDialog) {
-                    post.user?.let {
+                    post.userInfo?.let {
                         ReportPostUser(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
@@ -305,14 +305,14 @@ fun PostHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = post.user?.avatarURL,
-                    contentDescription = "Avatar of ${post.user?.name}",
+                    model = post.userInfo?.avatarURL,
+                    contentDescription = "Avatar of ${post.userInfo?.name}",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable {
-                            if (post.user?.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.user?.id}"){
+                            if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
+                                navHostController.navigate("otherUserProfile/${post.userInfo?.id}"){
                                     restoreState = true
                                     launchSingleTop = true
                                 }
@@ -327,15 +327,15 @@ fun PostHeader(
 
                 Column(
                     modifier = Modifier.clickable {
-                        if (post.user?.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.user?.id}")
+                        if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
+                            navHostController.navigate("otherUserProfile/${post.userInfo?.id}")
                         } else {
                             navHostController.navigate("personal")
                         }
                     }
                 ) {
                     Text(
-                        text = post.user?.name ?: "Người dùng ẩn",
+                        text = post.userInfo?.name ?: "Người dùng ẩn",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -362,7 +362,7 @@ fun PostHeader(
                     onDismissRequest = { showMenu = false },
                     offset = DpOffset(x = (-110).dp, y = (-40).dp)
                 ) {
-                    if (userWhoInteractWithThisPost.id == post.user?.id) {
+                    if (userWhoInteractWithThisPost.id == post.userInfo?.id) {
                         // Người đăng bài == người hiện tại → chỉ cho xoá
                         DropdownMenuItem(
                             text = { Text("Chỉnh sửa bài viết") },

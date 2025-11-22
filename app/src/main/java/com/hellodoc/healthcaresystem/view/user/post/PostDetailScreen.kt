@@ -77,7 +77,7 @@ fun PostDetailScreen(
     val similarPosts by postViewModel.similarPosts.collectAsState()
     val context = LocalContext.current
     // Reset và lấy bài viết mới mỗi khi postId thay đổi
-    LaunchedEffect(Unit, postId) {
+    LaunchedEffect(Unit, post) {
         // Reset dữ liệu cũ
         postViewModel.clearPosts()
         userViewModel.getYou(context)
@@ -86,15 +86,13 @@ fun PostDetailScreen(
             postViewModel.getPostById(postId, navHostController.context)
             postViewModel.getSimilarPosts(postId)
         }
-    }
-
-    // Khi post mới load về, lấy user của post đó
-    LaunchedEffect(post?.user?.id) {
-        val postUserId = post?.user?.id
+        val postUserId = post?.userInfo?.id
+        println("Ket qua lay post user id la: "+postUserId+" "+ post)
         if (!postUserId.isNullOrBlank()) {
             userViewModel.getUser(postUserId)
         }
     }
+
 
     if (post != null && youTheCurrentUserUseThisApp != null) {
         Column(
@@ -116,7 +114,7 @@ fun PostDetailScreen(
                     onClickReport = { showPostReportDialog = !showPostReportDialog }
                 )
                 if (showPostReportDialog) {
-                    post!!.user?.let {
+                    post!!.userInfo?.let {
                         ReportPostUser(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
@@ -335,6 +333,16 @@ fun PostDetailHeader(
     var showMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    val userViewModel: UserViewModel = hiltViewModel()
+    val userOfThisPost by userViewModel.user.collectAsState()
+    println (post)
+//
+//    LaunchedEffect(userOfThisPost) {
+//        if (post.userInfoInfo.id != "") {
+//            userViewModel.getUser(post.userInfoInfo.id)
+//            println("Gọi getUser")
+//        }
+//    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -345,16 +353,16 @@ fun PostDetailHeader(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
-                if (post.user?.id != userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile/${post.user?.id}")
+                if (userOfThisPost?.id != userWhoInteractWithThisPost.id) {
+                    navHostController.navigate("otherUserProfile/${userOfThisPost?.id}")
                 } else {
                     navHostController.navigate("personal")
                 }
             }
         ) {
             AsyncImage(
-                model = post.user?.avatarURL,
-                contentDescription = "Avatar of ${post.user?.name}",
+                model = userOfThisPost?.avatarURL,
+                contentDescription = "Avatar of ${userOfThisPost?.name}",
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
@@ -365,7 +373,7 @@ fun PostDetailHeader(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = post.user?.name ?: "Người dùng ẩn",
+                    text = post.userInfo?.name ?: "Người dùng ẩn",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -394,7 +402,7 @@ fun PostDetailHeader(
                 offset = DpOffset(x = (-8).dp, y = 8.dp),
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
-                if (userWhoInteractWithThisPost.id == post.user?.id) {
+                if (userWhoInteractWithThisPost.id == post.userInfo?.id) {
                     DropdownMenuItem(
                         text = { Text("Xoá bài viết", style = MaterialTheme.typography.bodyMedium) },
                         onClick = {

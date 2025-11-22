@@ -17,21 +17,14 @@ data class PostResponse(
     val id: String,
     val content: String,
     val media: List<String> ,
-    val user: User?,
+    val userInfo: User?,
     val userModel: String,
     @SerializedName("createdAt")
     val createdAt: String,
 
     val keywords: String?,
     val embedding: List<Double>?,
-) {
-    data class User(
-        @SerializedName("_id")
-        val id: String,
-        val name: String,
-        val avatarURL: String?
-    )
-}
+)
 enum class MediaType {
     IMAGE,
     VIDEO,

@@ -66,7 +66,8 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isUserLoading.value = true
             try {
-                _user.value = userRepo.getUser(id)
+                _user.value  = userRepo.getUser(id)
+
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {

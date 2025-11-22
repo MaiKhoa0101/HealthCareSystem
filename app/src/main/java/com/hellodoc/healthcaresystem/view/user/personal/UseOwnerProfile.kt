@@ -206,7 +206,7 @@ fun ProfileUserPage(
                 )
 
                 if (showPostReportDialog) {
-                    post.user?.let {
+                    post.userInfo?.let {
                         ReportPostUser(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = user!!,

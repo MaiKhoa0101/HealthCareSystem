@@ -13,7 +13,7 @@ data class GetSpecialtyResponse(
 data class Doctor(
     @SerializedName("_id") val id: String,
     @SerializedName("name") val name: String,
-    @SerializedName("specialty") val specialty: String?,
+    @SerializedName("specialty") val specialty: Specialty,
     @SerializedName("address") val address: String?,
     @SerializedName("avatarURL") val avatarURL: String?,
     @SerializedName("isClinicPaused") val isClinicPaused: Boolean?
