@@ -84,29 +84,29 @@ fun UserSkeleton() {
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Skeleton for UserProfileModifierSection
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            // Skeleton for "Chỉnh sửa hồ sơ" button
-            ShimmerEffect(
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(128.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            // Skeleton for "Quản lý phòng khám" button
-            ShimmerEffect(
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(128.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
-        }
+//        // Skeleton for UserProfileModifierSection
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 20.dp),
+//            horizontalArrangement = Arrangement.SpaceAround
+//        ) {
+//            // Skeleton for "Chỉnh sửa hồ sơ" button
+//            ShimmerEffect(
+//                modifier = Modifier
+//                    .height(60.dp)
+//                    .width(128.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//            )
+//            Spacer(modifier = Modifier.width(16.dp))
+//            // Skeleton for "Quản lý phòng khám" button
+//            ShimmerEffect(
+//                modifier = Modifier
+//                    .height(60.dp)
+//                    .width(128.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//            )
+//        }
 
         Spacer(modifier = Modifier.height(10.dp))
     }

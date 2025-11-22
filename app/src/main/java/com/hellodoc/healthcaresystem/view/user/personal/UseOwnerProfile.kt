@@ -154,21 +154,42 @@ fun ProfileUserPage(
             modifier = Modifier.fillMaxSize(),
             state = listState
         ) {
-            item {
-                if (user == null) {
-                    UserSkeleton()
-                } else {
-                    ProfileSection(
-                        user = user!!,
-                        onImageClick = {
-                            selectedImageUrl = it
-                            showMediaDetail = true
-                        },
-                        onClickSetting = {
+            item{
+                Box (
+                    modifier = Modifier.fillMaxWidth(),
+                ){
+                    if (user == null) {
+                        UserSkeleton()
+                    } else {
+                        ProfileSection(
+                            user = user!!,
+                            onImageClick = {
+                                selectedImageUrl = it
+                                showMediaDetail = true
+                            }
+                        )
+                    }
+
+                    // Icon setting
+                    IconButton(
+                        onClick = {
                             navHostController.navigate("setting")
-                        }
-                    )
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.settingbtn),
+                            contentDescription = "Setting",
+                            tint = MaterialTheme.colorScheme.tertiaryContainer,
+                            modifier = Modifier
+                                .height(20.dp)
+                        )
+
+                    }
                 }
+
             }
 
             items(posts) { post ->
@@ -304,8 +325,7 @@ fun ProfileUserPage(
 @Composable
 fun ProfileSection(
     user: User,
-    onImageClick: (String) -> Unit,
-    onClickSetting: () -> Unit
+    onImageClick: (String) -> Unit
 ){
         Column(
             modifier = Modifier
@@ -332,7 +352,6 @@ fun ProfileSection(
                 UserIntroSection(
                     user = user,
                     onImageClick = onImageClick,
-                    onClickSetting = onClickSetting
                 )
                 Spacer(modifier = Modifier.height(26.dp))
             }
@@ -343,7 +362,6 @@ fun ProfileSection(
 fun UserIntroSection(
     user: User,
     onImageClick: (String) -> Unit,
-    onClickSetting: () -> Unit
 ) {
     // Animation xoay
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -426,21 +444,7 @@ fun UserIntroSection(
             )
         }
 
-        // Icon setting
-        IconButton(
-            onClick = { onClickSetting() },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(4.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.settingbtn),
-                contentDescription = "Setting",
-                tint = MaterialTheme.colorScheme.tertiaryContainer,
-                modifier = Modifier
-                    .height(20.dp)
-            )
-        }
+
     }
 }
 
