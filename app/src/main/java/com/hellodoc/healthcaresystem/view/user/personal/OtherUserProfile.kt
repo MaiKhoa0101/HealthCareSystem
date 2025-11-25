@@ -178,11 +178,7 @@ fun ProfileOtherUserPage(
                                     context = navHostController.context,
                                     youTheCurrentUserUseThisApp =youTheCurrentUserUseThisApp,
                                     userReported = it,
-                                    onClickShowPostReportDialog = { showPostReportDialog = false },
-                                    sharedPreferences = navHostController.context.getSharedPreferences(
-                                        "MyPrefs",
-                                        Context.MODE_PRIVATE
-                                    )
+                                    onClickShowPostReportDialog = { showPostReportDialog = false }
                                 )
                             }
                         }

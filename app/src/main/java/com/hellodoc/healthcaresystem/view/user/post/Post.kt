@@ -136,11 +136,7 @@ fun PostColumn(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
                             userReported = it,
-                            onClickShowPostReportDialog = { showPostReportDialog = false },
-                            sharedPreferences = navHostController.context.getSharedPreferences(
-                                "MyPrefs",
-                                Context.MODE_PRIVATE
-                            )
+                            onClickShowPostReportDialog = { showPostReportDialog = false }
                         )
                     }
                 }

@@ -292,7 +292,6 @@ fun ReportPostUser(
     youTheCurrentUserUseThisApp: User?,
     userReported: User,
     onClickShowPostReportDialog: () ->Unit,
-    sharedPreferences: SharedPreferences,
     ) {
     val reportViewModel: ReportViewModel = hiltViewModel()
 

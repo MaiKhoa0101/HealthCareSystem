@@ -77,7 +77,7 @@ fun PostDetailScreen(
     val similarPosts by postViewModel.similarPosts.collectAsState()
     val context = LocalContext.current
     // Reset và lấy bài viết mới mỗi khi postId thay đổi
-    LaunchedEffect(Unit, post) {
+    LaunchedEffect(Unit) {
         // Reset dữ liệu cũ
         postViewModel.clearPosts()
         userViewModel.getYou(context)
@@ -119,11 +119,7 @@ fun PostDetailScreen(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
                             userReported = it,
-                            onClickShowPostReportDialog = { showPostReportDialog = false },
-                            sharedPreferences = navHostController.context.getSharedPreferences(
-                                "MyPrefs",
-                                Context.MODE_PRIVATE
-                            )
+                            onClickShowPostReportDialog = { showPostReportDialog = false }
                         )
                     }
                 }
@@ -159,7 +155,7 @@ fun PostDetailSection(
     val coroutineScope = rememberCoroutineScope()
 
     // Xử lý load thêm khi scroll
-    LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
+    LaunchedEffect(/*uiState.commentIndex,*/ uiState.hasMore) {
         observeScrollToLoadMore(
             listState = uiState.listState,
             hasMore = uiState.hasMore,
