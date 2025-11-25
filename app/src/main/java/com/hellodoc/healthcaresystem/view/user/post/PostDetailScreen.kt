@@ -335,6 +335,8 @@ fun PostDetailHeader(
     var showMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    println("POST DATA: " +  post.userInfo)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()

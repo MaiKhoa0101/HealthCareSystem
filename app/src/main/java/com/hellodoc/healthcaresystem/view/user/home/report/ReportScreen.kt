@@ -290,10 +290,10 @@ fun ReportPostDoctor(
 fun ReportPostUser(
     context: Context,
     youTheCurrentUserUseThisApp: User?,
-    userReported: PostResponse.User,
+    userReported: User,
     onClickShowPostReportDialog: () ->Unit,
     sharedPreferences: SharedPreferences,
-    ) {
+) {
     val reportViewModel: ReportViewModel = hiltViewModel()
 
     var selectedType by remember { mutableStateOf("Bài viết") }
