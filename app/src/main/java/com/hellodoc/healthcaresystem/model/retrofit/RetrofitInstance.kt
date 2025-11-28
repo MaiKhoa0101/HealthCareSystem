@@ -2,14 +2,14 @@ package com.hellodoc.healthcaresystem.model.retrofit
 
 import com.hellodoc.healthcaresystem.api.AdminService
 import com.hellodoc.healthcaresystem.api.AppointmentService
-import com.hellodoc.healthcaresystem.api.AuthService
+import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
 import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.NewsService
 import com.hellodoc.healthcaresystem.api.NotificationService
-import com.hellodoc.healthcaresystem.api.PostService
+import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.130:4000"
+    private const val BASE_URL = "http://192.168.1.125:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
 //    private const val BASE_URL = "http://192.168.1.110:4000"
 

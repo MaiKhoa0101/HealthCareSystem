@@ -292,8 +292,7 @@ fun ReportPostUser(
     youTheCurrentUserUseThisApp: User?,
     userReported: User,
     onClickShowPostReportDialog: () ->Unit,
-    sharedPreferences: SharedPreferences,
-) {
+    ) {
     val reportViewModel: ReportViewModel = hiltViewModel()
 
     var selectedType by remember { mutableStateOf("Bài viết") }

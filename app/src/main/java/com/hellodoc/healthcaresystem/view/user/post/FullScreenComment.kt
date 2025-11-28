@@ -83,7 +83,7 @@ fun FullScreenCommentUI(
     BackHandler { onClose() }
 
     // Load more comments when reaching end of list
-    LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
+    LaunchedEffect(/*uiState.commentIndex,*/ uiState.hasMore) {
         observeScrollToLoadMore(
             listState = uiState.listState,
             hasMore = uiState.hasMore,

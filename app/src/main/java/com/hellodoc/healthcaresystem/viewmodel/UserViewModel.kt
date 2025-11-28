@@ -5,23 +5,18 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
-import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
-import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
 import com.hellodoc.healthcaresystem.model.repository.UserRepository
-import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -32,7 +27,8 @@ import androidx.core.content.edit
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val repository: UserRepository
+    private val userRepo: UserRepository
+
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -56,7 +52,7 @@ class UserViewModel @Inject constructor(
     fun getAllUsers() {
         viewModelScope.launch {
             _isUserLoading.value = true
-            val response = repository.getAllUsers()
+            val response = userRepo.getAllUsers()
             response?.let {
                 val combined = it.doctors + it.users
                 _users.value = combined
@@ -70,7 +66,8 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isUserLoading.value = true
             try {
-                _user.value = repository.getUser(id)
+                _user.value  = userRepo.getUser(id)
+
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -83,10 +80,9 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isUserLoading.value = true
             try {
-                val userId = getUserAttribute("userId", context = context)
-                println("get user id "+userId)
-                _you.value = repository.getUser(userId)
-                println("get user"+_you.value)
+                println("get you được gọi")
+                _you.value = userRepo.getUser(getUserAttribute("userId", context))
+                println("Ket qua you: "+you.value)
                 if (_you.value == null) {
                     Log.e("UserViewModel", "Không tìm thấy user hiện tại")
                 }
@@ -102,7 +98,7 @@ class UserViewModel @Inject constructor(
     fun sendFcmToken(userId: String, role: String, token: String) {
         viewModelScope.launch {
             try {
-                val res = repository.updateFcmToken(userId, token, role)
+                val res = userRepo.updateFcmToken(userId, token, role)
                 if (res.isSuccessful)
                     Log.d("FCM", "Gửi token thành công")
                 else Log.e("FCM", "Gửi token thất bại: ${res.code()}")
@@ -114,14 +110,14 @@ class UserViewModel @Inject constructor(
 
     fun requestOtp(email: String) {
         viewModelScope.launch {
-            _otpResult.value = repository.requestOtp(email)
+            _otpResult.value = userRepo.requestOtp(email)
         }
     }
 
     fun deleteUser(id: String) {
         viewModelScope.launch {
             try {
-                val res = repository.deleteUser(id)
+                val res = userRepo.deleteUser(id)
                 if (res.isSuccessful) {
                     Log.d("UserViewModel", "Xóa thành công")
                     getAllUsers()
@@ -171,7 +167,7 @@ class UserViewModel @Inject constructor(
                     "password",
                     updatedUser.password!!
                 )
-                val response = repository.updateUserByID(
+                val response = userRepo.updateUserByID(
                     id, avatar, address, name, email, phone, password
                 )
                 if (response.isSuccessful) {

@@ -131,9 +131,8 @@ fun HealthMateHomeScreen(
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
-        medicalOptionViewModel.fetchRemoteMedicalOptions()
+//        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
-        faqItemViewModel.fetchFAQItems()
     }
 
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
@@ -289,11 +288,7 @@ fun HealthMateHomeScreen(
                                 context = navHostController.context,
                                 youTheCurrentUserUseThisApp = user!!,
                                 userReported = it,
-                                onClickShowPostReportDialog = { showPostReportDialog = false },
-                                sharedPreferences = navHostController.context.getSharedPreferences(
-                                    "MyPrefs",
-                                    Context.MODE_PRIVATE
-                                )
+                                onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }
                     }

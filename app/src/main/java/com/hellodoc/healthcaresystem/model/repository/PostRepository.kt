@@ -1,8 +1,7 @@
 package com.hellodoc.healthcaresystem.model.repository
 
-import com.hellodoc.healthcaresystem.api.PostService
+import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
-import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import jakarta.inject.Inject

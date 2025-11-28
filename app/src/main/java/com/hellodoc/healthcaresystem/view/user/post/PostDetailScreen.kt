@@ -77,7 +77,7 @@ fun PostDetailScreen(
     val similarPosts by postViewModel.similarPosts.collectAsState()
     val context = LocalContext.current
     // Reset và lấy bài viết mới mỗi khi postId thay đổi
-    LaunchedEffect(Unit, postId) {
+    LaunchedEffect(Unit) {
         // Reset dữ liệu cũ
         postViewModel.clearPosts()
         userViewModel.getYou(context)
@@ -86,15 +86,13 @@ fun PostDetailScreen(
             postViewModel.getPostById(postId, navHostController.context)
             postViewModel.getSimilarPosts(postId)
         }
-    }
-
-    // Khi post mới load về, lấy user của post đó
-    LaunchedEffect(post?.userInfo?.id) {
         val postUserId = post?.userInfo?.id
+        println("Ket qua lay post user id la: "+postUserId+" "+ post)
         if (!postUserId.isNullOrBlank()) {
             userViewModel.getUser(postUserId)
         }
     }
+
 
     if (post != null && youTheCurrentUserUseThisApp != null) {
         Column(
@@ -121,11 +119,7 @@ fun PostDetailScreen(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
                             userReported = it,
-                            onClickShowPostReportDialog = { showPostReportDialog = false },
-                            sharedPreferences = navHostController.context.getSharedPreferences(
-                                "MyPrefs",
-                                Context.MODE_PRIVATE
-                            )
+                            onClickShowPostReportDialog = { showPostReportDialog = false }
                         )
                     }
                 }
@@ -161,7 +155,7 @@ fun PostDetailSection(
     val coroutineScope = rememberCoroutineScope()
 
     // Xử lý load thêm khi scroll
-    LaunchedEffect(uiState.commentIndex, uiState.hasMore) {
+    LaunchedEffect(/*uiState.commentIndex,*/ uiState.hasMore) {
         observeScrollToLoadMore(
             listState = uiState.listState,
             hasMore = uiState.hasMore,
@@ -335,8 +329,16 @@ fun PostDetailHeader(
     var showMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    println("POST DATA: " +  post.userInfo)
-
+    val userViewModel: UserViewModel = hiltViewModel()
+    val userOfThisPost by userViewModel.user.collectAsState()
+    println (post)
+//
+//    LaunchedEffect(userOfThisPost) {
+//        if (post.userInfoInfo.id != "") {
+//            userViewModel.getUser(post.userInfoInfo.id)
+//            println("Gọi getUser")
+//        }
+//    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -347,16 +349,16 @@ fun PostDetailHeader(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
-                if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
-                    navHostController.navigate("otherUserProfile/${post.userInfo?.id}")
+                if (userOfThisPost?.id != userWhoInteractWithThisPost.id) {
+                    navHostController.navigate("otherUserProfile/${userOfThisPost?.id}")
                 } else {
                     navHostController.navigate("personal")
                 }
             }
         ) {
             AsyncImage(
-                model = post.userInfo?.avatarURL,
-                contentDescription = "Avatar of ${post.userInfo?.name}",
+                model = userOfThisPost?.avatarURL,
+                contentDescription = "Avatar of ${userOfThisPost?.name}",
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
