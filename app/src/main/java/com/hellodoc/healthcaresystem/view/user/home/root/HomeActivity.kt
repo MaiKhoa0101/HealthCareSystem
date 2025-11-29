@@ -57,6 +57,7 @@ import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
+import com.hellodoc.healthcaresystem.view.user.personal.EditOptionPage
 import com.hellodoc.healthcaresystem.view.user.personal.FavouriteHistoryScreen
 import com.hellodoc.healthcaresystem.view.user.personal.ProfileOtherUserPage
 import com.hellodoc.healthcaresystem.view.user.personal.ProfileUserPage
@@ -337,10 +338,12 @@ class HomeActivity : BaseActivity() {
                 Setting(
                     navHostController,
                     sharedPreferences,
-                    user,
                     onToggleTheme = onToggleTheme,
                     darkTheme = darkTheme
                 )
+            }
+            composable("editOptionPage") {
+                EditOptionPage(navHostController)
             }
         }
 

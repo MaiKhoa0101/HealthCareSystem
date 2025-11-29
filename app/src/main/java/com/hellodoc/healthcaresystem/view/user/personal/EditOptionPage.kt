@@ -1,16 +1,17 @@
 package com.hellodoc.healthcaresystem.view.user.personal
 
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,32 +21,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseAuth
-import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
-import com.hellodoc.healthcaresystem.skeleton.discordClick
-//import com.hellodoc.healthcaresystem.user.home.root.clearToken
-//import com.hellodoc.healthcaresystem.user.home.root.logoutWithGoogle
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
-
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun Setting(
+fun EditOptionPage(
     navHostController: NavHostController,
-    sharedPreferences: SharedPreferences,
-    onToggleTheme: () -> Unit,
-    darkTheme: Boolean
 ) {
     val context = LocalContext.current
     val userViewModel: UserViewModel = hiltViewModel()
@@ -55,6 +44,12 @@ fun Setting(
         userViewModel.getYou(context)
         println("Setting được gọi")
         println("user la: $user")
+    }
+
+    val clinicButtonText = if (user?.role == "User") {
+        "Đăng kí phòng khám"
+    } else {
+        "Quản lý phòng khám"
     }
 
     Column(
@@ -74,7 +69,7 @@ fun Setting(
                         )
                     )
                 )
-                .padding(top = 40.dp, bottom = 20.dp) // Adjust for status bar
+                .padding(top = 40.dp, bottom = 20.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -90,17 +85,17 @@ fun Setting(
                         .clickable { navHostController.popBackStack() },
                     tint = Color.Black
                 )
-                
+
                 Text(
-                    text = "Cài đặt",
+                    text = "Chỉnh sửa",
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
-                
-                Spacer(modifier = Modifier.size(28.dp)) // Balance the back icon
+
+                Spacer(modifier = Modifier.size(28.dp))
             }
         }
 
@@ -110,47 +105,42 @@ fun Setting(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Dark Mode
-            SettingItem(
-                text = "Chế độ tối",
-                icon = if (darkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
-                onClick = onToggleTheme
+            // Edit Profile
+            EditOptionItem(
+                text = "Chỉnh sửa thông tin cá nhân",
+                icon = Icons.Default.Person,
+                onClick = { navHostController.navigate("editProfile") }
             )
 
-            // Activity Manager
-            SettingItem(
-                text = "Quản lý hoạt động",
-                icon = Icons.Default.History, // Or Info/Schedule
-                onClick = { navHostController.navigate("activity_manager") }
-            )
-
-            // Logout
-            SettingItem(
-                text = "Đăng xuất",
-                icon = Icons.Default.Logout,
-                onClick = { logoutWithGoogle(context, sharedPreferences) },
-                isDestructive = true
+            // Clinic Management
+            EditOptionItem(
+                text = clinicButtonText,
+                icon = Icons.Default.MedicalServices,
+                onClick = {
+                    if (user == null) return@EditOptionItem
+                    if (user!!.role == "User") {
+                        navHostController.navigate("doctorRegister")
+                    } else {
+                        navHostController.navigate("editClinic")
+                    }
+                }
             )
         }
     }
 }
 
 @Composable
-fun SettingItem(
+fun EditOptionItem(
     text: String,
     icon: ImageVector,
-    onClick: () -> Unit,
-    isDestructive: Boolean = false
+    onClick: () -> Unit
 ) {
-    val backgroundColor = Color(0xFF64FCDA) // Cyan color
-    val contentColor = if (isDestructive) Color.Red else Color.Black
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
+            .background(Color(0xFF64FCDA)) // Cyan color
             .clickable { onClick() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -158,69 +148,25 @@ fun SettingItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = contentColor,
+            tint = Color.Black,
             modifier = Modifier.size(24.dp)
         )
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Text(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = contentColor,
+            color = Color.Black,
             modifier = Modifier.weight(1f)
         )
 
-        if (!isDestructive) {
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier.size(24.dp)
+        )
     }
 }
-
-private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences) {
-    // Initialize Firebase Auth
-    val auth = FirebaseAuth.getInstance()
-
-    // Configure Google Sign In
-    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(context.getString(R.string.web_client_id))
-        .requestEmail()
-        .build()
-    val googleSignInClient = GoogleSignIn.getClient(context, gso)
-
-    // Clear saved token
-    clearToken(sharedPreferences)
-
-    // Sign out from Firebase Auth
-    auth.signOut()
-
-    // Sign out from Google
-    googleSignInClient.signOut().addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            // Navigate back to StartScreen
-            val intent = Intent(context, StartScreen::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            context.startActivity(intent)
-
-            // Show success message
-            Toast.makeText(context, "Đăng xuất thành công!", Toast.LENGTH_SHORT).show()
-        } else {
-            // Handle error
-            Toast.makeText(context, "Lỗi khi đăng xuất khỏi Google", Toast.LENGTH_SHORT).show()
-        }
-    }
-}
-
-private fun clearToken(sharedPreferences: SharedPreferences) {
-    sharedPreferences.edit()
-        .remove("access_token")
-        .apply()
-}
-
-

@@ -80,8 +80,10 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isUserLoading.value = true
             try {
-                println("get you được gọi")
-                _you.value = userRepo.getUser(getUserAttribute("userId", context))
+                var id=getUserAttribute("userId", context)
+                println("get you được gọi: "+id)
+
+                _you.value = userRepo.getUser(id)
                 println("Ket qua you: "+you.value)
                 if (_you.value == null) {
                     Log.e("UserViewModel", "Không tìm thấy user hiện tại")
