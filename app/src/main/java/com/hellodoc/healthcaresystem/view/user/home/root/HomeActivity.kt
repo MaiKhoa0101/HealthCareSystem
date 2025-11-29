@@ -337,7 +337,6 @@ class HomeActivity : BaseActivity() {
                 Setting(
                     navHostController,
                     sharedPreferences,
-                    user,
                     onToggleTheme = onToggleTheme,
                     darkTheme = darkTheme
                 )

@@ -808,6 +808,7 @@ class PostViewModel @Inject constructor(
                 val response = postRepository.getSimilarPosts(postId, 10, 0.6)
                 println("Get similar posts: "+response.body())
                 if (response.isSuccessful) {
+                    println("similar response: "+response.body())
                     val similarPostsResponse = response.body() ?: emptyList()
                     _similarPosts.value = similarPostsResponse.map { it.post }  // chỉ lấy post
                 } else {

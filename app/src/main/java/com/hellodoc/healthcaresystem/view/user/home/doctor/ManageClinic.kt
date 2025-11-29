@@ -48,10 +48,12 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ServiceInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WorkHour
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 
 @Composable
 fun EditClinicServiceScreen(navHostController: NavHostController) {
+    println("Vao edit clinic")
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -95,6 +97,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
 
     // Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
     val doctorViewModel: DoctorViewModel = hiltViewModel()
+    val userViewModel: UserViewModel = hiltViewModel()
 
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
     val specialty by specialtyViewModel.specialties.collectAsState()
@@ -105,7 +108,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
 
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val doctorId = doctorViewModel.getDoctorAttribute("userId",sharedPreferences)
+    val doctorId = userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
     var oldSchedule by remember { mutableStateOf(listOf<WorkHour>())}
     var servicesInput by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
     var servicesCreated by remember { mutableStateOf(listOf<ServiceOutput>()) }
@@ -116,7 +119,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
     // Gọi API để fetch user từ server
     LaunchedEffect(doctorId) {
         doctorId?.let {
-            doctorViewModel.fetchDoctorById(it)
+            doctorViewModel.fetchDoctorById(it.toString())
         }
 
     }
@@ -283,7 +286,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
                         hasHomeService,
                         isClinicPaused,
                         doctorViewModel,
-                        doctorId!!,
+                        doctorId!!.toString(),
                         navHostController
                     )
                 }

@@ -27,6 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -45,16 +48,27 @@ import com.hellodoc.healthcaresystem.skeleton.discordClick
 //import com.hellodoc.healthcaresystem.user.home.root.clearToken
 //import com.hellodoc.healthcaresystem.user.home.root.logoutWithGoogle
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import androidx.compose.runtime.getValue
 
 @Composable
 fun Setting(
     navHostController: NavHostController,
     sharedPreferences: SharedPreferences,
-    user: User?,
     onToggleTheme: () -> Unit,
     darkTheme: Boolean
 ) {
     val context = LocalContext.current
+    val userViewModel: UserViewModel = hiltViewModel()
+    val user by userViewModel.you.collectAsState()
+
+    LaunchedEffect(Unit) {
+        userViewModel.getYou(context)
+        println("Setting được gọi")
+        println("user la: $user")
+    }
+
+
     val clinicButtonText =  if (user?.role == "User") {
         "Đăng kí phòng khám"
     } else {
@@ -122,9 +136,10 @@ fun Setting(
             iconVector = Icons.Default.Person,
             onPress = {
                 if (user == null) {
+                    println("Khong vao dc")
                     return@SectionSetting
                 }
-                else if (user.role=="User"){
+                else if (user!!.role=="User"){
                     navHostController.navigate("doctorRegister")
                 }
                 else{
