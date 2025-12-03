@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -7,7 +9,10 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
+val localProperties = gradleLocalProperties(rootDir, providers)
 android {
     namespace = "com.hellodoc.healthcaresystem"
     compileSdk = 35
@@ -17,8 +22,15 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0" 
-
+        versionName = "1.0"
+        buildConfigField(
+            "String",
+            "API_KEYS",
+            "\"${localProperties.getProperty("API_KEYS")}\""
+        )
+        buildFeatures {
+            buildConfig = true
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -63,11 +75,15 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("com.google.accompanist:accompanist-flowlayout:0.26.5-rc")
-    implementation("io.coil-kt:coil-compose:2.2.0")//them
+    implementation("io.coil-kt:coil-compose:2.4.0")
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     dependencies {
         val nav_version = "2.8.9"
 
@@ -79,6 +95,8 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.room.runtime.android)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.play.services.auth)
+    implementation(libs.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,13 +115,26 @@ dependencies {
 
     // Coil Compose
     implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation ("io.coil-kt:coil-gif:2.4.0")
+    implementation ("io.coil-kt:coil-video:2.4.0")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
+    //Hiển thị video
+    implementation("androidx.media3:media3-exoplayer:1.7.1")
+    implementation("androidx.media3:media3-ui:1.7.1")
 
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
 
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+    ksp("androidx.hilt:hilt-compiler:1.3.0")
 
 
 }

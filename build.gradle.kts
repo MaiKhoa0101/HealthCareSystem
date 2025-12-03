@@ -5,4 +5,6 @@ plugins {
     alias(libs.plugins.kotlinCompose) apply false
     id("com.google.gms.google-services") version "4.4.2" apply false
     id("com.google.firebase.crashlytics") version "3.0.3" apply false
+    id("com.google.dagger.hilt.android") version "2.57.1" apply false
+    alias(libs.plugins.ksp) apply false // <-- Sử dụng alias từ file TOML
 }

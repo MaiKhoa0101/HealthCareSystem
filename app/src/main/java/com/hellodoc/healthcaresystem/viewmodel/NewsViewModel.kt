@@ -9,9 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.requestmodel.CreateNewsCommentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateNewsFavoriteRequest
-import com.hellodoc.healthcaresystem.responsemodel.GetNewsCommentResponse
-import com.hellodoc.healthcaresystem.responsemodel.NewsResponse
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetNewsCommentResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NewsResponse
+import com.hellodoc.healthcaresystem.model.repository.NewsRepository
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,7 +25,10 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+@HiltViewModel
+class NewsViewModel @Inject constructor(
+    private val newsRepository: NewsRepository
+) : ViewModel() {
     private val _newsList = MutableStateFlow<List<NewsResponse>>(emptyList())
     val newsList: StateFlow<List<NewsResponse>> = _newsList
 
@@ -38,7 +44,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun getAllNews() {
         viewModelScope.launch {
             try {
-                val result = RetrofitInstance.newsService.getAllNews()
+                val result = newsRepository.getAllNews()
                 if (result.isSuccessful) {
                     _newsList.value = result.body() ?: emptyList()
                 }
@@ -89,7 +95,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
                     }
                 } ?: emptyList()
 
-                val response = RetrofitInstance.newsService.createNews(
+                val response = newsRepository.createNews(
                     adminId = adminIdPart,
                     title = titlePart,
                     content = contentPart,
@@ -112,7 +118,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun deleteNews(newsId: String, context: Context) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.newsService.deleteNews(newsId)
+                val response = newsRepository.deleteNews(newsId)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Đã xoá tin tức", Toast.LENGTH_SHORT).show()
                     getAllNews() // Cập nhật lại danh sách
@@ -127,7 +133,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun getFavorite(newsId: String, userId: String) {
         viewModelScope.launch {
-            val res = RetrofitInstance.newsService.getFavoriteByNewsId(newsId, userId)
+            val res = newsRepository.getFavoriteByNewsId(newsId, userId)
             if (res.isSuccessful) {
                 val body = res.body()!!
                 _favoriteMap.value += (newsId to body.isFavorited)
@@ -149,8 +155,8 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             try {
                 Log.d("NewsViewModel", "Calling toggleFavorite with: newsId=$newsId, userId=$userId, userModel=$userModel")
-
-                val response = RetrofitInstance.newsService.updateFavoriteByNewsId(
+                println("Calling toggleFavorite with: newsId=$newsId, userId=$userId, userModel=$userModel")
+                val response = newsRepository.updateFavoriteByNewsId(
                     newsId,
                     UpdateNewsFavoriteRequest(userId, userModel)
                 )
@@ -178,7 +184,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun getComments(newsId: String) {
         viewModelScope.launch {
-            val res = RetrofitInstance.newsService.getCommentByNewsId(newsId)
+            val res = newsRepository.getCommentByNewsId(newsId)
             if (res.isSuccessful) {
                 _newsComments.value += (newsId to (res.body() ?: emptyList()))
             }
@@ -187,7 +193,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun sendComment(newsId: String, userId: String,content: String) {
         viewModelScope.launch {
-            val res = RetrofitInstance.newsService.createCommentByNewsId(
+            val res = newsRepository.createCommentByNewsId(
                 newsId,
                 CreateNewsCommentRequest(userId, content)
             )
@@ -197,7 +203,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun updateComment(commentId: String, userId: String, userModel: String, content: String) {
         viewModelScope.launch {
-            RetrofitInstance.newsService.updateCommentById(
+            newsRepository.updateCommentById(
                 commentId,
                 CreateNewsCommentRequest(userId, content)
             )
@@ -206,7 +212,7 @@ class NewsViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
     fun deleteComment(commentId: String, newsId: String) {
         viewModelScope.launch {
-            val res = RetrofitInstance.newsService.deleteCommentById(commentId)
+            val res = newsRepository.deleteCommentById(commentId)
             if (res.isSuccessful) getComments(newsId)
         }
     }

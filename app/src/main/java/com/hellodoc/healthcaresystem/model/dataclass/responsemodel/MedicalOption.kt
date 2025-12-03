@@ -1,0 +1,10 @@
+package com.hellodoc.healthcaresystem.model.dataclass.responsemodel
+
+import com.google.gson.annotations.SerializedName
+
+data class GetMedicalOptionResponse (
+    @SerializedName("_id") val id: String,
+    @SerializedName("name") val name: String,
+    val createdAt: String,
+    val updatedAt: String
+)

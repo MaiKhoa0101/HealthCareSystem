@@ -1,6 +1,0 @@
-/build
-# Bỏ qua RetrofitInstance
-**/RetrofitInstance.kt
-
-# Bỏ qua file cấu hình network security
-**/res/xml/network_security_config.xml

@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
@@ -10,13 +11,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.auth0.android.jwt.JWT
 import com.google.gson.Gson
 import com.hellodoc.healthcaresystem.requestmodel.ApplyDoctorRequest
 import com.hellodoc.healthcaresystem.requestmodel.ModifyClinicRequest
-import com.hellodoc.healthcaresystem.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.responsemodel.GetDoctorResponse
-import com.hellodoc.healthcaresystem.responsemodel.PendingDoctorResponse
-import com.hellodoc.healthcaresystem.responsemodel.ServiceInput
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.DoctorAvailableSlotsResponse
+import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PendingDoctorResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ServiceInput
+import com.hellodoc.healthcaresystem.model.repository.AppointmentRepository
+import com.hellodoc.healthcaresystem.model.repository.DoctorRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +34,11 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+@HiltViewModel
+class DoctorViewModel @Inject constructor(
+    private val doctorRepository: DoctorRepository,
+    private val appointmentRepository: AppointmentRepository
+) : ViewModel() {
     private val _doctors = MutableStateFlow<List<GetDoctorResponse>>(emptyList())
     val doctors: StateFlow<List<GetDoctorResponse>> get() = _doctors
 
@@ -37,6 +48,24 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
+    private val _availableWorkingHours = MutableStateFlow<DoctorAvailableSlotsResponse?>(null)
+    val availableWorkingHours: StateFlow<DoctorAvailableSlotsResponse?> get() = _availableWorkingHours
+
+    fun fetchAvailableSlots(doctorId: String){
+        viewModelScope.launch {
+            try{
+                val response = doctorRepository.fetchAvailableSlots(doctorId)
+                if(response.isSuccessful){
+                    _availableWorkingHours.value = response.body()
+                } else {
+                    println("Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch(e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun fetchDoctors(forceRefresh: Boolean = false) {
 
         // Tránh gọi lại nếu đã có dữ liệu và không yêu cầu refresh
@@ -44,7 +73,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
 
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.getDoctors()
+                val response = doctorRepository.getDoctors()
                 if (response.isSuccessful) {
                     _doctors.value = response.body() ?: emptyList()
                     //println("OK 1" + response.body())
@@ -57,13 +86,27 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    fun getDoctorAttribute(attribute: String, sharedPreferences: SharedPreferences): String {
+        val token = sharedPreferences.getString("access_token", null) ?: return "unknown"
+        return try {
+            val jwt = JWT(token)
+            jwt.getClaim(attribute).asString() ?: "unknown"
+        } catch (e: Exception) {
+            "unknown"
+        }
+    }
+
+
     fun fetchDoctorById(doctorId: String) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val response = RetrofitInstance.doctor.getDoctorById(doctorId)
+                println("ID BAC SI: " + doctorId)
+                val response = doctorRepository.getDoctorById(doctorId)
                 if (response.isSuccessful) {
                     _doctor.value = response.body()
+
+                    println("DOCTOR value nhan duoc la " + response.body())
                 } else {
                     println("Lỗi lấy doctor theo id: ${response.errorBody()?.string()}")
                 }
@@ -112,6 +155,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 val license = MultipartBody.Part.createFormData("license", request.license)
                 val specialty = MultipartBody.Part.createFormData("specialty", request.specialty)
                 val CCCD = MultipartBody.Part.createFormData("CCCD", request.CCCD)
+                val address = MultipartBody.Part.createFormData("address", request.address)
 
                 // Tạo multipart từ các file nếu có
                 val licenseUrl = request.licenseUrl?.let {
@@ -131,10 +175,11 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 }
 
                 // Gọi API
-                val response = RetrofitInstance.doctor.applyForDoctor(
+                val response = doctorRepository.applyForDoctor(
                     userId,
                     license,
                     specialty,
+                    address,
                     CCCD,
                     licenseUrl,
                     faceUrl,
@@ -252,7 +297,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
                 }
                 println("Id doctor da ra: "+doctorId)
                 println("Du lieu da ra: "+clinicUpdateData)
-                val response = RetrofitInstance.doctor.updateClinic(
+                val response = doctorRepository.updateClinic(
                     doctorId,
                     addressPart,
                     descriptionPart,
@@ -291,7 +336,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun fetchPendingDoctor() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.getPendingDoctor()
+                val response = doctorRepository.getPendingDoctor()
                 if (response.isSuccessful) {
                     _pendingDoctors.value = response.body() ?: emptyList()
                 }
@@ -308,7 +353,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun fetchPendingDoctorById(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.getPendingDoctorById(userId)
+                val response = doctorRepository.getPendingDoctorById(userId)
                 if (response.isSuccessful) {
                     _pendingDoctor.value = response.body()
                 }
@@ -321,7 +366,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun deletePendingDoctor(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.deletePendingDoctorById(userId)
+                val response = doctorRepository.deletePendingDoctorById(userId)
                 if(response.isSuccessful) {
                     fetchPendingDoctor()
                     Log.d("Xoa pending doctor", " thanh cong")
@@ -338,7 +383,7 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
     fun verifyDoctor(userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.doctor.verifyDoctor(userId)
+                val response = doctorRepository.verifyDoctor(userId)
                 if(response.isSuccessful) {
                     fetchPendingDoctor()
                     Log.d("verify pending doctor", " thanh cong")
@@ -358,13 +403,16 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
         }
     }
 
+    private val _isLoadingStats = MutableStateFlow(false)
+    val isLoadingStats: StateFlow<Boolean> get() = _isLoadingStats
+
     fun fetchDoctorWithStats(doctorId: String) {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
+                _isLoadingStats.value = true
 
-                val doctorRes = RetrofitInstance.doctor.getDoctorById(doctorId)
-                val statsRes = RetrofitInstance.appointment.getDoctorStats(doctorId)
+                val doctorRes = doctorRepository.getDoctorById(doctorId)
+                val statsRes = appointmentRepository.getDoctorStats(doctorId)
 
                 if (doctorRes.isSuccessful && statsRes.isSuccessful) {
                     val doctor = doctorRes.body()
@@ -380,12 +428,14 @@ class DoctorViewModel(private val sharedPreferences: SharedPreferences) : ViewMo
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                _isLoading.value = false
+                _isLoadingStats.value = false
             }
         }
     }
 
-
+    fun resetStates() {
+        _isLoading.value = false
+    }
 }
 
 
