@@ -8,8 +8,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,8 +43,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -42,6 +57,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -56,7 +72,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
@@ -242,42 +262,42 @@ fun CreatePostScreen(
     if (isLoading && postId != null) {
         LoadingOverlay()
     } else {
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.secondaryContainer)
         ) {
-            item {
-                Header(
-                    navController = navController,
-                    postText = postText,
-                    selectedImageUri = selectedImageUris,
-                    isEditMode = postId != null,
-                    onPost = { validateAndPost() }
-                )
-            }
+            // Fixed Header at top
+            Header(
+                navController = navController,
+                postText = postText,
+                selectedImageUri = selectedImageUris,
+                isEditMode = postId != null,
+                onPost = { validateAndPost() }
+            )
 
-            item {
-                PostBody(
-                    containerPost = ContainerPost(
-                        imageUrl = user?.avatarURL ?: "",
-                        name = user?.name ?: "",
-                        label = "Hãy nói gì đó ..."
-                    ),
-                    text = postText,
-                    onTextChange = { postText = it  },
-                    wordCount = wordCount,
-                    maxWords = maxWords
-                )
-            }
-
-            item {
-                Column {
-                    FooterWithPermission(
-                        permissionState = storagePermissionState,
-                        onImageClick = { handleMediaSelection() }
+            // Scrollable content in the middle
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                item {
+                    PostBody(
+                        containerPost = ContainerPost(
+                            imageUrl = user?.avatarURL ?: "",
+                            name = user?.name ?: "",
+                            label = "Hãy nói gì đó ..."
+                        ),
+                        text = postText,
+                        onTextChange = { postText = it },
+                        wordCount = wordCount,
+                        maxWords = maxWords
                     )
-                    if (pairedList.isNotEmpty()) {
+                }
+
+                if (pairedList.isNotEmpty()) {
+                    item {
                         MediaPreviewList(
                             context = context,
                             pairedList = pairedList,
@@ -288,11 +308,17 @@ fun CreatePostScreen(
                         )
                     }
                 }
+
+                if (isUpdating) {
+                    item { LoadingOverlay() }
+                }
             }
 
-            if (isUpdating) {
-                item { LoadingOverlay() }
-            }
+            // Fixed Footer at bottom
+            FooterWithPermission(
+                permissionState = storagePermissionState,
+                onImageClick = { handleMediaSelection() }
+            )
         }
     }
 
@@ -305,24 +331,60 @@ fun CreatePostScreen(
             onDismissRequest = {
                 showPermissionDialog = false
             },
-            title = { Text("Cần quyền truy cập thư viện") },
-            text = { Text("Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn hình ảnh cho bài viết.") },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.ImageSearch,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    "Cần quyền truy cập thư viện",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    "Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn hình ảnh cho bài viết.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         showPermissionDialog = false
                         storagePermissionState.launchPermissionRequest()
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cấp quyền")
-                } },
+                    Text(
+                        "Cấp quyền",
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+            },
             dismissButton = {
                 TextButton(
-                    onClick = { showPermissionDialog = false }
+                    onClick = { showPermissionDialog = false },
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Hủy")
+                    Text(
+                        "Hủy",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }
@@ -334,55 +396,99 @@ fun MediaPreviewList(
     onRemove: (Uri) -> Unit
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(pairedList) { (uri, frame) ->
-            Box(
-                modifier = Modifier.size(200.dp)
+            var isPressed by remember { mutableStateOf(false) }
+            val scale by animateFloatAsState(
+                targetValue = if (isPressed) 0.95f else 1f,
+                animationSpec = tween(100)
+            )
+            
+            Card(
+                modifier = Modifier
+                    .size(180.dp)
+                    .scale(scale),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                val type = getType(uri, context)
-
-                if (type.contains("video")) {
-                    // Video -> hiển thị thumbnail
-                    Image(
-                        painter = rememberAsyncImagePainter(frame),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    // Image
-                    Image(
-                        painter = rememberAsyncImagePainter(uri),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                // Nút xóa
-                IconButton(
-                    onClick = { onRemove(uri) },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(24.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                            CircleShape
-                        ),
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Xóa media",
-                        tint = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.size(20.dp),
-                    )
+                    val type = getType(uri, context)
+
+                    if (type.contains("video")) {
+                        // Video thumbnail
+                        Image(
+                            painter = rememberAsyncImagePainter(frame),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        // Video overlay gradient
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.3f)
+                                        )
+                                    )
+                                )
+                        )
+                        
+                        // Video indicator
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = "Video",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .align(Alignment.Center)
+                                .alpha(0.9f)
+                        )
+                    } else {
+                        // Image
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    // Delete button with animation
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .size(32.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
+                        shadowElevation = 4.dp
+                    ) {
+                        IconButton(
+                            onClick = { 
+                                isPressed = true
+                                onRemove(uri)
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Xóa media",
+                                tint = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -393,33 +499,87 @@ fun LoadingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)),
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                    )
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 4.dp,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Đang xử lý...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
 @Composable
 fun EmptyContentDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(48.dp)
+            )
+        },
         title = {
             Text(
                 "Nội dung trống",
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error
-                )
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
-            Text("Vui lòng nhập nội dung hoặc chọn ít nhất một hình ảnh để đăng bài.")
+            Text(
+                "Vui lòng nhập nội dung hoặc chọn ít nhất một hình ảnh để đăng bài.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Đã hiểu", style = TextStyle(fontWeight = FontWeight.SemiBold))
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    "Đã hiểu",
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
             }
-        }
+        },
+        shape = RoundedCornerShape(24.dp)
     )
 }
 
@@ -432,63 +592,116 @@ fun Header(
     isEditMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
     val isPostEnabled = postText.isNotBlank() || selectedImageUri.isNotEmpty()
+    
+    // Animated button colors
+    val buttonColor by animateColorAsState(
+        targetValue = if (isPostEnabled) 
+            MaterialTheme.colorScheme.primary 
+        else 
+            MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(300)
+    )
+    
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isPostEnabled) 1f else 0.95f,
+        animationSpec = tween(200)
+    )
 
-    ConstraintLayout(
+    Surface(
         modifier = modifier
-            .background(color = backgroundColor, shape = RectangleShape)
-            .height(60.dp)
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
+            .shadow(8.dp),
+        color = MaterialTheme.colorScheme.surface
     ) {
-        val horizontalGuideLine10 = createGuidelineFromTop(0.1f)
-        val (iconImage, tvTitle, tvButt) = createRefs()
-        Image(
-            painterResource(id = R.drawable.arrow_back),
-            contentDescription = null,
+        Box(
             modifier = Modifier
-                .size(20.dp)
-                .clickable { navController.popBackStack() }
-                .constrainAs(iconImage){
-                    start.linkTo(parent.start, margin = 10.dp)
-                    top.linkTo(horizontalGuideLine10, margin = 10.dp)
-                },
-        )
-        Text(
-            text = if (isEditMode) "Chỉnh sửa bài viết" else "Tạo bài viết",
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.constrainAs(tvTitle){
-                top.linkTo(horizontalGuideLine10, margin = 10.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                        )
+                    )
+                )
+        ) {
+            ConstraintLayout(
+                modifier = Modifier
+                    .height(64.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                val horizontalGuideLine10 = createGuidelineFromTop(0.1f)
+                val (iconImage, tvTitle, tvButt) = createRefs()
+                
+                // Back button with ripple effect
+                Surface(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .constrainAs(iconImage) {
+                            start.linkTo(parent.start)
+                            top.linkTo(horizontalGuideLine10, margin = 8.dp)
+                        },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Image(
+                            painterResource(id = R.drawable.arrow_back),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        )
+                    }
+                }
+                
+                Text(
+                    text = if (isEditMode) "Chỉnh sửa bài viết" else "Tạo bài viết",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.constrainAs(tvTitle) {
+                        top.linkTo(horizontalGuideLine10, margin = 12.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                )
+                
+                // Post button with animation
+                Button(
+                    onClick = onPost,
+                    enabled = isPostEnabled,
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = buttonColor,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = if (isPostEnabled) 4.dp else 0.dp
+                    ),
+                    modifier = Modifier
+                        .scale(buttonScale)
+                        .constrainAs(tvButt) {
+                            top.linkTo(horizontalGuideLine10, margin = 4.dp)
+                            end.linkTo(parent.end)
+                        }
+                ) {
+                    Text(
+                        text = if (isEditMode) "Lưu" else "Đăng",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isPostEnabled) 
+                            MaterialTheme.colorScheme.onPrimary 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        )
-        Button(
-            onClick = onPost,
-            enabled = isPostEnabled,
-            shape = RoundedCornerShape(12.dp),
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier
-                .width(80.dp).height(40.dp)
-                .constrainAs(tvButt){
-                    top.linkTo(horizontalGuideLine10)
-                    end.linkTo(parent.end, margin = 3.dp)
-                }) {
-            Text(
-                text = if (isEditMode) "Lưu" else "Đăng",
-                modifier= Modifier.padding(0.dp).fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                maxLines = 1,
-            )
         }
     }
 }
@@ -502,51 +715,71 @@ fun PostBody(
     maxWords: Int,
     modifier: Modifier = Modifier
 ){
-    val backgroundColor = MaterialTheme.colorScheme.background
-    ConstraintLayout(
+    Card(
         modifier = modifier
-            .background(color = backgroundColor, shape = RectangleShape)
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        val horizontalGuideLine50 = createGuidelineFromTop(0.05f)
-        val (iconImage, tvName, textField) = createRefs()
-        AsyncImage(
-            model = containerPost.imageUrl,
-            contentDescription = "Avatar",
+        Column(
             modifier = Modifier
-                .clip(CircleShape)
-                .size(45.dp)
-                .constrainAs(iconImage){
-                    start.linkTo(parent.start, margin = 20.dp)
-                    top.linkTo(horizontalGuideLine50)
-                },
-            contentScale = ContentScale.Crop
-        )
-        Text(
-            containerPost.name,
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            ),
-            modifier = Modifier.constrainAs(tvName){
-                top.linkTo(horizontalGuideLine50, margin = 5.dp)
-                start.linkTo(iconImage.end, margin = 10.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Avatar with border and shadow
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    shadowElevation = 4.dp,
+                    border = androidx.compose.foundation.BorderStroke(
+                        2.dp,
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                            )
+                        )
+                    )
+                ) {
+                    AsyncImage(
+                        model = containerPost.imageUrl,
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(2.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    containerPost.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
-        )
-        OutlineTextField(
-            text = text,
-            onTextChange = onTextChange,
-            wordCount = wordCount,
-            maxWords = maxWords,
-            modifier = Modifier.constrainAs(textField) {
-                top.linkTo(iconImage.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-        Spacer(modifier = Modifier.height(100.dp))
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            OutlineTextField(
+                text = text,
+                onTextChange = onTextChange,
+                wordCount = wordCount,
+                maxWords = maxWords
+            )
+        }
     }
 }
 
@@ -557,114 +790,61 @@ fun FooterWithPermission(
     permissionState: PermissionState,
     onImageClick: () -> Unit
 ) {
-    HorizontalDivider()
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp),
+    val isGranted = permissionState.status.isGranted
+    
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
     ) {
-        when {
-            permissionState.status.isGranted -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .padding(5.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onImageClick() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Hiển thị button bình thường khi đã có quyền
-                        Image(
-                            imageVector = Icons.Default.ImageSearch,
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier
-                                .size(30.dp)
-                                .offset(x = (10).dp, y = (10).dp) // dịch sang trái và lên
-                        )
-                        // Hiển thị button bình thường khi đã có quyền
-                        Image(
-                            imageVector = Icons.Default.VideoLibrary,
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier
-                                .size(30.dp)
-                                .offset(x = (-10).dp, y = (-10).dp) // dịch sang phải và xuống
-                        )
-                        Text(
-                            text = "Thêm tệp",
-                            style = TextStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onBackground
-                            ),
-                            modifier = Modifier.offset(x = (0).dp, y = (40).dp)
-                        )
-                    }
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onImageClick() }
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Simple circular button
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(
+                        color = if (isGranted)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            MaterialTheme.colorScheme.errorContainer,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ImageSearch,
+                    contentDescription = "Thêm ảnh hoặc video",
+                    tint = if (isGranted) 
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else 
+                        MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(36.dp)
+                )
             }
-
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .width(180.dp)
-                            .padding(5.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onImageClick() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Hiển thị button bình thường khi đã có quyền
-                        Image(
-                            imageVector = Icons.Default.ImageSearch,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .offset(x = (10).dp, y = (10).dp) // dịch sang trái và lên
-                        )
-                        // Hiển thị button bình thường khi đã có quyền
-                        Image(
-                            imageVector = Icons.Default.VideoLibrary,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .offset(x = (-10).dp, y = (-10).dp) // dịch sang phải và xuống
-                        )
-                        Text(
-                            text = if (permissionState.status.shouldShowRationale) {
-                                "Cấp quyền để thêm ảnh"
-                            } else {
-                                "Yêu cầu quyền truy cập"
-                            },
-                            style = TextStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center
-                            ),
-                            fontSize = 15.sp,
-                            modifier = Modifier
-                                .offset(x = (0).dp, y = (40).dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
-                }
-            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Text
+            Text(
+                text = when {
+                    isGranted -> "Thêm ảnh hoặc video"
+                    permissionState.status.shouldShowRationale -> "Cấp quyền để thêm media"
+                    else -> "Yêu cầu quyền truy cập"
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
         }
     }
-    HorizontalDivider()
 }
 
 fun countWords(text: String): Int {
@@ -680,57 +860,98 @@ fun OutlineTextField(
     maxWords: Int,
     modifier: Modifier = Modifier
 ){
-    OutlinedTextField(
-        value = text,
-        onValueChange = { newValue ->
-            // Chỉ cho phép nhập nếu không vượt quá giới hạn từ
-            val newWordCount = countWords(newValue)
-            if (newWordCount <= maxWords) {
-                onTextChange(newValue)
-
-            }
+    var isFocused by remember { mutableStateOf(false) }
+    
+    // Animated border color
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            wordCount > maxWords -> MaterialTheme.colorScheme.error
+            isFocused -> MaterialTheme.colorScheme.primary
+            else -> Color.Transparent
         },
-        placeholder = {
-            Text(
-                text = "Hãy nói gì đó ...",
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        maxLines = 10,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
-            errorPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
-            disabledPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
-            focusedPlaceholderColor = MaterialTheme.colorScheme.secondaryContainer,
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent,
-            errorBorderColor = Color.Transparent
-        )
+        animationSpec = tween(300)
     )
-
-    // Hiển thị word count
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.End
-    ) {
-        Text(
-            text = "$wordCount/$maxWords chữ",
-            style = TextStyle(
-                fontSize = 12.sp,
-                color = if (wordCount > maxWords) {
-                    MaterialTheme.colorScheme.error
-                } else if (wordCount > maxWords * 0.9) {
-                    MaterialTheme.colorScheme.tertiary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+    
+    // Animated counter color
+    val counterColor by animateColorAsState(
+        targetValue = when {
+            wordCount > maxWords -> MaterialTheme.colorScheme.error
+            wordCount > maxWords * 0.9 -> MaterialTheme.colorScheme.tertiary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(300)
+    )
+    
+    Column(modifier = modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { newValue ->
+                val newWordCount = countWords(newValue)
+                if (newWordCount <= maxWords) {
+                    onTextChange(newValue)
                 }
-            )
+            },
+            placeholder = {
+                Text(
+                    text = "Hãy nói gì đó ...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+                .border(
+                    width = 2.dp,
+                    brush = if (isFocused) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(Color.Transparent, Color.Transparent)
+                        )
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            textStyle = MaterialTheme.typography.bodyLarge,
+            minLines = 5,
+            maxLines = 12,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                disabledBorderColor = Color.Transparent,
+                errorBorderColor = Color.Transparent,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
+
+        // Character counter with animation
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = counterColor.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = "$wordCount/$maxWords ký tự",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = counterColor,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
     }
 }
