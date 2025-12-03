@@ -34,6 +34,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.view.admin.AdminRoot
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActivity
 import com.hellodoc.healthcaresystem.requestmodel.GoogleLoginRequest
 import com.hellodoc.healthcaresystem.view.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.view.user.home.root.showToast
@@ -158,6 +159,7 @@ class SignIn : BaseActivity() {
                                     "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                     "User" -> Intent(this@SignIn, HomeActivity::class.java)
                                     "Doctor" -> Intent(this@SignIn, HomeActivity::class.java)
+                                    "Blind" -> Intent(this@SignIn, HomeBlindActivity::class.java)
                                     else -> {
                                         Toast.makeText(this@SignIn, "Vai trò không hợp lệ!", Toast.LENGTH_SHORT).show()
                                         return@withContext
@@ -169,6 +171,8 @@ class SignIn : BaseActivity() {
                                 finish()
                             } catch (e: Exception) {
                                 Toast.makeText(this@SignIn, "Không thể đọc thông tin người dùng từ token", Toast.LENGTH_SHORT).show()
+                                print("Lỗi tại login:"+e)
+
                             }
                         } else {
                             Log.e("LOGIN", "Token is null or empty")

@@ -2,13 +2,15 @@
 <network-security-config xmlns:android="http://schemas.android.com/apk/res/android">
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">192.168.100.10</domain>
-        <domain includeSubdomains="true">192.168.5.75</domain>
-        <domain includeSubdomains="true">192.168.1.216</domain>
+        <domain includeSubdomains="true">healthcare-backend-yc39.onrender.com</domain>
+        <domain includeSubdomains="true">192.168.1.217</domain>
+        <domain includeSubdomains="true">192.168.1.225</domain>
 
         <domain includeSubdomains="true">192.168.0.101</domain>
-        <domain includeSubdomains="true">192.168.1.225</domain>
-        <domain includeSubdomains="true">192.168.1.230</domain>
-        <domain includeSubdomains="true">192.168.0.102</domain>
+        <domain includeSubdomains="true">192.168.1.5</domain>
+        <domain includeSubdomains="true">192.168.1.125</domain>
+        <domain includeSubdomains="true">192.168.1.231</domain>
+        <domain includeSubdomains="true">192.168.1.249</domain>
 
     </domain-config>
 </network-security-config>

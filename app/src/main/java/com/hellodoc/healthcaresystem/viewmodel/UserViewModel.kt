@@ -32,10 +32,10 @@ class UserViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
-    val user: StateFlow<User?> = _user
+    val user: StateFlow<User?> get()= _user
 
     private val _users = MutableStateFlow<List<User>>(emptyList())
-    val users: StateFlow<List<User>> = _users
+    val users: StateFlow<List<User>> get()= _users
 
     private val _allUser = MutableStateFlow<UserResponse?>(null)
     val allUser: StateFlow<UserResponse?> get() = _allUser
@@ -47,7 +47,7 @@ class UserViewModel @Inject constructor(
     val isUserLoading: StateFlow<Boolean> = _isUserLoading
 
     private val _you = MutableStateFlow<User?>(null)
-    val you: StateFlow<User?> = _you
+    val you: StateFlow<User?> get() = _you
 
     fun getAllUsers() {
         viewModelScope.launch {

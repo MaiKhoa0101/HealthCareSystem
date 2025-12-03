@@ -39,6 +39,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
+import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActivity
+import com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -54,7 +56,6 @@ import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.view.user.personal.EditOptionPage
@@ -130,15 +131,23 @@ class HomeActivity : BaseActivity() {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
-            HealthCareSystemTheme(darkTheme = darkTheme) {
-                val context = LocalContext.current
-                Index(
-                    context = context,
-                    navHostController = navHostController,
-                    onToggleTheme = { darkTheme = !darkTheme },
-                    darkTheme = darkTheme
-                )
+            var userViewModel: UserViewModel = hiltViewModel()
+            if (userViewModel.getUserAttribute("role", this) == "Blind") {
+                //Intent qua intro1
+                val intent = Intent(this, HomeBlindActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            else{
+                HealthCareSystemTheme(darkTheme = darkTheme) {
+                    val context = LocalContext.current
+                    Index(
+                        context = context,
+                        navHostController = navHostController,
+                        onToggleTheme = { darkTheme = !darkTheme },
+                        darkTheme = darkTheme
+                    )
+                }
             }
         }
     }

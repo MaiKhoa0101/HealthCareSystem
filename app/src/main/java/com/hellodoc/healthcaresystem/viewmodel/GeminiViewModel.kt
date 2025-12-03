@@ -645,7 +645,7 @@ class GeminiViewModel @Inject constructor(
 
         var attempts = 0 // Đếm số lần thử
         val maxAttempts = ApiKeyManager.getTotalKeys() // Tổng số key khả dụng
-
+        println("Total: "+maxAttempts)
         while (attempts < maxAttempts) {
             val apiKey = ApiKeyManager.getCurrentKey()
             try {

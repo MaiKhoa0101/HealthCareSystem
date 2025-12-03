@@ -53,6 +53,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
 fun EditClinicServiceScreen(navHostController: NavHostController) {
+    println("Vao edit clinic")
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
