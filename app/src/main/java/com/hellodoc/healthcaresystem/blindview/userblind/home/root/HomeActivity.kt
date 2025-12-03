@@ -1,7 +1,6 @@
-package com.hellodoc.healthcaresystem.view.user.home.root
+package com.hellodoc.healthcaresystem.blindview.userblind.home.root
 
 import android.Manifest
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -39,8 +38,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActivity
-import com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen.Intro2
+import com.hellodoc.healthcaresystem.blindview.userblind.home.tutorial.Tutorial
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -56,6 +54,7 @@ import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.view.user.personal.FavouriteHistoryScreen
@@ -66,15 +65,12 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.HiltAndroidApp
 
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
-@HiltAndroidApp
-class MyApp : Application()
 
 @AndroidEntryPoint
-class HomeActivity : BaseActivity() {
+class HomeBlindActivity : BaseActivity() {
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun checkAndRequestNotificationPermission() {
@@ -130,23 +126,15 @@ class HomeActivity : BaseActivity() {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            var userViewModel: UserViewModel = hiltViewModel()
-            if (userViewModel.getUserAttribute("role", this) == "Blind") {
-                //Intent qua intro1
-                val intent = Intent(this, HomeBlindActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
-            else{
-                HealthCareSystemTheme(darkTheme = darkTheme) {
-                    val context = LocalContext.current
-                    Index(
-                        context = context,
-                        navHostController = navHostController,
-                        onToggleTheme = { darkTheme = !darkTheme },
-                        darkTheme = darkTheme
-                    )
-                }
+
+            HealthCareSystemTheme(darkTheme = darkTheme) {
+                val context = LocalContext.current
+                Index(
+                    context = context,
+                    navHostController = navHostController,
+                    onToggleTheme = { darkTheme = !darkTheme },
+                    darkTheme = darkTheme
+                )
             }
         }
     }
@@ -219,12 +207,19 @@ class HomeActivity : BaseActivity() {
         val userViewModel: UserViewModel = hiltViewModel()
         val sharedPreferences = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
         val user by userViewModel.user.collectAsState()
-        val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
+        val defaultDestination = intent.getStringExtra("navigate-to") ?: "tutorial"
+        val you by userViewModel.you.collectAsState()
+        LaunchedEffect(Unit) {
+            userViewModel.getYou(context)
+        }
         NavHost(
             navController = navHostController,
             startDestination = defaultDestination,
             modifier = modifier
         ) {
+            composable("tutorial") {
+                Tutorial(navHostController, you)
+            }
             composable("fast_talk") {
                 FastTalk(navHostController, userViewModel, context)
             }

@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.view.user.home.startscreen
+package com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -172,7 +172,6 @@ class SignIn : BaseActivity() {
                             } catch (e: Exception) {
                                 Toast.makeText(this@SignIn, "Không thể đọc thông tin người dùng từ token", Toast.LENGTH_SHORT).show()
                                 print("Lỗi tại login:"+e)
-
                             }
                         } else {
                             Log.e("LOGIN", "Token is null or empty")
