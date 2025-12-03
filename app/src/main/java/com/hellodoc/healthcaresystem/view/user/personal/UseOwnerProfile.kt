@@ -335,14 +335,14 @@ fun ProfileSection(
                     .padding(end = 16.dp, bottom = 230.dp) // Căn chỉnh vị trí
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF64FCDA)) // Màu cyan như hình
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .clickable { navHostController.navigate("setting") },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.settingbtn),
                     contentDescription = "Setting",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -404,7 +404,10 @@ fun ProfileSection(
             // Edit Button
             Button(
                 onClick = { navHostController.navigate("editOptionPage") },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF64FCDA)), // Màu cyan
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -412,7 +415,6 @@ fun ProfileSection(
             ) {
                 Text(
                     text = "Chỉnh sửa",
-                    color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )

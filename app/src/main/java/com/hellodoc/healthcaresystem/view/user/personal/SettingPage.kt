@@ -66,14 +66,7 @@ fun Setting(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFFFFD1DC), // Pinkish top
-                            Color(0xFFB2F5EA)  // Cyan bottom
-                        )
-                    )
-                )
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(top = 40.dp, bottom = 20.dp) // Adjust for status bar
         ) {
             Row(
@@ -88,7 +81,7 @@ fun Setting(
                     modifier = Modifier
                         .size(28.dp)
                         .clickable { navHostController.popBackStack() },
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 
                 Text(
@@ -97,7 +90,7 @@ fun Setting(
                     textAlign = TextAlign.Center,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 
                 Spacer(modifier = Modifier.size(28.dp)) // Balance the back icon
@@ -142,8 +135,15 @@ fun SettingItem(
     onClick: () -> Unit,
     isDestructive: Boolean = false
 ) {
-    val backgroundColor = Color(0xFF64FCDA) // Cyan color
-    val contentColor = if (isDestructive) Color.Red else Color.Black
+    val backgroundColor = if (isDestructive) 
+        MaterialTheme.colorScheme.errorContainer 
+    else 
+        MaterialTheme.colorScheme.secondaryContainer
+    
+    val contentColor = if (isDestructive) 
+        MaterialTheme.colorScheme.error 
+    else 
+        MaterialTheme.colorScheme.onSecondaryContainer
 
     Row(
         modifier = Modifier

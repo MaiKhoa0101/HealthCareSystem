@@ -61,14 +61,7 @@ fun EditOptionPage(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFFFFD1DC), // Pinkish top
-                            Color(0xFFB2F5EA)  // Cyan bottom
-                        )
-                    )
-                )
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(top = 40.dp, bottom = 20.dp)
         ) {
             Row(
@@ -83,7 +76,7 @@ fun EditOptionPage(
                     modifier = Modifier
                         .size(28.dp)
                         .clickable { navHostController.popBackStack() },
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
                 Text(
@@ -92,7 +85,7 @@ fun EditOptionPage(
                     textAlign = TextAlign.Center,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
                 Spacer(modifier = Modifier.size(28.dp))
@@ -140,7 +133,7 @@ fun EditOptionItem(
             .fillMaxWidth()
             .height(60.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF64FCDA)) // Cyan color
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable { onClick() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -148,7 +141,7 @@ fun EditOptionItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.size(24.dp)
         )
 
@@ -158,14 +151,14 @@ fun EditOptionItem(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.weight(1f)
         )
 
         Icon(
             imageVector = Icons.Default.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.size(24.dp)
         )
     }
