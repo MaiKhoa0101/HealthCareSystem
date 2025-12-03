@@ -5,6 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -373,7 +375,7 @@ fun AnimatedNotificationCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationCard(
@@ -382,17 +384,8 @@ fun NotificationCard(
     notificationViewModel: NotificationViewModel
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                // Show confirmation dialog
-                showDeleteDialog = true
-            }
-            // Return false to allow swiping back
-            false
-        }
-    )
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     // Delete confirmation dialog
     if (showDeleteDialog) {
@@ -418,122 +411,146 @@ fun NotificationCard(
         )
     }
 
-    SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            Box(
+    // Bottom Sheet Modal
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 4.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.errorContainer),
-                contentAlignment = Alignment.CenterEnd
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    modifier = Modifier.padding(end = 24.dp),
-                    tint = MaterialTheme.colorScheme.error
-                )
+                // Delete option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showBottomSheet = false
+                            showDeleteDialog = true
+                        }
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Xóa thông báo",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "Xóa thông báo",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
-        },
-        enableDismissFromStartToEnd = false,
-        modifier = Modifier.padding(vertical = 4.dp)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .combinedClickable(
+                onClick = {
                     if (!notification.isRead) {
                         notificationViewModel.markAsRead(notification.id)
                     }
                     navHostController.navigate(notification.navigatePath)
                 },
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (notification.isRead)
-                    MaterialTheme.colorScheme.surface
-                else
-                    MaterialTheme.colorScheme.tertiaryContainer
+                onLongClick = {
+                    showBottomSheet = true
+                }
             ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = if (notification.isRead) 1.dp else 3.dp
-            )
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (notification.isRead)
+                MaterialTheme.colorScheme.surface
+            else
+                MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (notification.isRead) 1.dp else 3.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
+            // Notification Icon
+            NotificationIcon(
+                isRead = notification.isRead,
+                content = notification.content
+            )
+
+            // Content
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Notification Icon
-                NotificationIcon(
-                    isRead = notification.isRead,
-                    content = notification.content
+                Text(
+                    text = notification.content,
+                    fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                // Content
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = notification.content,
-                        fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                    Icon(
+                        imageVector = Icons.Outlined.AccessTime,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.AccessTime,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = notification.createdAt.timeAgoInVietnam(),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-
-                    if (!notification.isRead) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                            )
-                            Text(
-                                text = "Nhấn để xem chi tiết",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
+                    Text(
+                        text = notification.createdAt.timeAgoInVietnam(),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
                 }
 
-                // Chevron
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
+                if (!notification.isRead) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                        Text(
+                            text = "Nhấn để xem chi tiết",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
+
+            // Chevron
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
         }
     }
 }
