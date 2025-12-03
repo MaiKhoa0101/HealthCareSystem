@@ -52,6 +52,7 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -88,8 +89,13 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
+import com.hellodoc.healthcaresystem.view.user.supportfunction.speakQueue
+import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -146,7 +152,7 @@ fun PostColumn(
                         postId = post.id,
                         postViewModel = postViewModel,
                         sharedPreferences = navHostController.context.getSharedPreferences(
-                            "MyPrefs",
+                            "user_prefs",
                             Context.MODE_PRIVATE
                         ),
                         onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
@@ -186,24 +192,22 @@ fun Post(
     LaunchedEffect(post.id, userWhoInteractWithThisPost.id) {
         postViewModel.fetchFavoriteForPost(postId = post.id, userId = userWhoInteractWithThisPost.id)
     }
+
+    // Thêm các thao tác chạm/nhấn giữ cho người khiếm thị
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     Box (
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize() // Sử dụng fillMaxSize() bên trong fillParentMaxSize() container
             .padding(3.dp)
             .shadow(1.dp, RoundedCornerShape(3.dp,), clip = true, spotColor = Color.Gray)
             .clip(RoundedCornerShape(10.dp))
-
             .padding(2.dp)
             .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(3.dp))
-            .clickable{
-                navHostController.navigate("post-detail/${post.id}"){
-                    restoreState = true
-                }
-            }
+
             .padding(horizontal = 15.dp, vertical = 10.dp)
             .clip(RoundedCornerShape(10.dp))
-
-
-
     ){
         Column(
             modifier = Modifier
@@ -223,14 +227,44 @@ fun Post(
             PostMedia(
                 post = post,
             )
-            InteractPostManager(
-                navHostController = navHostController,
-                postViewModel = postViewModel,
-                post = post,
-                user = userWhoInteractWithThisPost,
-                totalFavorites = totalFavorites
-            )
+            // Dùng Spacer với weight để đẩy nội dung lên trên cùng và chiếm hết không gian còn lại.
+            Spacer(modifier = Modifier.weight(1f))
         }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(post.id) {
+                    detectTapGestures(
+                        // Chạm đơn: Đọc lại bài viết
+                        onTap = {
+                            println("Đã nhận ra cham")
+                            SoundManager.playTap()
+                            vibrate(context)
+                            scope.launch {
+                                val postText = post.content?.takeIf { it.isNotBlank() } ?: "Bài viết này không có nội dung văn bản."
+                                speakQueue("Nội dung bài viết: ${postText}.")
+                            }
+                        },
+                        // Chạm đúp: Chuyển đến chi tiết bài viết
+                        onDoubleTap = {
+                            SoundManager.playTap()
+                            vibrate(context, 100)
+                            navHostController.navigate("post-detail/${post.id}"){
+                                restoreState = true
+                            }
+                        },
+                        // Nhấn giữ: Mở menu/tùy chọn (tương tự Tutorial 4)
+                        onLongPress = {
+                            SoundManager.playHold()
+                            vibrate(context, 60)
+                            scope.launch {
+                                speakQueue("Menu tùy chọn bài viết đã được mở.")
+                                // Logic mở menu thực tế (nếu có) sẽ nằm ở đây
+                            }
+                        }
+                    )
+                }
+        ) { }
 
     }
 }

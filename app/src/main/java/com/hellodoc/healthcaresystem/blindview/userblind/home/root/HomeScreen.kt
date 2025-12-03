@@ -20,11 +20,13 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -70,11 +72,14 @@ import com.hellodoc.healthcaresystem.blindview.userblind.home.confirm.ConfirmDel
 
 import com.hellodoc.healthcaresystem.blindview.userblind.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.blindview.userblind.post.Post
+import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
+import com.hellodoc.healthcaresystem.view.user.supportfunction.speakQueue
+import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthMateHomeScreen(
@@ -82,18 +87,12 @@ fun HealthMateHomeScreen(
     navHostController: NavHostController,
 ) {
     val context = LocalContext.current
-    val listState = rememberSaveable(
-        saver = LazyListState.Saver
-    ) {
-        LazyListState()
-    }
+    // Sử dụng rememberLazyListState thay vì rememberSaveable với LazyListState.Saver cho LazyColumn
+    val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    val isScrollButtonVisible by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
-        }
-    }
+    // Biến trạng thái để theo dõi bài viết hiện tại đang được tập trung (index 0, 1, 2, ...)
+    var currentPostIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val doctorViewModel: DoctorViewModel = hiltViewModel()
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
@@ -104,52 +103,49 @@ fun HealthMateHomeScreen(
     val userViewModel: UserViewModel = hiltViewModel()
     val faqItemViewModel: FAQItemViewModel = hiltViewModel()
 
-    // Collect states with loading information
-    val doctorState by doctorViewModel.doctors.collectAsState()
-    val specialtyState by specialtyViewModel.specialties.collectAsState()
-    val medicalOptionState by medicalOptionViewModel.medicalOptions.collectAsState()
-    val question by geminiViewModel.question.collectAsState()
-    val answer by geminiViewModel.answer.collectAsState()
-    val newsState by newsViewModel.newsList.collectAsState()
+    // Collect states
     val user by userViewModel.user.collectAsState()
+    val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
+    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
+    val posts by postViewModel.posts.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
-    var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
-    var username = ""
+    var doneListening by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        username = userViewModel.getUserAttribute("name", context)
+        val username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
 
         userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
+        // Bắt đầu fetch bài viết từ đầu
         postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
 
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
-//        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
+        delay(2000)
+        speakQueue(
+            "Bạn đang trong trang chủ chứa các bài viết",
+            "Chạm để nghe bài viết hiện tại",
+            "Trượt lên để xem bài viết mới hơn, trượt xuống để quay lại bài viết cũ hơn.",
+            "Ấn giữ màn hình để nghe lại hướng dẫn và hỗ trợ"// Hướng dẫn đã được đảo ngược
+        )
+        delay(2000)
+        doneListening = true
+
     }
 
-    val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
-    val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
-
-    val progress by postViewModel.uploadProgress.collectAsState()
-    val uiStatePost by postViewModel.uiStatePost.collectAsState()
-    val posts by postViewModel.posts.collectAsState()
-
-    LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
+    // Xử lý load thêm bài viết (Load More)
+    LaunchedEffect(currentPostIndex, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
-            val layoutInfo = listState.layoutInfo
-            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val total = layoutInfo.totalItemsCount
-            lastVisible >= total - 2
-        }.distinctUntilChanged().collect { isAtEnd ->
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
+            // Kiểm tra nếu người dùng đang ở 2 bài viết cuối cùng của danh sách đã tải
+            val threshold = posts.size - 2
+            currentPostIndex >= threshold
+        }.distinctUntilChanged().collect { isNearEnd ->
+            if (isNearEnd && hasMorePosts && !isLoadingMorePosts) {
                 println("Load more với skip=${posts.size}")
                 postViewModel.fetchPosts(
                     skip = posts.size,
@@ -160,242 +156,167 @@ fun HealthMateHomeScreen(
         }
     }
 
+    // Xử lý cuộn và TTS khi currentPostIndex thay đổi
+    LaunchedEffect(currentPostIndex, posts.size) {
+        if (posts.isNotEmpty() && currentPostIndex >= 0 && currentPostIndex < posts.size) {
+            coroutineScope.launch {
+                // Cuộn đến item đang được focus
+                listState.animateScrollToItem(currentPostIndex)
+
+                // Cung cấp phản hồi TTS cho bài viết hiện tại
+                val post = posts[currentPostIndex]
+                val postContent = post.content?.takeIf { it.isNotBlank() } ?: "Bài viết này không có nội dung văn bản."
+
+                // Xử lý media type an toàn (giả định post.media là List<MediaResponse> với thuộc tính type)
+                val mediaInfo = if (post.media.isNotEmpty()) {
+                    val mediaType = post.media.first()
+                    if (mediaType.startsWith("image")) "Bài viết này có kèm ảnh minh họa."
+                    else if (mediaType.startsWith("video")) "Bài viết này có kèm video."
+                    else ""
+                } else ""
+            }
+        }
+    }
+
     LaunchedEffect(navHostController.currentBackStackEntry) {
         if (navHostController.currentBackStackEntry?.destination?.route == "home") {
-            if (postViewModel.posts == emptyList<PostResponse>()) {
-                postIndex = 0
+            if (postViewModel.posts.value == emptyList<PostResponse>()) {
+                currentPostIndex = 0
                 postViewModel.clearPosts()
                 postViewModel.fetchPosts()
             }
         }
     }
 
-
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    postViewModel.closeAllPostMenus()
-                    showReportBox = false
-                }
-            }
-    ) {
-        LazyColumn(
+    if (doneListening) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            state = listState
-        ) {
-            item(key = "header") {
-                Column(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(16.dp)
-                ) {
-                    AssistantQueryRow(
-                        navHostController = navHostController,
-                        onSubmit = { query ->
-                            geminiViewModel.processUserQuery(query)
-                            showDialog = true
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (newsState.isEmpty()) {
-//                        EmptyList("tin mới")
-                        NewsSkeletonList()
-                    } else {
-                        MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        // Đóng menu khi chạm bất kỳ đâu ngoài bài viết (ngoài các thao tác đã định nghĩa)
+                        postViewModel.closeAllPostMenus()
+                        showReportBox = false
                     }
                 }
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
-            }
+        ) {
+            // --- TikTok/Paging Scroll Logic ---
+            var offsetY by remember { mutableFloatStateOf(0f) }
+            val dragThreshold = 100f // Ngưỡng trượt để chuyển bài
 
-            item(key = "services") {
-                if (medicalOptionState.isEmpty()) {
-//                    EmptyList("dịch vụ hệ thống")
-                    Column {
-                        SkeletonBox(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(0.4f)
-                                .height(24.dp),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        ServiceSkeletonGrid()
-                    }
-                } else {
-                    SectionHeader(title = "Dịch vụ toàn diện")
-                    println("Dich vụ gồm: "+medicalOptionState)
-                    GridServiceList(medicalOptionState) { medicalOption ->
-                        when (medicalOption.name) {
-                            "Tính BMI" -> navHostController.navigate("bmi-checking")
-                            "Fast Talk" -> navHostController.navigate("fast_talk")
-                            else -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
+                        detectVerticalDragGestures(
+                            onDragEnd = {
+                                offsetY = 0f // Reset offset sau khi thả tay
+                            }
+                        ) { _, dragAmount ->
+                            offsetY += dragAmount
 
+                            // 1. Swipe UP (Trượt lên) -> Chuyển đến bài MỚI HƠN (index + 1)
+                            if (offsetY < -dragThreshold) { // dragAmount âm khi trượt lên
+                                val nextIndex = currentPostIndex + 1
+                                if (nextIndex < posts.size) {
+                                    SoundManager.playSwipe()
+                                    vibrate(context)
+                                    currentPostIndex = nextIndex
+                                    offsetY = 0f // Reset ngay sau khi hành động
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
+                                    }
+                                } else if (hasMorePosts && !isLoadingMorePosts) {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đang tải thêm bài viết mới.")
+                                    }
+                                    offsetY = 0f
+                                } else if (!hasMorePosts) {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Bạn đã xem hết tất cả bài viết.")
+                                    }
+                                    offsetY = 0f
+                                }
+                            }
+
+                            // 2. Swipe DOWN (Trượt xuống) -> Quay lại bài CŨ HƠN (index - 1)
+                            if (offsetY > dragThreshold) { // dragAmount dương khi trượt xuống
+                                val previousIndex = currentPostIndex - 1
+                                if (previousIndex >= 0) {
+                                    SoundManager.playSwipe()
+                                    vibrate(context)
+                                    currentPostIndex = previousIndex
+                                    offsetY = 0f // Reset ngay sau khi hành động
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
+                                    }
+                                } else {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Bạn đã ở bài viết đầu tiên.")
+                                    }
+                                    offsetY = 0f
+                                }
                             }
                         }
-                    }
-                }
-            }
+                    },
+                state = listState,
+                userScrollEnabled = false // Vô hiệu hóa cuộn tự nhiên để chỉ dùng cuộn bằng tay (custom paging)
+            ) {
+                items(posts) { post ->
+                    var showPostReportDialog by remember { mutableStateOf(false) }
+                    var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-            item(key = "specialties") {
-                if (specialtyState.isEmpty()) {
-//                    EmptyList("chuyên khoa")
-                    SpecialtySkeletonList()
-                } else {
-                    SpecialtyList(
-                        navHostController = navHostController,
-                        context = context,
-                        specialties = specialtyState)
-                }
-            }
+                    // CRUCIAL: Sử dụng fillParentMaxSize() để mỗi item chiếm trọn kích thước của LazyColumn
+                    Box(modifier = Modifier.fillParentMaxSize()) {
+                        Post(
+                            navHostController = navHostController,
+                            postViewModel = postViewModel,
+                            post = post,
+                            userWhoInteractWithThisPost = user!!,
+                            onClickReport = {
+                                showPostReportDialog = !showPostReportDialog
+                            },
+                            onClickDelete = {
+                                showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                            },
+                        )
 
-            item(key = "doctors") {
-                Spacer(modifier = Modifier.height(8.dp))
-                if (doctorState.isEmpty()) {
-//                    EmptyList("bác sĩ")
-                    DoctorSkeletonList()
-                } else {
-                    println("ko co bi empty")
-                    DoctorList(navHostController = navHostController, doctors = doctorState)
-                }
-            }
+                        if (showPostReportDialog) {
+                            post.userInfo?.let {
+                                ReportPostUser(
+                                    context = navHostController.context,
+                                    youTheCurrentUserUseThisApp = user!!,
+                                    userReported = it,
+                                    onClickShowPostReportDialog = { showPostReportDialog = false }
+                                )
+                            }
+                        }
 
-            items(posts) { post ->
-                var showPostReportDialog by remember { mutableStateOf(false) }
-                var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
-                Box (modifier = Modifier.fillMaxWidth()) {
-                    Post(
-                        navHostController = navHostController,
-                        postViewModel = postViewModel,
-                        post = post,
-                        userWhoInteractWithThisPost = user!!,
-                        onClickReport = {
-                            showPostReportDialog = !showPostReportDialog
-                        },
-                        onClickDelete = {
-                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                        },
-                    )
-
-                    if (showPostReportDialog) {
-                        post.userInfo?.let {
-                            ReportPostUser(
-                                context = navHostController.context,
-                                youTheCurrentUserUseThisApp = user!!,
-                                userReported = it,
-                                onClickShowPostReportDialog = { showPostReportDialog = false }
+                        if (showPostDeleteConfirmDialog) {
+                            ConfirmDeletePostModal(
+                                postId = post.id,
+                                postViewModel = postViewModel,
+                                sharedPreferences = navHostController.context.getSharedPreferences(
+                                    "user_prefs",
+                                    Context.MODE_PRIVATE
+                                ),
+                                onClickShowConfirmDeleteDialog = {
+                                    showPostDeleteConfirmDialog = false
+                                },
                             )
                         }
                     }
-
-                    if (showPostDeleteConfirmDialog) {
-                        ConfirmDeletePostModal(
-                            postId = post.id,
-                            postViewModel = postViewModel,
-                            sharedPreferences = navHostController.context.getSharedPreferences(
-                                "MyPrefs",
-                                Context.MODE_PRIVATE
-                            ),
-                            onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
-                        )
-                    }
                 }
-            }
-
-            item {
-                if (isLoadingMorePosts) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else if (!hasMorePosts) {
-                    Text(
-                        text = "Đã hết bài viết",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-
-            item(key = "bottom_space") {
-                Spacer(modifier = Modifier.height(100.dp))
             }
         }
-
-        if (isScrollButtonVisible) {
-            BackToTopButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                onClick = {
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(0)
-                    }
-                },
-
-            )
-        }
-
-        if (showDialog) {
-            AssistantAnswerDialog(
-                question = question,
-                answer = answer,
-                onDismiss = { showDialog = false }
-            )
-        }
-        Row (
-            modifier = Modifier.padding(bottom = 50.dp)
-                .align(Alignment.TopCenter)
-                .shadow(
-                    elevation = 8.dp,
-                    shape = RoundedCornerShape(16.dp),
-                    clip = false
-                )
-                .clip(RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (uiStatePost is UiState.Loading) {
-                println("Hien thanh trang thai")
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                    Text(
-                        text = "Đang đăng bài: ${(progress * 100).toInt()}%",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            } else if (uiStatePost is UiState.Success) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Success",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Đăng bài thành công",
-                        color = Color.Green,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+    }
+    else{
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+            Text("Đang hướng dẫn...")
         }
     }
 }

@@ -203,7 +203,7 @@ object SoundManager {
     }
 }
 
-fun vibrate(context: Context, ms: Long = 40) {
+fun vibrate(context: Context, ms: Long = 100) {
     val vib = context.getSystemService(Vibrator::class.java)
     vib?.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
 }
@@ -283,6 +283,7 @@ object FocusTTS {
 }
 
 suspend fun speakQueue(vararg texts: String) {
+    println("speakQueue: $texts")
     for (text in texts) {
         FocusTTS.speakAndWait(text)
         delay(400) // Khoảng nghỉ giữa các câu

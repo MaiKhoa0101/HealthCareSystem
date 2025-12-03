@@ -41,7 +41,6 @@ fun Tutorial(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        FocusTTS.init(context)
         SoundManager.init(context)
     }
 
@@ -83,7 +82,7 @@ fun Tutorial1(you: User, next: () -> Unit) {
 
     LaunchedEffect(Unit) {
         speaking = true
-        delay(1000)
+        delay(3000)
         speakQueue(
             "Xin chào $name!",
             "Tôi sẽ hướng dẫn bạn sử dụng ứng dụng này thật dễ hiểu.",
@@ -161,15 +160,15 @@ fun Tutorial3(you: User, next: () -> Unit, back: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     var offsetY by remember { mutableFloatStateOf(0f) }
+    var swipedUp by remember { mutableStateOf(false) } // Đổi tên biến để phản ánh Trượt Lên trước
     var swipedDown by remember { mutableStateOf(false) }
-    var swipedUp by remember { mutableStateOf(false) }
-    var instructedSwipeUp by remember { mutableStateOf(false) }
+    var instructedSwipeDown by remember { mutableStateOf(false) } // Đổi tên hướng dẫn
     var canLongPress by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         speakQueue(
             "Tiếp theo là thao tác trượt.",
-            "Bạn hãy trượt xuống, thao tác trượt xuống sẽ lấy bài viết mới cho bạn."
+            "Bạn hãy trượt lên, thao tác trượt lên sẽ lấy bài viết mới cho bạn."
         )
     }
 
@@ -186,26 +185,26 @@ fun Tutorial3(you: User, next: () -> Unit, back: () -> Unit) {
                 ) { _, dragAmount ->
                     offsetY += dragAmount
 
-                    // Phát hiện trượt xuống
-                    if (!swipedDown && offsetY > 100) {
-                        swipedDown = true
-                        SoundManager.playSwipe()
-                        vibrate(context)
-                        scope.launch {
-                            FocusTTS.speakAndWait("Bạn đã trượt xuống chính xác, bài viết mới đã được lấy.")
-                            delay(500)
-                            FocusTTS.speakAndWait("Giờ bạn hãy trượt lên để quay lại bài viết trước đó.")
-                            instructedSwipeUp = true
-                        }
-                    }
-
-                    // Phát hiện trượt lên (chỉ sau khi đã trượt xuống)
-                    if (swipedDown && instructedSwipeUp && !swipedUp && offsetY < -100) {
+                    // Phát hiện trượt LÊN (offsetY < -100) -> Lấy bài mới
+                    if (!swipedUp && offsetY < -100) {
                         swipedUp = true
                         SoundManager.playSwipe()
                         vibrate(context)
                         scope.launch {
-                            FocusTTS.speakAndWait("Bạn đã trượt lên chính xác, thao tác này giúp bạn quay lại bài viết trước đó.")
+                            FocusTTS.speakAndWait("Bạn đã trượt lên chính xác, bài viết mới đã được lấy.")
+                            delay(500)
+                            FocusTTS.speakAndWait("Giờ bạn hãy trượt xuống để quay lại bài viết trước đó.")
+                            instructedSwipeDown = true
+                        }
+                    }
+
+                    // Phát hiện trượt XUỐNG (chỉ sau khi đã trượt lên) (offsetY > 100) -> Quay lại bài cũ
+                    if (swipedUp && instructedSwipeDown && !swipedDown && offsetY > 100) {
+                        swipedDown = true
+                        SoundManager.playSwipe()
+                        vibrate(context)
+                        scope.launch {
+                            FocusTTS.speakAndWait("Bạn đã trượt xuống chính xác, thao tác này giúp bạn quay lại bài viết trước đó.")
                             delay(500)
                             FocusTTS.speakAndWait("Để tiếp tục, bạn hãy nhấn giữ vào màn hình.")
                             canLongPress = true
@@ -231,7 +230,7 @@ fun Tutorial3(you: User, next: () -> Unit, back: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         // Hiển thị bài viết khác nhau dựa trên trạng thái
-        if (swipedDown && !swipedUp) {
+        if (swipedUp && !swipedDown) {
             ExamplePost1()
         } else {
             ExamplePost()

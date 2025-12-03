@@ -63,15 +63,19 @@ import com.hellodoc.healthcaresystem.view.user.personal.ProfileUserPage
 import com.hellodoc.healthcaresystem.view.user.personal.Setting
 import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
+import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
-
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 
 @AndroidEntryPoint
 class HomeBlindActivity : BaseActivity() {
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
+
+    // 1. Định nghĩa key để kiểm tra người dùng lần đầu
+    private val FIRST_TIME_KEY = "is_first_time_blind"
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun checkAndRequestNotificationPermission() {
         val permission = Manifest.permission.POST_NOTIFICATIONS
@@ -121,6 +125,11 @@ class HomeBlindActivity : BaseActivity() {
         firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
 
+        // 2. Kiểm tra cờ người dùng lần đầu
+        val isFirstTime = sharedPreferences.getBoolean(FIRST_TIME_KEY, true) // Mặc định là true
+        val startRoute = if (isFirstTime) "tutorial" else "home"
+        Log.d("FirstTimeCheck", "Is first time user: $isFirstTime. Starting at route: $startRoute")
+
         enableEdgeToEdge()
         setContent {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
@@ -129,11 +138,14 @@ class HomeBlindActivity : BaseActivity() {
 
             HealthCareSystemTheme(darkTheme = darkTheme) {
                 val context = LocalContext.current
+                FocusTTS.init(context)
+
                 Index(
                     context = context,
                     navHostController = navHostController,
                     onToggleTheme = { darkTheme = !darkTheme },
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    startRoute = startRoute // Truyền startRoute đã xác định
                 )
             }
         }
@@ -166,7 +178,8 @@ class HomeBlindActivity : BaseActivity() {
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
         onToggleTheme: () -> Unit,
-        darkTheme: Boolean
+        darkTheme: Boolean,
+        startRoute: String // Thêm tham số startRoute
     ) {
         GetFcmInstance()
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -189,7 +202,8 @@ class HomeBlindActivity : BaseActivity() {
                 navHostController = navHostController,
                 modifier = Modifier.padding(paddingValues),
                 onToggleTheme = onToggleTheme,
-                darkTheme = darkTheme
+                darkTheme = darkTheme,
+                startRoute = startRoute // Truyền startRoute
             )
         }
 
@@ -202,12 +216,16 @@ class HomeBlindActivity : BaseActivity() {
         navHostController: NavHostController,
         modifier: Modifier = Modifier,
         onToggleTheme: () -> Unit,
-        darkTheme: Boolean
+        darkTheme: Boolean,
+        startRoute: String // Thêm tham số startRoute
     ) {
         val userViewModel: UserViewModel = hiltViewModel()
         val sharedPreferences = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
         val user by userViewModel.user.collectAsState()
-        val defaultDestination = intent.getStringExtra("navigate-to") ?: "tutorial"
+
+        // Sử dụng startRoute được tính toán từ onCreate
+        val defaultDestination = intent.getStringExtra("navigate-to") ?: startRoute
+
         val you by userViewModel.you.collectAsState()
         LaunchedEffect(Unit) {
             userViewModel.getYou(context)
@@ -218,12 +236,21 @@ class HomeBlindActivity : BaseActivity() {
             modifier = modifier
         ) {
             composable("tutorial") {
+                // Cập nhật cờ lần đầu thành false sau khi vào tutorial
+                LaunchedEffect(Unit) {
+                    sharedPreferences.edit().putBoolean(FIRST_TIME_KEY, false).apply()
+                    Log.d("FirstTimeCheck", "Set isFirstTime to false upon entering tutorial.")
+                }
                 Tutorial(navHostController, you)
             }
             composable("fast_talk") {
                 FastTalk(navHostController, userViewModel, context)
             }
             composable("home") {
+                // Cập nhật cờ lần đầu thành false nếu vào thẳng home
+                LaunchedEffect(Unit) {
+                    sharedPreferences.edit().putBoolean(FIRST_TIME_KEY, false).apply()
+                }
                 HealthMateHomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     navHostController = navHostController,
