@@ -11,6 +11,14 @@ class NotificationRepository @Inject constructor(
         userId: String
     ) = notificationService.getNotificationByUserId(userId)
 
+    suspend fun getUnreadNotifications(
+        userId: String
+    ) = notificationService.getUnreadNotifications(userId)
+
+    suspend fun getUnreadCount(
+        userId: String
+    ) = notificationService.getUnreadCount(userId)
+
     suspend fun createNotification(
         createNotificationRequest: CreateNotificationRequest
     ) = notificationService.createNotification(createNotificationRequest)
@@ -18,4 +26,12 @@ class NotificationRepository @Inject constructor(
     suspend fun markAsRead(
         notificationId: String
     ) = notificationService.markAsRead(notificationId)
+
+    suspend fun markAllAsRead(
+        userId: String
+    ) = notificationService.markAllAsRead(userId)
+
+    suspend fun deleteNotification(
+        notificationId: String
+    ) = notificationService.deleteNotification(notificationId)
 }
