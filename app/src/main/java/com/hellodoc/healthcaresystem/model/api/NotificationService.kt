@@ -12,7 +12,7 @@ import retrofit2.http.Path
 
 interface NotificationService {
     @Headers("Content-Type: application/json")
-    @GET("notification/get-by-user-id/{userId}")
+    @GET("notification/user/{userId}")
     suspend fun getNotificationByUserId(
         @Path("userId") userId: String
     ): Response<List<NotificationResponse>>

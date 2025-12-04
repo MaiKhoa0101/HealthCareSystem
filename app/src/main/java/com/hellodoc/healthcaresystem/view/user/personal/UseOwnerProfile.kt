@@ -113,6 +113,7 @@ fun ProfileUserPage(
     // Lấy userId, role từ SharedPreferences chỉ 1 lần
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttribute("userId", context)
+        println("USERID NHAN DUOC LA " +  userId)
         userModel = userViewModel.getUserAttribute("role", context)
 
         if (userId.isNotEmpty()) {
