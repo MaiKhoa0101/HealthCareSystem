@@ -29,7 +29,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,31 +48,65 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CircleWordMenu(
     onChoice: (String) -> Unit,
     onExtend: (String) -> Unit
 ) {
+    val fastTalkViewModel: FastTalkViewModel = hiltViewModel()
+
+    val verb = fastTalkViewModel.wordVerbSimilar.collectAsState()
+    val noun = fastTalkViewModel.wordNounSimilar.collectAsState()
+    val adj = fastTalkViewModel.wordAdjectiveSimilar.collectAsState()
+    val pro = fastTalkViewModel.wordPronounSimilar.collectAsState()
+    val bestWord = remember { mutableStateOf("")}
+    var currentWord by remember { mutableStateOf("tôi") }
+
+    // Gọi API khi đổi từ
+    LaunchedEffect(currentWord) {
+        fastTalkViewModel.getWordSimilar(currentWord)
+        //Best word là từ có điểm cao nhất trong các nhóm
+        val allWords = buildList {
+            addAll(verb.value)
+            addAll(noun.value)
+            addAll(adj.value)
+            addAll(pro.value)
+        }
+
+        // Lấy từ có trọng số cao nhất
+        bestWord.value = allWords.maxByOrNull { it.score }?.suggestion ?: ""
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.8f),
         contentAlignment = Alignment.Center
     ) {
-        var count = 1
+
+        var count = 0
 
         alignmentAndDirection.forEach { item ->
+
             val groupWord = when (item.alignment) {
-                "Top" -> listWordUp
-                "Left" -> listWordsLeft
-                "Bottom" -> listWordDown
-                "Right" -> listWordsRight
-                else -> emptyList()
+                "Top" -> noun    // Danh từ
+                "Left" -> verb   // Động từ
+                "Bottom" -> pro  // Chủ từ
+                "Right" -> adj   // Tính từ
+                else -> null
             }
 
-            val content = groupWord.firstOrNull() ?: ""
+            // Nếu không có kết quả → để trống
+            val content =
+                if (groupWord != null && groupWord.value.isNotEmpty())
+                    groupWord.value[count % groupWord.value.size].suggestion
+                else
+                    ""
 
             Box(
                 modifier = Modifier
@@ -82,7 +121,12 @@ fun CircleWordMenu(
                     )
                     .size(120.dp)
                     .combinedClickable(
-                        onClick = { onChoice(content) },
+                        onClick = {
+                            if (content.isNotBlank()) {
+                                onChoice(content)
+                                currentWord = content
+                            }
+                        },
                         onLongClick = { onExtend(item.alignment) },
                         onDoubleClick = {}
                     ),
@@ -99,7 +143,7 @@ fun CircleWordMenu(
                 )
 
                 Text(
-                    text = "$content$count",
+                    text = content,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -109,6 +153,7 @@ fun CircleWordMenu(
             count++
         }
 
+        // Nút trung tâm
         Box(
             modifier = Modifier
                 .size(150.dp)
@@ -116,9 +161,12 @@ fun CircleWordMenu(
             contentAlignment = Alignment.Center
         ) {
             CircleButtonWord(
-                onClick = { onChoice(it) },
-                modifier = Modifier.align(Alignment.Center),
-                word = "tôi"
+                onClick = {
+                    onChoice(it)
+                    currentWord = it
+                },
+                word = currentWord,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
     }

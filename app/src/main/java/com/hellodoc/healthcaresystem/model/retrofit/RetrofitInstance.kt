@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.model.retrofit
 
-import com.hellodoc.healthcaresystem.api.AdminService
+import com.hellodoc.healthcaresystem.model.api.AdminService
 import com.hellodoc.healthcaresystem.api.AppointmentService
 import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
@@ -12,6 +12,7 @@ import com.hellodoc.healthcaresystem.api.NotificationService
 import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
+import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import dagger.Module
@@ -27,9 +28,9 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.225:4000"
+//    private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-//    private const val BASE_URL = "http://192.168.1.110:4000"
+    private const val BASE_URL = "http://192.168.1.232:4000"
 
 
     @Provides
@@ -82,6 +83,9 @@ object RetrofitInstance {
     @Provides fun provideAdminService(retrofit: Retrofit): AdminService = retrofit.create(AdminService::class.java)
     @Provides fun provideGeminiService(retrofit: Retrofit): GeminiService = retrofit.create(GeminiService::class.java)
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
+    @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
+
+
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()
             .baseUrl("https://generativelanguage.googleapis.com/")

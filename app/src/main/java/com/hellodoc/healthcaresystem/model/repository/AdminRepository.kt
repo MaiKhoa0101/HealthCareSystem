@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.model.repository
 
-import com.hellodoc.healthcaresystem.api.AdminService
+import com.hellodoc.healthcaresystem.model.api.AdminService
 import javax.inject.Inject
 
 class AdminRepository @Inject constructor(

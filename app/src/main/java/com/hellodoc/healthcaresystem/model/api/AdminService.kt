@@ -1,10 +1,9 @@
-package com.hellodoc.healthcaresystem.api
+package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.DeleteUserResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
 import com.hellodoc.healthcaresystem.requestmodel.GetUserID
-import com.hellodoc.healthcaresystem.requestmodel.UpdateUser
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body

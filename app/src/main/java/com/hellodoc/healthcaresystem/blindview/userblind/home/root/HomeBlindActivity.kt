@@ -66,6 +66,7 @@ import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.core.content.edit
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 
@@ -238,7 +239,7 @@ class HomeBlindActivity : BaseActivity() {
             composable("tutorial") {
                 // Cập nhật cờ lần đầu thành false sau khi vào tutorial
                 LaunchedEffect(Unit) {
-                    sharedPreferences.edit().putBoolean(FIRST_TIME_KEY, false).apply()
+                    sharedPreferences.edit { putBoolean(FIRST_TIME_KEY, false) }
                     Log.d("FirstTimeCheck", "Set isFirstTime to false upon entering tutorial.")
                 }
                 Tutorial(navHostController, you)
