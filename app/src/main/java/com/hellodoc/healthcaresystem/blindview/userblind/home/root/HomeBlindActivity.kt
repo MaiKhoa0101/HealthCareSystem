@@ -244,9 +244,6 @@ class HomeBlindActivity : BaseActivity() {
                 }
                 Tutorial(navHostController, you)
             }
-            composable("fast_talk") {
-                FastTalk(navHostController, userViewModel, context)
-            }
             composable("home") {
                 // Cập nhật cờ lần đầu thành false nếu vào thẳng home
                 LaunchedEffect(Unit) {

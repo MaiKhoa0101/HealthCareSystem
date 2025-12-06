@@ -18,8 +18,8 @@ class FastTalkViewModel @Inject constructor(
     private val _wordNounSimilar = MutableStateFlow<List<Word>>(emptyList())
     val wordNounSimilar: StateFlow<List<Word>> get() = _wordNounSimilar
 
-    private val _wordAdjectiveSimilar = MutableStateFlow<List<Word>>(emptyList())
-    val wordAdjectiveSimilar: StateFlow<List<Word>> get() = _wordAdjectiveSimilar
+    private val _wordSupportSimilar = MutableStateFlow<List<Word>>(emptyList())
+    val wordSupportSimilar: StateFlow<List<Word>> get() = _wordSupportSimilar
 
     private val _wordPronounSimilar = MutableStateFlow<List<Word>>(emptyList())
     val wordPronounSimilar: StateFlow<List<Word>> get() = _wordPronounSimilar
@@ -39,7 +39,7 @@ class FastTalkViewModel @Inject constructor(
             if (data.isEmpty()) {
                 _wordVerbSimilar.value = emptyList()
                 _wordNounSimilar.value = emptyList()
-                _wordAdjectiveSimilar.value = emptyList()
+                _wordSupportSimilar.value = emptyList()
                 _wordPronounSimilar.value = emptyList()
                 return
             }
@@ -67,7 +67,7 @@ class FastTalkViewModel @Inject constructor(
 
             _wordVerbSimilar.value = verbs
             _wordNounSimilar.value = nouns
-            _wordAdjectiveSimilar.value = adjectives
+            _wordSupportSimilar.value = adjectives
             _wordPronounSimilar.value = pronouns
 
         } catch (e: Exception) {

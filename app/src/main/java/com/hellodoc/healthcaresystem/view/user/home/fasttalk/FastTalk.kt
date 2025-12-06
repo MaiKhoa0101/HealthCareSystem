@@ -41,7 +41,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @Composable
 fun FastTalk(
     navHostController: NavHostController,
-    userViewModel: UserViewModel = hiltViewModel(),
     context: Context
 ) {
     var yourSentence by remember { mutableStateOf("") }

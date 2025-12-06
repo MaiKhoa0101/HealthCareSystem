@@ -226,7 +226,7 @@ class HomeActivity : BaseActivity() {
             modifier = modifier
         ) {
             composable("fast_talk") {
-                FastTalk(navHostController, userViewModel, context)
+                FastTalk(navHostController, context)
             }
             composable("home") {
                 HealthMateHomeScreen(

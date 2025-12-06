@@ -62,7 +62,7 @@ fun CircleWordMenu(
 
     val verb = fastTalkViewModel.wordVerbSimilar.collectAsState()
     val noun = fastTalkViewModel.wordNounSimilar.collectAsState()
-    val adj = fastTalkViewModel.wordAdjectiveSimilar.collectAsState()
+    val adj = fastTalkViewModel.wordSupportSimilar.collectAsState()
     val pro = fastTalkViewModel.wordPronounSimilar.collectAsState()
     val bestWord = remember { mutableStateOf("")}
     var currentWord by remember { mutableStateOf("tôi") }
