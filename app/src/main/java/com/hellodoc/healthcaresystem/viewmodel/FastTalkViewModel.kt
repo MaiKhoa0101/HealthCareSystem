@@ -192,12 +192,13 @@ class FastTalkViewModel @Inject constructor(
         }
     }
 
-    suspend fun analyzeQuestion(text: String)
-    {
+
+    suspend fun analyzeSentence (text: String){
         try {
+            println("Thực hiện Phân tích + $text")
             val response = fastTalkRepository.analyzeQuestion(text)
             if (!response.isSuccessful) {
-                println("Lỗi API getWordByLabel: ${response.code()}")
+                println("Lỗi Phân tích API getWordByLabel: ${response.code()}")
             }
             else{
                 val data = response.body()

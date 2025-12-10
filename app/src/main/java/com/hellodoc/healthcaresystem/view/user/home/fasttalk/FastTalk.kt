@@ -69,7 +69,10 @@ fun FastTalk(
         }
     }
     LaunchedEffect(Unit,theirsSentence) {
-        viewModel.analyzeQuestion(theirsSentence)
+        if (theirsSentence != "") {
+            println("Phân tích câu hỏi từ máy khách: $theirsSentence")
+            viewModel.analyzeSentence(theirsSentence)
+        }
     }
 
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
