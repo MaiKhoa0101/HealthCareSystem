@@ -50,36 +50,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Word
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CircleWordMenu(
+    currentWord: String,
     onChoice: (String) -> Unit,
     onExtend: (String) -> Unit
 ) {
-    val fastTalkViewModel: FastTalkViewModel = hiltViewModel()
 
-    val verb = fastTalkViewModel.wordVerbSimilar.collectAsState()
-    val noun = fastTalkViewModel.wordNounSimilar.collectAsState()
-    val adj = fastTalkViewModel.wordSupportSimilar.collectAsState()
-    val pro = fastTalkViewModel.wordPronounSimilar.collectAsState()
-    val bestWord = remember { mutableStateOf("")}
-    var currentWord by remember { mutableStateOf("tôi") }
+    val viewModel: FastTalkViewModel = hiltViewModel()
 
-    // Gọi API khi đổi từ
+    val verb by viewModel.wordVerbSimilar.collectAsState()
+    val noun by viewModel.wordNounSimilar.collectAsState()
+    val adj  by viewModel.wordSupportSimilar.collectAsState()
+    val pro  by viewModel.wordPronounSimilar.collectAsState()
+
+    var bestWord by remember { mutableStateOf("") }
+
+    // ✅ GỌI API KHI TỪ ĐỔI
     LaunchedEffect(currentWord) {
-        fastTalkViewModel.getWordSimilar(currentWord)
-        //Best word là từ có điểm cao nhất trong các nhóm
-        val allWords = buildList {
-            addAll(verb.value)
-            addAll(noun.value)
-            addAll(adj.value)
-            addAll(pro.value)
+        if (currentWord.isNotBlank()) {
+            viewModel.getWordSimilar(currentWord)
         }
+    }
 
-        // Lấy từ có trọng số cao nhất
-        bestWord.value = allWords.maxByOrNull { it.score }?.suggestion ?: ""
+    // ✅ TÍNH BEST WORD KHI DATA ĐỔI
+    LaunchedEffect(verb, noun, adj, pro) {
+        val allWords = verb + noun + adj + pro
+        bestWord = allWords.maxByOrNull { it.score }?.suggestion ?: ""
     }
 
     Box(
@@ -89,24 +90,20 @@ fun CircleWordMenu(
         contentAlignment = Alignment.Center
     ) {
 
-        var count = 0
+        alignmentAndDirection.forEachIndexed { index, item ->
 
-        alignmentAndDirection.forEach { item ->
-
-            val groupWord = when (item.alignment) {
-                "Top" -> noun    // Danh từ
-                "Left" -> verb   // Động từ
-                "Bottom" -> pro  // Chủ từ
-                "Right" -> adj   // Tính từ
-                else -> null
+            val group = when (item.alignment) {
+                "Top" -> noun
+                "Left" -> verb
+                "Right" -> adj
+                "Bottom" -> pro
+                else -> emptyList()
             }
 
-            // Nếu không có kết quả → để trống
             val content =
-                if (groupWord != null && groupWord.value.isNotEmpty())
-                    groupWord.value[count % groupWord.value.size].suggestion
-                else
-                    ""
+                if (group.isNotEmpty())
+                    group[index % group.size].suggestion
+                else ""
 
             Box(
                 modifier = Modifier
@@ -122,55 +119,40 @@ fun CircleWordMenu(
                     .size(120.dp)
                     .combinedClickable(
                         onClick = {
-                            if (content.isNotBlank()) {
-                                onChoice(content)
-                                currentWord = content
-                            }
+                            if (content.isNotBlank()) onChoice(content)
                         },
-                        onLongClick = { onExtend(item.alignment) },
-                        onDoubleClick = {}
+                        onLongClick = { onExtend(item.alignment) }
                     ),
                 contentAlignment = Alignment.Center
             ) {
+
                 Image(
-                    painter = painterResource(id = R.drawable.arrow_area),
+                    painter = painterResource(R.drawable.arrow_area),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp)
-                        .rotate(item.direction),
-                    contentScale = ContentScale.Fit
+                        .rotate(item.direction)
                 )
 
                 Text(
                     text = content,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
-
-            count++
         }
 
-        // Nút trung tâm
-        Box(
-            modifier = Modifier
-                .size(150.dp)
-                .clip(CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            CircleButtonWord(
-                onClick = {
-                    onChoice(it)
-                    currentWord = it
-                },
-                word = currentWord,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+        // ✅ Nút trung tâm luôn là bestWord
+        CircleButtonWord(
+            word = if (bestWord.isNotBlank()) bestWord else currentWord,
+            onClick = {
+                if (bestWord.isNotBlank()) onChoice(bestWord)
+            }
+        )
     }
 }
+
 
 
 @Composable
@@ -244,7 +226,7 @@ fun CircleButtonWord(
 @Composable
 fun ExtendingChoice(
     onChoice: (String) -> Unit,
-    groupWord: List<String>
+    groupWord: List<Word>
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -262,14 +244,14 @@ fun ExtendingChoice(
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     .combinedClickable(
-                        onClick = { onChoice(word) },
+                        onClick = { onChoice(word.suggestion) },
                         onLongClick = { /* giữ lâu */ },
                         onDoubleClick = { /* nhấn đôi */ }
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = word,
+                    text = word.suggestion,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSecondaryContainer

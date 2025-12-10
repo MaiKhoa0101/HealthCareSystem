@@ -2,7 +2,6 @@ package com.hellodoc.healthcaresystem.view.user.home.fasttalk
 
 import android.app.Activity
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -31,30 +30,51 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
-import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.R
 import android.Manifest
 import android.speech.SpeechRecognizer
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
+import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 
 @Composable
 fun FastTalk(
     navHostController: NavHostController,
     context: Context
 ) {
-    var yourSentence by remember { mutableStateOf("") }
+    val viewModel: FastTalkViewModel = hiltViewModel()
+
+    // ✅ Chỉ dùng TextFieldValue
+    var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
     var theirsSentence by remember { mutableStateOf("") }
     var tempSpeech by remember { mutableStateOf("") }
     var tempTheirSpeech by remember { mutableStateOf("") }
     var isRecording by remember { mutableStateOf(false) }
-
-    // ✅ Hướng đang mở rộng
     var extendedAlignment by remember { mutableStateOf<String?>(null) }
+    val verb by viewModel.wordVerbSimilar.collectAsState()
+    val noun by viewModel.wordNounSimilar.collectAsState()
+    val adj  by viewModel.wordSupportSimilar.collectAsState()
+    val pro  by viewModel.wordPronounSimilar.collectAsState()
+    // ✅ GỌI API KHI TỪ ĐỔI
+    LaunchedEffect(Unit,yourSentenceValue.text) {
+        if (yourSentenceValue.text.isNotBlank()) {
+            println("Gọi API với từ: " + getLastWord(yourSentenceValue.text))
+            viewModel.getWordSimilar(getLastWord(yourSentenceValue.text))
+        }
+    }
+    LaunchedEffect(Unit,theirsSentence) {
+        viewModel.analyzeQuestion(theirsSentence)
+    }
 
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
 
-    Box( // dùng Box để overlay được các layer
+    Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
@@ -87,9 +107,10 @@ fun FastTalk(
                         isRecording = false
                         speechRecognizer.stopListening()
                     }
+                    vibrate(context)
                 },
-                onDelete={
-                    theirsSentence=""
+                onDelete = {
+                    theirsSentence = ""
                 },
                 theirsSentence +
                         if (tempTheirSpeech.isNotEmpty())
@@ -97,19 +118,60 @@ fun FastTalk(
                         else "",
                 isRecording
             )
-            ConversationsLine { content -> yourSentence = " $content" }
 
             ConversationSections(
-                yourSentence +
-                        if (tempSpeech.isNotEmpty())
-                            " $tempSpeech"
-                        else "",
-                onInput = { newText -> yourSentence = newText }, onDelete = { yourSentence = if (yourSentence.lastIndexOf(" ") != -1) yourSentence.substring(0, yourSentence.lastIndexOf(" ")) else "" } )
+                yourSentence = yourSentenceValue,
+                onInput = { newValue ->
+                    yourSentenceValue = newValue.copy(
+                        selection = TextRange(newValue.text.length)
+                    )
+                    vibrate(context)
+                },
+                onDelete = {
+                    val currentText = yourSentenceValue.text
+                    val newText = if (currentText.lastIndexOf(" ") != -1)
+                        currentText.substring(0, currentText.lastIndexOf(" "))
+                    else ""
+                    yourSentenceValue = TextFieldValue(
+                        text = newText,
+                        selection = TextRange(newText.length)
+                    )
+                    vibrate(context)
+                }
+            )
+
+            // ✅ Sử dụng yourSentenceValue.text
+            val currentWordFromSentence = remember(yourSentenceValue.text, theirsSentence) {
+                getLastWord(
+                    when {
+                        yourSentenceValue.text.isNotBlank() -> yourSentenceValue.text
+                        theirsSentence.isNotBlank() -> theirsSentence
+                        else -> "tôi"
+                    }
+                )
+            }
+            SuggestionsRow { content ->
+                val newText = yourSentenceValue.text + " $content"
+                yourSentenceValue = TextFieldValue(
+                    text = newText,
+                    selection = TextRange(newText.length)
+                )
+                vibrate(context)
+            }
 
             CircleWordMenu(
-                onChoice = { yourSentence += " $it" },
-                onExtend = { alignment ->
-                    extendedAlignment = alignment
+                currentWord = currentWordFromSentence,
+                onChoice = { word ->
+                    val newText = yourSentenceValue.text + " $word"
+                    yourSentenceValue = TextFieldValue(
+                        text = newText,
+                        selection = TextRange(newText.length)
+                    )
+                    vibrate(context)
+                },
+                onExtend = {
+                    alignment -> extendedAlignment = alignment
+                    vibrate(context)
                 }
             )
 
@@ -128,7 +190,11 @@ fun FastTalk(
                                 speechRecognizer,
                                 onPartial = { tempSpeech = it },
                                 onFinal = { result ->
-                                    yourSentence += " $result"
+                                    val newText = yourSentenceValue.text + " $result"
+                                    yourSentenceValue = TextFieldValue(
+                                        text = newText,
+                                        selection = TextRange(newText.length)
+                                    )
                                     tempSpeech = ""
                                     isRecording = false
                                 },
@@ -141,8 +207,8 @@ fun FastTalk(
                     }
                 },
                 onPronounce = {
-                    if (yourSentence.isNotBlank()) {
-                        speakText(context, yourSentence)
+                    if (yourSentenceValue.text.isNotBlank()) {
+                        speakText(context, yourSentenceValue.text)
                     } else {
                         Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
                     }
@@ -150,35 +216,45 @@ fun FastTalk(
             )
         }
 
-        // ✅ Overlay menu mở rộng — đè lên mọi thứ
+        // ✅ Overlay menu mở rộng
         if (extendedAlignment != null) {
             val groupWord = when (extendedAlignment) {
-                "Top" -> listWordUp
-                "Left" -> listWordsLeft
-                "Bottom" -> listWordDown
-                "Right" -> listWordsRight
+                "Top" -> noun
+                "Left" -> verb
+                "Bottom" -> pro
+                "Right" -> adj
                 else -> emptyList()
             }
 
-            // Màn che + menu mở rộng
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f)) // mờ nền
-                    .clickable { extendedAlignment = null }, // click ra ngoài để tắt
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f))
+                    .clickable { extendedAlignment = null },
                 contentAlignment = Alignment.Center
             ) {
                 ExtendingChoice(
                     groupWord = groupWord,
-                    onChoice = {
-                        yourSentence += " $it"
-                        extendedAlignment = null // tắt overlay sau khi chọn
+                    onChoice = { word ->
+                        val newText = yourSentenceValue.text + " $word"
+                        yourSentenceValue = TextFieldValue(
+                            text = newText,
+                            selection = TextRange(newText.length)
+                        )
+                        extendedAlignment = null
                     }
                 )
             }
         }
     }
 }
+
+
+fun getLastWord(text: String): String {
+    return text.trim().split("\\s+".toRegex()).lastOrNull() ?: ""
+}
+
+
 
 @Composable
 fun HeaderFastTalk(navHostController: NavHostController, name: String){

@@ -12,3 +12,7 @@ data class WordResponse(
     val nodes: List<Word>
 
 )
+
+data class WordRequest(
+    val word: String
+)
