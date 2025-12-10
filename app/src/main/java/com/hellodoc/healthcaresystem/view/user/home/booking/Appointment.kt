@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.view.user.home.booking
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -168,24 +173,44 @@ fun AppointmentScreenUI(
                 }
             }
 
-            // Tabs chọn Trạng thái
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = 16.dp)
+            // Dropdown chọn Trạng thái
+            var expanded by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, end = 16.dp),
+                contentAlignment = Alignment.CenterEnd
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = {
-                            Text(
-                                text = title,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                Box {
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
+                    ) {
+                        Text(text = tabs[selectedTab], color = MaterialTheme.colorScheme.onBackground)
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                    ) {
+                        tabs.forEachIndexed { index, title ->
+                            DropdownMenuItem(
+                                text = { Text(text = title) },
+                                onClick = {
+                                    selectedTab = index
+                                    expanded = false
+                                }
                             )
                         }
-                    )
+                    }
                 }
             }
 
@@ -268,15 +293,15 @@ fun AppointmentCard(
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "$formattedDate | ${appointment.time}",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            // Header: Date | Time
+            Text(
+                text = "$formattedDate | ${appointment.time}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = androidx.compose.ui.graphics.Color.LightGray)
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!avatarUrl.isNullOrBlank()) {
@@ -285,9 +310,8 @@ fun AppointmentCard(
                         contentDescription = displayName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(90.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                     )
                 } else {
                     Image(
@@ -295,65 +319,100 @@ fun AppointmentCard(
                         contentDescription = displayName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text(displayName, fontWeight = FontWeight.Bold)
-                    Text(noteForDoctor ?: "Không có ghi chú")
-
-                    Row {
+                    Text(
+                        text = displayName,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    val specialtyText: String = if (isDoctor) "Bệnh nhân" else ((appointment.doctor.specialty ?: "Bác sĩ").toString())
+                    Text(
+                        text = specialtyText,
+                        color = androidx.compose.ui.graphics.Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Hospital Location",
-                            modifier = Modifier.padding(end = 4.dp)
+                            contentDescription = "Location",
+                            modifier = Modifier.size(16.dp),
+                            tint = androidx.compose.ui.graphics.Color.Gray
                         )
-                        Text(appointment.location ?: "Địa điểm không xác định")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = appointment.location ?: "TP. HCM",
+                            color = androidx.compose.ui.graphics.Color.Gray,
+                            fontSize = 14.sp,
+                            maxLines = 2,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Note
+            val annotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append("Ghi chú: ")
+                }
+                append(noteForDoctor ?: "Không có")
+            }
+            Text(
+                text = annotatedString,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (isDoctor) {
                     if (selectedTab == 0) {
-                        OutlinedButton(onClick = {
-                            appointmentViewModel.cancelAppointment(appointment.id, userID)
-                        }) {
+                        Button(
+                            onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Text("Hủy")
                         }
-                        Button(onClick = {
-                            appointmentViewModel.confirmAppointmentDone(appointment.id, userID)
-                        }) {
-                            Text("Hoàn thành", color = MaterialTheme.colorScheme.background)
+                        Button(
+                            onClick = { appointmentViewModel.confirmAppointmentDone(appointment.id, userID) },
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Hoàn thành")
                         }
                     } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+                        Button(
+                            onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            OutlinedButton(onClick = {
-                                appointmentViewModel.deleteAppointment(appointment.id, userID)
-                            }) {
-                                Text("Xóa")
-                            }
+                            Text("Xóa")
                         }
                     }
                 }
                 else if (isPatient) {
                     if (selectedTab == 0) { // Chờ khám
-                        OutlinedButton(
+                        Button(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text("Huỷ")
                         }
@@ -374,15 +433,17 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text("Chỉnh sửa", color = MaterialTheme.colorScheme.background)
+                            Text("Chỉnh sửa")
                         }
                     }
                     else if (selectedTab == 1 ) { // Khám xong hoặc Đã huỷ
-                        OutlinedButton(
+                        Button(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text("Xóa")
                         }
@@ -400,9 +461,10 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text("Đặt lại", color = MaterialTheme.colorScheme.background)
+                            Text("Đặt lại")
                         }
                         Button(
                             onClick = {
@@ -413,15 +475,17 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("other_user_profile")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text("Đánh giá", color = MaterialTheme.colorScheme.background)
+                            Text("Đánh giá")
                         }
                     }
                     else if ( selectedTab == 2){
-                        OutlinedButton(
+                        Button(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text("Xóa")
                         }
@@ -438,9 +502,10 @@ fun AppointmentCard(
                                 }
                                 navHostController.navigate("appointment-detail")
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
+                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text("Đặt lại", color = MaterialTheme.colorScheme.background)
+                            Text("Đặt lại")
                         }
                     }
                 }

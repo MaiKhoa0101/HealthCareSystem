@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -167,27 +168,9 @@ fun ProfileUserPage(
                             onImageClick = {
                                 selectedImageUrl = it
                                 showMediaDetail = true
-                            }
+                            },
+                            navHostController = navHostController
                         )
-                    }
-
-                    // Icon setting
-                    IconButton(
-                        onClick = {
-                            navHostController.navigate("setting")
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.settingbtn),
-                            contentDescription = "Setting",
-                            tint = MaterialTheme.colorScheme.tertiaryContainer,
-                            modifier = Modifier
-                                .height(20.dp)
-                        )
-
                     }
                 }
 
@@ -322,185 +305,123 @@ fun ProfileUserPage(
 @Composable
 fun ProfileSection(
     user: User,
-    onImageClick: (String) -> Unit
-){
+    onImageClick: (String) -> Unit,
+    navHostController: NavHostController
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp) // Tổng chiều cao header + phần avatar lòi ra
+        ) {
+            // Background Header
+            AsyncImage(
+                model = user.avatarURL, // Hoặc ảnh bìa nếu có
+                contentDescription = "Background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .blur(20.dp)
+            )
+
+            // Settings Button
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 230.dp) // Căn chỉnh vị trí
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable { navHostController.navigate("setting") },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.settingbtn),
+                    contentDescription = "Setting",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Avatar overlapping
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 20.dp)
+                    .offset(y = (-20).dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .padding(4.dp) // Viền trắng
+                        .clip(CircleShape)
+                ) {
+                    AsyncImage(
+                        model = user.avatarURL,
+                        contentDescription = "Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { onImageClick(user.avatarURL) }
+                    )
+                }
+            }
+
+            // Info Section (Name & Email) aligned with Avatar
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 150.dp, bottom = 20.dp) // Căn lề trái tránh avatar, căn lề dưới để khớp
+            ) {
+                Text(
+                    text = user.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = user.email,
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        // Edit Button Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    MaterialTheme.colorScheme.primaryContainer,
-                )
+                .padding(horizontal = 16.dp)
         ) {
-            Box(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Edit Button
+            Button(
+                onClick = { navHostController.navigate("editOptionPage") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(50.dp)
             ) {
-                AsyncImage(
-                    model = user.avatarURL,
-                    contentDescription = "Background",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .heightIn(max = 180.dp) // crop nếu cao hơn
-                        .fillMaxWidth()
-                        .blur(20.dp)
-                        .padding(bottom = 30.dp)
-                )
-
-                UserIntroSection(
-                    user = user,
-                    onImageClick = onImageClick,
-                )
-                Spacer(modifier = Modifier.height(26.dp))
-            }
-        }
-}
-
-@Composable
-fun UserIntroSection(
-    user: User,
-    onImageClick: (String) -> Unit,
-) {
-    // Animation xoay
-    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-    val angle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing), // 3s xoay 1 vòng
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "angleAnim"
-    )
-
-    // Gradient nhiều màu chạy quanh border
-    val brush = Brush.sweepGradient(
-        colors = listOf(
-            Color.Cyan,
-            Color.White,
-            Color.White,
-            Color.Cyan,
-            Color.White,
-        ),
-        center = Offset.Zero
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .shadow(28.dp, CircleShape)
-                    .graphicsLayer {
-                        rotationZ = -angle // xoay gradient
-                    }
-                    .border(
-                        width = 4.dp,
-                        brush = brush,
-                        shape = CircleShape
-                    )
-                    .graphicsLayer {
-                        rotationZ = angle // giữ icon + background không xoay theo
-                    }
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
-            ) {
-                AsyncImage(
-                    model = user.avatarURL,
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .clickable {
-                            onImageClick(user.avatarURL)
-                        },
-                    contentScale = ContentScale.Crop,
+                Text(
+                    text = "Chỉnh sửa",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                user.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                user.email,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-
-    }
-}
-
-
-@Composable
-fun UserProfileModifierSection(navHostController: NavHostController, user: User?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        Button(
-            onClick = { navHostController.navigate("editProfile") },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .height(60.dp)
-                .width(128.dp)
-        ) {
-            Text(
-                text = "Chỉnh sửa hồ sơ",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Button(
-            onClick =
-                {
-                    if (user == null) {
-                        println("User is null")
-                        return@Button
-                    }
-                    else if (user.role=="User"){
-                        navHostController.navigate("doctorRegister")
-                    }
-                    else{
-                        navHostController.navigate("editClinic") }
-                },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .height(60.dp)
-                .width(128.dp)
-        ) {
-            Text(
-                text =  if (user?.role == "User") {
-                    "Đăng kí phòng khám"
-                } else {
-                    "Quản lý phòng khám"
-                },
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
