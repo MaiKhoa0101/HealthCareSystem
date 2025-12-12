@@ -31,12 +31,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConversationSections(yourSentence:String, onInput:(String)->Unit, onDelete:(String)->Unit){
+fun ConversationSections(
+    yourSentence: TextFieldValue,
+    onInput: (TextFieldValue) -> Unit,
+    onDelete: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -49,10 +55,15 @@ fun ConversationSections(yourSentence:String, onInput:(String)->Unit, onDelete:(
         ) {
             OutlinedTextField(
                 value = yourSentence,
-                onValueChange = { newValue -> onInput(newValue) },
+                onValueChange = { newValue ->
+                    // Đảm bảo con trỏ luôn ở cuối khi nhập
+                    onInput(newValue.copy(
+                        selection = TextRange(newValue.text.length)
+                    ))
+                },
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
-                    .heightIn(min = 56.dp, max = 120.dp) // Giới hạn cao tối đa ~4 dòng
+                    .heightIn(min = 56.dp, max = 120.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .border(
                         width = 1.dp,
@@ -69,14 +80,13 @@ fun ConversationSections(yourSentence:String, onInput:(String)->Unit, onDelete:(
                 singleLine = false
             )
             Spacer(modifier = Modifier.width(8.dp))
-
             Icon(
                 imageVector = Icons.Default.Backspace,
                 contentDescription = "Xóa từ cuối",
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .size(46.dp)
-                    .clickable { onDelete(yourSentence) }
+                    .clickable { onDelete() }
                     .padding(10.dp)
             )
         }

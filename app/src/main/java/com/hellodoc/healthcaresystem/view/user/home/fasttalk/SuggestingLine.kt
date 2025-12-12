@@ -25,13 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SuggestLine
 
 @Composable
-fun ConversationsLine(onChoice: (String) -> Unit){
-    Divider(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        thickness = 1.dp,
-    )
+fun SuggestionsRow(onChoice: (String) -> Unit){
     Column (
-        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -39,7 +35,6 @@ fun ConversationsLine(onChoice: (String) -> Unit){
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(8.dp),
         )
-        Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -54,12 +49,6 @@ fun ConversationsLine(onChoice: (String) -> Unit){
             }
 
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Divider(
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            thickness = 1.dp,
-        )
     }
 }
 
