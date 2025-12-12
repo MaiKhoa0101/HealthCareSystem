@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.view.user.home.root
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -189,6 +188,12 @@ fun HealthMateHomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
+            item{
+//                GLBModelViewer(
+//                    modelFileName = "eric.glb",
+//                    modifier = Modifier.fillMaxSize()
+//                )
+            }
             item(key = "header") {
                 Column(
                     modifier = Modifier
