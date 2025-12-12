@@ -20,4 +20,6 @@ class FastTalkRepository @Inject constructor(
     )
 
     suspend fun analyzeQuestion(text: String) = fastTalkService.analyzeQuestion(text)
+
+
 }
