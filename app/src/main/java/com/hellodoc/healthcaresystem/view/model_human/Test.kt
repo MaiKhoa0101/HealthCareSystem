@@ -1,29 +1,23 @@
 package com.hellodoc.healthcaresystem.view.model_human
 
-import android.service.wallpaper.WallpaperService
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import io.github.sceneview.Scene
-import io.github.sceneview.loaders.ModelLoader
 import io.github.sceneview.math.Position
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberMainLightNode
-import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
-import java.nio.ByteBuffer
-import io.github.sceneview.model.ModelInstance
-import com.google.android.filament.Engine // Import thêm cái này
+import com.google.android.filament.Engine
 import io.github.sceneview.environment.Environment
-import io.github.sceneview.rememberEnvironment
+import io.github.sceneview.model.ModelInstance
+import io.github.sceneview.node.Node
 
 @Composable
 fun Simple3DScreen(
@@ -34,7 +28,7 @@ fun Simple3DScreen(
     // State lưu Node hiển thị
     var characterNode by remember { mutableStateOf<ModelNode?>(null) }
 
-    // --- TẠO NODE TỪ DỮ LIỆU ĐÃ CÓ (KHÔNG NẠP LẠI TỪ FILE) ---
+    // --- TẠO NODE TỪ DỮ LIỆU ĐÃ CÓ ---
     LaunchedEffect(modelInstance) {
         if (modelInstance != null) {
             val node = ModelNode(
@@ -58,15 +52,18 @@ fun Simple3DScreen(
             characterNode = null
         }
     }
-
+// Khi characterNode thay đổi, danh sách nodes sẽ được tạo lại
+    val childNodes = remember(characterNode) {
+        if (characterNode != null) listOf(characterNode!!) else emptyList()
+    }
     // --- GIAO DIỆN ---
     Box(modifier = Modifier.fillMaxSize()) {
-        if (modelInstance == null || environment == null) {
-            // Hiển thị Loading nếu dữ liệu chưa được truyền xuống kịp
+        // Logic: Chỉ cần có ModelInstance là vẽ, Environment có hay không cũng được (để tránh kẹt loading)
+        if (modelInstance == null) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else {
             Scene(
-                modifier = Modifier.fillMaxSize().background(Color.Transparent), // Nền trong suốt
+                modifier = Modifier.fillMaxSize().background(Color.Transparent),
                 engine = engine,
                 // modelLoader = modelLoader, // Không cần nữa
 
@@ -75,12 +72,17 @@ fun Simple3DScreen(
                     isShadowCaster = true
                 },
                 cameraNode = rememberCameraNode(engine) {
-                    position = Position(z = 2.5f)
+                    position = Position(z = 2f)
                 },
-                childNodes = rememberNodes {
-                    characterNode?.let { add(it) }
-                },
-                environment = environment // Dùng môi trường đã nạp sẵn
+
+                // --- SỬA LỖI QUAN TRỌNG Ở ĐÂY ---
+                // Thêm `characterNode` vào trong ngoặc đơn () của rememberNodes
+                // Để khi characterNode thay đổi (từ null -> có), SceneView sẽ cập nhật lại danh sách con
+                childNodes =childNodes,
+
+                // Camera Manipulator: Cho phép dùng tay xoay nhân vật
+
+                environment = environment!!
             )
         }
     }

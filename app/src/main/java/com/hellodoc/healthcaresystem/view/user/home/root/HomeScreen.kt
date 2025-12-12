@@ -80,6 +80,7 @@ import io.github.sceneview.rememberModelLoader
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -126,6 +127,14 @@ fun HealthMateHomeScreen(
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
+    // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
+    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
+// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
+    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
@@ -147,6 +156,18 @@ fun HealthMateHomeScreen(
                 inputStream.close()
                 val buffer = ByteBuffer.wrap(bytes)
                 ericModelInstance = modelLoader.createModelInstance(buffer)
+                println("Lay hinh thanh cong")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        // B. Nạp Môi trường (HDR)
+        if (globalEnvironment == null) {
+            try {
+                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
+                globalEnvironment = environmentLoader.createHDREnvironment(
+                    assetFileLocation = "environment.hdr"
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -159,14 +180,7 @@ fun HealthMateHomeScreen(
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
     val posts by postViewModel.posts.collectAsState()
-// --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
-    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
-    val engine = rememberEngine()
-    val modelLoader = rememberModelLoader(engine)
-    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
-// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
-    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
-    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
+
     LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
