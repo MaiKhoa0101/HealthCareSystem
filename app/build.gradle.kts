@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.hellodoc.healthcaresystem"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -54,6 +54,12 @@ android {
         viewBinding = true
         compose = true
     }
+    sourceSets["main"].assets.srcDirs("src/main/assets")
+
+    aaptOptions {
+        noCompress += "glb"
+    }
+
 }
 
 dependencies {
@@ -137,12 +143,8 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     ksp("androidx.hilt:hilt-compiler:1.3.0")
 
+    // Filament dependencies
+    implementation("io.github.sceneview:arsceneview:2.0.3")
 
-//    // Filament dependencies
-//    implementation("com.google.android.filament:filament-android:1.68.1")
-//    implementation("com.google.android.filament:filament-utils-android:1.68.1")
-//    implementation("com.google.android.filament:gltfio-android:1.51.5")
-//
-//    implementation("io.github.sceneview:sceneview:2.0.2")
 
 }

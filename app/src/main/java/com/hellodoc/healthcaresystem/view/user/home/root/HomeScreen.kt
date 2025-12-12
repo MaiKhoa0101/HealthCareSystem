@@ -65,6 +65,8 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
+import com.hellodoc.healthcaresystem.view.model_human.Simple3DScreen
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
@@ -172,28 +174,33 @@ fun HealthMateHomeScreen(
 
 
 
+    // State quản lý trạng thái mở rộng của nút 3D
+    var is3DExpanded by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            // Bắt sự kiện chạm vào vùng trống để tắt 3D
             .pointerInput(Unit) {
                 detectTapGestures {
                     postViewModel.closeAllPostMenus()
                     showReportBox = false
+
+                    // Logic tắt 3D khi bấm ra ngoài
+                    if (is3DExpanded) {
+                        is3DExpanded = false
+                    }
                 }
             }
     ) {
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
-            item{
-//                GLBModelViewer(
-//                    modelFileName = "eric.glb",
-//                    modifier = Modifier.fillMaxSize()
-//                )
-            }
+
             item(key = "header") {
                 Column(
                     modifier = Modifier
@@ -401,6 +408,16 @@ fun HealthMateHomeScreen(
                     )
                 }
             }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomEnd // Căn góc dưới phải
+        ) {
+            Floating3DAssistant(
+                isExpanded = is3DExpanded,
+                onExpandChange = { is3DExpanded = it }
+            )
         }
     }
 }
