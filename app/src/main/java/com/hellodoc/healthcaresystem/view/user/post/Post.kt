@@ -106,6 +106,10 @@ fun PostColumn(
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
     val userViewModel: UserViewModel = hiltViewModel()
     val userWhoInteractWithThisPost by userViewModel.you.collectAsState()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        userViewModel.getYou(context)
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
