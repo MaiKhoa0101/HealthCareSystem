@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.view.user.home.root
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -66,14 +65,22 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
+import com.hellodoc.healthcaresystem.view.model_human.Simple3DScreen
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.view.user.post.Post
 import com.hellodoc.healthcaresystem.viewmodel.*
+import io.github.sceneview.environment.Environment
+import io.github.sceneview.model.ModelInstance
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberEnvironmentLoader
+import io.github.sceneview.rememberModelLoader
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -94,6 +101,7 @@ fun HealthMateHomeScreen(
             listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
         }
     }
+
 
     val doctorViewModel: DoctorViewModel = hiltViewModel()
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
@@ -119,6 +127,14 @@ fun HealthMateHomeScreen(
     var postIndex by remember { mutableStateOf(0) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
+    // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
+    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
+// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
+    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
@@ -133,6 +149,29 @@ fun HealthMateHomeScreen(
         medicalOptionViewModel.fetchMedicalOptions()
 //        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
+        if (ericModelInstance == null) {
+            try {
+                val inputStream = context.assets.open("BoneEric.glb")
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+                val buffer = ByteBuffer.wrap(bytes)
+                ericModelInstance = modelLoader.createModelInstance(buffer)
+                println("Lay hinh thanh cong")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        // B. Nạp Môi trường (HDR)
+        if (globalEnvironment == null) {
+            try {
+                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
+                globalEnvironment = environmentLoader.createHDREnvironment(
+                    assetFileLocation = "environment.hdr"
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
@@ -173,22 +212,33 @@ fun HealthMateHomeScreen(
 
 
 
+    // State quản lý trạng thái mở rộng của nút 3D
+    var is3DExpanded by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            // Bắt sự kiện chạm vào vùng trống để tắt 3D
             .pointerInput(Unit) {
                 detectTapGestures {
                     postViewModel.closeAllPostMenus()
                     showReportBox = false
+
+                    // Logic tắt 3D khi bấm ra ngoài
+                    if (is3DExpanded) {
+                        is3DExpanded = false
+                    }
                 }
             }
     ) {
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
+
             item(key = "header") {
                 Column(
                     modifier = Modifier
@@ -396,6 +446,20 @@ fun HealthMateHomeScreen(
                     )
                 }
             }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Floating3DAssistant(
+                isExpanded = is3DExpanded,
+                onExpandChange = { is3DExpanded = it },
+                engine = engine,
+                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
+                modelInstance = ericModelInstance,
+                environment = globalEnvironment
+            )
         }
     }
 }

@@ -4,7 +4,7 @@ package com.hellodoc.healthcaresystem.model.di
 import android.content.Context
 import androidx.room.Room
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.roomDb.data.database.AppDatabase
+import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -382,6 +382,7 @@ fun AppointmentCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (isDoctor) {
+                    //println("DOCTOR chon huy " + appointment.id + " "+ userID)
                     if (selectedTab == 0) {
                         Button(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },

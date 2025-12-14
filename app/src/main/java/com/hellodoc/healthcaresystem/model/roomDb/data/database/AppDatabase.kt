@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.roomDb.data.database
+package com.hellodoc.healthcaresystem.model.roomDb.data.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.111:4000"
+    private const val BASE_URL = "http://192.168.1.108:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-//    private const val BASE_URL = "http://192.168.1.110:4000"
+    //private const val BASE_URL = "http://10.194.235.173:4000"
 
 
     @Provides

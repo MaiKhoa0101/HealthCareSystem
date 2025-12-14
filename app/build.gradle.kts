@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.hellodoc.healthcaresystem"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -54,6 +54,12 @@ android {
         viewBinding = true
         compose = true
     }
+    sourceSets["main"].assets.srcDirs("src/main/assets")
+
+    aaptOptions {
+        noCompress += "glb"
+    }
+
 }
 
 dependencies {
@@ -97,6 +103,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.auth)
     implementation(libs.common)
+    implementation(libs.litertlm)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -135,6 +142,9 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     ksp("androidx.hilt:hilt-compiler:1.3.0")
+
+    // Filament dependencies
+    implementation("io.github.sceneview:arsceneview:2.0.3")
 
 
 }
