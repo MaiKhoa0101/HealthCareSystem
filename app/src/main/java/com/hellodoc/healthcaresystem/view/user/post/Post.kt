@@ -160,6 +160,11 @@ fun PostColumn(
                         )
                     }
                 }
+                else{
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
+                        Text("Không tìm thấy bài viết hoặc lỗi server,\nvui lòng thử lại sau")
+                    }
+                }
             }
         }
 
