@@ -119,42 +119,46 @@ fun PostColumn(
             var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
             Box (modifier = Modifier.fillMaxWidth()) {
-                Post(
-                    navHostController = navHostController,
-                    postViewModel = postViewModel,
-                    post = post,
-                    userWhoInteractWithThisPost = userWhoInteractWithThisPost!!,
-                    onClickReport = {
+                if (userWhoInteractWithThisPost != null) {
+                    Post(
+                        navHostController = navHostController,
+                        postViewModel = postViewModel,
+                        post = post,
+                        userWhoInteractWithThisPost = userWhoInteractWithThisPost!!,
+                        onClickReport = {
 //                        showOptionsMenu = true
-                        showPostReportDialog = !showPostReportDialog
-                    },
-                    onClickDelete = {
+                            showPostReportDialog = !showPostReportDialog
+                        },
+                        onClickDelete = {
 //                        showOptionsMenu = true
-                        showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                    },
-                )
+                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                        },
+                    )
 
-                if (showPostReportDialog) {
-                    post.userInfo?.let {
-                        ReportPostUser(
-                            context = navHostController.context,
-                            youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
-                            userReported = it,
-                            onClickShowPostReportDialog = { showPostReportDialog = false }
+                    if (showPostReportDialog) {
+                        post.userInfo?.let {
+                            ReportPostUser(
+                                context = navHostController.context,
+                                youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
+                                userReported = it,
+                                onClickShowPostReportDialog = { showPostReportDialog = false }
+                            )
+                        }
+                    }
+
+                    if (showPostDeleteConfirmDialog) {
+                        ConfirmDeletePostModal(
+                            postId = post.id,
+                            postViewModel = postViewModel,
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            ),
+                            onClickShowConfirmDeleteDialog = {
+                                showPostDeleteConfirmDialog = false
+                            },
                         )
                     }
-                }
-
-                if (showPostDeleteConfirmDialog) {
-                    ConfirmDeletePostModal(
-                        postId = post.id,
-                        postViewModel = postViewModel,
-                        sharedPreferences = navHostController.context.getSharedPreferences(
-                            "MyPrefs",
-                            Context.MODE_PRIVATE
-                        ),
-                        onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
-                    )
                 }
             }
         }
