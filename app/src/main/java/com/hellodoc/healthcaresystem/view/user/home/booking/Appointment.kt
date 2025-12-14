@@ -76,6 +76,8 @@ fun AppointmentListScreen(navHostController: NavHostController) {
             userViewModel.getUser(it)
             appointmentViewModel.getAppointmentUser(it)
             appointmentViewModel.getAppointmentDoctor(it)
+            // Thêm log để kiểm tra userId
+            println("=== USER ID: $it ===")
         }
     }
 
@@ -382,7 +384,7 @@ fun AppointmentCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (isDoctor) {
-                    //println("DOCTOR chon huy " + appointment.id + " "+ userID)
+                    println("DOCTOR chon huy " + appointment.id + " "+ userID)
                     if (selectedTab == 0) {
                         Button(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },

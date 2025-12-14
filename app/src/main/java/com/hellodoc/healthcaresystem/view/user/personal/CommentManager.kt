@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.view.user.personal
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -91,6 +92,18 @@ fun CommentHistoryScreen(navHostController: NavHostController) {
 
 @Composable
 fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: NavHostController) {
+    if (comment == null) {
+        Log.w("CommentCard", "Nhận được comment null, bỏ qua render")
+
+        return
+    }
+
+    // Kiểm tra post có null không
+    val post = comment.post
+    if (post == null) {
+        Log.w("CommentCard", "Post null trong comment, bỏ qua render")
+        return
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,11 +113,12 @@ fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: N
             .padding(12.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
+
         Column(modifier = Modifier.padding(16.dp)) {
 
             // Hình ảnh bài viết
             AsyncImage(
-                model = comment.post.media[0] ?: "",
+                model = comment.post.media?.getOrNull(0) ?: "",
                 contentDescription = "Ảnh bài viết",
                 modifier = Modifier
                     .fillMaxWidth()
