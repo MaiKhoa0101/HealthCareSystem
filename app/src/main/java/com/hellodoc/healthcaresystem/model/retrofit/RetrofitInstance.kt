@@ -14,6 +14,7 @@ import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import dagger.Module
 import dagger.Provides
@@ -84,6 +85,7 @@ object RetrofitInstance {
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
 
+    @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()

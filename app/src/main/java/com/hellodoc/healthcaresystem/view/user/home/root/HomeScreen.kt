@@ -129,12 +129,12 @@ fun HealthMateHomeScreen(
     var username = ""
     // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
     // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
-    val engine = rememberEngine()
-    val modelLoader = rememberModelLoader(engine)
-    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
+//    val engine = rememberEngine()
+//    val modelLoader = rememberModelLoader(engine)
+//    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
 // --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
-    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
-    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
+//    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+//    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
@@ -149,29 +149,29 @@ fun HealthMateHomeScreen(
         medicalOptionViewModel.fetchMedicalOptions()
 //        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
-        if (ericModelInstance == null) {
-            try {
-                val inputStream = context.assets.open("BoneEric.glb")
-                val bytes = inputStream.readBytes()
-                inputStream.close()
-                val buffer = ByteBuffer.wrap(bytes)
-                ericModelInstance = modelLoader.createModelInstance(buffer)
-                println("Lay hinh thanh cong")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        // B. Nạp Môi trường (HDR)
-        if (globalEnvironment == null) {
-            try {
-                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
-                globalEnvironment = environmentLoader.createHDREnvironment(
-                    assetFileLocation = "environment.hdr"
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+//        if (ericModelInstance == null) {
+//            try {
+//                val inputStream = context.assets.open("BoneEric.glb")
+//                val bytes = inputStream.readBytes()
+//                inputStream.close()
+//                val buffer = ByteBuffer.wrap(bytes)
+////                ericModelInstance = modelLoader.createModelInstance(buffer)
+//                println("Lay hinh thanh cong")
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
+//        // B. Nạp Môi trường (HDR)
+//        if (globalEnvironment == null) {
+//            try {
+//                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
+//                globalEnvironment = environmentLoader.createHDREnvironment(
+//                    assetFileLocation = "environment.hdr"
+//                )
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
     }
 
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
@@ -448,19 +448,19 @@ fun HealthMateHomeScreen(
             }
         }
 
-        Box(
-            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
-            contentAlignment = Alignment.BottomEnd
-        ) {
-            Floating3DAssistant(
-                isExpanded = is3DExpanded,
-                onExpandChange = { is3DExpanded = it },
-                engine = engine,
-                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
-                modelInstance = ericModelInstance,
-                environment = globalEnvironment
-            )
-        }
+//        Box(
+//            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
+//            contentAlignment = Alignment.BottomEnd
+//        ) {
+//            Floating3DAssistant(
+//                isExpanded = is3DExpanded,
+//                onExpandChange = { is3DExpanded = it },
+//                engine = engine,
+//                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
+//                modelInstance = ericModelInstance,
+//                environment = globalEnvironment
+//            )
+//        }
     }
 }
 

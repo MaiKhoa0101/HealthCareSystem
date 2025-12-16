@@ -110,6 +110,7 @@ fun PostColumn(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         userViewModel.getYou(context)
+
     }
     Column(
         modifier = Modifier.fillMaxSize()
@@ -834,6 +835,7 @@ fun MediaDetailDialog(
                             videoUrl = mediaUrls[page],
                             modifier = Modifier.fillMaxSize()
                         )
+
                     }
                     else -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
