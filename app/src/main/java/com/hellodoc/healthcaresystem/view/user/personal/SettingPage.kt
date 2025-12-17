@@ -43,12 +43,15 @@ import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.getValue
 
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+
 @Composable
 fun Setting(
     navHostController: NavHostController,
     sharedPreferences: SharedPreferences,
     onToggleTheme: () -> Unit,
-    darkTheme: Boolean
+    darkTheme: Boolean,
+    socketManager: SocketManager // Add this
 ) {
     val context = LocalContext.current
     val userViewModel: UserViewModel = hiltViewModel()
@@ -124,13 +127,14 @@ fun Setting(
             SettingItem(
                 text = "Đăng xuất",
                 icon = Icons.Default.Logout,
-                onClick = { logoutWithGoogle(context, sharedPreferences) },
+                onClick = { logoutWithGoogle(context, sharedPreferences, socketManager) },
                 isDestructive = true
             )
         }
     }
 }
 
+// ... SettingItem remains same ...
 @Composable
 fun SettingItem(
     text: String,
@@ -186,7 +190,7 @@ fun SettingItem(
     }
 }
 
-private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences) {
+private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences, socketManager: SocketManager) {
     // Initialize Firebase Auth
     val auth = FirebaseAuth.getInstance()
 
@@ -199,6 +203,9 @@ private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferen
 
     // Clear saved token
     clearToken(sharedPreferences)
+    
+    // Disconnect Socket
+    socketManager.disconnect()
 
     // Sign out from Firebase Auth
     auth.signOut()

@@ -147,4 +147,6 @@ dependencies {
     implementation("io.github.sceneview:arsceneview:2.0.3")
 
 
+    // Socket.IO
+    implementation("io.socket:socket.io-client:2.1.1")
 }

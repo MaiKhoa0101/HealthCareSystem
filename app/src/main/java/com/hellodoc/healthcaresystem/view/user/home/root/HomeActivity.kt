@@ -66,6 +66,8 @@ import com.hellodoc.healthcaresystem.view.user.personal.Setting
 import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
@@ -76,6 +78,9 @@ class MyApp : Application()
 
 @AndroidEntryPoint
 class HomeActivity : BaseActivity() {
+    @Inject
+    lateinit var socketManager: SocketManager
+
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun checkAndRequestNotificationPermission() {
@@ -122,6 +127,9 @@ class HomeActivity : BaseActivity() {
 
         // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
         Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
+
+        // Connect Socket
+        socketManager.connect(token)
 
         firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
@@ -348,7 +356,8 @@ class HomeActivity : BaseActivity() {
                     navHostController,
                     sharedPreferences,
                     onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    socketManager = socketManager
                 )
             }
             composable("editOptionPage") {

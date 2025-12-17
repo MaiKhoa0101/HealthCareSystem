@@ -98,6 +98,7 @@ class DoctorViewModel @Inject constructor(
 
 
     fun fetchDoctorById(doctorId: String) {
+        println("goi fetchDoctorById: $doctorId")
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -407,6 +408,7 @@ class DoctorViewModel @Inject constructor(
     val isLoadingStats: StateFlow<Boolean> get() = _isLoadingStats
 
     fun fetchDoctorWithStats(doctorId: String) {
+        println("goi fetchDoctorWithStats: $doctorId")
         viewModelScope.launch {
             try {
                 _isLoadingStats.value = true
