@@ -66,7 +66,6 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
-import com.hellodoc.healthcaresystem.view.model_human.Simple3DScreen
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser

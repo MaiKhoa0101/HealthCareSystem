@@ -79,7 +79,7 @@ fun Floating3DAssistant(
                         .fillMaxSize(),
                 ) {
                     // 1. Màn hình 3D
-                    Simple3DScreen(
+                    SignLanguage3DScreen(
                         engine = engine,
                         modelInstance = modelInstance,
                         environment = environment

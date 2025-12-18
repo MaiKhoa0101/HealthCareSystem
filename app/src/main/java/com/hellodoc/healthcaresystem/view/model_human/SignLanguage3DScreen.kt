@@ -1,14 +1,21 @@
 package com.hellodoc.healthcaresystem.view.model_human
 
-import androidx.compose.animation.core.*
+import SignLanguageViewModel
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.sceneview.Scene
 import io.github.sceneview.math.Position
 import io.github.sceneview.node.ModelNode
@@ -17,14 +24,14 @@ import io.github.sceneview.rememberMainLightNode
 import com.google.android.filament.Engine
 import io.github.sceneview.environment.Environment
 import io.github.sceneview.model.ModelInstance
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.withContext
 import updateBoneRotation
-import kotlin.math.sin
 
 @Composable
-fun Simple3DScreen(
+fun SignLanguage3DScreen(
     engine: Engine,
     modelInstance: ModelInstance?,
     environment: Environment?

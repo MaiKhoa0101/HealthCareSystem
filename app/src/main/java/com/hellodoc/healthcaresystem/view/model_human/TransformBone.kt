@@ -12,57 +12,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-
-
-data class Quaternion(
-    val x: Float,
-    val y: Float,
-    val z: Float,
-    val w: Float
-)
-
-fun eulerToQuaternion(xDeg: Float, yDeg: Float, zDeg: Float): Quaternion {
-    val x = Math.toRadians(xDeg.toDouble()).toFloat()
-    val y = Math.toRadians(yDeg.toDouble()).toFloat()
-    val z = Math.toRadians(zDeg.toDouble()).toFloat()
-
-    val cx = cos(x / 2)
-    val sx = sin(x / 2)
-    val cy = cos(y / 2)
-    val sy = sin(y / 2)
-    val cz = cos(z / 2)
-    val sz = sin(z / 2)
-
-    return Quaternion(
-        x = sx * cy * cz + cx * sy * sz,
-        y = cx * sy * cz - sx * cy * sz,
-        z = cx * cy * sz + sx * sy * cz,
-        w = cx * cy * cz - sx * sy * sz
-    )
-}
-
-fun multiply(a: Quaternion, b: Quaternion): Quaternion {
-    return Quaternion(
-        w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
-        x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-        y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-        z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w
-    )
-}
-fun extractQuaternion(m: FloatArray): Quaternion {
-    val trace = m[0] + m[5] + m[10]
-    return if (trace > 0) {
-        val s = sqrt(trace + 1.0f) * 2
-        Quaternion(
-            w = 0.25f * s,
-            x = (m[9] - m[6]) / s,
-            y = (m[2] - m[8]) / s,
-            z = (m[4] - m[1]) / s
-        )
-    } else {
-        Quaternion(0f, 0f, 0f, 1f)
-    }
-}
 fun updateBoneRotation(
     engine: Engine,
     modelInstance: ModelInstance?,
@@ -105,4 +54,29 @@ fun updateBoneRotation(
     ).toColumnsFloatArray()
 
     tcm.setTransform(instance, newTransform)
+}
+
+
+/**
+ * Reset bone về rotation mặc định
+ */
+fun resetBoneRotation(
+    engine: Engine,
+    modelInstance: ModelInstance,
+    boneName: String
+) {
+    updateBoneRotation(engine, modelInstance, boneName, 0f, 0f, 0f)
+}
+
+/**
+ * Reset tất cả bones về rotation mặc định
+ */
+fun resetAllBones(
+    engine: Engine,
+    modelInstance: ModelInstance,
+    boneNames: List<String>
+) {
+    boneNames.forEach { boneName ->
+        resetBoneRotation(engine, modelInstance, boneName)
+    }
 }

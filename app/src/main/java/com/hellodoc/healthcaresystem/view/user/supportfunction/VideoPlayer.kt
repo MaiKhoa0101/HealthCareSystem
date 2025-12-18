@@ -137,7 +137,7 @@ fun VideoPlayer(
                         setPadding(16, 8, 16, 8)
                         setFixedTextSize(
                             TypedValue.COMPLEX_UNIT_SP,
-                            15f
+                            14f
                         )
                     }
                 }

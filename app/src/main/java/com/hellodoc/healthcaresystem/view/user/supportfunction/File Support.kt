@@ -289,3 +289,4 @@ suspend fun speakQueue(vararg texts: String) {
         delay(400) // Khoảng nghỉ giữa các câu
     }
 }
+
