@@ -110,6 +110,12 @@
         <activity
             android:name=".view.user.home.startscreen.SecondSignUp"
             android:exported="true" />
+        <activity
+            android:name=".view.user.home.startscreen.ThirdSignUp"
+            android:exported="true" />
+        <activity
+            android:name=".blindview.userblind.home.startscreen.ThirdSignUp"
+            android:exported="true" />
 
         <service
             android:name=".notification.MyFirebaseMessagingService"

@@ -19,9 +19,11 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CreatePostRes
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SubtitleResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.repository.GeminiRepository
 import com.hellodoc.healthcaresystem.model.repository.PostRepository
+import com.hellodoc.healthcaresystem.model.repository.SubtitleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +53,8 @@ import kotlin.text.trim
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val geminiRepository: GeminiRepository
+    private val geminiRepository: GeminiRepository,
+    private val subtitleRepository: SubtitleRepository
     ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
@@ -829,5 +832,28 @@ class PostViewModel @Inject constructor(
         _posts.value = emptyList()
     }
 
+    //
+    private val _subtitle = MutableStateFlow<SubtitleResponse?>(null)
+    val subtitle: StateFlow<SubtitleResponse?> get() = _subtitle
+
+    fun getSubtitle(
+        videoUrl: String
+    ){
+        viewModelScope.launch {
+            try {
+                println("VideoPlayer Get subtitle: $videoUrl")
+                val response = subtitleRepository.getSubtitle(videoUrl)
+                if (response.isSuccessful) {
+                    println("Get subtitle: " + response.body())
+                    _subtitle.value = response.body()
+                } else {
+                    Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                }
+            }
+            catch (e: Exception) {
+                Log.e("PostViewModel", "Get Subtitle Error", e)
+            }
+        }
+    }
 
 }

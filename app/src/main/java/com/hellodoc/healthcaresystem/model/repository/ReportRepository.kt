@@ -56,6 +56,29 @@ class ReportRepository @Inject constructor(private val reportService: ReportServ
         }
     }
 
+    suspend fun getReportByUserId(userId: String): Result<List<ComplaintData>> {
+        return try {
+            val rawReports: List<ReportResponse> = reportService.getReportByUserId(userId)
+            val complaintDataList = rawReports.mapIndexed { index, report ->
+                ComplaintData(
+                    id = (index + 1).toString(), // Dùng ID này cho UI
+                    reportId = report._id, // Dùng ID này để gọi API
+                    user = report.reporter?.name ?: "Không rõ",
+                    content = report.content ?: "Không có nội dung",
+                    targetType = report.type ?: "Không xác định",
+                    status = report.status ?: "opened",
+                    createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
+                    reportedId = report.reportedId ?: "Không rõ",
+                    postId = report.postId
+                )
+            }
+            Result.success(complaintDataList)
+        } catch (e: Exception){
+            Log.e("ReportRepository", "getReportByUserId lỗi: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
     /**
      * Xóa một báo cáo. Trả về Result.success hoặc Result.failure.
      */

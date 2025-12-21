@@ -14,6 +14,7 @@ import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import dagger.Module
 import dagger.Provides
@@ -28,9 +29,9 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.108:4000"
+//   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    //private const val BASE_URL = "http://10.194.235.173:4000"
+    internal const val BASE_URL = "http://192.168.1.108:4000"
 
 
     @Provides
@@ -43,7 +44,6 @@ object RetrofitInstance {
 
     @Provides
     @Singleton
-
     fun provideRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -85,6 +85,7 @@ object RetrofitInstance {
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
 
+    @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()

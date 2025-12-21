@@ -59,7 +59,6 @@ import coil.request.ImageRequest
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetMedicalOptionResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
@@ -105,7 +104,6 @@ fun HealthMateHomeScreen(
 
     val doctorViewModel: DoctorViewModel = hiltViewModel()
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
-    val medicalOptionViewModel: MedicalOptionViewModel = hiltViewModel()
     val geminiViewModel: GeminiViewModel = hiltViewModel()
     val postViewModel: PostViewModel = hiltViewModel()
     val newsViewModel: NewsViewModel = hiltViewModel()
@@ -115,7 +113,7 @@ fun HealthMateHomeScreen(
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
     val specialtyState by specialtyViewModel.specialties.collectAsState()
-    val medicalOptionState by medicalOptionViewModel.medicalOptions.collectAsState()
+    val medicalOptions = listOf("Tính BMI", "Fast Talk")
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
@@ -129,12 +127,12 @@ fun HealthMateHomeScreen(
     var username = ""
     // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
     // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
-    val engine = rememberEngine()
-    val modelLoader = rememberModelLoader(engine)
-    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
+//    val engine = rememberEngine()
+//    val modelLoader = rememberModelLoader(engine)
+//    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
 // --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
-    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
-    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
+//    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+//    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
@@ -146,32 +144,30 @@ fun HealthMateHomeScreen(
 
         doctorViewModel.fetchDoctors()
         specialtyViewModel.fetchSpecialties()
-        medicalOptionViewModel.fetchMedicalOptions()
-//        medicalOptionViewModel.fetchRemoteMedicalOptions()
         newsViewModel.getAllNews()
-        if (ericModelInstance == null) {
-            try {
-                val inputStream = context.assets.open("BoneEric.glb")
-                val bytes = inputStream.readBytes()
-                inputStream.close()
-                val buffer = ByteBuffer.wrap(bytes)
-                ericModelInstance = modelLoader.createModelInstance(buffer)
-                println("Lay hinh thanh cong")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        // B. Nạp Môi trường (HDR)
-        if (globalEnvironment == null) {
-            try {
-                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
-                globalEnvironment = environmentLoader.createHDREnvironment(
-                    assetFileLocation = "environment.hdr"
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+//        if (ericModelInstance == null) {
+//            try {
+//                val inputStream = context.assets.open("BoneEric.glb")
+//                val bytes = inputStream.readBytes()
+//                inputStream.close()
+//                val buffer = ByteBuffer.wrap(bytes)
+////                ericModelInstance = modelLoader.createModelInstance(buffer)
+//                println("Lay hinh thanh cong")
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
+//        // B. Nạp Môi trường (HDR)
+//        if (globalEnvironment == null) {
+//            try {
+//                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
+//                globalEnvironment = environmentLoader.createHDREnvironment(
+//                    assetFileLocation = "environment.hdr"
+//                )
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
     }
 
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
@@ -264,29 +260,13 @@ fun HealthMateHomeScreen(
             }
 
             item(key = "services") {
-                if (medicalOptionState.isEmpty()) {
-//                    EmptyList("dịch vụ hệ thống")
-                    Column {
-                        SkeletonBox(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(0.4f)
-                                .height(24.dp),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        ServiceSkeletonGrid()
-                    }
-                } else {
-                    SectionHeader(title = "Dịch vụ toàn diện")
-                    println("Dich vụ gồm: "+medicalOptionState)
-                    GridServiceList(medicalOptionState) { medicalOption ->
-                        when (medicalOption.name) {
-                            "Tính BMI" -> navHostController.navigate("bmi-checking")
-                            "Fast Talk" -> navHostController.navigate("fast_talk")
-                            else -> {
+                SectionHeader(title = "Dịch vụ toàn diện")
+                GridServiceList(medicalOptions) { optionName ->
+                    when (optionName) {
+                        "Tính BMI" -> navHostController.navigate("bmi-checking")
+                        "Fast Talk" -> navHostController.navigate("fast_talk")
+                        else -> {
 
-                            }
                         }
                     }
                 }
@@ -448,19 +428,19 @@ fun HealthMateHomeScreen(
             }
         }
 
-        Box(
-            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
-            contentAlignment = Alignment.BottomEnd
-        ) {
-            Floating3DAssistant(
-                isExpanded = is3DExpanded,
-                onExpandChange = { is3DExpanded = it },
-                engine = engine,
-                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
-                modelInstance = ericModelInstance,
-                environment = globalEnvironment
-            )
-        }
+//        Box(
+//            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
+//            contentAlignment = Alignment.BottomEnd
+//        ) {
+//            Floating3DAssistant(
+//                isExpanded = is3DExpanded,
+//                onExpandChange = { is3DExpanded = it },
+//                engine = engine,
+//                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
+//                modelInstance = ericModelInstance,
+//                environment = globalEnvironment
+//            )
+//        }
     }
 }
 
@@ -850,12 +830,12 @@ fun ServiceSkeletonGrid() {
 
 
 @Composable
-fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
+fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 rowItems.forEach { item ->
-                    key(item.id) {
+                    key(item) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -868,19 +848,19 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
                                     painter = painterResource(id =
-                                        if (item.name == "Tính BMI") {
+                                        if (item == "Tính BMI") {
                                             R.drawable.doctor
                                         }
                                         else {
                                             R.drawable.speak
                                         }
                                     ),
-                                    contentDescription = item.name,
+                                    contentDescription = item,
                                     modifier = Modifier.size(40.dp),
                                     contentScale = ContentScale.Fit
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
-                                Text(text = item.name, color = MaterialTheme.colorScheme.onBackground)
+                                Text(text = item, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }

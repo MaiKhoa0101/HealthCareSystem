@@ -88,6 +88,7 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.view.user.supportfunction.VideoPlayer
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -109,6 +110,7 @@ fun PostColumn(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         userViewModel.getYou(context)
+
     }
     Column(
         modifier = Modifier.fillMaxSize()
@@ -248,38 +250,6 @@ fun Post(
     }
 }
 
-@OptIn(UnstableApi::class)
-@Composable
-fun VideoPlayer(
-    videoUrl: String,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    val mediaItem = MediaItem.fromUri(videoUrl)
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(mediaItem)
-            prepare()
-        }
-    }
-
-    DisposableEffect(
-        AndroidView(
-            factory = {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                    useController = true
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                }
-            },
-            modifier = modifier
-        )
-    ) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateTime(isoString: String): String {
@@ -865,6 +835,7 @@ fun MediaDetailDialog(
                             videoUrl = mediaUrls[page],
                             modifier = Modifier.fillMaxSize()
                         )
+
                     }
                     else -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -32,6 +32,7 @@ googleid = "1.1.1"
 common = "0.10.0"
 firebaseFirestoreKtx = "26.0.2"
 litertlm = "0.0.0-alpha05"
+sceneformBase = "1.17.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +73,7 @@ dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", versi
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "dagger" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 litertlm = { group = "com.google.ai.edge.litertlm", name = "litertlm", version.ref = "litertlm" }
+sceneform-base = { group = "com.google.ar.sceneform", name = "sceneform-base", version.ref = "sceneformBase" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

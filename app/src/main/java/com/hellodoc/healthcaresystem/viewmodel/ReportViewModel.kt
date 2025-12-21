@@ -79,6 +79,25 @@ class ReportViewModel @Inject constructor(
         }
     }
 
+    private val _userReportList = MutableStateFlow<List<ComplaintData>>(emptyList())
+    val userReportList: MutableStateFlow<List<ComplaintData>> get() = _userReportList
+
+    fun getReportByUserId(userId: String) {
+        viewModelScope.launch {
+        val result = reportRepository.getReportByUserId(userId)
+            result.fold(
+                onSuccess = { complaintList ->
+                    _userReportList.value = complaintList
+                    println("Danh sach bao cao:" + complaintList)
+                },
+                onFailure = { exception ->
+                    Log.e("ReportViewModel", "getAllReport lỗi", exception)
+                    _userReportList.value = emptyList() // Xóa list cũ nếu lỗi
+                }
+            )
+
+        }
+    }
     /**
      * Thêm hàm xóa để UI gọi.
      * VM sẽ xử lý logic (gọi repo, báo toast, và TẢI LẠI danh sách).

@@ -267,7 +267,7 @@ fun AppointmentCard(
 ) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1
-    val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
+    val avatarUrl = if (isDoctor) appointment.patient.avatarURL else appointment.doctor.avatarURL
     val displayName = if (isDoctor) appointment.patient.name else appointment.doctor.name
     val noteForDoctor = appointment.notes
 

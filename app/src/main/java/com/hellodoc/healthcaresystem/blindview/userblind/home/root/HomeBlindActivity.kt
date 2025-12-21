@@ -65,6 +65,8 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.content.edit
 
@@ -72,6 +74,9 @@ public lateinit var firebaseAnalytics: FirebaseAnalytics
 
 @AndroidEntryPoint
 class HomeBlindActivity : BaseActivity() {
+    @Inject
+    lateinit var socketManager: SocketManager
+
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
 
     // 1. Định nghĩa key để kiểm tra người dùng lần đầu
@@ -122,6 +127,9 @@ class HomeBlindActivity : BaseActivity() {
 
         // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
         Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
+
+        // Connect Socket
+        socketManager.connect(token)
 
         firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
@@ -367,7 +375,8 @@ class HomeBlindActivity : BaseActivity() {
                     navHostController,
                     sharedPreferences,
                     onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    socketManager = socketManager
                 )
             }
         }
