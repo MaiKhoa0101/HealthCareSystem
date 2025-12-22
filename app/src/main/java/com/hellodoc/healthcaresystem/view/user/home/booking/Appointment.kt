@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -388,14 +389,27 @@ fun AppointmentCard(
                     if (selectedTab == 0) {
                         Button(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE0E0E0),
+                                contentColor = Color.Black
+                            ),
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Hủy")
                         }
                         Button(
-                            onClick = { appointmentViewModel.confirmAppointmentDone(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            onClick = {
+                                // Điều hướng đến màn hình chọn dịch vụ
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("appointmentId", appointment.id)
+                                    set("patientName", appointment.patient.name)
+                                }
+                                navHostController.navigate("service-selection/${appointment.id}/${appointment.patient.name}")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1E293B),
+                                contentColor = Color.White
+                            ),
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Hoàn thành")
@@ -403,7 +417,10 @@ fun AppointmentCard(
                     } else {
                         Button(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE0E0E0),
+                                contentColor = Color.Black
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Xóa")

@@ -67,6 +67,7 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
@@ -321,6 +322,23 @@ class HomeActivity : BaseActivity() {
             }
             composable("booking-confirm") {
                 ConfirmBookingScreen(context = context, navHostController = navHostController)
+            }
+
+            composable(
+                route = "service-selection/{appointmentId}/{patientName}",
+                arguments = listOf(
+                    navArgument("appointmentId") { type = NavType.StringType },
+                    navArgument("patientName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
+                val patientName = backStackEntry.arguments?.getString("patientName") ?: ""
+
+                ServiceSelectionScreen(
+                    navHostController = navHostController,
+                    appointmentId = appointmentId,
+                    patientName = patientName
+                )
             }
             composable("bmi-checking") {
                 BMICheckerScreen(navHostController)

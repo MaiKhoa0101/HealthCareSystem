@@ -146,7 +146,7 @@ dependencies {
     // Filament dependencies
     implementation("io.github.sceneview:arsceneview:2.0.3")
 
-
+    implementation("com.google.zxing:core:3.5.2")
     // Socket.IO
     implementation("io.socket:socket.io-client:2.1.1")
 }
