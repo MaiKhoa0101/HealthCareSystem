@@ -1,9 +1,13 @@
 package com.hellodoc.healthcaresystem.view.user.home.report
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ComplaintData
-import com.hellodoc.healthcaresystem.view.user.personal.TopBar
 import com.hellodoc.healthcaresystem.viewmodel.ReportViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
@@ -50,10 +53,8 @@ fun reportManager(
 
     Scaffold(
         topBar = {
-            //Back icon
-
             TopBar(
-                title = "Lịch sử khiếu nại",
+                title = "Lịch sử khiếu nại",
                 onClick = { navHostController.popBackStack() }
             )
         }
@@ -76,7 +77,27 @@ fun reportManager(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(reportList) { report ->
-                    ReportItem(report)
+                    ReportItem(
+                        report = report,
+                        onClick = {
+                            // Xử lý navigation dựa trên loại report
+                            when {
+                                // Nếu có postId -> navigate đến bài viết
+                                report.postId != null && report.postId.isNotEmpty() -> {
+                                    navHostController.navigate("post-detail/${report.postId}")
+                                }
+                                // Nếu không có postId -> navigate đến profile người dùng
+                                report.reportedId != null && report.reportedId.isNotEmpty() -> {
+                                    if (report.targetType == "Bác sĩ") {
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.set("doctorId", report.reportedId)
+                                        navHostController.navigate("otherUserProfile/{userOwnerID}")
+                                    } else {
+                                        navHostController.navigate("otherUserProfile/${report.reportedId}")
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -84,11 +105,16 @@ fun reportManager(
 }
 
 @Composable
-fun ReportItem(report: ComplaintData) {
+fun ReportItem(
+    report: ComplaintData,
+    onClick: () -> Unit
+) {
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier
@@ -101,34 +127,52 @@ fun ReportItem(report: ComplaintData) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "ID: ${report.reportId.takeLast(6)}", // Showing last 6 chars for brevity
+                    text = "ID: ${report.reportId.takeLast(6)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
                 StatusChip(status = report.status)
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = report.content,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column {
+                    Text(
+                        text = "Loại: ${report.targetType}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.DarkGray
+                    )
+                    // Hiển thị loại report cụ thể
+                    if (report.postId != null && report.postId.isNotEmpty()) {
+                        Text(
+                            text = "📝 Bài viết",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "👤 Tài khoản",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
                 Text(
-                    text = "Loại: ${report.targetType}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray
-                )
-                Text(
-                    text = report.createdDate, // Ensure format is readable or format it here
+                    text = report.createdDate,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
@@ -156,6 +200,33 @@ fun StatusChip(status: String) {
             color = textColor,
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun TopBar(title: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .height(56.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.ArrowBack,
+            contentDescription = "Back Button",
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 16.dp)
+                .clickable { onClick() }
+        )
+
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.align(Alignment.Center)
         )
     }
 }

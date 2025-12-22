@@ -318,6 +318,7 @@ fun HealthMateHomeScreen(
                                 context = navHostController.context,
                                 youTheCurrentUserUseThisApp = user!!,
                                 userReported = it,
+                                postId = post.id,
                                 onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }

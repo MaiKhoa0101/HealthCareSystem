@@ -26,35 +26,86 @@ class ReportViewModel @Inject constructor(
     private val _reportList = MutableStateFlow<List<ComplaintData>>(emptyList())
     val reportList: MutableStateFlow<List<ComplaintData>> get() = _reportList
 
-    fun createReport(
+    fun createReportForPost(
         context: Context,
         reportContent: String,
-        selectedType: String,
         reporterId: String,
-        reportedId: String,
-        reporterModel: String,
-        postId: String? = null
+        postId: String,
+        postOwnerId: String,
+        reporterModel: String
     ) {
         viewModelScope.launch {
-            println(/*...*/) // Giữ lại log của bạn
-
-            // Repository giờ trả về Result
             val result = reportRepository.sendReport(
                 ReportRequest(
-                    reporter = reportedId,
+                    reporter = reporterId,
                     reporterModel = reporterModel,
                     content = reportContent,
-                    type = selectedType,
-                    reportedId = reporterId,
-                    postId = postId
+                    type = "Bài viết",
+                    reportedId = postOwnerId,
+                    postId = postId  // Thêm postId cho report bài viết
                 )
             )
 
-            // Kiểm tra Result, không phải Response
             if (result.isSuccess) {
-                Toast.makeText(context, "Đã gửi báo cáo thành công", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Đã gửi báo cáo bài viết thành công", Toast.LENGTH_SHORT).show()
             } else {
-                Log.e("ReportViewModel", "createReport thất bại", result.exceptionOrNull())
+                Log.e("ReportViewModel", "createReportForPost thất bại", result.exceptionOrNull())
+                Toast.makeText(context, "Gửi báo cáo thất bại", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun createReportForUser(
+        context: Context,
+        reportContent: String,
+        reporterId: String,
+        reportedUserId: String,
+        reporterModel: String
+    ) {
+        viewModelScope.launch {
+            val result = reportRepository.sendReport(
+                ReportRequest(
+                    reporter = reporterId,
+                    reporterModel = reporterModel,
+                    content = reportContent,
+                    type = "Người dùng",
+                    reportedId = reportedUserId,
+                    postId = null  // Không có postId cho report người dùng
+                )
+            )
+
+            if (result.isSuccess) {
+                Toast.makeText(context, "Đã gửi báo cáo người dùng thành công", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.e("ReportViewModel", "createReportForUser thất bại", result.exceptionOrNull())
+                Toast.makeText(context, "Gửi báo cáo thất bại", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun createReportForDoctor(
+        context: Context,
+        reportContent: String,
+        reporterId: String,
+        doctorId: String,
+        reporterModel: String
+    ) {
+        viewModelScope.launch {
+            val result = reportRepository.sendReport(
+                ReportRequest(
+                    reporter = reporterId,
+                    reporterModel = reporterModel,
+                    content = reportContent,
+                    type = "Bác sĩ",
+                    reportedId = doctorId,
+                    postId = null
+                )
+            )
+
+            if (result.isSuccess) {
+                Toast.makeText(context, "Đã gửi báo cáo bác sĩ thành công", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.e("ReportViewModel", "createReportForDoctor thất bại", result.exceptionOrNull())
                 Toast.makeText(context, "Gửi báo cáo thất bại", Toast.LENGTH_SHORT).show()
             }
         }

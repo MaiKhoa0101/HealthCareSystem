@@ -119,6 +119,7 @@ fun PostDetailScreen(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = youTheCurrentUserUseThisApp,
                             userReported = it,
+                            postId = post!!.id,
                             onClickShowPostReportDialog = { showPostReportDialog = false }
                         )
                     }

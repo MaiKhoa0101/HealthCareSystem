@@ -251,11 +251,15 @@ fun DoctorScreen(
             sharedPreferences,
         )
     }
+
+    var currentPostId by remember { mutableStateOf<String?>(null) }
+
     if (showPostReportDialog && youTheCurrentUserUseThisApp != null) {
         ReportPostDoctor(
             context,
             youTheCurrentUserUseThisApp,
             doctor,
+            postId = currentPostId!!,
             onClickShowPostReportDialog = { showPostReportDialog = !showPostReportDialog },
             sharedPreferences,
         )
