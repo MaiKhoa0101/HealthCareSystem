@@ -23,6 +23,7 @@ data class AppointmentEntity(
     val doctorName: String?,
     val doctorAvatarUrl: String?,
     val patientName: String?,
+    val patientAvatarUrl: String?,
     val specialtyName: String?
 )
 

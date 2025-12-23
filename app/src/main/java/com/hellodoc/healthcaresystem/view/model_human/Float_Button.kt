@@ -50,7 +50,7 @@ fun Floating3DAssistant(
 
     Box(
         modifier = modifier
-            .padding(bottom = 50.dp, end = 16.dp) // Cách lề
+            .padding(bottom = 100.dp, end = 16.dp) // Cách lề
             .size(size) // Kích thước thay đổi theo animation
             .shadow(
                 elevation = 10.dp,

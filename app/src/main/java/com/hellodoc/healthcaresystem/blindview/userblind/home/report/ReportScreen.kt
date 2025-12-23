@@ -108,13 +108,12 @@ fun ReportDoctor(
                 )
 
                 Button(onClick = {
-                    reportViewModel.createReport(
-                        context,
-                        reportContent,
-                        selectedType,
-                        youTheCurrentUserUseThisApp.id,
-                        doctor!!.id,
-                        youTheCurrentUserUseThisApp.role
+                    reportViewModel.createReportForDoctor(
+                        context = context,
+                        reportContent = reportContent,
+                        reporterId = youTheCurrentUserUseThisApp.id,
+                        doctorId = doctor!!.id,
+                        reporterModel = youTheCurrentUserUseThisApp.role
                     )
                     onClickShowReportDialog()
                 }) {
@@ -191,13 +190,12 @@ fun ReportUser(
                 )
 
                 Button(onClick = {
-                    reportViewModel.createReport(
-                        context,
-                        reportContent,
-                        selectedType,
-                        youTheCurrentUserUseThisApp!!.id,
-                        reportedUser!!.id,
-                        youTheCurrentUserUseThisApp.role
+                    reportViewModel.createReportForUser(
+                        context = context,
+                        reportContent = reportContent,
+                        reporterId = youTheCurrentUserUseThisApp.id,
+                        reportedUserId = reportedUser!!.id,
+                        reporterModel = youTheCurrentUserUseThisApp.role
                     )
                     onClickShowReportDialog()
                 }) {
@@ -213,6 +211,7 @@ fun ReportPostDoctor(
     context: Context,
     youTheCurrentUserUseThisApp: User?,
     userReported: GetDoctorResponse?,
+    postId: String,
     onClickShowPostReportDialog: () -> Unit,
     sharedPreferences: SharedPreferences,
 ) {
@@ -268,13 +267,13 @@ fun ReportPostDoctor(
 
                 Button(onClick = {
                     if (youTheCurrentUserUseThisApp != null)
-                        reportViewModel.createReport(
-                            context,
-                            reportContent,
-                            selectedType,
-                            youTheCurrentUserUseThisApp.id,
-                            userReported!!.id,
-                            youTheCurrentUserUseThisApp.role
+                        reportViewModel.createReportForPost(
+                            context = context,
+                            reportContent = reportContent,
+                            reporterId = youTheCurrentUserUseThisApp.id,
+                            postId = postId,  // Truyền postId
+                            postOwnerId = userReported!!.id,
+                            reporterModel = youTheCurrentUserUseThisApp.role
                         )
                     onClickShowPostReportDialog()
                 }) {
@@ -291,6 +290,7 @@ fun ReportPostUser(
     context: Context,
     youTheCurrentUserUseThisApp: User?,
     userReported: User,
+    postId: String,
     onClickShowPostReportDialog: () ->Unit,
     ) {
     val reportViewModel: ReportViewModel = hiltViewModel()
@@ -352,7 +352,13 @@ fun ReportPostUser(
                 )
 
                 Button(onClick = {
-                    reportViewModel.createReport(context, reportContent, selectedType, youTheCurrentUserUseThisApp!!.id, userReported!!.id, youTheCurrentUserUseThisApp!!.role)
+                    reportViewModel.createReportForPost(
+                        context = context,
+                        reportContent = reportContent,
+                        reporterId = youTheCurrentUserUseThisApp.id,
+                        postId = postId,  // Truyền postId
+                        postOwnerId = userReported!!.id,
+                        reporterModel = youTheCurrentUserUseThisApp.role)
                     onClickShowPostReportDialog()
                 }) {
                     Text("Gửi báo cáo")

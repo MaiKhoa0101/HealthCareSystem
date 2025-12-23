@@ -143,6 +143,7 @@ fun PostColumn(
                                 context = navHostController.context,
                                 youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
                                 userReported = it,
+                                postId = post.id,
                                 onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }

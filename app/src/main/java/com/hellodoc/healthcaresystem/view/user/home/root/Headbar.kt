@@ -43,10 +43,10 @@ fun HeadBar() {
     val userViewModel: UserViewModel = hiltViewModel()
     val you by userViewModel.you.collectAsState()
 
-    println("You trong headbar: $you")   // sẽ chạy mỗi lần you thay đổi
-
     LaunchedEffect(Unit) {
         userViewModel.getYou(context)
+        println("You trong headbar: $you")   // sẽ chạy mỗi lần you thay đổi
+
     }
     Column(
         modifier = Modifier

@@ -17,7 +17,7 @@ import kotlinx.serialization.Serializable
 data class GestureFrame(
     val frame: Int,
     val timestamp: Float,
-    val bones: BoneData
+    val gestures: BoneData
 )
 
 @Serializable

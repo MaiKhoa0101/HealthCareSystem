@@ -18,6 +18,9 @@ interface ReportService {
     @GET("/report")
     suspend fun getAllReports(): List<ReportResponse>
 
+    @GET("/report/user/{userId}")
+    suspend fun getReportByUserId(@Path("userId") userId: String): List<ReportResponse>
+
     @PATCH("/report/{id}/response")
     suspend fun sendAdminResponse(
         @Path("id") id: String,

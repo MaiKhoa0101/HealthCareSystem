@@ -104,7 +104,7 @@ fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: N
 
             // Hình ảnh bài viết
             AsyncImage(
-                model = comment.post.media[0] ?: "",
+                model = comment.post.media?.get(0) ?: "",
                 contentDescription = "Ảnh bài viết",
                 modifier = Modifier
                     .fillMaxWidth()

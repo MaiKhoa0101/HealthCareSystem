@@ -59,7 +59,7 @@ fun SignLanguageAnimatableScreen(
                 ignoreUnknownKeys = true
                 isLenient = true
             }
-
+            println("Đọc được json "+ json)
             val frames = json.decodeFromString(
                 ListSerializer(GestureFrame.serializer()),
                 jsonString
@@ -72,13 +72,13 @@ fun SignLanguageAnimatableScreen(
             Log.d("SignLanguage", "✅ Loaded ${frames.size} frames")
 
             // Test frame 0
-            Log.d("SignLanguage", "Frame 0 spine_01: ${frames[0].bones.spine.spine01}")
-            Log.d("SignLanguage", "Frame 0 neck: ${frames[0].bones.neckHead.neck}")
+            Log.d("SignLanguage", "Frame 0 spine_01: ${frames[0].gestures.spine.spine01}")
+            Log.d("SignLanguage", "Frame 0 neck: ${frames[0].gestures.neckHead.neck}")
 
             // Test frame 17 (first frame with right_arm data)
-            Log.d("SignLanguage", "Frame 17 shoulder_r: ${frames[17].bones.rightArm.shoulderR}")
-            Log.d("SignLanguage", "Frame 17 hand_r: ${frames[17].bones.rightArm.handR}")
-            Log.d("SignLanguage", "Frame 17 thumb: ${frames[17].bones.rightArm.fingers.thumb}")
+            Log.d("SignLanguage", "Frame 17 shoulder_r: ${frames[17].gestures.rightArm.shoulderR}")
+            Log.d("SignLanguage", "Frame 17 hand_r: ${frames[17].gestures.rightArm.handR}")
+            Log.d("SignLanguage", "Frame 17 thumb: ${frames[17].gestures.rightArm.fingers.thumb}")
             // ===================
 
         } catch (e: Exception) {
@@ -186,27 +186,6 @@ fun SignLanguageAnimatableScreen(
             )
         }
 
-//        // Debug info
-//        if (gestureFrames.isNotEmpty()) {
-//            Column(
-//                modifier = Modifier
-//                    .align(Alignment.TopStart)
-//                    .padding(16.dp)
-//                    .background(Color.Black.copy(alpha = 0.7f))
-//                    .padding(12.dp)
-//            ) {
-//                Text(
-//                    text = "Frame: $currentFrameIndex / ${gestureFrames.size - 1}",
-//                    color = Color.White,
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//                Text(
-//                    text = "Progress: ${(frameProgress.value * 100).roundToInt()}%",
-//                    color = Color.Green,
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//            }
-//        }
     }
 }
 
@@ -220,10 +199,34 @@ fun applyInterpolatedFrameRotations(
     nextFrame: GestureFrame,
     progress: Float  // 0.0 → 1.0
 ) {
-    val currentBones = currentFrame.bones
-    val nextBones = nextFrame.bones
+    val currentBones = currentFrame.gestures
+    val nextBones = nextFrame.gestures
 
     println("Vào được applyInterpolatedFrameRotations "+currentBones+"\n"+ nextBones)
+    // ===== LEFT ARM =====
+    interpolateAndApply(
+        engine, modelInstance, "shoulder_l",
+        currentBones.leftArm.shoulderL, nextBones.leftArm.shoulderL, progress
+    )
+
+    // CẬP NHẬT: Thêm default cho Upperarm Left
+    interpolateAndApply(
+        engine, modelInstance, "upperarm_l",
+        currentBones.leftArm.upperarmL, nextBones.leftArm.upperarmL, progress,
+        defaultRotStr = "upperarm_l(x=0, y=80, z=0)" // <--- Giá trị mặc định bạn yêu cầu
+    )
+
+    // CẬP NHẬT: Thêm default cho Lowerarm Left
+    interpolateAndApply(
+        engine, modelInstance, "lowerarm_l",
+        currentBones.leftArm.lowerarmL, nextBones.leftArm.lowerarmL, progress,
+        defaultRotStr = "lowerarm_l(x=0, y=0, z=0)" // <--- Giá trị mặc định bạn yêu cầu
+    )
+
+    interpolateAndApply(
+        engine, modelInstance, "hand_l",
+        currentBones.leftArm.handL, nextBones.leftArm.handL, progress
+    )
     // Spine
     interpolateAndApply(
         engine, modelInstance, "spine_01",
@@ -289,42 +292,50 @@ fun applyInterpolatedFrameRotations(
 /**
  * Interpolate và apply rotation cho 1 bone - GIỮ TRẠNG THÁI MẶC ĐỊNH
  */
+/**
+ * Interpolate và apply rotation cho 1 bone
+ * Logic: Nếu JSON rỗng -> Dùng defaultRotStr. Nếu cả 2 rỗng -> Bỏ qua.
+ */
 fun interpolateAndApply(
     engine: Engine,
     modelInstance: ModelInstance,
     boneName: String,
     currentRotStr: String,
     nextRotStr: String,
-    progress: Float
+    progress: Float,
+    defaultRotStr: String = "" // <--- THÊM THAM SỐ NÀY (mặc định là chuỗi rỗng)
 ) {
-    // ===== XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT =====
-    // Nếu cả 2 frame đều KHÔNG có giá trị → không làm gì (giữ nguyên pose mặc định)
-    if (currentRotStr.isBlank() && nextRotStr.isBlank()) {
+    // 1. Xác định chuỗi dữ liệu thực tế sẽ dùng
+    // Nếu trong file JSON là chuỗi rỗng (""), ta thay thế bằng defaultRotStr do bạn quy định
+    val effectiveCurrentStr = if (currentRotStr.isNotBlank()) currentRotStr else defaultRotStr
+    val effectiveNextStr = if (nextRotStr.isNotBlank()) nextRotStr else defaultRotStr
+
+    // 2. Kiểm tra lại: Nếu sau khi thay thế mà vẫn rỗng (tức là không có JSON và không có Default)
+    // thì mới return (bỏ qua xương này)
+    if (effectiveCurrentStr.isBlank() && effectiveNextStr.isBlank()) {
         return
     }
-    println("vào được interpolateAndApply")
 
+    // Log kiểm tra xem nó đang dùng JSON hay Default
+    // Log.d("SignLanguage", "Bone: $boneName | Using: $effectiveCurrentStr -> $effectiveNextStr")
 
-    // Lấy rotation hiện tại từ engine (trạng thái thực tế của xương)
+    // 3. Lấy rotation hiện tại từ engine (để làm fallback cuối cùng hoặc để tính toán nội suy mượt mà từ trạng thái hiện tại)
     val runtimeRot = getCurrentBoneRotation(engine, modelInstance, boneName)
 
-    // Xác định rotation bắt đầu
-    val currentRot = if (currentRotStr.isNotBlank()) {
-        Rotation.fromString(currentRotStr)
+    // 4. Parse dữ liệu (Lúc này parse effectiveCurrentStr thay vì currentRotStr gốc)
+    val currentRot = if (effectiveCurrentStr.isNotBlank()) {
+        Rotation.fromString(effectiveCurrentStr)
     } else {
-        // Frame hiện tại không có giá trị → dùng trạng thái runtime
         runtimeRot
     }
 
-    // Xác định rotation kết thúc
-    val nextRot = if (nextRotStr.isNotBlank()) {
-        Rotation.fromString(nextRotStr)
+    val nextRot = if (effectiveNextStr.isNotBlank()) {
+        Rotation.fromString(effectiveNextStr)
     } else {
-        // Frame tiếp theo không có giá trị → giữ nguyên rotation hiện tại
-        currentRot
+        currentRot // Nếu frame sau không có, giữ nguyên frame trước
     }
 
-    // ===== NỘI SUY (giống hệt code cũ) =====
+    // 5. Nội suy và apply
     val x = currentRot.x + (nextRot.x - currentRot.x) * progress
     val y = currentRot.y + (nextRot.y - currentRot.y) * progress
     val z = currentRot.z + (nextRot.z - currentRot.z) * progress

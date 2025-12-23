@@ -28,7 +28,8 @@ data class AppointmentResponse(
     data class Patient(
         @SerializedName("_id")
         val id: String,
-        val name: String
+        val name: String,
+        val avatarURL: String?
     )
     data class Specialty(
         @SerializedName("_id")

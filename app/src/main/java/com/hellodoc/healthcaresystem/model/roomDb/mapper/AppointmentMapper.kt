@@ -21,6 +21,7 @@ fun AppointmentResponse.toEntity(): AppointmentEntity {
         doctorName = this.doctor?.name,
         doctorAvatarUrl = this.doctor?.avatarURL,
         patientName = this.patient?.name,
+        patientAvatarUrl = this.patient?.avatarURL,
         specialtyName = this.doctor?.specialty?.name
     )
 }
@@ -44,6 +45,7 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             doctorName = this.doctor?.name,
             doctorAvatarUrl = this.doctor?.avatarURL,
             patientName = this.patient?.name,
+            patientAvatarUrl = this.patient?.avatarURL,
             specialtyName = this.doctor?.specialty?.name
         )
     } catch (e: Exception) {
@@ -67,6 +69,7 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             doctorName = null,
             doctorAvatarUrl = null,
             patientName = null,
+            patientAvatarUrl = null,
             specialtyName = null
         )
     }
@@ -88,7 +91,8 @@ fun AppointmentEntity.toResponse(): AppointmentResponse {
         patientModel = "",
         patient = AppointmentResponse.Patient(
             id = this.patientId,
-            name = this.patientName ?: ""
+            name = this.patientName ?: "",
+            avatarURL = this.patientAvatarUrl ?: ""
         ),
         date = this.appointmentDate,
         time = this.appointmentTime,

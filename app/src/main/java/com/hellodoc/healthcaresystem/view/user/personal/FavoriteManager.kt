@@ -106,7 +106,7 @@ fun FavoriteCard(favorite: ManagerResponse, dateText: String, navHostController:
         ) {
 
             // Ảnh bài viết (nếu có)
-            if (favorite.post.media.isNotEmpty()) {
+            if (favorite.post.media?.isNotEmpty() == true) {
                 AsyncImage(
                     model = favorite.post.media[0],
                     contentDescription = "Ảnh bài viết",
