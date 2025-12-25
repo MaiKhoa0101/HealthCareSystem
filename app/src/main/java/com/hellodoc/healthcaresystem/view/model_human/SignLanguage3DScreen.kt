@@ -106,7 +106,7 @@ fun SignLanguageAnimatableScreen(
             )
 
             // Giữ ở frame cuối 500ms trước khi chuyển
-            delay(300)
+            delay(200)
 
             // Reset về 0 và chuyển frame
             frameProgress.snapTo(0f)
@@ -277,7 +277,11 @@ fun applyInterpolatedFrameRotations(
 
     // Right Arm
     interpolateAndApply(engine, modelInstance, "shoulder_r", currentBones.rightArm.shoulderR, nextBones.rightArm.shoulderR, progress)
-    interpolateAndApply(engine, modelInstance, "upperarm_r", currentBones.rightArm.upperarmR, nextBones.rightArm.upperarmR, progress)
+    interpolateAndApply(engine, modelInstance,
+        "upperarm_r",
+        currentBones.rightArm.upperarmR,
+        nextBones.rightArm.upperarmR, progress,
+        defaultRotStr = "upperarm_l(x=0, y=80, z=0)")
     interpolateAndApply(engine, modelInstance, "lowerarm_r", currentBones.rightArm.lowerarmR, nextBones.rightArm.lowerarmR, progress)
     interpolateAndApply(engine, modelInstance, "hand_r", currentBones.rightArm.handR, nextBones.rightArm.handR, progress)
 
