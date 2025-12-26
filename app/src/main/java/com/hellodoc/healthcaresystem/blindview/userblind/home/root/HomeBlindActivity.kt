@@ -69,6 +69,7 @@ import com.hellodoc.healthcaresystem.model.socket.SocketManager
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.content.edit
+import com.hellodoc.healthcaresystem.blindview.userblind.home.doctor.DoctorListBlindScreen
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 
@@ -321,6 +322,13 @@ class HomeBlindActivity : BaseActivity() {
 //                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
 //                        startActivity(intent)
 //                    },
+                    navHostController = navHostController
+                )
+            }
+            composable("blind_doctor_list")
+            {
+                DoctorListBlindScreen(
+                    context = context,
                     navHostController = navHostController
                 )
             }

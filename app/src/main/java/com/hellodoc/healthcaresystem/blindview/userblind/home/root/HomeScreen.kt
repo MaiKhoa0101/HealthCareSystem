@@ -1,8 +1,13 @@
 package com.hellodoc.healthcaresystem.blindview.userblind.home.root
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -19,6 +24,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -41,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -87,11 +94,9 @@ fun HealthMateHomeScreen(
     navHostController: NavHostController,
 ) {
     val context = LocalContext.current
-    // Sử dụng rememberLazyListState thay vì rememberSaveable với LazyListState.Saver cho LazyColumn
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Biến trạng thái để theo dõi bài viết hiện tại đang được tập trung (index 0, 1, 2, ...)
     var currentPostIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val doctorViewModel: DoctorViewModel = hiltViewModel()
@@ -103,7 +108,6 @@ fun HealthMateHomeScreen(
     val userViewModel: UserViewModel = hiltViewModel()
     val faqItemViewModel: FAQItemViewModel = hiltViewModel()
 
-    // Collect states
     val user by userViewModel.user.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
@@ -114,33 +118,33 @@ fun HealthMateHomeScreen(
     var showReportBox by remember { mutableStateOf(false) }
     var userModel by remember { mutableStateOf("") }
     var doneListening by remember { mutableStateOf(false) }
+
+    // Trạng thái cho trợ lý ảo
+    var showVirtualAssistant by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         val username = userViewModel.getUserAttribute("name", context)
         userModel = userViewModel.getUserAttribute("role", context)
 
         userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
-        // Bắt đầu fetch bài viết từ đầu
         postViewModel.fetchPosts()
 
         doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
         newsViewModel.getAllNews()
         delay(2000)
-        speakQueue(
-            "Bạn đang trong trang chủ chứa các bài viết",
-            "Chạm để nghe bài viết hiện tại",
-            "Trượt lên để xem bài viết mới hơn, trượt xuống để quay lại bài viết cũ hơn.",
-            "Ấn giữ màn hình để nghe lại hướng dẫn và hỗ trợ"// Hướng dẫn đã được đảo ngược
-        )
+
+        FocusTTS.speakAndWait("Bạn đang trong trang chủ chứa các bài viết")
+        FocusTTS.speakAndWait("Chạm để nghe bài viết hiện tại")
+        FocusTTS.speakAndWait("Trượt lên để xem bài viết mới hơn, trượt xuống để quay lại bài viết cũ hơn.")
+        FocusTTS.speakAndWait("Trượt sang phải để mở trợ lý ảo hỗ trợ")
+        FocusTTS.speakAndWait("Ấn giữ màn hình để nghe lại hướng dẫn và hỗ trợ")
         delay(2000)
         doneListening = true
     }
 
-    // Xử lý load thêm bài viết (Load More)
     LaunchedEffect(currentPostIndex, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
-            // Kiểm tra nếu người dùng đang ở 2 bài viết cuối cùng của danh sách đã tải
             val threshold = posts.size - 2
             currentPostIndex >= threshold
         }.distinctUntilChanged().collect { isNearEnd ->
@@ -155,18 +159,14 @@ fun HealthMateHomeScreen(
         }
     }
 
-    // Xử lý cuộn và TTS khi currentPostIndex thay đổi
     LaunchedEffect(currentPostIndex, posts.size) {
         if (posts.isNotEmpty() && currentPostIndex >= 0 && currentPostIndex < posts.size) {
             coroutineScope.launch {
-                // Cuộn đến item đang được focus
                 listState.animateScrollToItem(currentPostIndex)
 
-                // Cung cấp phản hồi TTS cho bài viết hiện tại
                 val post = posts[currentPostIndex]
                 val postContent = post.content?.takeIf { it.isNotBlank() } ?: "Bài viết này không có nội dung văn bản."
 
-                // Xử lý media type an toàn (giả định post.media là List<MediaResponse> với thuộc tính type)
                 val mediaInfo = if (post.media.isNotEmpty()) {
                     val mediaType = post.media.first()
                     if (mediaType.startsWith("image")) "Bài viết này có kèm ảnh minh họa."
@@ -193,80 +193,97 @@ fun HealthMateHomeScreen(
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures {
-                        // Đóng menu khi chạm bất kỳ đâu ngoài bài viết (ngoài các thao tác đã định nghĩa)
                         postViewModel.closeAllPostMenus()
                         showReportBox = false
                     }
                 }
         ) {
-            // --- TikTok/Paging Scroll Logic ---
             var offsetY by remember { mutableFloatStateOf(0f) }
-            val dragThreshold = 100f // Ngưỡng trượt để chuyển bài
+            var offsetX by remember { mutableFloatStateOf(0f) }
+            val dragThreshold = 100f
+            val horizontalDragThreshold = 150f // Ngưỡng cho vuốt ngang
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
-                        detectVerticalDragGestures(
+                        detectDragGestures(
                             onDragEnd = {
-                                offsetY = 0f // Reset offset sau khi thả tay
+                                offsetY = 0f
+                                offsetX = 0f
                             }
-                        ) { _, dragAmount ->
-                            offsetY += dragAmount
+                        ) { change, dragAmount ->
+                            val dragX = dragAmount.x
+                            val dragY = dragAmount.y
 
-                            // 1. Swipe UP (Trượt lên) -> Chuyển đến bài MỚI HƠN (index + 1)
-                            if (offsetY < -dragThreshold) { // dragAmount âm khi trượt lên
-                                val nextIndex = currentPostIndex + 1
-                                if (nextIndex < posts.size) {
+                            // Kiểm tra hướng vuốt chính (ngang hay dọc)
+                            if (kotlin.math.abs(dragX) > kotlin.math.abs(dragY)) {
+                                // Vuốt ngang
+                                offsetX += dragX
+
+                                if (offsetX > horizontalDragThreshold) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
-                                    currentPostIndex = nextIndex
-                                    offsetY = 0f // Reset ngay sau khi hành động
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
-                                    }
-                                } else if (hasMorePosts && !isLoadingMorePosts) {
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Đang tải thêm bài viết mới.")
-                                    }
-                                    offsetY = 0f
-                                } else if (!hasMorePosts) {
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Bạn đã xem hết tất cả bài viết.")
-                                    }
-                                    offsetY = 0f
+                                    showVirtualAssistant = true
+                                    offsetX = 0f
                                 }
-                            }
+                            } else {
+                                // Vuốt dọc
+                                offsetY += dragY
 
-                            // 2. Swipe DOWN (Trượt xuống) -> Quay lại bài CŨ HƠN (index - 1)
-                            if (offsetY > dragThreshold) { // dragAmount dương khi trượt xuống
-                                val previousIndex = currentPostIndex - 1
-                                if (previousIndex >= 0) {
-                                    SoundManager.playSwipe()
-                                    vibrate(context)
-                                    currentPostIndex = previousIndex
-                                    offsetY = 0f // Reset ngay sau khi hành động
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
+                                // Swipe UP -> Bài mới hơn
+                                if (offsetY < -dragThreshold) {
+                                    val nextIndex = currentPostIndex + 1
+                                    if (nextIndex < posts.size) {
+                                        SoundManager.playSwipe()
+                                        vibrate(context)
+                                        currentPostIndex = nextIndex
+                                        offsetY = 0f
+                                        coroutineScope.launch {
+                                            FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
+                                        }
+                                    } else if (hasMorePosts && !isLoadingMorePosts) {
+                                        coroutineScope.launch {
+                                            FocusTTS.speakAndWait("Đang tải thêm bài viết mới.")
+                                        }
+                                        offsetY = 0f
+                                    } else if (!hasMorePosts) {
+                                        coroutineScope.launch {
+                                            FocusTTS.speakAndWait("Bạn đã xem hết tất cả bài viết.")
+                                        }
+                                        offsetY = 0f
                                     }
-                                } else {
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Bạn đã ở bài viết đầu tiên.")
+                                }
+
+                                // Swipe DOWN -> Bài cũ hơn
+                                if (offsetY > dragThreshold) {
+                                    val previousIndex = currentPostIndex - 1
+                                    if (previousIndex >= 0) {
+                                        SoundManager.playSwipe()
+                                        vibrate(context)
+                                        currentPostIndex = previousIndex
+                                        offsetY = 0f
+                                        coroutineScope.launch {
+                                            FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
+                                        }
+                                    } else {
+                                        coroutineScope.launch {
+                                            FocusTTS.speakAndWait("Bạn đã ở bài viết đầu tiên.")
+                                        }
+                                        offsetY = 0f
                                     }
-                                    offsetY = 0f
                                 }
                             }
                         }
                     },
                 state = listState,
-                userScrollEnabled = false // Vô hiệu hóa cuộn tự nhiên để chỉ dùng cuộn bằng tay (custom paging)
+                userScrollEnabled = false
             ) {
                 items(posts) { post ->
                     var showPostReportDialog by remember { mutableStateOf(false) }
                     var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-                    // CRUCIAL: Sử dụng fillParentMaxSize() để mỗi item chiếm trọn kích thước của LazyColumn
                     Box(modifier = Modifier.fillParentMaxSize()) {
                         Post(
                             navHostController = navHostController,
@@ -309,14 +326,509 @@ fun HealthMateHomeScreen(
                     }
                 }
             }
+
+            // Overlay Trợ lý ảo
+            if (showVirtualAssistant) {
+                VirtualAssistantOverlay(
+                    navHostController = navHostController,
+                    onDismiss = {
+                        showVirtualAssistant = false
+                        coroutineScope.launch {
+                            FocusTTS.speakAndWait("Đã đóng trợ lý ảo")
+                        }
+                    }
+                )
+            }
         }
-    }
-    else{
+    } else {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Text("Đang hướng dẫn...")
+        }
+    }
+}
+
+@Composable
+fun VirtualAssistantOverlay(
+    navHostController: NavHostController,
+    onDismiss: () -> Unit,
+    specialtyViewModel: SpecialtyViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val dismissThreshold = -150f
+
+    var isListening by remember { mutableStateOf(false) }
+    var recognizedText by remember { mutableStateOf("") }
+    var waitingForSpecialty by remember { mutableStateOf(false) }
+
+    val foundSpecialty by specialtyViewModel.specialty.collectAsState()
+
+    // Speech Recognizer
+    val speechRecognizer = remember {
+        SpeechRecognizer.createSpeechRecognizer(context)
+    }
+
+    val recognizerIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        }
+    }
+
+    LaunchedEffect(foundSpecialty) {
+        // Chỉ xử lý khi đang chờ và có kết quả mới
+        if (waitingForSpecialty && foundSpecialty != null) {
+            waitingForSpecialty = false
+
+            Log.d("VirtualAssistant", "Found specialty: ${foundSpecialty!!.name}")
+
+            // Truyền thông tin chuyên khoa qua savedStateHandle
+            navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                set("specialtyId", foundSpecialty!!.id)
+                set("specialtyName", foundSpecialty!!.name)
+                set("specialtyDesc", foundSpecialty!!.description)
+            }
+
+            // Dừng TTS nếu đang chạy
+            FocusTTS.stop()
+
+            // Thông báo ngắn gọn
+            FocusTTS.speak("Đã tìm thấy chuyên khoa ${foundSpecialty!!.name}")
+
+            // Navigation ngay lập tức, không đợi TTS
+            delay(300)
+
+            Log.d("VirtualAssistant", "Navigating to doctor_list")
+
+            // Đóng overlay trước
+            onDismiss()
+
+            navHostController.navigate("blind_doctor_list")
+        }
+    }
+    // Xử lý kết quả nhận diện giọng nói
+    DisposableEffect(Unit) {
+        val listener = object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                isListening = true
+            }
+
+            override fun onBeginningOfSpeech() {}
+
+            override fun onRmsChanged(rmsdB: Float) {}
+
+            override fun onBufferReceived(buffer: ByteArray?) {}
+
+            override fun onEndOfSpeech() {
+                isListening = false
+            }
+
+            override fun onError(error: Int) {
+                isListening = false
+                coroutineScope.launch {
+                    when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH -> {
+                            FocusTTS.speakAndWait("Không nhận diện được giọng nói. Vui lòng thử lại")
+                        }
+                        SpeechRecognizer.ERROR_NETWORK -> {
+                            FocusTTS.speakAndWait("Lỗi kết nối mạng")
+                        }
+                        else -> {
+                            FocusTTS.speakAndWait("Có lỗi xảy ra. Vui lòng thử lại")
+                        }
+                    }
+                    // Reset state nếu đang chờ specialty
+                    if (waitingForSpecialty) {
+                        waitingForSpecialty = false
+                    }
+
+                }
+            }
+
+            override fun onResults(results: Bundle?) {
+                isListening = false
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+
+                if (!matches.isNullOrEmpty()) {
+                    val text = matches[0].lowercase().trim()
+                    recognizedText = text
+
+                    coroutineScope.launch {
+                        when {
+                            // Nếu đang chờ người dùng nói chuyên khoa
+                            waitingForSpecialty -> {
+                                val specialtyName = text.trim()
+                                Log.d("VirtualAssistant", "Searching for specialty: $specialtyName")
+
+                                FocusTTS.speak("Đang tìm chuyên khoa $specialtyName")
+
+                                // QUAN TRỌNG: Clear specialty cũ trước khi tìm mới
+                                specialtyViewModel.clearSpecialty()
+
+                                delay(100) // Đợi clear xong
+
+                                // Gọi API tìm chuyên khoa
+                                specialtyViewModel.fetchSpecialtyByName(specialtyName)
+
+                                // Timeout: nếu không tìm thấy sau 3 giây
+                                delay(3000)
+                                if (waitingForSpecialty && foundSpecialty == null) {
+                                    waitingForSpecialty = false
+                                    FocusTTS.stop()
+                                    FocusTTS.speak("Không tìm thấy chuyên khoa $specialtyName. Vui lòng nói lại")
+
+                                    // Cho phép người dùng nói lại
+                                    delay(1000)
+                                    waitingForSpecialty = true
+                                    recognizedText = ""
+                                    try {
+                                        speechRecognizer.startListening(recognizerIntent)
+                                    } catch (e: Exception) {
+                                        Log.e("VirtualAssistant", "Error restarting: ${e.message}")
+                                        FocusTTS.speak("Có lỗi xảy ra")
+                                        waitingForSpecialty = false
+                                    }
+                                }
+                            }
+
+                            // Đặt lịch
+                            text.contains("đặt lịch") || text.contains("lịch khám") -> {
+                                FocusTTS.speak("Vui lòng nói tên chuyên khoa")
+                                waitingForSpecialty = true
+
+                                // Clear specialty cũ
+                                specialtyViewModel.clearSpecialty()
+
+                                delay(1000)
+                                try {
+                                    recognizedText = ""
+                                    speechRecognizer.startListening(recognizerIntent)
+                                } catch (e: Exception) {
+                                    Log.e("VirtualAssistant", "Error: ${e.message}")
+                                    FocusTTS.speak("Có lỗi xảy ra")
+                                    waitingForSpecialty = false
+                                }
+                            }
+
+                            // Tìm chuyên khoa trực tiếp
+                            text.contains("chuyên khoa") -> {
+                                val specialtyName = text.replace("chuyên khoa", "").trim()
+
+                                if (specialtyName.isNotBlank()) {
+                                    Log.d("VirtualAssistant", "Direct search: $specialtyName")
+                                    FocusTTS.speak("Đang tìm $specialtyName")
+
+                                    waitingForSpecialty = true
+
+                                    // Clear specialty cũ
+                                    specialtyViewModel.clearSpecialty()
+
+                                    delay(100)
+
+                                    specialtyViewModel.fetchSpecialtyByName(specialtyName)
+
+                                    // Timeout
+                                    delay(3000)
+                                    if (waitingForSpecialty && foundSpecialty == null) {
+                                        waitingForSpecialty = false
+                                        FocusTTS.stop()
+                                        FocusTTS.speak("Không tìm thấy $specialtyName")
+                                    }
+                                } else {
+                                    FocusTTS.speak("Vui lòng nói rõ tên chuyên khoa")
+                                }
+                            }
+
+                            // Đóng
+                            text.contains("đóng") || text.contains("thoát") -> {
+                                FocusTTS.speak("Đang đóng")
+                                waitingForSpecialty = false
+                                specialtyViewModel.clearSpecialty()
+                                onDismiss()
+                            }
+
+                            else -> {
+                                FocusTTS.speak("Tôi không hiểu. Thử nói: đặt lịch, hoặc chuyên khoa tim mạch")
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            override fun onPartialResults(partialResults: Bundle?) {
+                val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                if (!matches.isNullOrEmpty()) {
+                    recognizedText = matches[0]
+                }
+            }
+
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        }
+
+        speechRecognizer.setRecognitionListener(listener)
+
+        onDispose {
+            speechRecognizer.destroy()
+        }
+    }
+
+    // Tự động bắt đầu lắng nghe khi mở
+    LaunchedEffect(Unit) {
+        delay(500)
+        FocusTTS.speakAndWait("Đã mở trợ lý ảo")
+        delay(500)
+        FocusTTS.speakAndWait("Chào bạn! Tôi là trợ lý ảo của HelloDoc")
+        FocusTTS.speakAndWait("Bạn có thể nói: Đặt lịch khám, để đặt lịch nhanh")
+        FocusTTS.speakAndWait("Hoặc nói: Tìm video, để tìm kiếm video y tế")
+        FocusTTS.speakAndWait("Trượt sang trái để đóng")
+        delay(800)
+
+        // Bắt đầu lắng nghe
+        try {
+            speechRecognizer.startListening(recognizerIntent)
+            FocusTTS.speak("Tôi đang lắng nghe")
+        } catch (e: Exception) {
+            Log.e("VirtualAssistant", "Error starting speech recognition: ${e.message}")
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragEnd = {
+                        offsetX = 0f
+                    }
+                ) { _, dragAmount ->
+                    offsetX += dragAmount.x
+
+                    if (offsetX < dismissThreshold) {
+                        SoundManager.playSwipe()
+                        vibrate(context)
+                        onDismiss()
+                        offsetX = 0f
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Icon trợ lý ảo với animation khi đang lắng nghe
+            val infiniteTransition = rememberInfiniteTransition(label = "listening")
+            val scale = if (isListening) {
+                infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                ).value
+            } else 1f
+
+            Icon(
+                painter = painterResource(id = R.drawable.speak),
+                contentDescription = "Trợ lý ảo",
+                modifier = Modifier
+                    .size(100.dp)
+                    .scale(scale),
+                tint = if (isListening)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = if (isListening) "Đang lắng nghe..." else "Trợ lý ảo HelloDoc",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (recognizedText.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Text(
+                        text = "Bạn nói: \"$recognizedText\"",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(12.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Text(
+                text = if (isListening)
+                    "Hãy nói lệnh của bạn..."
+                else
+                    "Chạm để nói lại",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                    .pointerInput(isListening) {
+                        detectTapGestures(
+                            onTap = {
+                                if (isListening) {
+                                    speechRecognizer.stopListening()
+                                    isListening = false
+                                    FocusTTS.speak("Đã dừng lắng nghe")
+                                }
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragEnd = { offsetX = 0f }
+                        ) { _, dragAmount ->
+                            offsetX += dragAmount.x
+                            if (offsetX < dismissThreshold) {
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                onDismiss()
+                                offsetX = 0f
+                            }
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            )
+            {
+                Icon(
+                    painter = painterResource(id = R.drawable.speak),
+                    contentDescription = "Voice Action",
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isListening) "Dừng & Gửi" else "Nói lệnh",
+                    fontSize = 18.sp
+                )
+            }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Các nút phím tắt (backup)
+            Text(
+                text = "Hoặc chọn nhanh:",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                QuickActionButton(
+                    icon = R.drawable.doctor,
+                    title = "Đặt lịch",
+                    onClick = {
+                        SoundManager.playSwipe()
+                        vibrate(context)
+                        coroutineScope.launch {
+                            FocusTTS.speakAndWait("Đang chuyển đến trang đặt lịch khám")
+                            //navHostController.navigate("doctor_list")
+                            onDismiss()
+                        }
+                    }
+                )
+
+                QuickActionButton(
+                    icon = R.drawable.speak,
+                    title = "Video",
+                    onClick = {
+                        SoundManager.playSwipe()
+                        vibrate(context)
+                        coroutineScope.launch {
+                            FocusTTS.speakAndWait("Đang chuyển đến trang video")
+                            //navHostController.navigate("faq")
+                            onDismiss()
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Trượt sang trái để đóng",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickActionButton(
+    icon: Int,
+    title: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = title,
+                modifier = Modifier.size(40.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

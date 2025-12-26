@@ -72,7 +72,7 @@ fun DoctorListScreen(
             specialtyDesc = it
         }
         isDataLoaded = true
-        println("SPECIALTY ID" + specialtyId + " " + specialtyName + " " + specialtyDesc)
+        //println("SPECIALTY ID" + specialtyId + " " + specialtyName + " " + specialtyDesc)
     }
 
 
@@ -84,7 +84,7 @@ fun DoctorListScreen(
     var isExpanded by remember { mutableStateOf(false) }
 
     if (isDataLoaded) {
-        println(specialtyId + " " + specialtyName + " " + specialtyDesc)
+        //println(specialtyId + " " + specialtyName + " " + specialtyDesc)
         Column(
             modifier = Modifier
                 .fillMaxSize()
