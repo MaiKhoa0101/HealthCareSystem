@@ -38,7 +38,8 @@ import kotlinx.coroutines.Job
 
 // Quản lý API keys
 object ApiKeyManager {
-    private val apiKeys = BuildConfig.API_KEYS.split(",")
+    private val apiKeys = arrayOf("AIzaSyDGTD08pxzMfQL5yaMQntHNEYOO7Wrz0L8")
+
     private var currentIndex = 0
     private val invalidKeys = mutableSetOf<Int>()
 
@@ -317,7 +318,7 @@ class GeminiViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val analysis = analyzeQueryWithAI(query)
-                println("analyst la: "+analysis.toString())
+                //println("analyst la: "+analysis.toString())
                 val jobs = mutableListOf<Job>()
                 if (analysis.intent == "hỏi sức khoẻ") {
                     jobs+= launch {
