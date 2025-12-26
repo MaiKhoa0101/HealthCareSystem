@@ -71,16 +71,6 @@ fun SignLanguageAnimatableScreen(
             // ===== DEBUG LOG =====
             Log.d("SignLanguage", "✅ Loaded ${frames.size} frames")
 
-            // Test frame 0
-            Log.d("SignLanguage", "Frame 0 spine_01: ${frames[0].gestures.spine.spine01}")
-            Log.d("SignLanguage", "Frame 0 neck: ${frames[0].gestures.neckHead.neck}")
-
-            // Test frame 17 (first frame with right_arm data)
-            Log.d("SignLanguage", "Frame 17 shoulder_r: ${frames[17].gestures.rightArm.shoulderR}")
-            Log.d("SignLanguage", "Frame 17 hand_r: ${frames[17].gestures.rightArm.handR}")
-            Log.d("SignLanguage", "Frame 17 thumb: ${frames[17].gestures.rightArm.fingers.thumb}")
-            // ===================
-
         } catch (e: Exception) {
             Log.e("SignLanguage", "❌ Error loading JSON", e)
             e.printStackTrace()
@@ -153,7 +143,27 @@ fun SignLanguageAnimatableScreen(
             characterNode = node
         }
     }
+    LaunchedEffect(modelInstance) {
+        if (modelInstance != null) {
+            val asset = modelInstance.asset
+            val entities = asset.entities
+            Log.d("CheckBone", "=== DANH SÁCH TÊN XƯƠNG TRONG FILE 3D ===")
+            entities.forEach { entity ->
+                val name = asset.getName(entity)
+                if (!name.isNullOrEmpty()) {
+                    Log.d("CheckBone", "Bone Entity: $entity | Name: '$name'")
+                }
+            }
 
+            // Kiểm tra trực tiếp xương đang lỗi
+            val check = asset.getFirstEntityByName("upperarm_l")
+            if (check == 0) {
+                Log.e("CheckBone", "❌ LỖI: Không tìm thấy xương tên 'upperarm_l'. Hãy kiểm tra danh sách trên để lấy tên đúng!")
+            } else {
+                Log.d("CheckBone", "✅ TÌM THẤY: 'upperarm_l' có Entity ID = $check")
+            }
+        }
+    }
     DisposableEffect(Unit) {
         onDispose {
             characterNode?.destroy()
@@ -186,11 +196,17 @@ fun SignLanguageAnimatableScreen(
             )
         }
 
+//        //Thông tin debug
+//        Text(
+//            text = "Frame: ${currentFrameIndex + 1} / ${gestureFrames.size}",
+//            modifier = Modifier.align(Alignment.BottomCenter)
+//        )
+
     }
 }
 
 // =======================
-// INTERPOLATED ROTATIONS - SỬA LẠI
+// UPDATED ANIMATION LOGIC
 // =======================
 fun applyInterpolatedFrameRotations(
     engine: Engine,
@@ -202,97 +218,68 @@ fun applyInterpolatedFrameRotations(
     val currentBones = currentFrame.gestures
     val nextBones = nextFrame.gestures
 
-    println("Vào được applyInterpolatedFrameRotations "+currentBones+"\n"+ nextBones)
-    // ===== LEFT ARM =====
-    interpolateAndApply(
-        engine, modelInstance, "shoulder_l",
-        currentBones.leftArm.shoulderL, nextBones.leftArm.shoulderL, progress
-    )
+    // 1. SPINE
+    interpolateAndApply(engine, modelInstance, "spine_01", currentBones.spine01, nextBones.spine01, progress)
+    interpolateAndApply(engine, modelInstance, "spine_02", currentBones.spine02, nextBones.spine02, progress)
+    interpolateAndApply(engine, modelInstance, "spine_03", currentBones.spine03, nextBones.spine03, progress)
 
-    // CẬP NHẬT: Thêm default cho Upperarm Left
+    // 2. NECK & HEAD
+    interpolateAndApply(engine, modelInstance, "neck", currentBones.neck, nextBones.neck, progress)
+    interpolateAndApply(engine, modelInstance, "head", currentBones.head, nextBones.head, progress)
+
+    // 3. FACIAL (Single Bones)
+    interpolateAndApply(engine, modelInstance, "jaw", currentBones.jaw, nextBones.jaw, progress)
+    interpolateAndApply(engine, modelInstance, "eyelid_l", currentBones.eyelidL, nextBones.eyelidL, progress)
+    interpolateAndApply(engine, modelInstance, "eyelid_r", currentBones.eyelidR, nextBones.eyelidR, progress)
+    interpolateAndApply(engine, modelInstance, "mouth_l", currentBones.mouthL, nextBones.mouthL, progress)
+    interpolateAndApply(engine, modelInstance, "mouth_r", currentBones.mouthR, nextBones.mouthR, progress)
+
+    // 4. FACIAL (Combined/Multiple Bones)
+    // JSON: "eyes": "eye_l(...); eye_r(...)" -> Dùng hàm Multiple
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.eyes, nextBones.eyes, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.eyebrows, nextBones.eyebrows, progress)
+
+    // 5. LEFT ARM
+    interpolateAndApply(engine, modelInstance, "shoulder_l", currentBones.shoulderL, nextBones.shoulderL, progress)
+
+    // Upperarm Left (Có default như yêu cầu cũ)
     interpolateAndApply(
         engine, modelInstance, "upperarm_l",
-        currentBones.leftArm.upperarmL, nextBones.leftArm.upperarmL, progress,
-        defaultRotStr = "upperarm_l(x=0, y=80, z=0)" // <--- Giá trị mặc định bạn yêu cầu
+        currentBones.upperarmL, nextBones.upperarmL, progress,
+        defaultRotStr = "upperarm_l(x=0, y=80, z=0)"
     )
 
-    // CẬP NHẬT: Thêm default cho Lowerarm Left
+    interpolateAndApply(engine, modelInstance, "lowerarm_l", currentBones.lowerarmL, nextBones.lowerarmL, progress)
+    interpolateAndApply(engine, modelInstance, "hand_l", currentBones.handL, nextBones.handL, progress)
+
+    // 6. LEFT FINGERS (Multiple)
+    // JSON: "thumb_l": "thumb_02_l(...); thumb_03_l(...)"
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.thumbL, nextBones.thumbL, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.indexL, nextBones.indexL, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.middleL, nextBones.middleL, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.ringL, nextBones.ringL, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.pinkyL, nextBones.pinkyL, progress)
+
+    // 7. RIGHT ARM
+    interpolateAndApply(engine, modelInstance, "shoulder_r", currentBones.shoulderR, nextBones.shoulderR, progress)
+
+    // Upperarm Right (Có default)
     interpolateAndApply(
-        engine, modelInstance, "lowerarm_l",
-        currentBones.leftArm.lowerarmL, nextBones.leftArm.lowerarmL, progress,
-        defaultRotStr = "lowerarm_l(x=0, y=0, z=0)" // <--- Giá trị mặc định bạn yêu cầu
+        engine, modelInstance, "upperarm_r",
+        currentBones.upperarmR, nextBones.upperarmR, progress,
+        defaultRotStr = "upperarm_r(x=0, y=80, z=0)"
     )
 
-    interpolateAndApply(
-        engine, modelInstance, "hand_l",
-        currentBones.leftArm.handL, nextBones.leftArm.handL, progress
-    )
-    // Spine
-    interpolateAndApply(
-        engine, modelInstance, "spine_01",
-        currentBones.spine.spine01, nextBones.spine.spine01, progress
-    )
-    interpolateAndApply(
-        engine, modelInstance, "spine_02",
-        currentBones.spine.spine02, nextBones.spine.spine02, progress
-    )
-    interpolateAndApply(
-        engine, modelInstance, "spine_03",
-        currentBones.spine.spine03, nextBones.spine.spine03, progress
-    )
+    interpolateAndApply(engine, modelInstance, "lowerarm_r", currentBones.lowerarmR, nextBones.lowerarmR, progress)
+    interpolateAndApply(engine, modelInstance, "hand_r", currentBones.handR, nextBones.handR, progress)
 
-    // Neck & Head
-    interpolateAndApply(
-        engine, modelInstance, "neck",
-        currentBones.neckHead.neck, nextBones.neckHead.neck, progress
-    )
-    interpolateAndApply(
-        engine, modelInstance, "head",
-        currentBones.neckHead.head, nextBones.neckHead.head, progress
-    )
-
-    // Facial
-    interpolateAndApply(engine, modelInstance, "jaw", currentBones.facial.jaw, nextBones.facial.jaw, progress)
-    interpolateAndApply(engine, modelInstance, "eye_l", currentBones.facial.eyeL, nextBones.facial.eyeL, progress)
-    interpolateAndApply(engine, modelInstance, "eye_r", currentBones.facial.eyeR, nextBones.facial.eyeR, progress)
-    interpolateAndApply(engine, modelInstance, "eyelid_l", currentBones.facial.eyelidL, nextBones.facial.eyelidL, progress)
-    interpolateAndApply(engine, modelInstance, "eyelid_r", currentBones.facial.eyelidR, nextBones.facial.eyelidR, progress)
-    interpolateAndApply(engine, modelInstance, "eyebrow_l", currentBones.facial.eyebrowL, nextBones.facial.eyebrowL, progress)
-    interpolateAndApply(engine, modelInstance, "eyebrow_r", currentBones.facial.eyebrowR, nextBones.facial.eyebrowR, progress)
-    interpolateAndApply(engine, modelInstance, "mouth_l", currentBones.facial.mouthL, nextBones.facial.mouthL, progress)
-    interpolateAndApply(engine, modelInstance, "mouth_r", currentBones.facial.mouthR, nextBones.facial.mouthR, progress)
-
-    // Left Arm
-    interpolateAndApply(engine, modelInstance, "shoulder_l", currentBones.leftArm.shoulderL, nextBones.leftArm.shoulderL, progress)
-    interpolateAndApply(engine, modelInstance, "upperarm_l", currentBones.leftArm.upperarmL, nextBones.leftArm.upperarmL, progress)
-    interpolateAndApply(engine, modelInstance, "lowerarm_l", currentBones.leftArm.lowerarmL, nextBones.leftArm.lowerarmL, progress)
-    interpolateAndApply(engine, modelInstance, "hand_l", currentBones.leftArm.handL, nextBones.leftArm.handL, progress)
-
-    // Left Fingers
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.leftArm.fingers.thumb, nextBones.leftArm.fingers.thumb, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.leftArm.fingers.index, nextBones.leftArm.fingers.index, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.leftArm.fingers.middle, nextBones.leftArm.fingers.middle, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.leftArm.fingers.ring, nextBones.leftArm.fingers.ring, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.leftArm.fingers.pinky, nextBones.leftArm.fingers.pinky, progress)
-
-    // Right Arm
-    interpolateAndApply(engine, modelInstance, "shoulder_r", currentBones.rightArm.shoulderR, nextBones.rightArm.shoulderR, progress)
-    interpolateAndApply(engine, modelInstance,
-        "upperarm_r",
-        currentBones.rightArm.upperarmR,
-        nextBones.rightArm.upperarmR, progress,
-        defaultRotStr = "upperarm_l(x=0, y=80, z=0)")
-    interpolateAndApply(engine, modelInstance, "lowerarm_r", currentBones.rightArm.lowerarmR, nextBones.rightArm.lowerarmR, progress)
-    interpolateAndApply(engine, modelInstance, "hand_r", currentBones.rightArm.handR, nextBones.rightArm.handR, progress)
-
-    // Right Fingers
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.rightArm.fingers.thumb, nextBones.rightArm.fingers.thumb, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.rightArm.fingers.index, nextBones.rightArm.fingers.index, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.rightArm.fingers.middle, nextBones.rightArm.fingers.middle, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.rightArm.fingers.ring, nextBones.rightArm.fingers.ring, progress)
-    interpolateAndApplyMultiple(engine, modelInstance, currentBones.rightArm.fingers.pinky, nextBones.rightArm.fingers.pinky, progress)
+    // 8. RIGHT FINGERS (Multiple)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.thumbR, nextBones.thumbR, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.indexR, nextBones.indexR, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.middleR, nextBones.middleR, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.ringR, nextBones.ringR, progress)
+    interpolateAndApplyMultiple(engine, modelInstance, currentBones.pinkyR, nextBones.pinkyR, progress)
 }
-
 /**
  * Interpolate và apply rotation cho 1 bone - GIỮ TRẠNG THÁI MẶC ĐỊNH
  */
@@ -309,6 +296,7 @@ fun interpolateAndApply(
     progress: Float,
     defaultRotStr: String = "" // <--- THÊM THAM SỐ NÀY (mặc định là chuỗi rỗng)
 ) {
+
     // 1. Xác định chuỗi dữ liệu thực tế sẽ dùng
     // Nếu trong file JSON là chuỗi rỗng (""), ta thay thế bằng defaultRotStr do bạn quy định
     val effectiveCurrentStr = if (currentRotStr.isNotBlank()) currentRotStr else defaultRotStr
@@ -326,11 +314,16 @@ fun interpolateAndApply(
     // 3. Lấy rotation hiện tại từ engine (để làm fallback cuối cùng hoặc để tính toán nội suy mượt mà từ trạng thái hiện tại)
     val runtimeRot = getCurrentBoneRotation(engine, modelInstance, boneName)
 
-    // 4. Parse dữ liệu (Lúc này parse effectiveCurrentStr thay vì currentRotStr gốc)
+    // Trong hàm interpolateAndApply
     val currentRot = if (effectiveCurrentStr.isNotBlank()) {
         Rotation.fromString(effectiveCurrentStr)
     } else {
         runtimeRot
+    }
+
+    // THÊM ĐOẠN LOG NÀY
+    if (boneName == "upperarm_l") {
+        Log.d("DebugRotation", "String: '$effectiveCurrentStr' -> Parsed: x=${currentRot.x}, y=${currentRot.y}, z=${currentRot.z}")
     }
 
     val nextRot = if (effectiveNextStr.isNotBlank()) {

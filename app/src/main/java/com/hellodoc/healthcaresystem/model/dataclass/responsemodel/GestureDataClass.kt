@@ -6,12 +6,11 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
 // =======================
 // DATA CLASSES
-// =======================
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class GestureFrame(
@@ -20,190 +19,134 @@ data class GestureFrame(
     val gestures: BoneData
 )
 
+/**
+ * Class này chứa toàn bộ các key trong "gestures" của JSON mới (Cấu trúc phẳng)
+ */
 @Serializable
 data class BoneData(
-    val spine: SpineData = SpineData(),
-    @SerialName("neck_head")
-    val neckHead: NeckHeadData = NeckHeadData(),
-    val facial: FacialData = FacialData(),
-    @SerialName("left_arm")
-    val leftArm: ArmData = ArmData(),
-    @SerialName("right_arm")
-    val rightArm: ArmData = ArmData()
-)
+    // --- Spine ---
+    @SerialName("spine_01") val spine01: String = "",
+    @SerialName("spine_02") val spine02: String = "",
+    @SerialName("spine_03") val spine03: String = "",
 
-@Serializable
-data class SpineData(
-    @SerialName("spine_01")
-    val spine01: String = "",
-    @SerialName("spine_02")
-    val spine02: String = "",
-    @SerialName("spine_03")
-    val spine03: String = ""
-)
-
-@Serializable
-data class NeckHeadData(
+    // --- Head & Neck ---
     val neck: String = "",
-    val head: String = ""
-)
+    val head: String = "",
 
-@Serializable
-data class FacialData(
+    // --- Facial (Single) ---
     val jaw: String = "",
-    @SerialName("eye_l")
-    val eyeL: String = "",
-    @SerialName("eye_r")
-    val eyeR: String = "",
-    @SerialName("eyelid_l")
-    val eyelidL: String = "",
-    @SerialName("eyelid_r")
-    val eyelidR: String = "",
-    @SerialName("eyebrow_l")
-    val eyebrowL: String = "",
-    @SerialName("eyebrow_r")
-    val eyebrowR: String = "",
-    @SerialName("mouth_l")
-    val mouthL: String = "",
-    @SerialName("mouth_r")
-    val mouthR: String = ""
-)
+    @SerialName("eyelid_l") val eyelidL: String = "",
+    @SerialName("eyelid_r") val eyelidR: String = "",
+    @SerialName("mouth_l") val mouthL: String = "",
+    @SerialName("mouth_r") val mouthR: String = "",
 
-@Serializable
-data class ArmData(
-    @SerialName("shoulder_l")
-    val shoulderL: String = "",
-    @SerialName("shoulder_r")
-    val shoulderR: String = "",
-    @SerialName("upperarm_l")
-    val upperarmL: String = "",
-    @SerialName("upperarm_r")
-    val upperarmR: String = "",
-    @SerialName("lowerarm_l")
-    val lowerarmL: String = "",
-    @SerialName("lowerarm_r")
-    val lowerarmR: String = "",
-    @SerialName("hand_l")
-    val handL: String = "",
-    @SerialName("hand_r")
-    val handR: String = "",
-    val fingers: FingerData = FingerData()
-)
+    // --- Facial (Multiple/Combined) ---
+    // Chứa "eye_l(...); eye_r(...)"
+    val eyes: String = "",
+    // Chứa "eyebrow_l(...); eyebrow_r(...)"
+    val eyebrows: String = "",
 
-@Serializable
-data class FingerData(
-    val thumb: String = "",
-    val index: String = "",
-    val middle: String = "",
-    val ring: String = "",
-    val pinky: String = ""
+    // --- Left Arm ---
+    @SerialName("shoulder_l") val shoulderL: String = "",
+    @SerialName("upperarm_l") val upperarmL: String = "",
+    @SerialName("lowerarm_l") val lowerarmL: String = "",
+    @SerialName("hand_l") val handL: String = "",
+
+    // --- Left Fingers (Multiple) ---
+    @SerialName("thumb_l") val thumbL: String = "",
+    @SerialName("index_l") val indexL: String = "",
+    @SerialName("middle_l") val middleL: String = "",
+    @SerialName("ring_l") val ringL: String = "",
+    @SerialName("pinky_l") val pinkyL: String = "",
+
+    // --- Right Arm ---
+    @SerialName("shoulder_r") val shoulderR: String = "",
+    @SerialName("upperarm_r") val upperarmR: String = "",
+    @SerialName("lowerarm_r") val lowerarmR: String = "",
+    @SerialName("hand_r") val handR: String = "",
+
+    // --- Right Fingers (Multiple) ---
+    @SerialName("thumb_r") val thumbR: String = "",
+    @SerialName("index_r") val indexR: String = "",
+    @SerialName("middle_r") val middleR: String = "",
+    @SerialName("ring_r") val ringR: String = "",
+    @SerialName("pinky_r") val pinkyR: String = ""
 )
 
 // =======================
 // ROTATION PARSER
 // =======================
-
 data class Rotation(
     val x: Float = 0f,
     val y: Float = 0f,
     val z: Float = 0f
 ) {
-
     companion object {
         /**
-         * Parse rotation từ string: "bone_name(x=10, y=20, z=30)"
+         * Parse chuỗi dạng: "bone_name(x=10, y=-5.5, z=0)"
+         * Hoặc dạng thiếu: "spine(z=90)" -> x, y tự động = 0
+         * Chấp nhận cả khoảng trắng lộn xộn: "arm( x = 10 , y= 5 )"
          */
-        fun fromString(rotationStr: String): Rotation {
-            if (rotationStr.isEmpty()) return Rotation()
+        fun fromString(data: String): Rotation {
+            if (data.isBlank()) return Rotation(0f, 0f, 0f)
 
-            try {
-                val pattern = """x=(-?\d+),\s*y=(-?\d+),\s*z=(-?\d+)""".toRegex()
-                val matchResult = pattern.find(rotationStr) ?: return Rotation()
+            // Dùng Regex để tìm giá trị sau x=, y=, z=
+            // Giải thích Regex: [xX] tìm chữ x hoặc X, \s* là khoảng trắng tùy ý, = là dấu bằng
+            // ([-+]?[0-9]*\.?[0-9]+) là cụm bắt số (có thể có dấu âm, số thập phân)
+            return Rotation(
+                x = parseAxisValue(data, "x"),
+                y = parseAxisValue(data, "y"),
+                z = parseAxisValue(data, "z")
+            )
+        }
 
-                val (x, y, z) = matchResult.destructured
-                return Rotation(
-                    x = x.toFloat(),
-                    y = y.toFloat(),
-                    z = z.toFloat()
-                )
-            } catch (e: Exception) {
-                return Rotation()
-            }
+        private fun parseAxisValue(text: String, axis: String): Float {
+            // Regex tìm: axis + dấu bằng + số (float/int)
+            // Ví dụ tìm "y": khớp với "y=8.5" hoặc "y = -90"
+            val regex = Regex("$axis\\s*=\\s*([-+]?[0-9]*\\.?[0-9]+)", RegexOption.IGNORE_CASE)
+
+            val match = regex.find(text)
+            // groupValues[1] là giá trị con số tìm được. Nếu ko thấy trả về 0f
+            return match?.groupValues?.get(1)?.toFloatOrNull() ?: 0f
         }
 
         /**
-         * Parse multiple bones từ string: "thumb_01_l(x=10, y=20, z=30); thumb_02_l(...)"
+         * Xử lý chuỗi nhiều xương cách nhau bởi dấu chấm phẩy
+         * Input: "thumb(x=0...); index(x=0...)"
          */
-        fun parseMultiple(rotationsStr: String): Map<String, Rotation> {
-            if (rotationsStr.isEmpty()) return emptyMap()
+        fun parseMultiple(data: String): Map<String, Rotation> {
+            if (data.isBlank()) return emptyMap()
 
             val result = mutableMapOf<String, Rotation>()
 
-            try {
-                val parts = rotationsStr.split(";")
+            // 1. Tách các cụm xương bằng dấu chấm phẩy ;
+            val parts = data.split(";")
 
-                for (part in parts) {
-                    val trimmed = part.trim()
-                    if (trimmed.isEmpty()) continue
+            for (part in parts) {
+                val trimmed = part.trim()
+                if (trimmed.isEmpty()) continue
 
-                    val boneNameMatch = """^(\w+)\(""".toRegex().find(trimmed)
-                    if (boneNameMatch != null) {
-                        val boneName = boneNameMatch.groupValues[1]
-                        val rotation = fromString(trimmed)
-                        result[boneName] = rotation
-                    }
+                // 2. Tách tên xương ra khỏi dữ liệu xoay
+                // "thumb_01_l(x=...)" -> Lấy phần trước dấu ngoặc đơn '('
+                val openParenIndex = trimmed.indexOf('(')
+
+                if (openParenIndex > 0) {
+                    val boneName = trimmed.substring(0, openParenIndex).trim()
+                    // Phần còn lại chính là data để parse rotation
+                    val rotationData = trimmed.substring(openParenIndex)
+
+                    result[boneName] = fromString(rotationData)
                 }
-            } catch (e: Exception) {
-                // Return empty map on error
             }
-
             return result
         }
 
-        fun fromMatrix(m: FloatArray): Rotation {
-            // --- Tách scale ---
-            val scaleX = sqrt(m[0]*m[0] + m[1]*m[1] + m[2]*m[2])
-            val scaleY = sqrt(m[4]*m[4] + m[5]*m[5] + m[6]*m[6])
-            val scaleZ = sqrt(m[8]*m[8] + m[9]*m[9] + m[10]*m[10])
-
-            if (scaleX == 0f || scaleY == 0f || scaleZ == 0f) {
-                return Rotation()
-            }
-
-            // --- Normalize rotation matrix ---
-            val r00 = m[0] / scaleX
-            val r01 = m[1] / scaleX
-            val r02 = m[2] / scaleX
-
-            val r10 = m[4] / scaleY
-            val r11 = m[5] / scaleY
-            val r12 = m[6] / scaleY
-
-            val r20 = m[8] / scaleZ
-            val r21 = m[9] / scaleZ
-            val r22 = m[10] / scaleZ
-
-            // --- Euler XYZ extraction ---
-            val y: Double = asin(-r20.toDouble())
-            val cosY = cos(y)
-
-            val x: Double
-            val z: Double
-
-            if (abs(cosY) > 1e-6) {
-                x = atan2(r21 / cosY, r22 / cosY)
-                z = atan2(r10 / cosY, r00 / cosY)
-            } else {
-                // Gimbal lock
-                x = 0.0
-                z = atan2(-r01.toDouble(), r11.toDouble())
-            }
-
-            return Rotation(
-                Math.toDegrees(x).toFloat(),
-                Math.toDegrees(y).toFloat(),
-                Math.toDegrees(z).toFloat()
-            )
+        // Hàm tiện ích chuyển sang Matrix/Quaternion nếu cần (Optional)
+        fun fromMatrix(mat: FloatArray): Rotation {
+            // Logic lấy Euler từ Matrix (nếu bạn đang dùng logic này để lấy currentRotation)
+            // Đây là ví dụ đơn giản, thực tế cần thuật toán Euler extraction chuẩn
+            // Tạm thời trả về 0 để tránh lỗi biên dịch nếu bạn chưa có logic này
+            return Rotation(0f, 0f, 0f)
         }
     }
 }

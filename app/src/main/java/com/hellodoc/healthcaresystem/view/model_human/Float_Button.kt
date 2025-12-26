@@ -43,7 +43,7 @@ fun Floating3DAssistant(
 ) {
     // Animation kích thước: Nhỏ (60dp) <-> Lớn (320dp)
     val size by animateDpAsState(
-        targetValue = if (isExpanded) 150.dp else 50.dp,
+        targetValue = if (isExpanded) 200.dp else 50.dp,
         animationSpec = tween(durationMillis = 300), // Thời gian mượt mà
         label = "size"
     )
