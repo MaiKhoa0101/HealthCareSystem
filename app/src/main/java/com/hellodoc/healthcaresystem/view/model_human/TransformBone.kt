@@ -13,16 +13,23 @@ import io.github.sceneview.math.toColumnsFloatArray
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import io.github.sceneview.math.Rotation as SceneRotation
 
 fun updateBoneRotation(
     engine: Engine,
     modelInstance: ModelInstance?,
     boneName: String,
-    x: Float, y: Float, z: Float // Góc xoay tuyệt đối (Độ)
+    x: Float, y: Float, z: Float
 ) {
     if (modelInstance == null) return
 
-    println("transform dược gọi")
+    // ⭐ THÊM KIỂM TRA NÀY
+    // Nếu góc xoay là 0, bỏ qua (giữ nguyên trạng thái hiện tại)
+    if (x == 0f && y == 0f && z == 0f) {
+        return
+    }
+    println("vào được updatebone với x y z là "+x+" "+y+" "+z +" boneName là "+boneName)
+
     val asset = modelInstance.asset
     val boneEntity = asset.getFirstEntityByName(boneName)
     if (boneEntity == 0) return
@@ -31,32 +38,36 @@ fun updateBoneRotation(
     val instance = tcm.getInstance(boneEntity)
     if (instance == 0) return
 
-    // 1. Lấy Transform hiện tại (Local transform relative to parent)
+    // Lấy Transform hiện tại
     val currentMat = FloatArray(16)
     tcm.getTransform(instance, currentMat)
 
-    // 2. Trích xuất Position (Giữ nguyên vị trí xương so với cha)
     val currentPos = Position(currentMat[12], currentMat[13], currentMat[14])
 
-    // 3. Trích xuất Scale (Giữ nguyên tỷ lệ)
-    // Công thức tính độ dài vector cột
-    val scaleX = sqrt((currentMat[0] * currentMat[0] + currentMat[1] * currentMat[1] + currentMat[2] * currentMat[2]).toDouble()).toFloat()
-    val scaleY = sqrt((currentMat[4] * currentMat[4] + currentMat[5] * currentMat[5] + currentMat[6] * currentMat[6]).toDouble()).toFloat()
-    val scaleZ = sqrt((currentMat[8] * currentMat[8] + currentMat[9] * currentMat[9] + currentMat[10] * currentMat[10]).toDouble()).toFloat()
+    val scaleX = sqrt(
+        currentMat[0] * currentMat[0] +
+                currentMat[1] * currentMat[1] +
+                currentMat[2] * currentMat[2]
+    )
+    val scaleY = sqrt(
+        currentMat[4] * currentMat[4] +
+                currentMat[5] * currentMat[5] +
+                currentMat[6] * currentMat[6]
+    )
+    val scaleZ = sqrt(
+        currentMat[8] * currentMat[8] +
+                currentMat[9] * currentMat[9] +
+                currentMat[10] * currentMat[10]
+    )
     val currentScale = Scale(scaleX, scaleY, scaleZ)
 
-    // 4. TẠO ROTATION MỚI (QUAN TRỌNG)
-    // Chúng ta set trực tiếp góc mới, thay thế góc cũ hoàn toàn.
-    val newRotation = Float3(x, y, z)
+    val newRotation = SceneRotation(x, y, z)
 
-    // 5. Tạo Transform mới và cập nhật
     val newTransform = Transform(
         position = currentPos,
-        rotation = newRotation, // SceneView sẽ tự đổi Euler sang Quaternion nội bộ
+        rotation = newRotation,
         scale = currentScale
     ).toColumnsFloatArray()
 
     tcm.setTransform(instance, newTransform)
 }
-
-
