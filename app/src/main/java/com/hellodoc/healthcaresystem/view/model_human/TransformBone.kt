@@ -61,8 +61,8 @@ fun updateBoneRotation(
     )
     val currentScale = Scale(scaleX, scaleY, scaleZ)
 
-    val newRotation = SceneRotation(x, y, z)
-
+    val newRotation = SceneRotation(x,y,z)
+    println("NewRotation for "+boneName+" is $x $y $z")
     val newTransform = Transform(
         position = currentPos,
         rotation = newRotation,
