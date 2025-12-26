@@ -90,13 +90,13 @@ fun SignLanguageAnimatableScreen(
             frameProgress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
-                    durationMillis = 100,
+                    durationMillis = 300,
                     easing = LinearEasing
                 )
             )
 
             // Giữ ở frame cuối 500ms trước khi chuyển
-            delay(200)
+            delay(100)
 
             // Reset về 0 và chuyển frame
             frameProgress.snapTo(0f)
