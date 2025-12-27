@@ -202,9 +202,6 @@ class HomeBlindActivity : BaseActivity() {
             modifier = modifier.fillMaxSize(),
             topBar = {
                 if (showTopBars && !showFullScreenComment) HeadBar()
-            },
-            bottomBar = {
-                if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)
             }
         ) { paddingValues ->
             NavigationHost(
@@ -305,6 +302,9 @@ class HomeBlindActivity : BaseActivity() {
             }
             composable("gemini_help") {
                 GeminiChatScreen(navHostController)
+            }
+            composable("booking_blind") {
+                BookingBlindScreen(navHostController)
             }
             composable("other_user_profile") {
                 DoctorScreen(context, navHostController)
