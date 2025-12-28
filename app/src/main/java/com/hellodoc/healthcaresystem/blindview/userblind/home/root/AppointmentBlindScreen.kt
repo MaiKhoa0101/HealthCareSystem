@@ -118,20 +118,25 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                             Triple("?", "?", "?")
                                         }
 
-                                        val (hour, minute) = try {
-                                            val timeParts = it.time.split(":")
-                                            if (timeParts.size >= 2) {
-                                                Pair(timeParts[0], timeParts[1])
-                                            } else {
-                                                Pair(it.time, "00")
-                                            }
-                                        } catch (e: Exception) {
-                                            Pair("?", "?")
-                                        }
-
+                                        val timeStr = BlindNavigationHelpers.formatTimeStringForTTS(it.time)
                                         val specialtyName = it.doctor.specialty ?: "Chưa xác định"
                                         val doctorName = it.doctor.name ?: "Bác sĩ"
-                                        val info = "Đây là lịch khám với bác sĩ $doctorName chuyên ngành $specialtyName vào $hour giờ $minute phút ngày $day tháng $month năm $year."
+                                        
+                                        val countdownStr = if (zonedDateTime != null) {
+                                            try {
+                                                val parts = it.time.split(":")
+                                                val h = parts[0].trim().toInt()
+                                                val m = if (parts.size >= 2) parts[1].trim().toInt() else 0
+                                                val targetFull = zonedDateTime.withHour(h).withMinute(m)
+                                                val now = ZonedDateTime.now(ZoneId.systemDefault())
+                                                BlindNavigationHelpers.getRemainingTimeText(targetFull, now)
+                                            } catch (e: Exception) {
+                                                ""
+                                            }
+                                        } else ""
+
+                                        val info = "Đây là lịch khám với bác sĩ $doctorName chuyên ngành $specialtyName vào $timeStr ngày $day tháng $month năm $year. " +
+                                                if (countdownStr.isNotEmpty()) "$countdownStr nữa." else ""
                                         FocusTTS.speak(info)
                                     }
                             }

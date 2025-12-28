@@ -205,7 +205,10 @@ fun BookingBlindScreen(
                                 BookingStep.CONFIRMATION -> {
                                     currentStep = BookingStep.SELECT_TIME
                                     val timeSlot = filteredTimeSlots.getOrNull(selectedTimeIndex)
-                                    FocusTTS.speak("Quay lại chọn giờ, đang hiển thị ${timeSlot?.displayTime}")
+                                    val timeText = if (timeSlot != null) {
+                                        BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                    } else ""
+                                    FocusTTS.speak("Quay lại chọn giờ, đang hiển thị $timeText")
                                 }
                                 BookingStep.COMPLETE -> {
                                     currentStep = BookingStep.SELECT_DOCTOR
@@ -219,7 +222,10 @@ fun BookingBlindScreen(
                             val selectedDoctor = doctors[doctorIndex]
                             val selectedSlot = filteredAvailableSlots.getOrNull(selectedDateIndex)
                             val selectedTime = filteredTimeSlots.getOrNull(selectedTimeIndex)
-                            val summary = "Tóm tắt thông tin đặt lịch của bạn. Chuyên ngành ${specialties[specialtyIndex].name}. Bác sĩ ${selectedDoctor.name}. Thứ ${selectedSlot?.dayOfWeek} ngày ${selectedSlot?.date}. Giờ khám là ${selectedTime?.displayTime}. Chạm vào màn hình một lần để xác nhận đặt lịch khám."
+                            val timeText = if (selectedTime != null) {
+                                BlindNavigationHelpers.formatTimeForTTS(selectedTime.hour, selectedTime.minute)
+                            } else ""
+                            val summary = "Tóm tắt thông tin đặt lịch của bạn. Chuyên ngành ${specialties[specialtyIndex].name}. Bác sĩ ${selectedDoctor.name}. Thứ ${selectedSlot?.dayOfWeek} ngày ${selectedSlot?.date}. Giờ khám là $timeText. Chạm vào màn hình một lần để xác nhận đặt lịch khám."
                             coroutineScope.launch {
                                 FocusTTS.speak(summary)
                             }
@@ -277,13 +283,16 @@ fun BookingBlindScreen(
                                             FocusTTS.speakAndWait("Bạn đã chọn thứ ${selectedSlot.dayOfWeek} ngày ${selectedSlot.date}, tiếp theo hãy chạm vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
                                             currentStep = BookingStep.SELECT_TIME
                                             selectedTimeIndex = 0
-                                            FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[0].displayTime}")
+                                            val timeSlot = filteredTimeSlots[0]
+                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            FocusTTS.speak("Đang hiển thị $timeText")
                                         }
                                     }
                                 }
                                 BookingStep.SELECT_TIME -> {
                                     filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                                        FocusTTS.speakAndWait("Bạn đã chọn ${timeSlot.displayTime}")
+                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        FocusTTS.speakAndWait("Bạn đã chọn $timeText")
                                         currentStep = BookingStep.CONFIRMATION
                                         FocusTTS.speakAndWait("Đã hoàn thành quá trình đặt lịch, nhấn giữ nếu muốn tôi đọc lại thông tin đặt lịch, chạm vào màn hình để xác nhận đặt lịch, chạm hai lần để quay lại.")
                                     }
@@ -390,7 +399,9 @@ fun BookingBlindScreen(
                                             selectedTimeIndex = (selectedTimeIndex + 1) % filteredTimeSlots.size
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
+                                            val timeSlot = filteredTimeSlots[selectedTimeIndex]
+                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            FocusTTS.speak("Đang hiển thị $timeText")
                                         }
                                     }
                                     else -> {}
@@ -427,7 +438,9 @@ fun BookingBlindScreen(
                                             selectedTimeIndex = if (selectedTimeIndex > 0) selectedTimeIndex - 1 else filteredTimeSlots.size - 1
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
+                                            val timeSlot = filteredTimeSlots[selectedTimeIndex]
+                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            FocusTTS.speak("Đang hiển thị $timeText")
                                         }
                                     }
                                     else -> {}
