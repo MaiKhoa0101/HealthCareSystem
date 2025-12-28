@@ -71,6 +71,9 @@ fun BookingBlindScreen(
     
     var hasSwipedInCurrentGesture by remember { mutableStateOf(false) }
     
+    var doctorSelectionTrigger by remember { mutableIntStateOf(0) }
+    var instructionsCompletedByStep by remember { mutableStateOf<BookingStep?>(null) }
+    
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
     val horizontalThreshold = 150f
@@ -126,7 +129,7 @@ fun BookingBlindScreen(
     // Initial Greeting
     LaunchedEffect(Unit) {
         delay(1000)
-        FocusTTS.speakAndWait("Đây là trang Đặt lịch khám, bấm vào màn hình để tiếp tục, bấm hai lần vào màn hình để quay lại")
+        FocusTTS.speakAndWait("Đây là trang Đặt lịch khám, nhấn giữ vào màn hình để bắt đầu đặt lịch khám, lướt sang phải hoặc trái để chuyển trang")
     }
 
     // Handle data fetching
@@ -137,24 +140,68 @@ fun BookingBlindScreen(
     }
 
     // Observe doctor details for clinic status
-    LaunchedEffect(doctorDetail) {
+    LaunchedEffect(doctorDetail, doctorSelectionTrigger) {
         doctorDetail?.let { detail ->
-            if (currentStep == BookingStep.SELECT_DOCTOR) {
-                if (detail.isClinicPaused == true) {
-                    FocusTTS.speak("Bác sĩ này đã tạm ngưng hãy chọn bác sĩ khác, hãy chạm 2 lần để trở lại")
-                } else if (detail.workingHours.isNullOrEmpty()) {
-                    FocusTTS.speak("Bác sĩ này chưa có thời gian hợp lệ, hãy lướt lên hoặc xuống để chuyển bác sĩ")
-                } else {
-                    currentStep = BookingStep.SELECT_DATE
-                    selectedDateIndex = 0
-                    FocusTTS.speakAndWait("Tiếp theo hãy tiến hành chọn ngày, chạm vào màn hình để chọn ngày đang hiển thị, vuốt lên hoặc xuống để chuyển ngày, chạm hai lần để quay lại.")
-                    workingHoursResponse?.availableSlots?.let { slots ->
-                        if (slots.isNotEmpty()) {
-                            val slot = slots[0]
-                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
-                        }
+            if (currentStep == BookingStep.SELECT_DOCTOR && (doctorSelectionTrigger > 0)) {
+                val selectedDoctor = doctors.getOrNull(doctorIndex)
+                if (detail.id == selectedDoctor?.id) {
+                    if (detail.isClinicPaused == true) {
+                        FocusTTS.speak("Bác sĩ này đã tạm ngưng hãy chọn bác sĩ khác, hãy chạm 2 lần để trở lại")
+                    } else if (detail.workingHours.isNullOrEmpty()) {
+                        FocusTTS.speak("Bác sĩ này chưa có thời gian hợp lệ, hãy lướt lên hoặc xuống để chuyển bác sĩ")
+                    } else {
+                        currentStep = BookingStep.SELECT_DATE
+                        selectedDateIndex = 0
+                        // doctorSelectionTrigger Không reset ở đây để tránh cancel speak
                     }
                 }
+            }
+        }
+    }
+
+    // Updated: Comprehensive speech for step transitions (supports forward and backward)
+    LaunchedEffect(currentStep) {
+        instructionsCompletedByStep = null
+        when (currentStep) {
+            BookingStep.SELECT_SPECIALTY -> {
+                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn chuyên ngành đang hiển thị, vuốt lên hoặc xuống để chuyển chuyên ngành, chạm hai lần để quay lại.")
+                if (specialties.isNotEmpty()) {
+                    FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                }
+            }
+            BookingStep.SELECT_DOCTOR -> {
+                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn bác sĩ đang hiển thị, vuốt lên hoặc xuống để chuyển bác sĩ, chạm hai lần để quay lại.")
+                if (doctors.isNotEmpty()) {
+                    FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                }
+            }
+            BookingStep.SELECT_DATE -> {
+                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn ngày đang hiển thị, vuốt lên hoặc xuống để chuyển ngày, chạm hai lần để quay lại.")
+                // Immediate announcement if data exists
+                filteredAvailableSlots.getOrNull(selectedDateIndex)?.let { slot ->
+                    FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
+                }
+            }
+            BookingStep.SELECT_TIME -> {
+                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
+                filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
+                    val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                    FocusTTS.speak("Đang hiển thị $timeText")
+                }
+            }
+            BookingStep.CONFIRMATION -> {
+                 FocusTTS.speakAndWait("Đã hoàn thành quá trình đặt lịch, chạm vào màn hình để tôi đọc lại thông tin đặt lịch, nhấn giữ vào màn hình để xác nhận đặt lịch, chạm hai lần để quay lại.")
+            }
+            else -> {}
+        }
+        instructionsCompletedByStep = currentStep
+    }
+
+    // Updated: Handle speech for working hours only AFTER instructions are done
+    LaunchedEffect(currentStep, workingHoursResponse, filteredAvailableSlots, instructionsCompletedByStep) {
+        if (currentStep == BookingStep.SELECT_DATE && instructionsCompletedByStep == BookingStep.SELECT_DATE) {
+            filteredAvailableSlots.getOrNull(selectedDateIndex)?.let { slot ->
+                FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
             }
         }
     }
@@ -183,51 +230,27 @@ fun BookingBlindScreen(
                         coroutineScope.launch {
                             when (currentStep) {
                                 BookingStep.INITIAL -> {
-                                    navHostController.popBackStack()
+                                    // Bị chặn bấm hai lần để quay lại ở bước này theo yêu cầu người dùng
                                 }
                                 BookingStep.SELECT_SPECIALTY -> {
                                     currentStep = BookingStep.INITIAL
-                                    FocusTTS.speak("Quay lại trang Đặt lịch khám, bấm vào màn hình để bắt đầu")
                                 }
                                 BookingStep.SELECT_DOCTOR -> {
                                     currentStep = BookingStep.SELECT_SPECIALTY
-                                    FocusTTS.speak("Quay lại chọn chuyên ngành, đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
                                 }
                                 BookingStep.SELECT_DATE -> {
                                     currentStep = BookingStep.SELECT_DOCTOR
-                                    FocusTTS.speak("Quay lại chọn bác sĩ, đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
                                 }
                                 BookingStep.SELECT_TIME -> {
                                     currentStep = BookingStep.SELECT_DATE
-                                    val slot = filteredAvailableSlots.getOrNull(selectedDateIndex)
-                                    FocusTTS.speak("Quay lại chọn ngày, đang hiển thị thứ ${slot?.dayOfWeek} ngày ${slot?.date}")
                                 }
                                 BookingStep.CONFIRMATION -> {
                                     currentStep = BookingStep.SELECT_TIME
-                                    val timeSlot = filteredTimeSlots.getOrNull(selectedTimeIndex)
-                                    val timeText = if (timeSlot != null) {
-                                        BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
-                                    } else ""
-                                    FocusTTS.speak("Quay lại chọn giờ, đang hiển thị $timeText")
                                 }
                                 BookingStep.COMPLETE -> {
                                     currentStep = BookingStep.SELECT_DOCTOR
-                                    FocusTTS.speak("Quay lại chọn bác sĩ, đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                                    FocusTTS.speak("Quay lại chọn bác sĩ, đang hiển thị bác sĩ ${doctors[doctorIndex].name}, nhấn giữ vào màn hình để chọn bác sĩ đang hiển thị")
                                 }
-                            }
-                        }
-                    },
-                    onLongPress = {
-                         if (currentStep == BookingStep.CONFIRMATION) {
-                            val selectedDoctor = doctors[doctorIndex]
-                            val selectedSlot = filteredAvailableSlots.getOrNull(selectedDateIndex)
-                            val selectedTime = filteredTimeSlots.getOrNull(selectedTimeIndex)
-                            val timeText = if (selectedTime != null) {
-                                BlindNavigationHelpers.formatTimeForTTS(selectedTime.hour, selectedTime.minute)
-                            } else ""
-                            val summary = "Tóm tắt thông tin đặt lịch của bạn. Chuyên ngành ${specialties[specialtyIndex].name}. Bác sĩ ${selectedDoctor.name}. Thứ ${selectedSlot?.dayOfWeek} ngày ${selectedSlot?.date}. Giờ khám là $timeText. Chạm vào màn hình một lần để xác nhận đặt lịch khám."
-                            coroutineScope.launch {
-                                FocusTTS.speak(summary)
                             }
                         }
                     },
@@ -237,13 +260,52 @@ fun BookingBlindScreen(
                         coroutineScope.launch {
                             when (currentStep) {
                                 BookingStep.INITIAL -> {
-                                    currentStep = BookingStep.SELECT_SPECIALTY
-                                    FocusTTS.speakAndWait("Để tiến hành đặt lịch hãy chạm vào màn hình để chọn chuyên ngành đang hiển thị, vuốt lên hoặc xuống để chuyển chuyên ngành, lướt sang phải để quay lại trang chủ, lướt sang trái để xem lịch khám.")
+                                    FocusTTS.speak("Đây là trang Đặt lịch khám, nhấn giữ vào màn hình để bắt đầu đặt lịch khám, lướt sang phải hoặc trái để chuyển trang")
+                                }
+                                BookingStep.SELECT_SPECIALTY -> {
                                     if (specialties.isNotEmpty()) {
-                                        FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                                        FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}, nhấn giữ vào màn hình để chọn chuyên ngành đang hiển thị")
                                     } else {
                                         FocusTTS.speak("Đang tải danh sách chuyên ngành, vui lòng đợi.")
                                     }
+                                }
+                                BookingStep.SELECT_DOCTOR -> {
+                                    if (doctors.isNotEmpty()) {
+                                        FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}, nhấn giữ vào màn hình để chọn bác sĩ đang hiển thị")
+                                    }
+                                }
+                                BookingStep.SELECT_DATE -> {
+                                    filteredAvailableSlots.getOrNull(selectedDateIndex)?.let { slot ->
+                                        FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}, nhấn giữ vào màn hình để chọn ngày đang hiển thị")
+                                    }
+                                }
+                                BookingStep.SELECT_TIME -> {
+                                    filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
+                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
+                                    }
+                                }
+                                BookingStep.CONFIRMATION -> {
+                                    val selectedDoctor = doctors[doctorIndex]
+                                    val selectedSlot = filteredAvailableSlots.getOrNull(selectedDateIndex)
+                                    val selectedTime = filteredTimeSlots.getOrNull(selectedTimeIndex)
+                                    val timeText = if (selectedTime != null) {
+                                        BlindNavigationHelpers.formatTimeForTTS(selectedTime.hour, selectedTime.minute)
+                                    } else ""
+                                    val summary = "Tóm tắt thông tin đặt lịch của bạn. Chuyên ngành ${specialties[specialtyIndex].name}. Bác sĩ ${selectedDoctor.name}. Thứ ${selectedSlot?.dayOfWeek} ngày ${selectedSlot?.date}. Giờ khám là $timeText. Nhấn giữ vào màn hình để xác nhận đặt lịch khám."
+                                    FocusTTS.speak(summary)
+                                }
+                                else -> {}
+                            }
+                        }
+                    },
+                    onLongPress = {
+                        SoundManager.playTap()
+                        vibrate(context)
+                        coroutineScope.launch {
+                            when (currentStep) {
+                                BookingStep.INITIAL -> {
+                                    currentStep = BookingStep.SELECT_SPECIALTY
                                 }
                                 BookingStep.SELECT_SPECIALTY -> {
                                     if (specialties.isNotEmpty()) {
@@ -252,10 +314,9 @@ fun BookingBlindScreen(
                                         if (fetchedDoctors.isNullOrEmpty()) {
                                             FocusTTS.speak("Chuyên ngành này không có bác sĩ nào")
                                         } else {
-                                            FocusTTS.speakAndWait("Bạn đã chọn chuyên ngành ${selectedSpecialty.name}, tiếp theo hãy chạm vào màn hình để chọn bác sĩ đang hiển thị, vuốt lên hoặc xuống để chuyển bác sĩ, chạm hai lần để quay lại.")
-                                            FocusTTS.speak("Đang hiển thị bác sĩ ${fetchedDoctors[0].name}")
+                                            FocusTTS.speakAndWait("Bạn đã chọn chuyên ngành ${selectedSpecialty.name}")
                                             currentStep = BookingStep.SELECT_DOCTOR
-                                            doctorIndex = 0 // Reset doctor index
+                                            doctorIndex = 0
                                         }
                                     }
                                 }
@@ -264,28 +325,21 @@ fun BookingBlindScreen(
                                         val selectedDoctor = doctors[doctorIndex]
                                         FocusTTS.speakAndWait("Bạn đã chọn bác sĩ ${selectedDoctor.name}")
                                         
-                                        // Fetch doctor detail to check clinic status
+                                        doctorSelectionTrigger++
                                         doctorViewModel.fetchDoctorById(selectedDoctor.id)
                                         doctorViewModel.fetchAvailableSlots(selectedDoctor.id)
-                                        
-                                        // Transition to date selection handled in a LaunchedEffect
-                                        // But for immediate feedback, we wait for data
                                     }
                                 }
-                                 BookingStep.SELECT_DATE -> {
+                                BookingStep.SELECT_DATE -> {
                                     if (filteredAvailableSlots.isNotEmpty() && selectedDateIndex < filteredAvailableSlots.size) {
                                         val selectedSlot = filteredAvailableSlots[selectedDateIndex]
                                         
-                                        // We already filtered time slots in the derived state
                                         if (filteredTimeSlots.isEmpty()) {
                                             FocusTTS.speak("Ngày này không còn giờ khám khả dụng hôm nay, hãy chọn ngày khác.")
                                         } else {
-                                            FocusTTS.speakAndWait("Bạn đã chọn thứ ${selectedSlot.dayOfWeek} ngày ${selectedSlot.date}, tiếp theo hãy chạm vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
+                                            FocusTTS.speakAndWait("Bạn đã chọn thứ ${selectedSlot.dayOfWeek} ngày ${selectedSlot.date}")
                                             currentStep = BookingStep.SELECT_TIME
                                             selectedTimeIndex = 0
-                                            val timeSlot = filteredTimeSlots[0]
-                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
-                                            FocusTTS.speak("Đang hiển thị $timeText")
                                         }
                                     }
                                 }
@@ -294,11 +348,9 @@ fun BookingBlindScreen(
                                         val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
                                         FocusTTS.speakAndWait("Bạn đã chọn $timeText")
                                         currentStep = BookingStep.CONFIRMATION
-                                        FocusTTS.speakAndWait("Đã hoàn thành quá trình đặt lịch, nhấn giữ nếu muốn tôi đọc lại thông tin đặt lịch, chạm vào màn hình để xác nhận đặt lịch, chạm hai lần để quay lại.")
                                     }
                                 }
                                 BookingStep.CONFIRMATION -> {
-                                    // Call createAppointment
                                     val token = userViewModel.getUserAttribute("access_token", context)
                                     val patientID = userViewModel.getUserAttribute("userId", context)
                                     val patientModel = userViewModel.getUserAttribute("role", context)
@@ -374,7 +426,7 @@ fun BookingBlindScreen(
                                             specialtyIndex = (specialtyIndex + 1) % specialties.size
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}, nhấn giữ vào màn hình để chọn chuyên ngành đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_DOCTOR -> {
@@ -382,7 +434,7 @@ fun BookingBlindScreen(
                                             doctorIndex = (doctorIndex + 1) % doctors.size
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}, nhấn giữ vào màn hình để chọn bác sĩ đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_DATE -> {
@@ -391,7 +443,7 @@ fun BookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val slot = filteredAvailableSlots[selectedDateIndex]
-                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
+                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}, nhấn giữ vào màn hình để chọn ngày đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_TIME -> {
@@ -401,7 +453,7 @@ fun BookingBlindScreen(
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
                                             val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
-                                            FocusTTS.speak("Đang hiển thị $timeText")
+                                            FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }
                                     else -> {}
@@ -413,7 +465,7 @@ fun BookingBlindScreen(
                                             specialtyIndex = if (specialtyIndex > 0) specialtyIndex - 1 else specialties.size - 1
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}, nhấn giữ vào màn hình để chọn chuyên ngành đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_DOCTOR -> {
@@ -421,7 +473,7 @@ fun BookingBlindScreen(
                                             doctorIndex = if (doctorIndex > 0) doctorIndex - 1 else doctors.size - 1
                                             SoundManager.playSwipe()
                                             vibrate(context)
-                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}, nhấn giữ vào màn hình để chọn bác sĩ đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_DATE -> {
@@ -430,7 +482,7 @@ fun BookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val slot = filteredAvailableSlots[selectedDateIndex]
-                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
+                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}, nhấn giữ vào màn hình để chọn ngày đang hiển thị")
                                         }
                                     }
                                     BookingStep.SELECT_TIME -> {
@@ -440,7 +492,7 @@ fun BookingBlindScreen(
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
                                             val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
-                                            FocusTTS.speak("Đang hiển thị $timeText")
+                                            FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }
                                     else -> {}
@@ -479,7 +531,7 @@ fun BookingBlindScreen(
             
             Text(
                 text = when (currentStep) {
-                    BookingStep.INITIAL -> "Chạm để bắt đầu"
+                    BookingStep.INITIAL -> "Nhấn giữ để bắt đầu"
                     BookingStep.SELECT_SPECIALTY -> specialties.getOrNull(specialtyIndex)?.name ?: "Đang tải..."
                     BookingStep.SELECT_DOCTOR -> doctors.getOrNull(doctorIndex)?.name ?: "Đang tải..."
                     BookingStep.SELECT_DATE -> filteredAvailableSlots.getOrNull(selectedDateIndex)?.let { "Thứ ${it.dayOfWeek} ${it.date}" } ?: "Đang tải ngày..."

@@ -40,16 +40,6 @@ fun Tutorial(
 ) {
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        SoundManager.init(context)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            FocusTTS.shutdown()
-            SoundManager.release()
-        }
-    }
 
     if (you == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -117,8 +107,7 @@ fun Tutorial2(you: User, next: () -> Unit, back: () -> Unit) {
         speakQueue(
             "Tốt lắm ${you.name}.",
             "Trên màn hình có một bài viết.",
-            "Nếu muốn nghe tôi đọc bài viết, hãy chạm vào nó.",
-            "Hãy chạm để tôi đọc cho bạn nhé."
+            "Nếu muốn nghe tôi đọc bài viết, hãy chạm vào màn hình."
         )
         canTap = true
     }
@@ -136,7 +125,7 @@ fun Tutorial2(you: User, next: () -> Unit, back: () -> Unit) {
                     scope.launch {
                         speakQueue(
                             "Bạn làm tốt lắm, tôi sẽ đọc bài viết.",
-                            "Bài viết: Chào mừng đến với hello doc, đây là bài viết mẫu để giới thiệu về ứng dụng hello doc.",
+                            "Bài viết có nội dung là: Chào mừng đến với hello doc, đây là bài viết mẫu để giới thiệu về ứng dụng hello doc.",
                             "Đây là ảnh minh họa, ảnh có nội dung là 1 bác sĩ đang nói chuyện trước màn hình.",
                             "Chạm thêm một lần nữa để tiếp tục."
                         )

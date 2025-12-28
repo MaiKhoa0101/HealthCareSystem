@@ -65,7 +65,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
             appointmentViewModel.getAppointmentUser(userId)
         }
         
-        FocusTTS.speakAndWait("Đây là trang Xem lịch khám, đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, vuốt lên hoặc xuống để chuyển lịch khám, chạm hai lần để xem lịch khám đã hoàn thành")
+        FocusTTS.speakAndWait("Đây là trang Xem lịch khám, đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, vuốt lên hoặc xuống để chuyển lịch, nhấn giữ để hủy hoặc đặt lại lịch, chạm hai lần để xem lịch khám đã hoàn thành")
     }
 
     LaunchedEffect(Unit) {
@@ -105,10 +105,11 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                         selectedAppointmentIndex = 0
                         lastLongPressAppointmentId = ""
                         
-                        val prompt = when(selectedStatusIndex) {
-                            1 -> "Đang hiển thị các lịch khám đã hoàn thành, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, chạm hai lần để xem lịch khám đã hủy"
-                            2 -> "Đang hiển thị các lịch khám đã hủy, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, chạm hai lần để xem lịch khám đã đặt"
-                            else -> "Đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, chạm hai lần để xem lịch khám đã hoàn thành"
+                        val prompt = when (selectedStatusIndex) {
+                            0 -> "Đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, chạm hai lần để xem lịch khám đã hoàn thành"
+                            1 -> "Đang hiển thị các lịch khám đã hoàn thành, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, chạm hai lần để xem lịch khám đã hủy"
+                            2 -> "Đang hiển thị các lịch khám đã hủy, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, chạm hai lần để xem lịch khám đã đặt"
+                            else -> "Đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, chạm hai lần để xem lịch khám đã hoàn thành"
                         }
                         
                         coroutineScope.launch {
@@ -161,7 +162,8 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                             }
                                         } else ""
 
-                                        val info = "Đây là lịch khám với bác sĩ $doctorName chuyên ngành $specialtyName vào $timeStr ngày $day tháng $month năm $year. " +
+                                        val statusLabel = statusLabels[selectedStatusIndex]
+                                        val info = "Đây là lịch khám $statusLabel với bác sĩ $doctorName chuyên ngành $specialtyName vào $timeStr ngày $day tháng $month năm $year. " +
                                                 if (countdownStr.isNotEmpty()) "$countdownStr." else ""
                                         FocusTTS.speak(info)
                                     }
@@ -169,23 +171,34 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                         }
                     },
                     onLongPress = {
-                        if (selectedStatusIndex == 0 && filteredAppointments.isNotEmpty()) {
+                        if (filteredAppointments.isNotEmpty()) {
                             val currentAppt = filteredAppointments.getOrNull(selectedAppointmentIndex)
                             currentAppt?.let { appt ->
                                 if (lastLongPressAppointmentId == appt.id) {
-                                    // Second long press on same appointment -> Confirm Cancel
+                                    // Second long press
                                     SoundManager.playTap()
                                     vibrate(context)
-                                    val userId = userViewModel.getUserAttribute("userId", context) ?: ""
-                                    appointmentViewModel.cancelAppointment(appt.id, userId)
-                                    lastLongPressAppointmentId = "" // Reset
+                                    lastLongPressAppointmentId = ""
+                                    
+                                    if (selectedStatusIndex == 0) {
+                                        // Confirm Cancel
+                                        val userId = userViewModel.getUserAttribute("userId", context) ?: ""
+                                        appointmentViewModel.cancelAppointment(appt.id, userId)
+                                    } else if (selectedStatusIndex == 1 || selectedStatusIndex == 2) {
+                                        // Confirm Rebook -> Navigate to NEW ReBooking screen
+                                        navHostController.navigate("rebooking_blind/${appt.doctor.id}/${appt.doctor.specialty}")
+                                    }
                                 } else {
                                     // First long press
                                     SoundManager.playTap()
                                     vibrate(context)
                                     lastLongPressAppointmentId = appt.id
                                     coroutineScope.launch {
-                                        FocusTTS.speak("Đây là thao tác hủy lịch hẹn, nhấn giữ vào màn hình lần nữa để xác nhận hủy lịch hẹn")
+                                        if (selectedStatusIndex == 0) {
+                                            FocusTTS.speak("Đây là thao tác hủy lịch khám, nhấn giữ vào màn hình lần nữa để xác nhận hủy lịch khám")
+                                        } else if (selectedStatusIndex == 1 || selectedStatusIndex == 2) {
+                                            FocusTTS.speak("Đây là thao tác đặt lại lịch khám, nhấn giữ vào màn hình lần nữa để xác nhận đặt lại lịch khám với bác sĩ ${appt.doctor.name} chuyên ngành ${appt.doctor.specialty}")
+                                        }
                                     }
                                 }
                             }
@@ -193,7 +206,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                     }
                 )
             }
-            .pointerInput(Unit) {
+            .pointerInput(filteredAppointments.size, selectedStatusIndex) {
                 detectDragGestures(
                     onDragStart = {
                         hasSwipedInCurrentGesture = false
