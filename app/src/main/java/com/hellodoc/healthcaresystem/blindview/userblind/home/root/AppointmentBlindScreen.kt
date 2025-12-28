@@ -52,6 +52,8 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
         appointments.filter { it.status == statusList[selectedStatusIndex] }
     }
 
+    var lastLongPressAppointmentId by remember { mutableStateOf("") }
+
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
     var hasSwipedInCurrentGesture by remember { mutableStateOf(false) }
@@ -64,6 +66,28 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
         }
         
         FocusTTS.speakAndWait("Đây là trang Xem lịch khám, đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, vuốt lên hoặc xuống để chuyển lịch khám, chạm hai lần để xem lịch khám đã hoàn thành")
+    }
+
+    LaunchedEffect(Unit) {
+        launch {
+            appointmentViewModel.appointmentUpdated.collect { updated ->
+                android.util.Log.d("AppointmentBlind", "appointmentUpdated: $updated")
+                if (updated) {
+                    FocusTTS.speak("Đã hủy lịch khám thành công")
+                    appointmentViewModel.resetAppointmentUpdated()
+                }
+            }
+        }
+        
+        launch {
+            appointmentViewModel.appointmentError.collect { error ->
+                android.util.Log.d("AppointmentBlind", "appointmentError: $error")
+                if (error != null) {
+                    FocusTTS.speak("Hủy lịch khám thất bại: $error")
+                    appointmentViewModel.resetAppointmentError()
+                }
+            }
+        }
     }
 
     Box(
@@ -79,6 +103,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                         // Cycle status: 0 -> 1 -> 2 -> 0
                         selectedStatusIndex = (selectedStatusIndex + 1) % 3
                         selectedAppointmentIndex = 0
+                        lastLongPressAppointmentId = ""
                         
                         val prompt = when(selectedStatusIndex) {
                             1 -> "Đang hiển thị các lịch khám đã hoàn thành, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị, chạm hai lần để xem lịch khám đã hủy"
@@ -93,6 +118,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                     onTap = {
                         SoundManager.playTap()
                         vibrate(context)
+                        lastLongPressAppointmentId = ""
                         
                         coroutineScope.launch {
                             if (filteredAppointments.isEmpty()) {
@@ -136,9 +162,32 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                         } else ""
 
                                         val info = "Đây là lịch khám với bác sĩ $doctorName chuyên ngành $specialtyName vào $timeStr ngày $day tháng $month năm $year. " +
-                                                if (countdownStr.isNotEmpty()) "$countdownStr nữa." else ""
+                                                if (countdownStr.isNotEmpty()) "$countdownStr." else ""
                                         FocusTTS.speak(info)
                                     }
+                            }
+                        }
+                    },
+                    onLongPress = {
+                        if (selectedStatusIndex == 0 && filteredAppointments.isNotEmpty()) {
+                            val currentAppt = filteredAppointments.getOrNull(selectedAppointmentIndex)
+                            currentAppt?.let { appt ->
+                                if (lastLongPressAppointmentId == appt.id) {
+                                    // Second long press on same appointment -> Confirm Cancel
+                                    SoundManager.playTap()
+                                    vibrate(context)
+                                    val userId = userViewModel.getUserAttribute("userId", context) ?: ""
+                                    appointmentViewModel.cancelAppointment(appt.id, userId)
+                                    lastLongPressAppointmentId = "" // Reset
+                                } else {
+                                    // First long press
+                                    SoundManager.playTap()
+                                    vibrate(context)
+                                    lastLongPressAppointmentId = appt.id
+                                    coroutineScope.launch {
+                                        FocusTTS.speak("Đây là thao tác hủy lịch hẹn, nhấn giữ vào màn hình lần nữa để xác nhận hủy lịch hẹn")
+                                    }
+                                }
                             }
                         }
                     }
@@ -166,6 +215,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                             if (offsetY < 0) { // Swipe Up -> Next
                                 if (selectedAppointmentIndex < filteredAppointments.size - 1) {
                                     selectedAppointmentIndex++
+                                    lastLongPressAppointmentId = ""
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     coroutineScope.launch {
@@ -179,6 +229,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                             } else { // Swipe Down -> Previous
                                 if (selectedAppointmentIndex > 0) {
                                     selectedAppointmentIndex--
+                                    lastLongPressAppointmentId = ""
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     coroutineScope.launch {
@@ -199,6 +250,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                     if (offsetX > dragThreshold && kotlin.math.abs(offsetX) > kotlin.math.abs(offsetY)) {
                         SoundManager.playSwipe()
                         vibrate(context)
+                        lastLongPressAppointmentId = ""
                         navHostController.popBackStack()
                         hasSwipedInCurrentGesture = true
                         offsetX = 0f
@@ -253,7 +305,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
             Spacer(modifier = Modifier.weight(1f))
             
             Text(
-                text = "Vuốt lên/xuống: Chuyển lịch\nChạm 1 lần: Nghe thông tin\nChạm 2 lần: Đổi trạng thái\nVuốt phải: Quay lại",
+                text = "Vuốt lên/xuống: Chuyển lịch\nChạm 1 lần: Nghe thông tin\nChạm 2 lần: Đổi trạng thái\nNhấn giữ: Hủy lịch (Nếu đang ở Đã đặt)\nVuốt phải: Quay lại",
                 fontSize = 16.sp,
                 color = Color.Gray,
                 lineHeight = 24.sp
