@@ -306,6 +306,9 @@ class HomeBlindActivity : BaseActivity() {
             composable("booking_blind") {
                 BookingBlindScreen(navHostController)
             }
+            composable("appointment_blind") {
+                AppointmentBlindScreen(navHostController)
+            }
             composable("other_user_profile") {
                 DoctorScreen(context, navHostController)
             }

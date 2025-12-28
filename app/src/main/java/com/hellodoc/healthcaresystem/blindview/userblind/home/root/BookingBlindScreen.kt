@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
@@ -74,6 +75,7 @@ fun BookingBlindScreen(
     var offsetY by remember { mutableFloatStateOf(0f) }
     val horizontalThreshold = 150f
     val verticalThreshold = 100f
+    val dragThreshold = 100f
 
     // Derived filtering logic
     val doctorWorkingDays = remember(doctorDetail) {
@@ -230,7 +232,7 @@ fun BookingBlindScreen(
                             when (currentStep) {
                                 BookingStep.INITIAL -> {
                                     currentStep = BookingStep.SELECT_SPECIALTY
-                                    FocusTTS.speakAndWait("Để tiến hành đặt lịch hãy chạm vào màn hình để chọn chuyên ngành đang hiển thị, vuốt lên hoặc xuống để chuyển chuyên ngành, chạm hai lần để quay lại.")
+                                    FocusTTS.speakAndWait("Để tiến hành đặt lịch hãy chạm vào màn hình để chọn chuyên ngành đang hiển thị, vuốt lên hoặc xuống để chuyển chuyên ngành, lướt sang phải để quay lại trang chủ, lướt sang trái để xem lịch khám.")
                                     if (specialties.isNotEmpty()) {
                                         FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
                                     } else {
@@ -299,7 +301,7 @@ fun BookingBlindScreen(
                                     if (selectedSlot != null && selectedTime != null) {
                                         appointmentViewModel.createAppointment(
                                             token,
-                                            com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest(
+                                            CreateAppointmentRequest(
                                                 doctorID = selectedDoctor.id,
                                                 patientID = patientID,
                                                 patientModel = patientModel,
@@ -331,89 +333,109 @@ fun BookingBlindScreen(
                         hasSwipedInCurrentGesture = false
                     }
                 ) { change, dragAmount ->
-                    offsetX += dragAmount.x
-                    offsetY += dragAmount.y
+                    if (hasSwipedInCurrentGesture) return@detectDragGestures
 
-                     // Vertical Swipe to Cycle Items
-                    if (kotlin.math.abs(offsetY) > verticalThreshold && !hasSwipedInCurrentGesture) {
-                        if (offsetY < 0) { // Swipe Up -> Next
-                            hasSwipedInCurrentGesture = true
-                            when (currentStep) {
-                                BookingStep.SELECT_SPECIALTY -> {
-                                    if (specialties.isNotEmpty()) {
-                                        specialtyIndex = (specialtyIndex + 1) % specialties.size
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
-                                    }
-                                }
-                                BookingStep.SELECT_DOCTOR -> {
-                                    if (doctors.isNotEmpty()) {
-                                        doctorIndex = (doctorIndex + 1) % doctors.size
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
-                                    }
-                                }
-                                BookingStep.SELECT_DATE -> {
-                                    if (filteredAvailableSlots.isNotEmpty()) {
-                                        selectedDateIndex = (selectedDateIndex + 1) % filteredAvailableSlots.size
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        val slot = filteredAvailableSlots[selectedDateIndex]
-                                        FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
-                                    }
-                                }
-                                BookingStep.SELECT_TIME -> {
-                                    if (filteredTimeSlots.isNotEmpty()) {
-                                        selectedTimeIndex = (selectedTimeIndex + 1) % filteredTimeSlots.size
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
-                                    }
-                                }
-                                else -> {}
+                    val dragX = dragAmount.x
+                    val dragY = dragAmount.y
+
+                    // Horizontal Swipe (Screen Navigation)
+                    if (kotlin.math.abs(dragX) > kotlin.math.abs(dragY)) {
+                        offsetX += dragX
+                        if (kotlin.math.abs(offsetX) > dragThreshold) {
+                            if (offsetX < 0) { // Swipe Left -> Appointments
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.navigate("appointment_blind")
+                            } else { // Swipe Right -> Home
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.popBackStack()
                             }
-                        } else { // Swipe Down -> Previous
                             hasSwipedInCurrentGesture = true
-                            when (currentStep) {
-                                BookingStep.SELECT_SPECIALTY -> {
-                                    if (specialties.isNotEmpty()) {
-                                        specialtyIndex = if (specialtyIndex > 0) specialtyIndex - 1 else specialties.size - 1
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
-                                    }
-                                }
-                                BookingStep.SELECT_DOCTOR -> {
-                                    if (doctors.isNotEmpty()) {
-                                        doctorIndex = if (doctorIndex > 0) doctorIndex - 1 else doctors.size - 1
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
-                                    }
-                                }
-                                BookingStep.SELECT_DATE -> {
-                                    if (filteredAvailableSlots.isNotEmpty()) {
-                                        selectedDateIndex = if (selectedDateIndex > 0) selectedDateIndex - 1 else filteredAvailableSlots.size - 1
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        val slot = filteredAvailableSlots[selectedDateIndex]
-                                        FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
-                                    }
-                                }
-                                BookingStep.SELECT_TIME -> {
-                                    if (filteredTimeSlots.isNotEmpty()) {
-                                        selectedTimeIndex = if (selectedTimeIndex > 0) selectedTimeIndex - 1 else filteredTimeSlots.size - 1
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
-                                    }
-                                }
-                                else -> {}
-                            }
+                            offsetX = 0f
                         }
-                        offsetY = 0f
+                    } else {
+                        // Vertical Swipe (Item Navigation)
+                        offsetY += dragY
+                        if (kotlin.math.abs(offsetY) > dragThreshold) {
+                            if (offsetY < 0) { // Swipe Up -> Next
+                                when (currentStep) {
+                                    BookingStep.SELECT_SPECIALTY -> {
+                                        if (specialties.isNotEmpty()) {
+                                            specialtyIndex = (specialtyIndex + 1) % specialties.size
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_DOCTOR -> {
+                                        if (doctors.isNotEmpty()) {
+                                            doctorIndex = (doctorIndex + 1) % doctors.size
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_DATE -> {
+                                        if (filteredAvailableSlots.isNotEmpty()) {
+                                            selectedDateIndex = (selectedDateIndex + 1) % filteredAvailableSlots.size
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            val slot = filteredAvailableSlots[selectedDateIndex]
+                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_TIME -> {
+                                        if (filteredTimeSlots.isNotEmpty()) {
+                                            selectedTimeIndex = (selectedTimeIndex + 1) % filteredTimeSlots.size
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
+                                        }
+                                    }
+                                    else -> {}
+                                }
+                            } else { // Swipe Down -> Previous
+                                when (currentStep) {
+                                    BookingStep.SELECT_SPECIALTY -> {
+                                        if (specialties.isNotEmpty()) {
+                                            specialtyIndex = if (specialtyIndex > 0) specialtyIndex - 1 else specialties.size - 1
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị chuyên ngành ${specialties[specialtyIndex].name}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_DOCTOR -> {
+                                        if (doctors.isNotEmpty()) {
+                                            doctorIndex = if (doctorIndex > 0) doctorIndex - 1 else doctors.size - 1
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị bác sĩ ${doctors[doctorIndex].name}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_DATE -> {
+                                        if (filteredAvailableSlots.isNotEmpty()) {
+                                            selectedDateIndex = if (selectedDateIndex > 0) selectedDateIndex - 1 else filteredAvailableSlots.size - 1
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            val slot = filteredAvailableSlots[selectedDateIndex]
+                                            FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
+                                        }
+                                    }
+                                    BookingStep.SELECT_TIME -> {
+                                        if (filteredTimeSlots.isNotEmpty()) {
+                                            selectedTimeIndex = if (selectedTimeIndex > 0) selectedTimeIndex - 1 else filteredTimeSlots.size - 1
+                                            SoundManager.playSwipe()
+                                            vibrate(context)
+                                            FocusTTS.speak("Đang hiển thị ${filteredTimeSlots[selectedTimeIndex].displayTime}")
+                                        }
+                                    }
+                                    else -> {}
+                                }
+                            }
+                            hasSwipedInCurrentGesture = true
+                            offsetY = 0f
+                        }
                     }
                 }
             },

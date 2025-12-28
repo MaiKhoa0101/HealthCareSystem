@@ -21,7 +21,7 @@ data class AppointmentResponse(
         @SerializedName("_id")
         val id: String,
         val name: String,
-        val specialty: Specialty,
+        val specialty: String,
         val avatarURL: String
     )
 
