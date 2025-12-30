@@ -188,8 +188,7 @@ HelloDoc/
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/vuphuong1794/HelloDoc_BE_Microservices
-
+git clone https://github.com/MaiKhoa0101/HealthCareSystem
 ```
 
 ### 2. Cài đặt Frontend (Kotlin)
