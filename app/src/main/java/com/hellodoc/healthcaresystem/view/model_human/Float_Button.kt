@@ -70,36 +70,21 @@ fun Floating3DAssistant(
     ) {
         // Nội dung bên trong
         if (isExpanded) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                // --- TRẠNG THÁI MỞ RỘNG ---
-                Box(
-                    modifier = Modifier
-                        .padding(3.dp)
-                        .clip(CircleShape)
-                        .fillMaxSize(),
-                ) {
-                    // 1. Màn hình 3D
-                    SignLanguageAnimatableScreen(
-                        engine = engine,
-                        modelInstance = modelInstance,
-                        environment = environment
-                    )
-                    // 2. Nút X (Đóng) - Góc trên trái
-                    IconButton(
-                        onClick = { onExpandChange(false) },
-                        modifier = Modifier
-                            .align(Alignment.TopStart) // Căn góc trên trái
-                            .padding(top = 20.dp, start = 20.dp) // Thụt vào một chút cho đẹp
-                            .size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(20.dp)
-                        )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .clickable{
+                        onExpandChange(false)
                     }
-                }
+            ) {
+                // 1. Màn hình 3D
+                SignLanguageAnimatableScreen(
+                    engine = engine,
+                    modelInstance = modelInstance,
+                    environment = environment
+                )
             }
         } else {
             // --- TRẠNG THÁI THU NHỎ (ICON) ---

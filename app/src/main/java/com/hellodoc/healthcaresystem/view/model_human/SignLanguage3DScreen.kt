@@ -6,12 +6,14 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -96,7 +98,7 @@ fun SignLanguageAnimatableScreen(
             )
 
             // Giữ ở frame cuối 500ms trước khi chuyển
-            delay(100)
+            delay(50)
 
             // Reset về 0 và chuyển frame
             frameProgress.snapTo(0f)
@@ -175,14 +177,11 @@ fun SignLanguageAnimatableScreen(
         if (characterNode != null) listOf(characterNode!!) else emptyList()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.clip(CircleShape)) {
         if (modelInstance == null || isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else {
             Scene(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent),
                 engine = engine,
                 mainLightNode = rememberMainLightNode(engine) {
                     intensity = 70_000.0f
@@ -192,7 +191,8 @@ fun SignLanguageAnimatableScreen(
                     position = Position(z = 2f)
                 },
                 childNodes = childNodes,
-                environment = environment!!
+                environment = environment!!,
+                modifier = Modifier.clip(CircleShape)
             )
         }
 
