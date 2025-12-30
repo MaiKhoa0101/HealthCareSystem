@@ -68,6 +68,7 @@ import com.hellodoc.healthcaresystem.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.user.home.doctor.DoctorScreen
+import com.hellodoc.healthcaresystem.user.home.fasttalk.FastTalk
 import com.hellodoc.healthcaresystem.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.user.personal.CommentHistoryScreen
 import com.hellodoc.healthcaresystem.user.personal.FavouriteHistoryScreen
@@ -284,6 +285,9 @@ class HomeActivity : BaseActivity() {
             startDestination = defaultDestination,
             modifier = modifier
         ) {
+            composable("fast_talk") {
+                FastTalk(navHostController, sharedPreferences, userViewModel, context)
+            }
             composable("home") {
                 HealthMateHomeScreen(
                     modifier = Modifier.fillMaxSize(),

@@ -242,9 +242,11 @@ fun HealthMateHomeScreen(
                     }
                 } else {
                     SectionHeader(title = "Dịch vụ toàn diện")
+                    println("Dich vụ gồm: "+medicalOptionState)
                     GridServiceList(medicalOptionState) { medicalOption ->
                         when (medicalOption.name) {
-                            "Tính BMI" -> navHostController.navigate("bmi-checking")
+                            "Tính BMI" -> navHostController.navigate("bmi-checking4")
+                            "Fast Talk" -> navHostController.navigate("fast_talk")
                             else -> {
 
                             }
@@ -810,14 +812,22 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
                         Box(
                             modifier = Modifier
                                 .weight(1f)
+                                .clickable { onClick(item) }
                                 .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp))
                                 .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
                                 .padding(16.dp)
-                                .clickable { onClick(item) }
+
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.doctor),
+                                    painter = painterResource(id =
+                                        if (item.name == "Tính BMI") {
+                                            R.drawable.doctor
+                                        }
+                                        else {
+                                            R.drawable.speak
+                                        }
+                                    ),
                                     contentDescription = item.name,
                                     modifier = Modifier.size(40.dp),
                                     contentScale = ContentScale.Fit
@@ -828,6 +838,7 @@ fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalO
                         }
                     }
                 }
+
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
