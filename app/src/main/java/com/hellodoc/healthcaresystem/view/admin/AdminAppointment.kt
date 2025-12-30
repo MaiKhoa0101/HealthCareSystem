@@ -169,7 +169,7 @@ fun TableDesign(
                             TableCell(row.doctor?.name ?: "trống", 100)
                             TableCell(row.patient?.id ?: "trống", 80)
                             TableCell(row.patient?.name ?: "trống", 100)
-                            TableCell(row.doctor?.specialty?.name ?: "trống", 120)
+                            TableCell(row.doctor?.specialty ?: "trống", 120)
                             TableCell(row.notes ?: "trống", 150)
                             TableCell(row.time ?: "trống", 80)
                             TableCell(row.date ?: "trống", 100)

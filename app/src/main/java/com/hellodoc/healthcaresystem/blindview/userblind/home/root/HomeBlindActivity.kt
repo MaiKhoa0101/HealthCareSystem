@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -149,6 +150,14 @@ class HomeBlindActivity : BaseActivity() {
             HealthCareSystemTheme(darkTheme = darkTheme) {
                 val context = LocalContext.current
                 FocusTTS.init(context)
+                com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager.init(context)
+
+                DisposableEffect(Unit) {
+                    onDispose {
+                        FocusTTS.shutdown()
+                        com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager.release()
+                    }
+                }
 
                 Index(
                     context = context,
@@ -305,6 +314,16 @@ class HomeBlindActivity : BaseActivity() {
             }
             composable("booking_blind") {
                 BookingBlindScreen(navHostController)
+            }
+            composable(
+                "rebooking_blind/{doctorId}/{specialtyName}"
+            ) { backStackEntry ->
+                val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                val specialtyName = backStackEntry.arguments?.getString("specialtyName") ?: ""
+                ReBookingBlindScreen(navHostController, doctorId = doctorId, specialtyName = specialtyName)
+            }
+            composable("appointment_blind") {
+                AppointmentBlindScreen(navHostController)
             }
             composable("other_user_profile") {
                 DoctorScreen(context, navHostController)

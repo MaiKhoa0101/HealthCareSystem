@@ -9,7 +9,6 @@ fun AppointmentResponse.toEntity(): AppointmentEntity {
         id = this.id ?: "",
         patientId = this.patient?.id ?: "", // Thêm null check
         doctorId = this.doctor?.id ?: "", // Thêm null check
-        specialtyId = this.doctor?.specialty?.id ?: "", // Thêm null check
         appointmentDate = this.date ?: "",
         appointmentTime = this.time ?: "",
         status = this.status ?: "SCHEDULED",
@@ -22,7 +21,7 @@ fun AppointmentResponse.toEntity(): AppointmentEntity {
         doctorAvatarUrl = this.doctor?.avatarURL,
         patientName = this.patient?.name,
         patientAvatarUrl = this.patient?.avatarURL,
-        specialtyName = this.doctor?.specialty?.name
+        specialtyName = this.doctor?.specialty
     )
 }
 
@@ -33,7 +32,6 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             id = this.id ?: "",
             patientId = this.patient?.id ?: "",
             doctorId = this.doctor?.id ?: "",
-            specialtyId = this.doctor?.specialty?.id ?: "",
             appointmentDate = this.date ?: "",
             appointmentTime = this.time ?: "",
             status = this.status ?: "SCHEDULED",
@@ -46,7 +44,7 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             doctorAvatarUrl = this.doctor?.avatarURL,
             patientName = this.patient?.name,
             patientAvatarUrl = this.patient?.avatarURL,
-            specialtyName = this.doctor?.specialty?.name
+            specialtyName = this.doctor?.specialty
         )
     } catch (e: Exception) {
         println("Lỗi convert appointment ${this.id}: ${e.message}")
@@ -57,7 +55,6 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             id = this.id ?: "ERROR_${System.currentTimeMillis()}",
             patientId = "",
             doctorId = "",
-            specialtyId = "",
             appointmentDate = this.date ?: "",
             appointmentTime = this.time ?: "",
             status = "ERROR",
@@ -82,10 +79,7 @@ fun AppointmentEntity.toResponse(): AppointmentResponse {
         doctor = AppointmentResponse.Doctor(
             id = this.doctorId,
             name = this.doctorName ?: "",
-            specialty = AppointmentResponse.Specialty(
-                id = this.specialtyId,
-                name = this.specialtyName ?: ""
-            ),
+            specialty = this.specialtyName ?: "",
             avatarURL = this.doctorAvatarUrl ?: ""
         ),
         patientModel = "",
