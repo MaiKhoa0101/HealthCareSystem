@@ -38,7 +38,8 @@ import kotlinx.coroutines.Job
 
 // Quản lý API keys
 object ApiKeyManager {
-    private val apiKeys = arrayOf("AIzaSyDGTD08pxzMfQL5yaMQntHNEYOO7Wrz0L8")
+    //Lấy trong localproperty
+    private val apiKeys = BuildConfig.API_KEYS.split(",").map { it.trim() }
 
     private var currentIndex = 0
     private val invalidKeys = mutableSetOf<Int>()
