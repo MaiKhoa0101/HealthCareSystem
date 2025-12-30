@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -237,9 +238,69 @@ fun HealthMateHomeScreen(
             item(key = "header") {
                 Column(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.background
+                                )
+                            )
+                        )
                         .padding(16.dp)
                 ) {
+                    // Header with Greeting and Profile
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Chào mừng quay lại, 👋",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = user?.name ?: "Người dùng",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            )
+                        }
+
+                        // Profile Icon
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .shadow(4.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable { navHostController.navigate("profile") }
+                        ) {
+                            if (!user?.avatarURL.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(user?.avatarURL)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "User Avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.doctor), // Fallback to a default icon
+                                    contentDescription = "User Avatar",
+                                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
+                    // AI Search Bar
                     AssistantQueryRow(
                         navHostController = navHostController,
                         onSubmit = { query ->
@@ -247,15 +308,15 @@ fun HealthMateHomeScreen(
                             showDialog = true
                         }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     if (newsState.isEmpty()) {
-//                        EmptyList("tin mới")
                         NewsSkeletonList()
                     } else {
-                        MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
+                        MarqueeNewsTicker(user = user, newsList = newsState, navHostController = navHostController)
                     }
                 }
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
             }
 
             item(key = "services") {
@@ -519,113 +580,125 @@ fun MarqueeNewsTicker(
 ) {
     var showAllNews by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (!showAllNews) {
-            val firstHalf = newsList.take(newsList.size / 2)
-            val secondHalf = newsList.drop(newsList.size / 2)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+        shadowElevation = 2.dp
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            if (!showAllNews) {
+                val firstHalf = newsList.take(newsList.size / 2)
+                val secondHalf = newsList.drop(newsList.size / 2)
 
-            var firstIndex by remember { mutableStateOf(0) }
-            var secondIndex by remember { mutableStateOf(0) }
+                var firstIndex by remember { mutableStateOf(0) }
+                var secondIndex by remember { mutableStateOf(0) }
 
-            LaunchedEffect(firstIndex, firstHalf) {
-                if (firstHalf.isNotEmpty()) {
-                    while (!showAllNews) {
-                        val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
-                        val delayTime = calculateDynamicDelay(currentTitle)
-                        delay(delayTime)
-                        firstIndex = (firstIndex + 1) % firstHalf.size
+                LaunchedEffect(firstIndex, firstHalf) {
+                    if (firstHalf.isNotEmpty()) {
+                        while (!showAllNews) {
+                            val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                            val delayTime = calculateDynamicDelay(currentTitle)
+                            delay(delayTime)
+                            firstIndex = (firstIndex + 1) % firstHalf.size
+                        }
                     }
                 }
-            }
 
-            LaunchedEffect(secondIndex, secondHalf) {
-                if (secondHalf.isNotEmpty()) {
-                    while (!showAllNews) {
-                        val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
-                        val delayTime = calculateDynamicDelay(currentTitle)
-                        delay(delayTime)
-                        secondIndex = (secondIndex + 1) % secondHalf.size
+                LaunchedEffect(secondIndex, secondHalf) {
+                    if (secondHalf.isNotEmpty()) {
+                        while (!showAllNews) {
+                            val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                            val delayTime = calculateDynamicDelay(currentTitle)
+                            delay(delayTime)
+                            secondIndex = (secondIndex + 1) % secondHalf.size
+                        }
                     }
                 }
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(Color.Red) // Hot news indicator
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                        "Id_user" to user?.id,
+                                        "name_user" to user?.name,
+                                        "reading_new_id" to firstHalf[firstIndex].id
+                                    ))
+                                    firstHalf.getOrNull(firstIndex)?.let { news ->
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                        navHostController.navigate("news_detail")
+                                    }
+                                }
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                    spacing = MarqueeSpacing(50.dp),
+                                    velocity = 50.dp,
+                                ),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            maxLines = 1,
+                        )
+                    }
+                    if (secondHalf.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                        "Id_user" to user?.id,
+                                        "name_user" to user?.name,
+                                        "reading_new_id" to secondHalf[secondIndex].id
+                                    ))
+                                    secondHalf.getOrNull(secondIndex)?.let { news ->
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                        navHostController.navigate("news_detail")
+                                    }
+                                }
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                    spacing = MarqueeSpacing(50.dp),
+                                    velocity = 50.dp,
+                                ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
+                            maxLines = 1,
+                        )
+                    }
+                }
+            } else {
+                NewsItemList(newsList = newsList, navHostController = navHostController)
             }
 
-            // Nội dung marquee
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            firebaseAnalytics.logEvent("reading_news", bundleOf(
-                                "Id_user" to user?.id,
-                                "name_user" to user?.name,
-                                "reading_new_id" to firstHalf[firstIndex].id
-                            ))
-                            firstHalf.getOrNull(firstIndex)?.let { news ->
-                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                                navHostController.navigate("news_detail")
-                            }
-                        }
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                            spacing = MarqueeSpacing(50.dp),
-                            velocity = 50.dp,
-                        ),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Divider(color = MaterialTheme.colorScheme.onBackground, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            firebaseAnalytics.logEvent("reading_news", bundleOf(
-                                "Id_user" to user?.id,
-                                "name_user" to user?.name,
-                                "reading_new_id" to secondHalf[secondIndex].id
-                            ))
-                            secondHalf.getOrNull(secondIndex)?.let { news ->
-                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                                navHostController.navigate("news_detail")
-                            }
-                        }
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                            spacing = MarqueeSpacing(50.dp),
-                            velocity = 50.dp,
-                        ),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
+            IconButton(
+                onClick = { showAllNews = !showAllNews },
+                modifier = Modifier.align(Alignment.CenterHorizontally).size(24.dp)
+            ) {
+                Icon(
+                    imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-        } else {
-            NewsItemList(newsList = newsList, navHostController = navHostController)
-        }
-
-        // Nút xem thêm luôn nằm dưới cùng, tách riêng
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Icon(
-                imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .clickable { showAllNews = !showAllNews }
-                    .size(30.dp)
-            )
         }
     }
 }
@@ -636,14 +709,32 @@ fun showToast(context: Context, message: String) {
 }
 
 @Composable
-fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        fontSize = 20.sp,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(8.dp)
-    )
+fun SectionHeader(title: String, onSeeAllClick: (() -> Unit)? = null) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        )
+        if (onSeeAllClick != null) {
+            Text(
+                text = "Xem tất cả",
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.clickable { onSeeAllClick() }
+            )
+        }
+    }
 }
 
 @Composable
@@ -692,42 +783,45 @@ fun AssistantQueryRow(
     onSubmit: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-    Row(
+    OutlinedTextField(
+        value = text,
+        onValueChange = { text = it },
+        placeholder = { Text("Bạn đang gặp vấn đề gì?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = R.drawable.speak), // Replace with a search icon if available
+                contentDescription = "AI Assistant Icon",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        trailingIcon = {
+            if (text.isNotBlank()) {
+                IconButton(onClick = {
+                    navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
+                    text = ""
+                    navHostController.navigate("gemini_help")
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.DoubleArrow,
+                        contentDescription = "Submit question",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        },
+        shape = RoundedCornerShape(24.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+        ),
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.fillMaxWidth(0.9f)) {
-            TextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text("Đặt câu hỏi cho Trợ lý AI", color = MaterialTheme.colorScheme.onBackground) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.background,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.background
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Icon(
-            imageVector = Icons.Default.DoubleArrow,
-            contentDescription = "submit question for AI",
-            modifier = Modifier
-                .size(20.dp)
-                .clickable {
-                    if (text.isNotBlank()) {
-                        navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
-                        text = ""
-                        navHostController.navigate("gemini_help")
-                    }
-                },
-            tint = MaterialTheme.colorScheme.onBackground
-        )
-    }
+            .shadow(4.dp, RoundedCornerShape(24.dp)),
+        singleLine = true
+    )
 }
 
 @Composable
@@ -744,7 +838,7 @@ fun NewsSkeletonItem() {
                 .padding(end = 32.dp),
         )
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
     }
 }
 
@@ -782,7 +876,7 @@ fun NewsItem(
             )
         }
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
     }
 }
 @Composable
@@ -833,41 +927,61 @@ fun ServiceSkeletonGrid() {
 fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 rowItems.forEach { item ->
                     key(item) {
-                        Box(
+                        Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onClick(item) }
-                                .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp))
-                                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
-                                .padding(16.dp)
-
+                                .height(90.dp)
+                                .clickable { onClick(item) },
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White,
+                            tonalElevation = 2.dp,
+                            shadowElevation = 4.dp
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = painterResource(id =
-                                        if (item == "Tính BMI") {
-                                            R.drawable.doctor
-                                        }
-                                        else {
-                                            R.drawable.speak
-                                        }
-                                    ),
-                                    contentDescription = item,
-                                    modifier = Modifier.size(40.dp),
-                                    contentScale = ContentScale.Fit
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(
+                                            id = if (item == "Tính BMI") R.drawable.doctor else R.drawable.speak
+                                        ),
+                                        contentDescription = item,
+                                        modifier = Modifier.size(32.dp),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = item,
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(text = item, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }
                 }
-
+                if (rowItems.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -951,46 +1065,23 @@ fun SpecialtyList(
     val displayedSpecialties = if (showAllSpecialties) specialties else specialties.take(6)
 
     Column {
-        // Header row with title and "See more" button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Chuyên khoa",
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
-
-            if (specialties.size > 6) {
-                Text(
-                    text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable { showAllSpecialties = !showAllSpecialties }
-                        .padding(start = 8.dp)
-                )
-            }
-        }
+        SectionHeader(
+            title = "Chuyên khoa",
+            onSeeAllClick = if (specialties.size > 6) { { showAllSpecialties = !showAllSpecialties } } else null
+        )
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier.padding(vertical = 8.dp)
         ) {
-            item { Spacer(modifier = Modifier.width(8.dp)) }
-            items(displayedSpecialties,  key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
+            items(displayedSpecialties, key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
                 SpecialtyItem(
                     navHostController = navHostController,
                     specialty = specialty,
                     onClick = { showToast(context, "Đã chọn: ${specialty.name}") }
                 )
             }
-            item { Spacer(modifier = Modifier.width(8.dp)) }
         }
     }
 }
@@ -1001,13 +1092,15 @@ fun SpecialtyItem(
     specialty: GetSpecialtyResponse,
     onClick: () -> Unit
 ) {
-    Box(
+    Surface(
         modifier = Modifier
-            .width(150.dp)
-            .height(130.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
+            .width(110.dp)
+            .height(150.dp)
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(28.dp),
+                clip = false
+            )
             .clickable {
                 firebaseAnalytics.logEvent("specialty_selected", bundleOf(
                     "ID_specialty" to specialty.id,
@@ -1016,51 +1109,68 @@ fun SpecialtyItem(
                 onClick()
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyId", specialty.id)
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyName", specialty.name)
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyDesc", specialty.description)
                 }
                 navHostController.navigate("doctor_list")
-            }
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
+            },
+        shape = RoundedCornerShape(28.dp),
+        color = Color.White,
+        tonalElevation = 4.dp
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(12.dp)
         ) {
-            if (!specialty.icon.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(specialty.icon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.doctor),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
+            // Icon Container
+            Box(
+                modifier = Modifier
+                    .size(75.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                            )
+                        ),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!specialty.icon.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(specialty.icon)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = specialty.name,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.doctor),
+                        contentDescription = specialty.name,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(5.dp))
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
             Text(
                 text = specialty.name,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp,
+                    fontSize = 13.sp
                 ),
-                modifier = Modifier.fillMaxWidth(), // Đảm bảo chiếm hết chiều rộng để căn giữa chính xác
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis, // Thêm dấu "..." nếu quá 2 dòng
-                softWrap = true // Cho phép xuống dòng mềm
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -1149,44 +1259,24 @@ fun DoctorList(
     var showAllDoctors by remember { mutableStateOf(false) }
     val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
 
-    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Bác sĩ nổi bật",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            if (doctors.size > 6) {
-                Text(
-                    text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable { showAllDoctors = !showAllDoctors }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        SectionHeader(
+            title = "Bác sĩ nổi bật",
+            onSeeAllClick = if (doctors.size > 6) { { showAllDoctors = !showAllDoctors } } else null
+        )
+
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .padding(vertical = 8.dp)
         ) {
-            items(displayedDoctors,  key = { doctor -> "doctor_${doctor.id}" }) { doctor ->
+            items(displayedDoctors, key = { doctor -> "doctor_${doctor.id}" }) { doctor ->
                 DoctorItem(doctor) {
                     firebaseAnalytics.logEvent("doctor_selected", bundleOf(
                         "doctor_id" to doctor.id,
@@ -1200,60 +1290,69 @@ fun DoctorList(
             }
         }
     }
-    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
 }
 
 @Composable
 fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
-    Column(
+    Surface(
         modifier = Modifier
-            .width(120.dp)
-            .clickable { onClick() }
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(140.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp
     ) {
-        if (!doctor.avatarURL.isNullOrBlank()) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(doctor.avatarURL)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = doctor.name,
-                contentScale = ContentScale.Crop,
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
                 modifier = Modifier
-                    .size(90.dp)
+                    .size(80.dp)
                     .clip(CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+            ) {
+                if (!doctor.avatarURL.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(doctor.avatarURL)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.doctor),
+                        contentDescription = doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = doctor.name,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.doctor),
-                contentDescription = doctor.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+            Text(
+                text = doctor.specialty.name,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = doctor.name,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = doctor.specialty.name,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 
