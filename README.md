@@ -78,36 +78,6 @@ HelloDoc là hệ thống diễn đàn cộng đồng và đặt lịch khám b�
 
 ---
 
-## 🏗️ Kiến trúc hệ thống
-
-```
-HelloDoc/
-├── backend/              # NestJS API (Microservices)
-│   ├── src/
-│   │   ├── auth/        # Xác thực & JWT
-│   │   ├── posts/       # Quản lý bài viết
-│   │   ├── appointments/ # Đặt lịch khám
-│   │   ├── ai/          # Tích hợp AI/ML models
-│   │   └── accessibility/ # Các service hỗ trợ người khuyết tật
-│   └── ...
-├── web-admin/           # Nuxt.js Dashboard
-│   ├── pages/
-│   ├── components/
-│   └── ...
-├── mobile-app/          # Kotlin + Jetpack Compose
-│   ├── app/src/main/
-│   │   ├── auth/
-│   │   ├── Pages/
-│   │   ├── components/
-│   │   ├── player/      # ExoPlayer media player
-│   │   └── ViewModel/
-│   └── ...
-└── db/                  # Database schemas
-    ├── mongodb/         # Dữ liệu chính
-    ├── qdrant/          # Vector embeddings
-    ├── neo4j/           # Graph data
-    └── redis/           # Cache
-```
 
 ### Stack công nghệ
 
