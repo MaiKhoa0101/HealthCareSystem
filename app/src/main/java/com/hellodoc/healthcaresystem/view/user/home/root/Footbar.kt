@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -54,38 +58,68 @@ import androidx.navigation.NavHostController
 import kotlin.math.roundToInt
 
 @Composable
-fun FootBar(currentRoute: String?,navHostController: NavHostController) {
+fun FootBar(currentRoute: String?, navHostController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(110.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.TopCenter
+            .navigationBarsPadding()
+            .height(105.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        // Bottom bar with icons
-        Row(
+        // Transparent gradient overlay for smooth transition
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(105.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
+                )
+        )
 
-                .padding(horizontal = 16.dp).padding(bottom = 15.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Top,
-
+        // The background bar with premium styling
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                    clip = false
+                ),
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            tonalElevation = 8.dp
         ) {
-            BoxItem(nameRoute = "Trang chủ", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
-            BoxItem(nameRoute = "Lịch hẹn", icon = "lichhen","appointment", navHostController,currentRoute)
-            Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(nameRoute = "Thông báo", icon = "thongbao","notification", navHostController,currentRoute)
-            BoxItem(nameRoute = "Cá nhân", icon = "canhan","personal", navHostController,currentRoute)
+            // Bottom bar with icons
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BoxItem(nameRoute = "Trang chủ", icon = "trangchu", nameDirection = "home", navHostController, currentRoute)
+                BoxItem(nameRoute = "Lịch hẹn", icon = "lichhen", "appointment", navHostController, currentRoute)
+                
+                Spacer(modifier = Modifier.width(56.dp)) // Space for FAB
+                
+                BoxItem(nameRoute = "Thông báo", icon = "thongbao", "notification", navHostController, currentRoute)
+                BoxItem(nameRoute = "Cá nhân", icon = "canhan", "personal", navHostController, currentRoute)
+            }
         }
 
-        // Floating button in the center
+        // Floating button - Premium brand colors
         CircleButton(
-            onClick = {navHostController.navigate("create_post")},
+            onClick = { navHostController.navigate("create_post") },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = -30.dp), // Elevate the button
+                .offset(y = 4.dp), 
         )
     }
 }
@@ -109,16 +143,13 @@ fun CircleButton(
         label = "angleAnim"
     )
 
-    // Gradient nhiều màu chạy quanh border
-    val brush = Brush.sweepGradient(
+    // Brand-aligned gradient
+    val brandBrush = Brush.sweepGradient(
         colors = listOf(
-            Color.Magenta,
-            Color.Cyan,
-            Color.Green,
-            Color.Yellow,
-            Color.Red,
-            Color.Blue,
-            Color.Magenta // nối liền
+            Color(0xFFFFD846), // HelloDocYellow
+            Color(0xFFFF9F43), // Accent
+            Color(0xFFFFFFFF), // Amber
+            Color(0xFFFFFFFF)
         ),
         center = Offset.Zero
     )
@@ -126,25 +157,26 @@ fun CircleButton(
     Box(
         modifier = modifier
             .size(size)
+            .shadow(12.dp, CircleShape)
             .graphicsLayer {
                 rotationZ = angle // xoay gradient
             }
             .border(
-                width = 4.dp,
-                brush = brush,
+                width = 3.dp,
+                brush = brandBrush,
                 shape = CircleShape
             )
             .graphicsLayer {
                 rotationZ = -angle // giữ icon + background không xoay theo
             }
-            .background(backgroundColor, shape = CircleShape)
+            .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Add",
-            tint = MaterialTheme.colorScheme.onBackground,
+            tint = Color.Black,
             modifier = Modifier.size(size * 0.5f)
         )
     }
@@ -196,9 +228,9 @@ fun BoxItem(
         modifier = modifier
             .offset { IntOffset(0, offsetY.roundToInt()) }
             .alpha(alpha)
-            .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(backgroundColor)
-            .size(70.dp)
+            .padding(vertical = 4.dp, horizontal = 12.dp)
             .clickable {
                 if (nameDirection.isNotEmpty()) {
                     navHostController.navigate(nameDirection) {
@@ -216,15 +248,17 @@ fun BoxItem(
         Icon(
             imageVector = iconchange,
             contentDescription = null,
-            modifier = Modifier.height(20.dp),
-            tint = MaterialTheme.colorScheme.onBackground
+            modifier = Modifier.size(24.dp),
+            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = nameRoute,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+            )
         )
     }
 }

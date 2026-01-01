@@ -12,54 +12,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    //Màu chủ đạo app chế độ tối (xám đen)
+    primary = HelloDocYellow,
+    onPrimary = Color.Black,
     primaryContainer = BoxGrey,
-    //Đối tượng trên nền màu chủ đạo
     onPrimaryContainer = Color.White,
-    //Màu nền phần nội dung (xám đen tối)
-    background = Color(0xFF2A2A2A),
-    //Đối tượng trên background (trắng)
-    onBackground = Color(0xFFFFFFFF),
-    //Màu nền nội dung cấp 2
-    secondary = LightDarkTheme,
-//    onSecondary = Color.DarkGray,
-    //Màu nền nội dung cấp 2 (xám tối) thường dùng cho các card nằm trên background
+    background = Color(0xFF121212), // Deep black for gold/yellow contrast
+    onBackground = Color.White,
+    secondary = HelloDocYellow.copy(alpha = 0.7f),
     secondaryContainer = BoxLightGrey,
-    // Nội dung trên card
-    onSecondaryContainer = onSecondDarkContainer,
-    //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
+    onSecondaryContainer = Color.White,
+    tertiary = AmberCustom,
     tertiaryContainer = LightDarkTheme,
-    error = CustomRed,
-    tertiary = BoxGrey,
-    surfaceVariant = BoxLightGrey,
-    errorContainer = LightRedCustom,
-    outlineVariant = AmberCustom,
-    )
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color.White,
+    error = Color(0xFFCF6679),
+)
 
 private val LightColorScheme = lightColorScheme(
-    //Màu chủ đạo app xanh
-    primaryContainer = MainTheme,
-    //Đối tượng trên nền màu chủ đạo
+    primary = HelloDocYellow,
+    onPrimary = Color.Black,
+    primaryContainer = HelloDocYellow,
     onPrimaryContainer = Color.Black,
-    //Màu nền phần nội dung (trắng)
-    background = Color.White,
-    //Đối tượng trên background (đen)
+    background = Color(0xFFFFFDF0), // Very slight yellow tint background for warmth
     onBackground = Color.Black,
-    //Màu nền nội dung cấp 2 (xám sáng) thường dùng cho các card nằm trên background
-    secondary = ButtonTheme,
-//    // Nội dung trên card
-//    onSecondary = Color.Gray,
-    //Màu nền nội dung cấp 2 (xám sáng) thường dùng cho các card nằm trên background
+    secondary = Color(0xFF37474F), // Deep slate for contrast
     secondaryContainer = secondContainer,
-    // Nội dung trên card
     onSecondaryContainer = Color.DarkGray,
-    //Màu nền nội dung cấp 3 (xanh mờ) thường dùng cho các component như thông báo chưa xem
-    tertiaryContainer = LightTheme,
-    error = CustomRed,
-    tertiary = LightBlueCustom,
-    surfaceVariant = MidGrayCustom,
-    errorContainer = LightRedCustom,
-    outlineVariant = AmberCustom,
+    tertiary = AmberCustom,
+    tertiaryContainer = HelloDocYellow.copy(alpha = 0.2f),
+    surface = Color.White,
+    onSurface = Color.Black,
+    error = Color(0xFFB00020),
 )
 
 @Composable

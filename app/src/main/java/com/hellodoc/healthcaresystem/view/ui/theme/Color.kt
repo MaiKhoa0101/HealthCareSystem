@@ -25,3 +25,4 @@ val MidGrayCustom = Color(0xFFC7C7C7) // Màu xám vừa
 val LightRedCustom = Color(0xFFFFCDD2) // Màu đỏ nhạt
 val CyanDarkCustom = Color(0xFF0097A7) // Màu xanh cyan đậm
 val AmberCustom = Color(0xFFFFC107) // Màu vàng cam tươi (Amber)
+val HelloDocYellow = Color(0xFFFFD846) // Màu chủ đạo mới của HelloDoc
