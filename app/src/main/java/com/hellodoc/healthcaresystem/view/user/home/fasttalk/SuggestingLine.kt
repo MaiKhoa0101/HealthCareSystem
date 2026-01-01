@@ -64,9 +64,6 @@ fun ConversationLine(conversation: SuggestLine,onChoice: (String) -> Unit){
             .background(color = MaterialTheme.colorScheme.background)
             .border( 1.dp, MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(6.dp))
             .padding(15.dp)
-
-
-
     )
 }
 

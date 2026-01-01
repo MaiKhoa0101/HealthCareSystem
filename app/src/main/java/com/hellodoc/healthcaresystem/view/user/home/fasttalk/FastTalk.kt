@@ -133,7 +133,7 @@ fun FastTalk(
                 onDelete = {
                     val currentText = yourSentenceValue.text
                     val newText = if (currentText.lastIndexOf(" ") != -1)
-                        currentText.substring(0, currentText.lastIndexOf(" "))
+                        currentText.take(currentText.lastIndexOf(" "))
                     else ""
                     yourSentenceValue = TextFieldValue(
                         text = newText,

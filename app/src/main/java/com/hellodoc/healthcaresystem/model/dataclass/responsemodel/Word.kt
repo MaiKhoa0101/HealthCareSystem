@@ -2,7 +2,7 @@ package com.hellodoc.healthcaresystem.model.dataclass.responsemodel
 
 data class Word(
     val suggestion: String,
-    val score: Int,
+    val score: Double,
     val label: List<String>
 )
 

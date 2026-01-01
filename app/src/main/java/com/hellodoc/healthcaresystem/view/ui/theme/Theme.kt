@@ -10,6 +10,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.hellodoc.healthcaresystem.view.ui.theme.AmberCustom
+import com.hellodoc.healthcaresystem.view.ui.theme.BoxGrey
+import com.hellodoc.healthcaresystem.view.ui.theme.BoxLightGrey
+import com.hellodoc.healthcaresystem.view.ui.theme.HelloDocYellow
+import com.hellodoc.healthcaresystem.view.ui.theme.LightDarkTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.secondContainer
 
 private val DarkColorScheme = darkColorScheme(
     primary = HelloDocYellow,
@@ -33,7 +39,7 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = Color.Black,
     primaryContainer = HelloDocYellow,
     onPrimaryContainer = Color.Black,
-    background = Color(0xFFFFFDF0), // Very slight yellow tint background for warmth
+    background = Color(0xFFFFFFFF), // Very slight yellow tint background for warmth
     onBackground = Color.Black,
     secondary = Color(0xFF37474F), // Deep slate for contrast
     secondaryContainer = secondContainer,

@@ -792,7 +792,7 @@ fun SectionHeader(title: String, onSeeAllClick: (() -> Unit)? = null) {
             text = title, // Removed Tet emoji
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary // Use brand yellow
+                color = MaterialTheme.colorScheme.onPrimary // Use brand yellow
             )
         )
         if (onSeeAllClick != null) {
@@ -910,7 +910,15 @@ fun AssistantQueryRow(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Submit",
                         tint = Color.Black, // Dark icon on yellow background
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                if (text.isNotBlank()) {
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
+                                    text = ""
+                                    navHostController.navigate("gemini_help")
+                                }
+                            },
                     )
                 }
             }
