@@ -546,7 +546,7 @@ fun DoctorItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
-it                     .size(18.dp)
+                    .size(18.dp)
                     .padding(top = 2.dp)
             )
 
