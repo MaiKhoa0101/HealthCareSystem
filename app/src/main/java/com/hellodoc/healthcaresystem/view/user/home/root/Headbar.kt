@@ -9,17 +9,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -50,37 +57,67 @@ fun HeadBar() {
     }
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            )
+            .statusBarsPadding()
+            .padding(bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp),
+                .padding(horizontal = 20.dp)
+                .padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "Doctor Icon",
-                modifier = Modifier.size(80.dp)
-            )
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            // Enhanced Logo
+            Surface(
+                modifier = Modifier
+                    .size(60.dp)
+                    .shadow(4.dp, CircleShape),
+                shape = CircleShape,
+                color = Color.White
             ) {
-                val shortName = you?.name.toString().let { shortenUserName(it) }
-                println("name lay ra duoc la "+ you?.name)
-                Text(
-                    text = "Xin chào\n$shortName",
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Right,
-                    lineHeight = 20.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                Image(
+                    painter = painterResource(id = R.drawable.logo_hellodoc),
+                    contentDescription = "App Logo",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
             }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Premium Greeting
+            Column {
+                Text(
+                    text = "HelloDoc",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.sp
+                    )
+                )
+                val shortName = you?.name?.let { shortenUserName(it) } ?: "Guest"
+                Text(
+                    text = "Xin chào, $shortName",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Optional: Add a notification or search icon here if needed
         }
     }
 }

@@ -80,6 +80,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import kotlin.random.Random
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
+
+// HelloDoc Brand Colors
+val HelloDocYellow = Color(0xFFFFD846)
+val HelloDocDark = Color(0xFF2C3E50)
+val HelloDocAccent = Color(0xFFFF9F43) // A warm orange-yellow for accents
+val HelloDocSoftYellow = Color(0xFFFFF9DB)
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -227,6 +240,7 @@ fun HealthMateHomeScreen(
                 }
             }
     ) {
+        // HelloDoc Welcome atmosphere
 
         LazyColumn(
             modifier = Modifier
@@ -242,13 +256,67 @@ fun HealthMateHomeScreen(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primaryContainer,
+                                    HelloDocYellow.copy(alpha = 0.2f),
                                     MaterialTheme.colorScheme.background
                                 )
                             )
                         )
                         .padding(16.dp)
                 ) {
+                    // Premium HelloDoc Welcome Banner
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
+                            .shadow(12.dp, RoundedCornerShape(24.dp))
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        HelloDocDark,
+                                        Color(0xFF34495E),
+                                        HelloDocDark
+                                    )
+                                )
+                            )
+                            .border(2.dp, HelloDocYellow.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+                            .padding(20.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Welcome to HelloDoc",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = HelloDocYellow.copy(alpha = 0.8f),
+                                    letterSpacing = 2.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "SỨC KHỎE LÀ VÀNG",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = HelloDocYellow,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(HelloDocYellow))
+                                Text(
+                                    text = " 2026 ",
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = HelloDocYellow
+                                    )
+                                )
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(HelloDocYellow))
+                            }
+                        }
+                    }
                     // Header with Greeting and Profile
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -274,10 +342,13 @@ fun HealthMateHomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(50.dp)
-                                .shadow(4.dp, CircleShape)
+                                .shadow(8.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(HelloDocYellow)
+                                .border(2.dp, HelloDocYellow, CircleShape)
+                                .padding(2.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable { navHostController.navigate("profile") }
                         ) {
                             if (!user?.avatarURL.isNullOrBlank()) {
                                 AsyncImage(
@@ -623,7 +694,7 @@ fun MarqueeNewsTicker(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(Color.Red) // Hot news indicator
+                                .background(HelloDocAccent) // Hot brand news indicator
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -718,21 +789,39 @@ fun SectionHeader(title: String, onSeeAllClick: (() -> Unit)? = null) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = title,
+            text = title, // Removed Tet emoji
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.primary // Use brand yellow
             )
         )
         if (onSeeAllClick != null) {
-            Text(
-                text = "Xem tất cả",
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.clickable { onSeeAllClick() }
-            )
+            Surface(
+                onClick = onSeeAllClick,
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                modifier = Modifier.clickableWithScale { onSeeAllClick() }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Xem tất cả",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.DoubleArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
@@ -786,26 +875,42 @@ fun AssistantQueryRow(
     OutlinedTextField(
         value = text,
         onValueChange = { text = it },
-        placeholder = { Text("Bạn đang gặp vấn đề gì?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        placeholder = {
+            Text(
+                "Bạn muốn hỏi gì hôm nay?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        },
         leadingIcon = {
             Icon(
-                painter = painterResource(id = R.drawable.speak), // Replace with a search icon if available
+                painter = painterResource(id = R.drawable.speak),
                 contentDescription = "AI Assistant Icon",
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         },
         trailingIcon = {
-            if (text.isNotBlank()) {
-                IconButton(onClick = {
-                    navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
-                    text = ""
-                    navHostController.navigate("gemini_help")
-                }) {
+            Surface(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(40.dp)
+                    .clickableWithScale {
+                        if (text.isNotBlank()) {
+                            onSubmit(text)
+                            text = ""
+                        }
+                    },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary, // Use brand yellow
+                shadowElevation = 4.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = Icons.Default.DoubleArrow,
-                        contentDescription = "Submit question",
-                        tint = MaterialTheme.colorScheme.primary
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Submit",
+                        tint = Color.Black, // Dark icon on yellow background
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -815,13 +920,35 @@ fun AssistantQueryRow(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+            unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(24.dp)),
+            .shadow(8.dp, RoundedCornerShape(24.dp)),
         singleLine = true
     )
+}
+
+@Composable
+fun Modifier.clickableWithScale(
+    onClick: () -> Unit
+): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        label = "scale"
+    )
+
+    return this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+    }
+        .clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
 }
 
 @Composable
@@ -936,12 +1063,13 @@ fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(90.dp)
-                                .clickable { onClick(item) },
-                            shape = RoundedCornerShape(20.dp),
+                                .height(85.dp)
+                                .clickableWithScale { onClick(item) },
+                            shape = RoundedCornerShape(24.dp),
                             color = Color.White,
-                            tonalElevation = 2.dp,
-                            shadowElevation = 4.dp
+                            tonalElevation = 4.dp,
+                            shadowElevation = 8.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                         ) {
                             Row(
                                 modifier = Modifier
@@ -949,28 +1077,29 @@ fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
+                                Surface(
+                                    modifier = Modifier.size(44.dp),
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                                 ) {
-                                    Image(
-                                        painter = painterResource(
-                                            id = if (item == "Tính BMI") R.drawable.doctor else R.drawable.speak
-                                        ),
-                                        contentDescription = item,
-                                        modifier = Modifier.size(32.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Image(
+                                            painter = painterResource(
+                                                id = if (item == "Tính BMI") R.drawable.doctor else R.drawable.speak
+                                            ),
+                                            contentDescription = item,
+                                            modifier = Modifier.size(28.dp),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = item,
                                     style = MaterialTheme.typography.titleSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        letterSpacing = 0.5.sp
                                     )
                                 )
                             }
@@ -1097,11 +1226,11 @@ fun SpecialtyItem(
             .width(110.dp)
             .height(150.dp)
             .shadow(
-                elevation = 6.dp,
+                elevation = 8.dp,
                 shape = RoundedCornerShape(28.dp),
                 clip = false
             )
-            .clickable {
+            .clickableWithScale {
                 firebaseAnalytics.logEvent("specialty_selected", bundleOf(
                     "ID_specialty" to specialty.id,
                     "Name_of_specialty" to specialty.name,
@@ -1124,50 +1253,43 @@ fun SpecialtyItem(
             modifier = Modifier.padding(12.dp)
         ) {
             // Icon Container
-            Box(
-                modifier = Modifier
-                    .size(75.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                            )
-                        ),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.size(70.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
             ) {
-                if (!specialty.icon.isNullOrBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(specialty.icon)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = specialty.name,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(40.dp)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.doctor),
-                        contentDescription = specialty.name,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(40.dp)
-                    )
+                Box(contentAlignment = Alignment.Center) {
+                    if (!specialty.icon.isNullOrBlank()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(specialty.icon)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = specialty.name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.doctor),
+                            contentDescription = specialty.name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
             
             Text(
                 text = specialty.name,
-                style = MaterialTheme.typography.titleSmall.copy(
+                style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp,
-                    fontSize = 13.sp
+                    fontSize = 12.sp
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -1296,22 +1418,22 @@ fun DoctorList(
 fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
-            .width(140.dp)
-            .clickable { onClick() },
+            .width(150.dp)
+            .clickableWithScale { onClick() },
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        tonalElevation = 1.dp,
-        shadowElevation = 2.dp
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+            Surface(
+                modifier = Modifier.size(90.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
             ) {
                 if (!doctor.avatarURL.isNullOrBlank()) {
                     AsyncImage(
@@ -1332,21 +1454,25 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
                     )
                 }
             }
+            
             Spacer(modifier = Modifier.height(12.dp))
+            
             Text(
                 text = doctor.name,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            
             Text(
                 text = doctor.specialty.name,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1,
