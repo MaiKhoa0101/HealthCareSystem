@@ -145,7 +145,7 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
         if (doctor == null) return@LaunchedEffect
         else {
             servicesCreated = doctor?.services ?: emptyList()
-            oldSchedule = doctor?.workHour ?: emptyList()
+            oldSchedule = doctor?.workingHours ?: emptyList()
             address = doctor?.address ?: ""
             hasHomeService = doctor?.hasHomeService ?: false
             isClinicPaused = doctor?.isClinicPaused ?: false

@@ -41,6 +41,7 @@ import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Doctor
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import java.util.*
 
@@ -452,6 +453,12 @@ fun DoctorItem(
     viewModel: SpecialtyViewModel
 ) {
     val isClinicPaused = doctor.isClinicPaused ?: false
+    val userViewModel: UserViewModel = hiltViewModel()
+    val you by userViewModel.you.collectAsState()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        userViewModel.getYou(context)
+    }
 
     Column(
         modifier = Modifier
@@ -539,7 +546,7 @@ fun DoctorItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
-                    .size(18.dp)
+it                     .size(18.dp)
                     .padding(top = 2.dp)
             )
 
@@ -555,28 +562,30 @@ fun DoctorItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Button(
-                onClick = {
-                    navHostController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("doctorId", doctor.id)
-                    }
-                    navHostController.navigate("other_user_profile")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+        if ( you?.id != doctor.id) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(
-                    text = "Đặt lịch khám",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Button(
+                    onClick = {
+                        navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                            set("doctorId", doctor.id)
+                        }
+                        navHostController.navigate("other_user_profile")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "Đặt lịch khám",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }

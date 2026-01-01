@@ -333,13 +333,13 @@ fun PostDetailHeader(
     val userViewModel: UserViewModel = hiltViewModel()
     val userOfThisPost by userViewModel.user.collectAsState()
     println (post)
-//
-//    LaunchedEffect(userOfThisPost) {
-//        if (post.userInfoInfo.id != "") {
-//            userViewModel.getUser(post.userInfoInfo.id)
-//            println("Gọi getUser")
-//        }
-//    }
+
+    LaunchedEffect(userOfThisPost) {
+        if (post.userInfo?.id != "" && post.userInfo?.id != null) {
+            userViewModel.getUser(post.userInfo!!.id)
+            println("Gọi getUser")
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()

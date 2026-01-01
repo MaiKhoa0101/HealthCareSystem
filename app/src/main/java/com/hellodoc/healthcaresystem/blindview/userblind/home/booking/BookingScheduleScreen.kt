@@ -80,7 +80,7 @@ fun BookingCalendarScreen(
         }
     }
 
-    val workHours = doctor?.workHour
+    val workHours = doctor?.workingHours
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf("") }

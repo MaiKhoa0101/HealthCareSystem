@@ -73,26 +73,34 @@ class SpecialtyViewModel @Inject constructor(
 
     fun fetchSpecialtyDoctor(specialtyID: String) {
         viewModelScope.launch {
-            try {
-                val response = specialtyRepository.getSpecialtyById(specialtyID)
-                if (response.isSuccessful) {
-                    val specialtyResponse = response.body()
-                    if (specialtyResponse != null) {
-                        _specialty.value = specialtyResponse
-                        _doctors.value = specialtyResponse.doctors
-                        _filteredDoctors.value = specialtyResponse.doctors
-                        println("OK: Successfully retrieved ${specialtyResponse.doctors}")
-                    } else {
-                        _doctors.value = emptyList()
-                        println("API returned null response body")
-                    }
+            getSpecialtyDoctorAsync(specialtyID)
+        }
+    }
+
+    suspend fun getSpecialtyDoctorAsync(specialtyID: String): List<Doctor>? {
+        return try {
+            val response = specialtyRepository.getSpecialtyById(specialtyID)
+            if (response.isSuccessful) {
+                val specialtyResponse = response.body()
+                if (specialtyResponse != null) {
+                    _specialty.value = specialtyResponse
+                    _doctors.value = specialtyResponse.doctors
+                    _filteredDoctors.value = specialtyResponse.doctors
+                    println("OK: Successfully retrieved ${specialtyResponse.doctors}")
+                    specialtyResponse.doctors
                 } else {
-                    println("API fetch doctor by specialty Error: ${response.errorBody()?.string()}")
+                    _doctors.value = emptyList()
+                    println("API returned null response body")
+                    emptyList()
                 }
-            } catch (e: Exception) {
-                println("Exception: ${e.message}")
-                e.printStackTrace()
+            } else {
+                println("API fetch doctor by specialty Error: ${response.errorBody()?.string()}")
+                null
             }
+        } catch (e: Exception) {
+            println("Exception: ${e.message}")
+            e.printStackTrace()
+            null
         }
     }
 

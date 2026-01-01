@@ -310,7 +310,6 @@ fun ChatBubble(
         Box(
             modifier = Modifier
                 .widthIn(max = 250.dp)
-                .shadow(elevation = 5.dp, shape = RoundedCornerShape(12.dp))
                 .background(
                     if (isUser) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondaryContainer,
                     shape = RoundedCornerShape(12.dp)
