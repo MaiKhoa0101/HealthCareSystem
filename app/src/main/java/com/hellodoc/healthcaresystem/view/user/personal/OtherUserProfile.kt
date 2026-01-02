@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,13 +24,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Report
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,13 +39,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -263,102 +265,104 @@ fun OtherUserIntroSection(
     showReportBox: Boolean,
     onToggleReportBox: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.primaryContainer
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 280.dp)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(
+        // Background Header (Blurred Avatar)
+        AsyncImage(
+            model = user.avatarURL,
+            contentDescription = "Background",
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
-                        )
-                    )
-                )
+                .height(200.dp)
+                .blur(20.dp)
+        )
+
+        // Top functional icons
+        Row(
+            modifier = Modifier
                 .fillMaxWidth()
+                .padding(top = 16.dp, start = 12.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            IconButton(
+                onClick = { navHostController.popBackStack() },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(
-                        onClick = { navHostController.popBackStack() },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBackIosNew,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                    IconButton(
-                        onClick = { onToggleReportBox() },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Report,
-                            contentDescription = "Report",
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                        .padding(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(20.dp))
-                        // Avatar
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
-                        ) {
-                            AsyncImage(
-                                model = user.avatarURL,
-                                contentDescription = "Avatar",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        onImageClick(user.avatarURL)
-                                    },
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text(
-                            user.name,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 24.sp,
-                            letterSpacing = 0.5.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            user.email,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
+
+            IconButton(
+                onClick = { onToggleReportBox() },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Report,
+                    contentDescription = "Report",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+
+        // Avatar overlapping
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 20.dp, top = 140.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .padding(4.dp)
+                    .clip(CircleShape)
+            ) {
+                AsyncImage(
+                    model = user.avatarURL,
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onImageClick(user.avatarURL) }
+                )
+            }
+        }
+
+        // Name & Email Section
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 150.dp, top = 210.dp, end = 16.dp, bottom = 12.dp)
+        ) {
+            Text(
+                text = user.name,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 22.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = user.email,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
         }
     }
 }
