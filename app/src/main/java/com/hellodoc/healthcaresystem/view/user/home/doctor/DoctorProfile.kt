@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -274,191 +276,199 @@ fun UserInfo(
     onShowReportDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     var showReportBox by remember { mutableStateOf(false) }
 
-    ConstraintLayout(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .height(330.dp)
-            .fillMaxWidth()
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.primaryContainer
     ) {
-        val (imgIcon, backIcon, moreFuncIcon, optionDialog, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
+        ConstraintLayout(
+            modifier = modifier
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                .height(290.dp)
+                .fillMaxWidth()
+        ) {
+            val (imgIcon, backIcon, moreFuncIcon, optionDialog, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
 
-        val imageUrl = doctor?.avatarURL ?: ""
-        val name = doctor?.name ?: "Tên bác sĩ"
-        val experience = doctor?.experience?.toString() ?: "0"
-        val patientsCount = doctor?.patientsCount?.toString() ?: "0"
-        val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
+            val imageUrl = doctor?.avatarURL ?: ""
+            val name = doctor?.name ?: "Tên bác sĩ"
+            val experience = doctor?.experience?.toString() ?: "0"
+            val patientsCount = doctor?.patientsCount?.toString() ?: "0"
+            val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
 
-        // Ảnh bác sĩ
-        Image(
-            painter = rememberAsyncImagePainter(model = imageUrl),
-            contentDescription = "Doctor Avatar",
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(110.dp)
-                .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
-                .constrainAs(imgIcon) {
-                    top.linkTo(parent.top, margin = 45.dp)
+            // Ảnh bác sĩ
+            Image(
+                painter = rememberAsyncImagePainter(model = imageUrl),
+                contentDescription = "Doctor Avatar",
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(110.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+                    .constrainAs(imgIcon) {
+                        top.linkTo(parent.top, margin = 45.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                    .clickable {
+                        onImageClick(imageUrl)
+                    },
+                contentScale = ContentScale.Crop
+            )
+
+            Text(
+                text = "Bác sĩ",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                modifier = Modifier.constrainAs(tvTitle) {
+                    top.linkTo(imgIcon.bottom, margin = 12.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
-                .clickable {
-                    onImageClick(imageUrl)
-                },
-            contentScale = ContentScale.Crop
-        )
-
-        Text(
-            text = "Bác sĩ",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.constrainAs(tvTitle) {
-                top.linkTo(imgIcon.bottom, margin = 15.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = name,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.constrainAs(tvName) {
-                top.linkTo(tvTitle.bottom, margin = 10.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
-        val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
-        val horizontalGuideLine20Bot = createGuidelineFromBottom(0.2f)
-
-        Text(
-            text = "$experience năm",
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNFollower) {
-                top.linkTo(horizontalGuideLine20Bot)
-                end.linkTo(verticalGuideLine30Start)
-            }
-        )
-
-        Text(
-            text = "Kinh nghiệm",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvFollowers) {
-                top.linkTo(tvNFollower.bottom, margin = 5.dp)
-                end.linkTo(verticalGuideLine30Start)
-            }
-        )
-
-        Text(
-            text = patientsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNFollowing) {
-                top.linkTo(horizontalGuideLine20Bot)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = "Bệnh nhân",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvFollowing) {
-                top.linkTo(tvNFollowing.bottom, margin = 5.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = ratingsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNLike) {
-                top.linkTo(horizontalGuideLine20Bot)
-                start.linkTo(verticalGuideLine30End, margin = 20.dp)
-            }
-        )
-
-        Text(
-            text = "Đánh giá",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvLikes) {
-                top.linkTo(tvNLike.bottom, margin = 5.dp)
-                start.linkTo(verticalGuideLine30End, margin = 10.dp)
-            }
-        )
-
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "Back Button",
-            tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .size(32.dp)
-                .padding(end = 8.dp)
-                .clickable {
-                    navHostController.popBackStack()
-                }
-                .constrainAs(backIcon) {
-                    top.linkTo(parent.top, margin = 30.dp)
-                    start.linkTo(parent.start, margin = 30.dp)
-                },
-        )
-
-        IconButton(
-            onClick = { showReportBox = !showReportBox },
-            modifier = Modifier
-                .padding(8.dp)
-                .constrainAs(moreFuncIcon) {
-                    top.linkTo(parent.top, margin = 16.dp)
-                    end.linkTo(parent.end, margin = 16.dp)
-                },
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_more),
-                contentDescription = "Menu",
-                tint = MaterialTheme.colorScheme.onBackground
             )
-        }
 
-        if (showReportBox) {
-            Column(
+            Text(
+                text = name,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.constrainAs(tvName) {
+                    top.linkTo(tvTitle.bottom, margin = 4.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+            )
+
+            val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
+            val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
+            val horizontalGuideLine20Bot = createGuidelineFromBottom(0.2f)
+
+            Text(
+                text = "$experience năm",
+                style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.constrainAs(tvNFollower) {
+                    top.linkTo(horizontalGuideLine20Bot)
+                    end.linkTo(verticalGuideLine30Start)
+                }
+            )
+
+            Text(
+                text = "Kinh nghiệm",
+                style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.constrainAs(tvFollowers) {
+                    top.linkTo(tvNFollower.bottom, margin = 5.dp)
+                    end.linkTo(verticalGuideLine30Start)
+                }
+            )
+
+            Text(
+                text = patientsCount,
+                style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.constrainAs(tvNFollowing) {
+                    top.linkTo(horizontalGuideLine20Bot)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+            )
+
+            Text(
+                text = "Bệnh nhân",
+                style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.constrainAs(tvFollowing) {
+                    top.linkTo(tvNFollowing.bottom, margin = 5.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+            )
+
+            Text(
+                text = ratingsCount,
+                style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.constrainAs(tvNLike) {
+                    top.linkTo(horizontalGuideLine20Bot)
+                    start.linkTo(verticalGuideLine30End, margin = 20.dp)
+                }
+            )
+
+            Text(
+                text = "Đánh giá",
+                style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.constrainAs(tvLikes) {
+                    top.linkTo(tvNLike.bottom, margin = 5.dp)
+                    start.linkTo(verticalGuideLine30End, margin = 10.dp)
+                }
+            )
+
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Back Button",
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
-                    .width(250.dp)
-                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
-                    .shadow(4.dp, RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-                    .constrainAs(optionDialog) {
-                        top.linkTo(moreFuncIcon.bottom)
-                        end.linkTo(parent.end, margin = 16.dp)
+                    .size(32.dp)
+                    .padding(end = 8.dp)
+                    .clickable {
+                        navHostController.popBackStack()
                     }
+                    .constrainAs(backIcon) {
+                        top.linkTo(parent.top, margin = 30.dp)
+                        start.linkTo(parent.start, margin = 30.dp)
+                    },
+            )
+
+            IconButton(
+                onClick = { showReportBox = !showReportBox },
+                modifier = Modifier
+                    .padding(8.dp)
+                    .constrainAs(moreFuncIcon) {
+                        top.linkTo(parent.top, margin = 16.dp)
+                        end.linkTo(parent.end, margin = 16.dp)
+                    },
             ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_more),
+                    contentDescription = "Menu",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            if (showReportBox) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showReportBox = !showReportBox
-                            onShowReportDialog()
-//                            onClickShowReport()
+                        .width(250.dp)
+                        .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
+                        .shadow(4.dp, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                        .constrainAs(optionDialog) {
+                            top.linkTo(moreFuncIcon.bottom)
+                            end.linkTo(parent.end, margin = 16.dp)
                         }
                 ) {
-                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showReportBox = !showReportBox
+                                onShowReportDialog()
+                            }
+                    ) {
+                        Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
+                    }
                 }
             }
         }
-
-
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

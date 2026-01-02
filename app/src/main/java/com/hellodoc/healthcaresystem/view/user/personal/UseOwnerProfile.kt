@@ -317,6 +317,7 @@ fun ProfileSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxWidth()
                 .height(280.dp) // Tổng chiều cao header + phần avatar lòi ra
         ) {
             // Background Header
@@ -383,14 +384,15 @@ fun ProfileSection(
             ) {
                 Text(
                     text = user.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    letterSpacing = 0.5.sp,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = user.email,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
             }
         }

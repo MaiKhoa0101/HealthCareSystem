@@ -84,6 +84,7 @@ import kotlin.random.Random
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.ui.graphics.graphicsLayer
 
 // HelloDoc Brand Colors
@@ -653,12 +654,61 @@ fun MarqueeNewsTicker(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = Color.White,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-        shadowElevation = 2.dp
+        shadowElevation = 4.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // News Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Newspaper,
+                        contentDescription = null,
+                        modifier = Modifier.padding(6.dp).size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Tin tức",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (newsList.size > 2) {
+                    TextButton(
+                        onClick = { showAllNews = !showAllNews },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(
+                            text = if (showAllNews) "Thu gọn" else "Xem thêm",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Icon(
+                            imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(12.dp))
+
             if (!showAllNews) {
                 val firstHalf = newsList.take(newsList.size / 2)
                 val secondHalf = newsList.drop(newsList.size / 2)
@@ -689,86 +739,95 @@ fun MarqueeNewsTicker(
                 }
 
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(HelloDocAccent) // Hot brand news indicator
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(vertical = 4.dp)
-                                .clickable {
+                    // Line 1
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                firstHalf.getOrNull(firstIndex)?.let { news ->
                                     firebaseAnalytics.logEvent("reading_news", bundleOf(
                                         "Id_user" to user?.id,
                                         "name_user" to user?.name,
-                                        "reading_new_id" to firstHalf[firstIndex].id
+                                        "reading_new_id" to news.id
                                     ))
-                                    firstHalf.getOrNull(firstIndex)?.let { news ->
-                                        navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                                        navHostController.navigate("news_detail")
-                                    }
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                    navHostController.navigate("news_detail")
                                 }
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()).lowercase(),
+                            modifier = Modifier
+                                .weight(1f)
                                 .basicMarquee(
                                     iterations = Int.MAX_VALUE,
                                     animationMode = MarqueeAnimationMode.Immediately,
                                     spacing = MarqueeSpacing(50.dp),
                                     velocity = 50.dp,
                                 ),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
                             maxLines = 1,
                         )
                     }
+
                     if (secondHalf.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), thickness = 0.5.dp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
+                        Spacer(modifier = Modifier.height(10.dp))
+                        // Line 2
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
                                 .clickable {
-                                    firebaseAnalytics.logEvent("reading_news", bundleOf(
-                                        "Id_user" to user?.id,
-                                        "name_user" to user?.name,
-                                        "reading_new_id" to secondHalf[secondIndex].id
-                                    ))
                                     secondHalf.getOrNull(secondIndex)?.let { news ->
+                                        firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                            "Id_user" to user?.id,
+                                            "name_user" to user?.name,
+                                            "reading_new_id" to news.id
+                                        ))
                                         navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
                                         navHostController.navigate("news_detail")
                                     }
                                 }
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                    spacing = MarqueeSpacing(50.dp),
-                                    velocity = 50.dp,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()).lowercase(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                        spacing = MarqueeSpacing(50.dp),
+                                        velocity = 50.dp,
+                                    ),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
-                            maxLines = 1,
-                        )
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
             } else {
                 NewsItemList(newsList = newsList, navHostController = navHostController)
-            }
-
-            IconButton(
-                onClick = { showAllNews = !showAllNews },
-                modifier = Modifier.align(Alignment.CenterHorizontally).size(24.dp)
-            ) {
-                Icon(
-                    imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }
@@ -780,7 +839,7 @@ fun showToast(context: Context, message: String) {
 }
 
 @Composable
-fun SectionHeader(title: String, onSeeAllClick: (() -> Unit)? = null) {
+fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -789,36 +848,37 @@ fun SectionHeader(title: String, onSeeAllClick: (() -> Unit)? = null) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = title, // Removed Tet emoji
+            text = title,
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary // Use brand yellow
+                color = MaterialTheme.colorScheme.primary
             )
         )
         if (onSeeAllClick != null) {
             Surface(
                 onClick = onSeeAllClick,
                 shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                modifier = Modifier.clickableWithScale { onSeeAllClick() }
+                color = MaterialTheme.colorScheme.primary, // Solid Brand Yellow
+                modifier = Modifier.clickableWithScale { onSeeAllClick() },
+                shadowElevation = 4.dp
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Xem tất cả",
+                        text = if (isExpanded) "Thu gọn" else "Xem tất cả",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black // Ensuring high contrast
                         )
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        imageVector = Icons.Default.DoubleArrow,
+                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.DoubleArrow,
                         contentDescription = null,
                         modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = Color.Black
                     )
                 }
             }
@@ -1196,6 +1256,7 @@ fun SpecialtyList(
     Column {
         SectionHeader(
             title = "Chuyên khoa",
+            isExpanded = showAllSpecialties,
             onSeeAllClick = if (specialties.size > 6) { { showAllSpecialties = !showAllSpecialties } } else null
         )
 
@@ -1267,7 +1328,7 @@ fun SpecialtyItem(
                                 .build(),
                             contentDescription = specialty.name,
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(45.dp)
                         )
                     } else {
                         Image(
@@ -1388,6 +1449,7 @@ fun DoctorList(
     ) {
         SectionHeader(
             title = "Bác sĩ nổi bật",
+            isExpanded = showAllDoctors,
             onSeeAllClick = if (doctors.size > 6) { { showAllDoctors = !showAllDoctors } } else null
         )
 
