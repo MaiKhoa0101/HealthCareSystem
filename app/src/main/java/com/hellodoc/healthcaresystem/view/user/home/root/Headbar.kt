@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -61,47 +61,42 @@ fun HeadBar() {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                        MaterialTheme.colorScheme.background
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                        Color.Transparent
                     )
                 )
             )
-            .statusBarsPadding()
-            .padding(bottom = 8.dp)
+            .padding(bottom = 12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .padding(top = 12.dp),
+                .padding(top = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Enhanced Logo
-            Surface(
+            // Enhanced Logo with better visibility
+            Image(
+                painter = painterResource(id = R.drawable.logo_hellodoc),
+                contentDescription = "App Logo",
                 modifier = Modifier
                     .size(60.dp)
-                    .shadow(4.dp, CircleShape),
-                shape = CircleShape,
-                color = Color.White
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_hellodoc),
-                    contentDescription = "App Logo",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp)
-                )
-            }
+                    .shadow(4.dp, CircleShape, clip = false)
+                    .clip(CircleShape)
+            )
+
+
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Premium Greeting
+            // Premium Greeting with high contrast text
             Column {
                 Text(
                     text = "HelloDoc",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         letterSpacing = 1.sp
                     )
                 )
@@ -109,7 +104,7 @@ fun HeadBar() {
                 Text(
                     text = "Xin chào, $shortName",
                     style = MaterialTheme.typography.labelLarge.copy(
-                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                 )

@@ -40,7 +40,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.PlayCircle
@@ -609,98 +611,71 @@ fun Header(
     )
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(8.dp),
-        color = MaterialTheme.colorScheme.surface
+        modifier = modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.primaryContainer
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.horizontalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
                         )
                     )
                 )
+                .height(64.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            ConstraintLayout(
-                modifier = Modifier
-                    .height(64.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.CenterStart)
             ) {
-                val horizontalGuideLine10 = createGuidelineFromTop(0.1f)
-                val (iconImage, tvTitle, tvButt) = createRefs()
-                
-                // Back button with ripple effect
-                Surface(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .constrainAs(iconImage) {
-                            start.linkTo(parent.start)
-                            top.linkTo(horizontalGuideLine10, margin = 8.dp)
-                        },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-                ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Image(
-                            painterResource(id = R.drawable.arrow_back),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                        )
-                    }
-                }
-                
-                Text(
-                    text = if (isEditMode) "Chỉnh sửa bài viết" else "Tạo bài viết",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.constrainAs(tvTitle) {
-                        top.linkTo(horizontalGuideLine10, margin = 12.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
                 )
-                
-                // Post button with animation
-                Button(
-                    onClick = onPost,
-                    enabled = isPostEnabled,
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = buttonColor,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = if (isPostEnabled) 4.dp else 0.dp
-                    ),
-                    modifier = Modifier
-                        .scale(buttonScale)
-                        .constrainAs(tvButt) {
-                            top.linkTo(horizontalGuideLine10, margin = 4.dp)
-                            end.linkTo(parent.end)
-                        }
-                ) {
-                    Text(
-                        text = if (isEditMode) "Lưu" else "Đăng",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isPostEnabled) 
-                            MaterialTheme.colorScheme.onPrimary 
-                        else 
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            }
+
+            Text(
+                text = if (isEditMode) "Chỉnh sửa bài viết" else "Tạo bài viết",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                ),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+            Button(
+                onClick = onPost,
+                enabled = isPostEnabled,
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = if (isPostEnabled) 4.dp else 0.dp
+                ),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .scale(buttonScale)
+            ) {
+                Text(
+                    text = if (isEditMode) "Lưu" else "Đăng",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isPostEnabled) 
+                        MaterialTheme.colorScheme.onPrimary 
+                    else 
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                )
             }
         }
     }

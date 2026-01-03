@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -128,15 +130,35 @@ fun AppointmentScreenUI(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Text(
-            text = "Danh sách lịch hẹn",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier
-                .padding(top = 48.dp, bottom = 16.dp)
-                .align(Alignment.CenterHorizontally)
-        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.primaryContainer
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                            )
+                        )
+                    )
+                    .height(64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Danh sách lịch hẹn",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.5.sp
+                    )
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -402,9 +424,10 @@ fun AppointmentCard(
                                 // Điều hướng đến màn hình chọn dịch vụ
                                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                                     set("appointmentId", appointment.id)
+                                    set("doctorId", appointment.doctor.id)
                                     set("patientName", appointment.patient.name)
                                 }
-                                navHostController.navigate("service-selection/${appointment.id}/${appointment.patient.name}")
+                                navHostController.navigate("service-selection/${appointment.id}/${appointment.doctor.id}/${appointment.patient.name}")
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF1E293B),
