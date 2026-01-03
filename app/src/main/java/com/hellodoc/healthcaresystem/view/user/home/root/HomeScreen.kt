@@ -944,9 +944,9 @@ fun AssistantQueryRow(
         },
         leadingIcon = {
             Icon(
-                painter = painterResource(id = R.drawable.speak),
+                painter = painterResource(id = R.drawable.ai_hellodoc_logo),
                 contentDescription = "AI Assistant Icon",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(50.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         },
@@ -957,8 +957,9 @@ fun AssistantQueryRow(
                     .size(40.dp)
                     .clickableWithScale {
                         if (text.isNotBlank()) {
-                            onSubmit(text)
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
                             text = ""
+                            navHostController.navigate("gemini_help")
                         }
                     },
                 shape = CircleShape,
