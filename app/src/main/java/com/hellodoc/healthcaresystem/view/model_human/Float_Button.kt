@@ -1,25 +1,20 @@
 package com.hellodoc.healthcaresystem.view.model_human
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,30 +23,45 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.google.android.filament.Engine
 import io.github.sceneview.environment.Environment
-import io.github.sceneview.loaders.EnvironmentLoader
-import io.github.sceneview.loaders.ModelLoader
 import io.github.sceneview.model.ModelInstance
 
+/**
+ * ✅ CRASH-PROOF 3D ASSISTANT
+ *
+ * Cải tiến:
+ * - Tự động đóng khi resources bị null
+ * - Không render khi thiếu dependencies
+ * - Safe cleanup sequence
+ */
 @Composable
 fun Floating3DAssistant(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
-    engine: Engine,
-    modelInstance: ModelInstance?, // Nhận từ cha
-    environment: Environment?      // Nhận từ cha
+    engine: Engine?,
+    modelInstance: ModelInstance?,
+    environment: Environment?
 ) {
-    // Animation kích thước: Nhỏ (60dp) <-> Lớn (320dp)
+    // ===== AUTO-CLOSE KHI MẤT RESOURCES =====
+    LaunchedEffect(engine, modelInstance, environment) {
+        // Nếu đang mở nhưng thiếu resources → Tự động đóng
+        if (isExpanded && (engine == null || modelInstance == null || environment == null)) {
+            android.util.Log.d("Floating3D", "⚠️ Resources null, auto-closing assistant")
+            onExpandChange(false)
+        }
+    }
+
+    // Animation kích thước
     val size by animateDpAsState(
         targetValue = if (isExpanded) 200.dp else 50.dp,
-        animationSpec = tween(durationMillis = 300), // Thời gian mượt mà
+        animationSpec = tween(durationMillis = 300),
         label = "size"
     )
 
     Box(
         modifier = modifier
-            .padding(bottom = 100.dp, end = 16.dp) // Cách lề
-            .size(size) // Kích thước thay đổi theo animation
+            .padding(bottom = 100.dp, end = 16.dp)
+            .size(size)
             .shadow(
                 elevation = 10.dp,
                 shape = CircleShape,
@@ -61,39 +71,63 @@ fun Floating3DAssistant(
                 color = MaterialTheme.colorScheme.surface,
                 shape = CircleShape
             )
-            .clip(CircleShape) // Cắt toàn bộ nội dung thành hình tròn
+            .clip(CircleShape)
             .clickable(enabled = !isExpanded) {
-                // Chỉ cho bấm mở khi đang đóng.
-                // Khi mở rồi thì phải bấm nút X để tắt (tránh bấm nhầm vào model)
-                onExpandChange(true)
+                // CHỈ MỞ KHI CÓ ĐỦ RESOURCES
+                if (engine != null && modelInstance != null && environment != null) {
+                    onExpandChange(true)
+                } else {
+                    android.util.Log.w("Floating3D", "Cannot open: Resources not ready")
+                }
             }
     ) {
-        // Nội dung bên trong
         if (isExpanded) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(3.dp)
-                    .clip(CircleShape)
-                    .clickable{
-                        onExpandChange(false)
-                    }
-            ) {
-                // 1. Màn hình 3D
-                SignLanguageAnimatableScreen(
-                    engine = engine,
-                    modelInstance = modelInstance,
-                    environment = environment
-                )
+            // ===== KIỂM TRA NULL TRƯỚC KHI RENDER =====
+            if (engine != null && modelInstance != null && environment != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(3.dp)
+                        .clip(CircleShape)
+                ) {
+                    // Render 3D scene
+                    SignLanguageAnimatableScreen(
+                        engine = engine,
+                        modelInstance = modelInstance,
+                        environment = environment
+                    )
+
+                    // Overlay để đóng
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                onExpandChange(false)
+                            }
+                    )
+                }
+            } else {
+                // Fallback: Nếu thiếu resources → Hiện icon
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Face,
+                        contentDescription = "Loading...",
+                        tint = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
         } else {
-            // --- TRẠNG THÁI THU NHỎ (ICON) ---
+            // ===== TRẠNG THÁI THU NHỎ =====
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Face, // Hoặc icon Robot của bạn
+                    imageVector = Icons.Default.Face,
                     contentDescription = "Open Assistant",
                     tint = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.size(32.dp)

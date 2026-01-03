@@ -4,19 +4,14 @@ import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import com.google.android.filament.Engine
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GestureFrame
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Rotation
@@ -33,11 +28,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.builtins.ListSerializer
 import updateBoneRotation
 import java.io.InputStream
-import kotlin.math.roundToInt
 
 @Composable
 fun SignLanguageAnimatableScreen(
-    engine: Engine,
+    engine: Engine?,
     modelInstance: ModelInstance?,
     environment: Environment?
 ) {
@@ -121,7 +115,7 @@ fun SignLanguageAnimatableScreen(
 
             // Apply interpolated rotations
             applyInterpolatedFrameRotations(
-                engine,
+                engine!!,
                 modelInstance,
                 currentFrame,
                 nextFrame,
@@ -182,7 +176,7 @@ fun SignLanguageAnimatableScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else {
             Scene(
-                engine = engine,
+                engine = engine!!,
                 mainLightNode = rememberMainLightNode(engine) {
                     intensity = 70_000.0f
                     isShadowCaster = true

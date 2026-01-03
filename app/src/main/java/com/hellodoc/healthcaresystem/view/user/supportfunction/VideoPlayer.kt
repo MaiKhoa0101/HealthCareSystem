@@ -18,12 +18,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -39,85 +43,156 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
+/**
+ * PRODUCTION-READY VIDEO PLAYER WITH SAFE 3D ASSISTANT
+ *
+ * ✅ Auto-close 3D assistant on video exit
+ * ✅ Crash-proof cleanup sequence
+ * ✅ Lifecycle-aware
+ * ✅ Proper resource management
+ */
 @OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
+    autoPlay: Boolean = true,
+    enable3DAssistant: Boolean = true,
     postViewModel: PostViewModel = hiltViewModel()
 ) {
     val subtitleUri by postViewModel.subtitle.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
-    // ===== SCENEVIEW 3D RESOURCES =====
-    val engine = rememberEngine()
-    val modelLoader = rememberModelLoader(engine)
-    val environmentLoader = rememberEnvironmentLoader(engine)
+    // ===== STATE MANAGEMENT =====
+    var isPlayerActive by remember { mutableStateOf(false) }
+    var isPlayerReleased by remember { mutableStateOf(false) }
 
-    // State management cho 3D resources
-    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
-    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
+    // 3D Assistant State
     var is3DExpanded by remember { mutableStateOf(false) }
     var is3DResourcesReady by remember { mutableStateOf(false) }
+    var isCleaningUp by remember { mutableStateOf(false) }
+
+    // ===== SCENEVIEW 3D RESOURCES (Independent lifecycle) =====
+    val engine = if (enable3DAssistant) rememberEngine() else null
+    val modelLoader = if (enable3DAssistant && engine != null) {
+        rememberModelLoader(engine)
+    } else null
+    val environmentLoader = if (enable3DAssistant && engine != null) {
+        rememberEnvironmentLoader(engine)
+    } else null
+
+    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
 
     // ===== EXOPLAYER SETUP =====
-    val exoPlayer = remember {
+    val exoPlayer = remember(videoUrl) {
+        isPlayerReleased = false
         ExoPlayer.Builder(context).build().apply {
             playWhenReady = false
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    android.util.Log.e("VideoPlayer", "ExoPlayer Error: ${error.message}")
+                }
+            })
         }
     }
 
-    // ===== LOAD 3D ASSETS (ONE TIME) =====
-    LaunchedEffect(Unit) {
-        println("🎬 VideoPlayer: Initializing for URL: $videoUrl")
+    // ===== LOAD 3D ASSETS (CONDITIONAL) =====
+    LaunchedEffect(enable3DAssistant) {
+        if (!enable3DAssistant) return@LaunchedEffect
 
-        // Fetch subtitle
         try {
+            // Fetch subtitle
             postViewModel.getSubtitle(videoUrl)
         } catch (e: Exception) {
-            println("⚠️ Error fetching subtitle: ${e.message}")
+            android.util.Log.w("VideoPlayer", "Error fetching subtitle: ${e.message}")
         }
 
-        // Load 3D Model
-        try {
-            context.assets.open("BoneEric.glb").use { inputStream ->
-                val bytes = inputStream.readBytes()
-                val buffer = ByteBuffer.wrap(bytes)
-                ericModelInstance = modelLoader.createModelInstance(buffer)
-                println("✅ 3D Model loaded successfully")
+        if (modelLoader != null && environmentLoader != null) {
+            try {
+                // Load 3D Model
+                context.assets.open("BoneEric.glb").use { inputStream ->
+                    val bytes = inputStream.readBytes()
+                    val buffer = ByteBuffer.wrap(bytes)
+                    ericModelInstance = modelLoader.createModelInstance(buffer)
+                }
+
+                // Load Environment
+                globalEnvironment = environmentLoader.createHDREnvironment(
+                    assetFileLocation = "environment.hdr"
+                )
+
+                // Mark as ready
+                is3DResourcesReady = ericModelInstance != null && globalEnvironment != null
+
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "Error loading 3D resources", e)
+                is3DResourcesReady = false
+                ericModelInstance = null
+                globalEnvironment = null
             }
-        } catch (e: Exception) {
-            println("❌ Error loading 3D model: ${e.message}")
-            e.printStackTrace()
+        }
+    }
+
+    // ===== LIFECYCLE-AWARE PLAYBACK =====
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (isPlayerReleased || isCleaningUp) return@LifecycleEventObserver
+
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    try {
+                        // IMPORTANT: Close 3D assistant first to prevent crash
+                        if (is3DExpanded) {
+                            android.util.Log.d("VideoPlayer", "Lifecycle PAUSE: Closing 3D assistant")
+                            is3DExpanded = false
+                        }
+                        exoPlayer.playWhenReady = false
+                    } catch (e: Exception) {
+                        android.util.Log.w("VideoPlayer", "Error pausing", e)
+                    }
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    try {
+                        if (autoPlay && isPlayerActive && !isCleaningUp) {
+                            exoPlayer.playWhenReady = true
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("VideoPlayer", "Error resuming", e)
+                    }
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    try {
+                        // CRITICAL: Close 3D assistant BEFORE stopping player
+                        if (is3DExpanded) {
+                            android.util.Log.d("VideoPlayer", "Lifecycle STOP: Force closing 3D assistant")
+                            is3DExpanded = false
+                        }
+                        exoPlayer.stop()
+                    } catch (e: Exception) {
+                        android.util.Log.w("VideoPlayer", "Error stopping", e)
+                    }
+                }
+                else -> {}
+            }
         }
 
-        // Load Environment (HDR)
-        try {
-            globalEnvironment = environmentLoader.createHDREnvironment(
-                assetFileLocation = "environment.hdr"
-            )
-            println("✅ 3D Environment loaded successfully")
-        } catch (e: Exception) {
-            println("❌ Error loading environment: ${e.message}")
-            e.printStackTrace()
-        }
-
-        // Mark 3D resources as ready
-        is3DResourcesReady = ericModelInstance != null && globalEnvironment != null
-        if (is3DResourcesReady) {
-            println("✅ All 3D resources ready")
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
     // ===== SETUP VIDEO WITH SUBTITLE =====
     LaunchedEffect(videoUrl, subtitleUri) {
+        if (isPlayerReleased || isCleaningUp) return@LaunchedEffect
+
         try {
             val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
 
-            // Add subtitle if available
             subtitleUri?.let { uri ->
-                println("📝 Adding subtitle: ${uri.subtitleUrl}")
                 val subtitle = MediaItem.SubtitleConfiguration.Builder(
                     Uri.parse(uri.subtitleUrl)
                 )
@@ -129,74 +204,79 @@ fun VideoPlayer(
                 mediaItemBuilder.setSubtitleConfigurations(listOf(subtitle))
             }
 
-            // Set media and prepare
             exoPlayer.setMediaItem(mediaItemBuilder.build())
             exoPlayer.prepare()
-            exoPlayer.playWhenReady = true
-            println("✅ Video prepared and ready to play")
+
+            if (autoPlay) {
+                delay(100) // Small delay for stability
+                exoPlayer.playWhenReady = true
+            }
+
+            isPlayerActive = true
 
         } catch (e: Exception) {
-            println("❌ Error setting up video: ${e.message}")
-            e.printStackTrace()
+            android.util.Log.e("VideoPlayer", "Error setting up video", e)
         }
     }
 
-    // ===== CLEANUP ON DISPOSE =====
+    // ===== SAFE CLEANUP ON DISPOSE =====
+    // ===== THAY THẾ ĐOẠN CLEANUP CŨ =====
     DisposableEffect(videoUrl) {
         onDispose {
-            println("🧹 VideoPlayer: Starting cleanup...")
+            android.util.Log.d("VideoPlayer", "🧹 Starting SAFE cleanup sequence")
+            isCleaningUp = true
 
             coroutineScope.launch {
                 try {
-                    // Step 1: Stop video playback
-                    println("  → Stopping ExoPlayer...")
-                    exoPlayer.playWhenReady = false
-                    exoPlayer.stop()
+                    // STEP 1: Force đóng 3D assistant NGAY LẬP TỨC
+                    if (is3DExpanded) {
+                        android.util.Log.d("VideoPlayer", "  → Force closing 3D assistant")
+                        is3DExpanded = false
+                        delay(200) // Chờ animation hoàn tất
+                    }
 
-                    // Small delay to ensure proper cleanup
-                    delay(50)
+                    // STEP 2: Vô hiệu hóa resources trước
+                    android.util.Log.d("VideoPlayer", "  → Marking resources as unavailable")
+                    is3DResourcesReady = false
+                    isPlayerActive = false
+                    delay(100)
 
-                    // Step 2: Clear media items
-                    println("  → Clearing media items...")
-                    exoPlayer.clearMediaItems()
-
-                    // Step 3: Release ExoPlayer
-                    println("  → Releasing ExoPlayer...")
-                    exoPlayer.release()
-                    println("  ✅ ExoPlayer cleaned up")
-
-                } catch (e: Exception) {
-                    println("  ⚠️ Error during ExoPlayer cleanup: ${e.message}")
-                    e.printStackTrace()
-                }
-
-                try {
-                    // Step 4: Clear 3D resources references
-                    // Note: SceneView's rememberEngine() handles actual cleanup
-                    println("  → Clearing 3D resource references...")
+                    // STEP 3: Xóa references 3D TRƯỚC (quan trọng!)
+                    android.util.Log.d("VideoPlayer", "  → Clearing 3D references")
                     ericModelInstance = null
                     globalEnvironment = null
-                    is3DResourcesReady = false
-                    is3DExpanded = false
-                    println("  ✅ 3D resources cleared")
+                    delay(100)
+
+                    // STEP 4: Release ExoPlayer cuối cùng
+                    android.util.Log.d("VideoPlayer", "  → Releasing ExoPlayer")
+                    if (!isPlayerReleased) {
+                        exoPlayer.stop()
+                        delay(50)
+                        exoPlayer.clearMediaItems()
+                        delay(50)
+                        exoPlayer.release()
+                        isPlayerReleased = true
+                    }
+
+                    android.util.Log.d("VideoPlayer", "✅ Cleanup completed successfully")
 
                 } catch (e: Exception) {
-                    println("  ⚠️ Error during 3D cleanup: ${e.message}")
-                    e.printStackTrace()
+                    android.util.Log.e("VideoPlayer", "⚠️ Error during cleanup", e)
+                } finally {
+                    // Đảm bảo flag cleanup được reset
+                    delay(100)
+                    isCleaningUp = false
                 }
-
-                println("✅ VideoPlayer cleanup completed successfully")
             }
         }
     }
 
     // ===== UI LAYOUT =====
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
 
         // VIDEO PLAYER VIEW
         AndroidView(
             factory = { ctx ->
-                println("📺 Creating PlayerView...")
                 PlayerView(ctx).apply {
                     player = exoPlayer
                     useController = true
@@ -204,8 +284,8 @@ fun VideoPlayer(
                     setShowSubtitleButton(true)
                     setShowNextButton(false)
                     setShowPreviousButton(false)
+                    keepScreenOn = true
 
-                    // Configure subtitle styling
                     subtitleView?.apply {
                         setApplyEmbeddedStyles(false)
                         setApplyEmbeddedFontSizes(false)
@@ -216,35 +296,37 @@ fun VideoPlayer(
                 }
             },
             update = { playerView ->
-                // Ensure player is properly attached
-                if (playerView.player != exoPlayer) {
+                if (playerView.player != exoPlayer && !isPlayerReleased) {
                     playerView.player = exoPlayer
                 }
             },
             onRelease = { playerView ->
                 try {
-                    println("📺 Releasing PlayerView...")
                     playerView.player = null
                 } catch (e: Exception) {
-                    println("⚠️ Error releasing PlayerView: ${e.message}")
+                    android.util.Log.w("VideoPlayer", "Error releasing PlayerView", e)
                 }
             },
-            modifier = modifier
+            modifier = Modifier.fillMaxSize()
         )
 
-        // 3D FLOATING ASSISTANT (only show when resources are ready)
-        if (is3DResourcesReady && ericModelInstance != null && globalEnvironment != null) {
+        // SAFE 3D FLOATING ASSISTANT
+        if (enable3DAssistant && !isCleaningUp && is3DResourcesReady) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 50.dp),
+                    .padding(bottom = 40.dp, end = 10.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
                 Floating3DAssistant(
                     isExpanded = is3DExpanded,
                     onExpandChange = { newValue ->
-                        is3DExpanded = newValue
-                        println("🤖 3D Assistant expanded: $newValue")
+                        // CHỈ CHO PHÉP THAY ĐỔI KHI KHÔNG CLEANUP
+                        if (!isCleaningUp && is3DResourcesReady) {
+                            is3DExpanded = newValue
+                        } else {
+                            android.util.Log.w("VideoPlayer", "Cannot change 3D state: Cleaning up or resources not ready")
+                        }
                     },
                     engine = engine,
                     modelInstance = ericModelInstance,
@@ -253,4 +335,34 @@ fun VideoPlayer(
             }
         }
     }
+}
+
+// ===== CONVENIENCE VARIANTS =====
+
+@Composable
+fun SimpleVideoPlayer(
+    videoUrl: String,
+    modifier: Modifier = Modifier,
+    autoPlay: Boolean = true
+) {
+    VideoPlayer(
+        videoUrl = videoUrl,
+        modifier = modifier,
+        autoPlay = autoPlay,
+        enable3DAssistant = false
+    )
+}
+
+@Composable
+fun FullVideoPlayer(
+    videoUrl: String,
+    modifier: Modifier = Modifier,
+    autoPlay: Boolean = true
+) {
+    VideoPlayer(
+        videoUrl = videoUrl,
+        modifier = modifier,
+        autoPlay = autoPlay,
+        enable3DAssistant = true
+    )
 }
