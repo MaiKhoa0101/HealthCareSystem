@@ -325,18 +325,21 @@ class HomeActivity : BaseActivity() {
             }
 
             composable(
-                route = "service-selection/{appointmentId}/{patientName}",
+                route = "service-selection/{appointmentId}/{doctorId}/{patientName}",
                 arguments = listOf(
                     navArgument("appointmentId") { type = NavType.StringType },
+                    navArgument("doctorId") { type = NavType.StringType },
                     navArgument("patientName") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
                 val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
+                val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
                 val patientName = backStackEntry.arguments?.getString("patientName") ?: ""
 
                 ServiceSelectionScreen(
                     navHostController = navHostController,
                     appointmentId = appointmentId,
+                    doctorId = doctorId,
                     patientName = patientName
                 )
             }
