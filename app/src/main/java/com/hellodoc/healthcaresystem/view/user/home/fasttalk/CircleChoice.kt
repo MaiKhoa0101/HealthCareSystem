@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -50,7 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Word
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.alignmentAndDirection
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -58,29 +58,31 @@ import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 fun CircleWordMenu(
     currentWord: String,
     onChoice: (String) -> Unit,
-    onExtend: (String) -> Unit
+    onExtend: (String) -> Unit // Truyền string key (Top/Left...) hoặc Label để mở rộng
 ) {
 
     val viewModel: FastTalkViewModel = hiltViewModel()
 
-    val verb by viewModel.wordVerbSimilar.collectAsState()
-    val noun by viewModel.wordNounSimilar.collectAsState()
-    val adj  by viewModel.wordSupportSimilar.collectAsState()
-    val pro  by viewModel.wordPronounSimilar.collectAsState()
+    // Collect Data từ ViewModel
+    val verbs by viewModel.wordVerbSimilar.collectAsState()
+    val nouns by viewModel.wordNounSimilar.collectAsState()
+    val adjs  by viewModel.wordSupportSimilar.collectAsState()
+    val pros  by viewModel.wordPronounSimilar.collectAsState()
 
     var bestWord by remember { mutableStateOf("") }
 
-    // ✅ GỌI API KHI TỪ ĐỔI
+    // ✅ GỌI API KHI TỪ INPUT ĐỔI
     LaunchedEffect(currentWord) {
         if (currentWord.isNotBlank()) {
             viewModel.getWordSimilar(currentWord)
         }
     }
 
-    // ✅ TÍNH BEST WORD KHI DATA ĐỔI
-    LaunchedEffect(verb, noun, adj, pro) {
-        val allWords = verb + noun + adj + pro
-        bestWord = allWords.maxByOrNull { it.score }?.suggestion ?: ""
+    // ✅ TÍNH BEST WORD KHI DATA ĐỔI (Word có score cao nhất trong tất cả các nhóm)
+    LaunchedEffect(verbs, nouns, adjs, pros) {
+        val allWords = verbs + nouns + adjs + pros
+        println("all word tìm thấy là $allWords")
+        bestWord = allWords.maxByOrNull { it.score }?.word ?: ""
     }
 
     Box(
@@ -90,20 +92,19 @@ fun CircleWordMenu(
         contentAlignment = Alignment.Center
     ) {
 
-        alignmentAndDirection.forEachIndexed { index, item ->
+        alignmentAndDirection.forEach { item ->
 
+            // Mapping vị trí UI với dữ liệu
             val group = when (item.alignment) {
-                "Top" -> noun
-                "Left" -> verb
-                "Right" -> adj
-                "Bottom" -> pro
+                "Top" -> nouns       // Trên: Danh từ
+                "Left" -> verbs      // Trái: Động từ
+                "Right" -> adjs      // Phải: Tính/Trạng từ
+                "Bottom" -> pros     // Dưới: Đại từ
                 else -> emptyList()
             }
 
-            val content =
-                if (group.isNotEmpty())
-                    group[index % group.size].suggestion
-                else ""
+            // Lấy từ có điểm cao nhất trong nhóm để hiển thị
+            val content = group.firstOrNull()?.word ?: ""
 
             Box(
                 modifier = Modifier
@@ -121,11 +122,12 @@ fun CircleWordMenu(
                         onClick = {
                             if (content.isNotBlank()) onChoice(content)
                         },
+                        // Khi nhấn giữ -> Mở rộng danh sách của nhóm đó
                         onLongClick = { onExtend(item.alignment) }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-
+                // Background mũi tên
                 Image(
                     painter = painterResource(R.drawable.arrow_area),
                     contentDescription = null,
@@ -134,26 +136,25 @@ fun CircleWordMenu(
                         .padding(10.dp)
                         .rotate(item.direction)
                 )
-
+                // Text hiển thị
                 Text(
                     text = content,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             }
         }
 
-        // ✅ Nút trung tâm luôn là bestWord
+        // ✅ Nút trung tâm: Hiển thị từ input hoặc từ dự đoán tốt nhất
         CircleButtonWord(
-            word = if (bestWord.isNotBlank()) bestWord else currentWord,
+            word = bestWord.ifBlank { currentWord },
             onClick = {
                 if (bestWord.isNotBlank()) onChoice(bestWord)
             }
         )
     }
 }
-
-
 
 @Composable
 fun CircleButtonWord(
@@ -163,53 +164,34 @@ fun CircleButtonWord(
     backgroundColor: Color = Color(0xFFE3F2FD),
     size: Dp = 120.dp
 ) {
-    // Hiệu ứng xoay gradient
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(6000, easing = LinearEasing), // 6s xoay 1 vòng
+            animation = tween(6000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "angleAnim"
     )
 
-    // Gradient cầu vồng khép kín
     val rainbowBrush = Brush.sweepGradient(
         colors = listOf(
-            Color(0xFFFF00FF), // tím magenta
-            Color(0xFF0000FF), // xanh dương
-            Color(0xFF00FFFF), // cyan
-            Color(0xFF00FF00), // lục
-            Color(0xFFFFFF00), // vàng
-            Color(0xFFFF0000), // đỏ
-            Color(0xFFFFFF00), // vàng
-            Color(0xFF00FF00), // lục
-            Color(0xFF00FFFF), // cyan
-            Color(0xFF0000FF), // xanh dương
-            Color(0xFFFF00FF)  // trở lại tím magenta
+            Color(0xFFFF00FF), Color(0xFF0000FF), Color(0xFF00FFFF),
+            Color(0xFF00FF00), Color(0xFFFFFF00), Color(0xFFFF0000),
+            Color(0xFFFFFF00), Color(0xFF00FF00), Color(0xFF00FFFF),
+            Color(0xFF0000FF), Color(0xFFFF00FF)
         )
     )
 
     Box(
         modifier = modifier
             .size(size)
-            .graphicsLayer {
-                rotationZ = -angle // Xoay gradient
-            }
-            .border(
-                width = 5.dp,
-                brush = rainbowBrush,
-                shape = CircleShape
-            )
-            .graphicsLayer {
-                rotationZ = angle // Giữ phần trong đứng yên
-            }
+            .graphicsLayer { rotationZ = -angle }
+            .border(width = 5.dp, brush = rainbowBrush, shape = CircleShape)
+            .graphicsLayer { rotationZ = angle }
             .background(backgroundColor, shape = CircleShape)
-            .clip(
-                CircleShape
-            )
+            .clip(CircleShape)
             .clickable { onClick(word) },
         contentAlignment = Alignment.Center
     ) {
@@ -226,17 +208,16 @@ fun CircleButtonWord(
 @Composable
 fun ExtendingChoice(
     onChoice: (String) -> Unit,
-    groupWord: List<Word>
+    groupWord: List<WordResult> // ✅ Sửa type thành WordResult
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.Center,
         horizontalArrangement = Arrangement.Center
     ) {
-        items (groupWord) { word ->
+        items(groupWord) { wordItem ->
             Box(
                 modifier = Modifier
                     .padding(8.dp)
@@ -244,14 +225,14 @@ fun ExtendingChoice(
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     .combinedClickable(
-                        onClick = { onChoice(word.suggestion) },
-                        onLongClick = { /* giữ lâu */ },
-                        onDoubleClick = { /* nhấn đôi */ }
+                        onClick = { onChoice(wordItem.word) }, // ✅ Dùng .word
+                        onLongClick = { /* giữ lâu nếu cần */ },
+                        onDoubleClick = { /* nhấn đôi nếu cần */ }
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = word.suggestion,
+                    text = wordItem.word, // ✅ Dùng .word
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -259,60 +240,4 @@ fun ExtendingChoice(
             }
         }
     }
-
-
 }
-
-
-
-
-data class AlignmentAndDirection(
-    val alignment: String,
-    val direction: Float
-)
-// Danh sách cung (hướng và vị trí)
-val alignmentAndDirection = listOf(
-    AlignmentAndDirection(
-        alignment = "Top",
-        direction = 90f
-    ),
-    AlignmentAndDirection(
-        alignment = "Left",
-        direction = 0f
-    ),
-    AlignmentAndDirection(
-        alignment = "Right",
-        direction = 180f
-    ),
-    AlignmentAndDirection(
-        alignment = "Bottom",
-        direction = 270f
-    ),
-)
-
-val listWordsLeft = listOf(
-    "ăn",
-    "uống",
-    "xơi"
-)
-
-val listWordsRight = listOf(
-    "vừa",
-    "mới",
-    "đã",
-    "sắp"
-)
-val listWordUp = listOf(
-    "cơm",
-    "canh",
-    "cá",
-    "hủ tiếu"
-)
-val listWordDown = listOf(
-    "Tôi",
-    "Mình",
-    "Chú",
-    "Em",
-    "Anh"
-
-)

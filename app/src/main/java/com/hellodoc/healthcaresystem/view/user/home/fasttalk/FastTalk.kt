@@ -37,11 +37,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun FastTalk(
@@ -49,6 +52,7 @@ fun FastTalk(
     context: Context
 ) {
     val viewModel: FastTalkViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
 
     // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
@@ -212,6 +216,10 @@ fun FastTalk(
                 onPronounce = {
                     if (yourSentenceValue.text.isNotBlank()) {
                         speakText(context, yourSentenceValue.text)
+                        coroutineScope.launch {
+                            viewModel.analyzeSentence(yourSentenceValue.text)
+
+                        }
                     } else {
                         Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
                     }
