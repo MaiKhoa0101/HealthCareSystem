@@ -291,6 +291,8 @@ fun UserInfo(
         val patientsCount = doctor?.patientsCount?.toString() ?: "0"
         val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
 
+        println("data của doctor la $doctor")
+
         // Ảnh bác sĩ
         Image(
             painter = rememberAsyncImagePainter(model = imageUrl),
