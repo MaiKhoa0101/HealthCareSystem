@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.android.filament.Engine
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GestureFrame
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Rotation
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import io.github.sceneview.Scene
 import io.github.sceneview.environment.Environment
 import io.github.sceneview.math.Position
@@ -74,11 +75,14 @@ fun SignLanguageAnimatableScreen(
     }
 
     // ===== KỊCH BẢN ANIMATION (giống code cũ) =====
+    // ===== KỊCH BẢN ANIMATION =====
     LaunchedEffect(gestureFrames) {
         if (gestureFrames.isEmpty()) return@LaunchedEffect
 
-        var frameIndex = 0
+        // ✅ FIX 3: Delay nhẹ lúc khởi động để tránh xung đột lệnh vẽ với lệnh init
+        delay(500)
 
+        var frameIndex = 0
         while (isActive) {
             currentFrameIndex = frameIndex
 
@@ -86,13 +90,13 @@ fun SignLanguageAnimatableScreen(
             frameProgress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
-                    durationMillis = 300,
+                    durationMillis = 200,
                     easing = LinearEasing
                 )
             )
 
             // Giữ ở frame cuối 500ms trước khi chuyển
-            delay(50)
+            delay(20)
 
             // Reset về 0 và chuyển frame
             frameProgress.snapTo(0f)
@@ -171,24 +175,38 @@ fun SignLanguageAnimatableScreen(
         if (characterNode != null) listOf(characterNode!!) else emptyList()
     }
 
+    // Box chứa Scene
     Box(modifier = Modifier.clip(CircleShape)) {
-        if (modelInstance == null || isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        if (engine != null && modelInstance != null && environment != null && !isLoading) {
+            // Dùng key(engine) để đảm bảo Recomposition đúng
+            key(engine) {
+                Scene(
+                    engine = engine,
+                    mainLightNode = rememberMainLightNode(engine) {
+                        intensity = 70_000.0f
+                        isShadowCaster = true
+                    },
+                    cameraNode = rememberCameraNode(engine) {
+                        position = Position(z = 2f)
+                    },
+                    childNodes = childNodes,
+                    environment = environment,
+                    modifier = Modifier.clip(CircleShape)
+                )
+            }
+
+            // ✅ QUAN TRỌNG: Xử lý khi màn hình bị đóng (Dispose)
+            DisposableEffect(Unit) {
+                onDispose {
+                    // Khi Composable này bị hủy (do tắt Video, hoặc đóng Assistant)
+                    // Ta bắt buộc Engine phải dừng tương tác với Surface ngay lập tức.
+                    SceneViewManager.blockUntilGPUCompletes()
+                }
+            }
         } else {
-            Scene(
-                engine = engine!!,
-                mainLightNode = rememberMainLightNode(engine) {
-                    intensity = 70_000.0f
-                    isShadowCaster = true
-                },
-                cameraNode = rememberCameraNode(engine) {
-                    position = Position(z = 2f)
-                },
-                childNodes = childNodes,
-                environment = environment!!,
-                modifier = Modifier.clip(CircleShape)
-            )
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
+    }
 
 //        //Thông tin debug
 //        Text(
@@ -196,7 +214,7 @@ fun SignLanguageAnimatableScreen(
 //            modifier = Modifier.align(Alignment.BottomCenter)
 //        )
 
-    }
+
 }
 
 // =======================

@@ -86,14 +86,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.ui.graphics.graphicsLayer
-
-// HelloDoc Brand Colors
-val HelloDocYellow = Color(0xFFFFD846)
-val HelloDocDark = Color(0xFF2C3E50)
-val HelloDocAccent = Color(0xFFFF9F43) // A warm orange-yellow for accents
-val HelloDocSoftYellow = Color(0xFFFFF9DB)
-
-
+import androidx.compose.ui.zIndex
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -137,19 +130,19 @@ fun HealthMateHomeScreen(
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
-    var userModel by remember { mutableStateOf("") }
-    var username = ""
-    // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
-    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
+
+//    // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
+//    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
 //    val engine = rememberEngine()
 //    val modelLoader = rememberModelLoader(engine)
 //    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
-// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
+//// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
 //    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
 //    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
+//    var is3DResourcesReady by remember { mutableStateOf(false) }
+//    var enable3DAssistant by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
-        username = userViewModel.getUserAttribute("name", context)
-        userModel = userViewModel.getUserAttribute("role", context)
 
         userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
         postViewModel.fetchPosts()
@@ -219,7 +212,33 @@ fun HealthMateHomeScreen(
         }
     }
 
-
+//    // ===== LOAD 3D ASSETS (CONDITIONAL) =====
+//    LaunchedEffect(enable3DAssistant) {
+//        if (modelLoader != null && environmentLoader != null) {
+//            try {
+//                // Load 3D Model
+//                context.assets.open("BoneEric.glb").use { inputStream ->
+//                    val bytes = inputStream.readBytes()
+//                    val buffer = ByteBuffer.wrap(bytes)
+//                    ericModelInstance = modelLoader.createModelInstance(buffer)
+//                }
+//
+//                // Load Environment
+//                globalEnvironment = environmentLoader.createHDREnvironment(
+//                    assetFileLocation = "environment.hdr"
+//                )
+//
+//                // Mark as ready
+//                is3DResourcesReady = ericModelInstance != null && globalEnvironment != null
+//
+//            } catch (e: Exception) {
+//                android.util.Log.e("VideoPlayer", "Error loading 3D resources", e)
+//                is3DResourcesReady = false
+//                ericModelInstance = null
+//                globalEnvironment = null
+//            }
+//        }
+//    }
 
 
     // State quản lý trạng thái mở rộng của nút 3D
@@ -257,7 +276,7 @@ fun HealthMateHomeScreen(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    HelloDocYellow.copy(alpha = 0.2f),
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                     MaterialTheme.colorScheme.background
                                 )
                             )
@@ -274,13 +293,14 @@ fun HealthMateHomeScreen(
                             .background(
                                 brush = Brush.linearGradient(
                                     colors = listOf(
-                                        HelloDocDark,
-                                        Color(0xFF34495E),
-                                        HelloDocDark
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.background,
+                                        MaterialTheme.colorScheme.primary
                                     )
                                 )
                             )
-                            .border(2.dp, HelloDocYellow.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+                            .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
                             .padding(20.dp)
                     ) {
                         Column(
@@ -290,7 +310,7 @@ fun HealthMateHomeScreen(
                             Text(
                                 text = "Welcome to HelloDoc",
                                 style = MaterialTheme.typography.labelLarge.copy(
-                                    color = HelloDocYellow.copy(alpha = 0.8f),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     letterSpacing = 2.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -300,21 +320,21 @@ fun HealthMateHomeScreen(
                                 text = "SỨC KHỎE LÀ VÀNG",
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = HelloDocYellow,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     textAlign = TextAlign.Center
                                 )
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(HelloDocYellow))
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(MaterialTheme.colorScheme.primary))
                                 Text(
                                     text = " 2026 ",
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = HelloDocYellow
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 )
-                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(HelloDocYellow))
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(MaterialTheme.colorScheme.primary))
                             }
                         }
                     }
@@ -345,8 +365,8 @@ fun HealthMateHomeScreen(
                                 .size(50.dp)
                                 .shadow(8.dp, CircleShape)
                                 .clip(CircleShape)
-                                .background(HelloDocYellow)
-                                .border(2.dp, HelloDocYellow, CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
                                 .padding(2.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -562,14 +582,23 @@ fun HealthMateHomeScreen(
         }
 
 //        Box(
-//            modifier = Modifier.fillMaxSize().padding(bottom = 50.dp),
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .zIndex(100f)
+//                .padding(bottom = 40.dp, end = 10.dp),
 //            contentAlignment = Alignment.BottomEnd
 //        ) {
 //            Floating3DAssistant(
 //                isExpanded = is3DExpanded,
-//                onExpandChange = { is3DExpanded = it },
+//                onExpandChange = { newValue ->
+//                    // CHỈ CHO PHÉP THAY ĐỔI KHI KHÔNG CLEANUP
+//                    if (is3DResourcesReady) {
+//                        is3DExpanded = newValue
+//                    } else {
+//                        android.util.Log.w("VideoPlayer", "Cannot change 3D state: Cleaning up or resources not ready")
+//                    }
+//                },
 //                engine = engine,
-//                // TRUYỀN DỮ LIỆU ĐÃ NẠP XUỐNG
 //                modelInstance = ericModelInstance,
 //                environment = globalEnvironment
 //            )
@@ -883,19 +912,6 @@ fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (()
                 }
             }
         }
-    }
-}
-
-@Composable
-fun EmptyList(name: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Không có $name",
-            style = MaterialTheme.typography.bodyLarge
-        )
     }
 }
 
