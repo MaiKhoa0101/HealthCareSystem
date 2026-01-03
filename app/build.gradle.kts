@@ -104,6 +104,7 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.common)
     implementation(libs.litertlm)
+    implementation(libs.androidx.foundation.layout.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -3,38 +3,44 @@ package com.hellodoc.healthcaresystem.view.user.home.doctor
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
@@ -105,7 +111,7 @@ fun DoctorScreen(
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
         }
-        doctorViewModel.fetchDoctorById(currentDoctorId)
+        //doctorViewModel.fetchDoctorById(currentDoctorId)
         savedStateHandle?.remove<String>("doctorId")
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
@@ -121,7 +127,7 @@ fun DoctorScreen(
             doctorViewModel.resetStates()
 
             // Fetch doctor data
-            doctorViewModel.fetchDoctorById(currentDoctorId)
+            //doctorViewModel.fetchDoctorById(currentDoctorId)
             doctorViewModel.fetchDoctorWithStats(currentDoctorId)
 
             // Reset tab về 0 khi chuyển sang bác sĩ khác
@@ -274,193 +280,189 @@ fun UserInfo(
     onShowReportDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     var showReportBox by remember { mutableStateOf(false) }
+    val imageUrl = doctor?.avatarURL ?: ""
+    val name = doctor?.name ?: "Tên bác sĩ"
+    val specialty = doctor?.specialty?.name ?: "Bác sĩ"
+    val experience = doctor?.experience?.toString() ?: "0"
+    val patientsCount = doctor?.patientsCount?.toString() ?: "0"
+    val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
 
-    ConstraintLayout(
+    Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .height(330.dp)
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        val (imgIcon, backIcon, moreFuncIcon, optionDialog, tvTitle, tvName, tvNFollower, tvFollowers, tvNFollowing, tvFollowing, tvNLike, tvLikes) = createRefs()
-
-        val imageUrl = doctor?.avatarURL ?: ""
-        val name = doctor?.name ?: "Tên bác sĩ"
-        val experience = doctor?.experience?.toString() ?: "0"
-        val patientsCount = doctor?.patientsCount?.toString() ?: "0"
-        val ratingsCount = doctor?.ratingsCount?.toString() ?: "0"
-
-        println("data của doctor la $doctor")
-
-        // Ảnh bác sĩ
-        Image(
-            painter = rememberAsyncImagePainter(model = imageUrl),
-            contentDescription = "Doctor Avatar",
+        Box(
             modifier = Modifier
-                .clip(CircleShape)
-                .size(110.dp)
-                .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
-                .constrainAs(imgIcon) {
-                    top.linkTo(parent.top, margin = 45.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-                .clickable {
-                    onImageClick(imageUrl)
-                },
-            contentScale = ContentScale.Crop
-        )
-
-        Text(
-            text = "Bác sĩ",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.constrainAs(tvTitle) {
-                top.linkTo(imgIcon.bottom, margin = 15.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = name,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.constrainAs(tvName) {
-                top.linkTo(tvTitle.bottom, margin = 10.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        val verticalGuideLine30Start = createGuidelineFromStart(0.3f)
-        val verticalGuideLine30End = createGuidelineFromEnd(0.3f)
-        val horizontalGuideLine20Bot = createGuidelineFromBottom(0.2f)
-
-        Text(
-            text = "$experience năm",
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNFollower) {
-                top.linkTo(horizontalGuideLine20Bot)
-                end.linkTo(verticalGuideLine30Start)
-            }
-        )
-
-        Text(
-            text = "Kinh nghiệm",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvFollowers) {
-                top.linkTo(tvNFollower.bottom, margin = 5.dp)
-                end.linkTo(verticalGuideLine30Start)
-            }
-        )
-
-        Text(
-            text = patientsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNFollowing) {
-                top.linkTo(horizontalGuideLine20Bot)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = "Bệnh nhân",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvFollowing) {
-                top.linkTo(tvNFollowing.bottom, margin = 5.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        )
-
-        Text(
-            text = ratingsCount,
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = MaterialTheme.colorScheme.secondary),
-            modifier = Modifier.constrainAs(tvNLike) {
-                top.linkTo(horizontalGuideLine20Bot)
-                start.linkTo(verticalGuideLine30End, margin = 20.dp)
-            }
-        )
-
-        Text(
-            text = "Đánh giá",
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.constrainAs(tvLikes) {
-                top.linkTo(tvNLike.bottom, margin = 5.dp)
-                start.linkTo(verticalGuideLine30End, margin = 10.dp)
-            }
-        )
-
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "Back Button",
-            tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .size(32.dp)
-                .padding(end = 8.dp)
-                .clickable {
-                    navHostController.popBackStack()
-                }
-                .constrainAs(backIcon) {
-                    top.linkTo(parent.top, margin = 30.dp)
-                    start.linkTo(parent.start, margin = 30.dp)
-                },
-        )
-
-        IconButton(
-            onClick = { showReportBox = !showReportBox },
-            modifier = Modifier
-                .padding(8.dp)
-                .constrainAs(moreFuncIcon) {
-                    top.linkTo(parent.top, margin = 16.dp)
-                    end.linkTo(parent.end, margin = 16.dp)
-                },
+                .fillMaxWidth()
+                .heightIn(min = 280.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_more),
-                contentDescription = "Menu",
-                tint = MaterialTheme.colorScheme.onBackground
+            // Background Header (Blurred Avatar)
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .blur(20.dp)
             )
-        }
 
-        if (showReportBox) {
+            // Top functional icons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, start = 12.dp, end = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navHostController.popBackStack() },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+
+                IconButton(
+                    onClick = { showReportBox = !showReportBox },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "More",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
+            // Report Menu Overlay (Outside the Row to prevent shifting)
+            if (showReportBox) {
+                Card(
+                    modifier = Modifier
+                        .width(220.dp)
+                        .padding(top = 60.dp, end = 12.dp)
+                        .align(Alignment.TopEnd)
+                        .clickable {
+                            showReportBox = false
+                            onShowReportDialog()
+                        },
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Tố cáo & Báo lỗi",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Phản ánh vi phạm hoặc lỗi hệ thống",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Avatar overlapping
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 20.dp, top = 140.dp)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape),
+                    border = BorderStroke(4.dp, Color.White),
+                    shadowElevation = 8.dp
+                ) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { onImageClick(imageUrl) }
+                    )
+                }
+            }
+
+            // Name & Specialty Section
             Column(
                 modifier = Modifier
-                    .width(250.dp)
-                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
-                    .shadow(4.dp, RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-                    .constrainAs(optionDialog) {
-                        top.linkTo(moreFuncIcon.bottom)
-                        end.linkTo(parent.end, margin = 16.dp)
-                    }
+                    .align(Alignment.TopStart)
+                    .padding(start = 150.dp, top = 210.dp, end = 16.dp, bottom = 12.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showReportBox = !showReportBox
-                            onShowReportDialog()
-//                            onClickShowReport()
-                        }
-                ) {
-                    Text("Tố cáo & Báo lỗi", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Phản ánh vi phạm hoặc lỗi hệ thống", fontSize = 13.sp)
-                }
+                Text(
+                    text = name,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = specialty,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
 
-
+        // Stats Row (Experience, Patients, Ratings)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .shadow(4.dp, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            InfoStatItem(label = "Kinh nghiệm", value = "$experience năm")
+            VerticalDivider(modifier = Modifier.height(30.dp), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            InfoStatItem(label = "Bệnh nhân", value = patientsCount)
+            VerticalDivider(modifier = Modifier.height(30.dp), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            InfoStatItem(label = "Đánh giá", value = ratingsCount)
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
+@Composable
+fun InfoStatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -483,6 +485,8 @@ fun DoctorProfileScreen(
     var editingRating by remember { mutableStateOf<Int?>(null) }
     var editingComment by remember { mutableStateOf<String?>(null) }
 
+    println("current user trong doctor profile là $currentUser")
+
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let {
             postViewModel.getPostByUserId(it)
@@ -496,18 +500,27 @@ fun DoctorProfileScreen(
     ) {
         TabRow(
             selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.primary,
+            indicator = { tabPositions ->
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            divider = {}
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { onTabSelected(index) },
-                    selectedContentColor = MaterialTheme.colorScheme.secondary,
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
                         Text(
                             text = title,
-                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                            fontSize = 15.sp,
+                            fontWeight = if (selectedTab == index) FontWeight.ExtraBold else FontWeight.Medium
                         )
                     }
                 )

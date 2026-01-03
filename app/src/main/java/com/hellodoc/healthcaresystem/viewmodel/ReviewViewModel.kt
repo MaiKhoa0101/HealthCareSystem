@@ -29,6 +29,7 @@ class ReviewViewModel @Inject constructor(
             try {
                 _isLoading.value = true
                 val response = reviewRepository.getReviewsByDoctor(doctorId)
+                //println("GEt review by doctor là $response")
                 if (response.isSuccessful) {
                     _reviews.value = response.body()?.sortedByDescending {
                         it.createdAt

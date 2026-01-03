@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -212,14 +213,21 @@ fun BMIRowInput(
 @Composable
 fun TopBar(title: String, onClick: () -> Unit) {
     Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
-        modifier = Modifier.fillMaxWidth().shadow(4.dp),
-        tonalElevation = 4.dp
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.primaryContainer
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                        )
+                    )
+                )
                 .height(64.dp)
         ) {
             IconButton(
@@ -229,14 +237,18 @@ fun TopBar(title: String, onClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.ArrowBackIosNew,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                ),
                 modifier = Modifier.align(Alignment.Center)
             )
         }

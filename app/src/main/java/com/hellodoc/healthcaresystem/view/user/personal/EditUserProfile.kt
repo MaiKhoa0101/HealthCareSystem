@@ -13,14 +13,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -117,28 +119,46 @@ fun EditUserProfile(navHostController: NavHostController) {
 
 @Composable
 fun HeadbarEditUserProfile(navHostController: NavHostController) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer) // A pleasant cyan
-            .padding(16.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.primaryContainer
     ) {
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "Back Button",
-            tint = MaterialTheme.colorScheme.background,
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .clickable { navHostController.popBackStack() }
-        )
-        Text(
-            text = "Chỉnh sửa hồ sơ",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = { navHostController.popBackStack() },
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Text(
+                text = "Chỉnh sửa hồ sơ",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                ),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }
 
