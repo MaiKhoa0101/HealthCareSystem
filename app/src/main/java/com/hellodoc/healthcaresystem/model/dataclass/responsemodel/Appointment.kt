@@ -63,3 +63,14 @@ data class CancelAppointmentResponse(
 data class UpdateAppointmentResponse(
     val message: String
 )
+
+data class SuggestedAppointmentResponse(
+    val doctorName: String,
+    val doctorId: String,
+    val specialtyId: String,
+    val specialtyName: String,
+    val date: String,
+    val time: String,
+    val dayOfWeek: Int,
+    val dateTime: String
+)

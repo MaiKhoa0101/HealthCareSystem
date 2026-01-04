@@ -26,6 +26,7 @@ import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.SpecialtyViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.view.user.supportfunction.formatTimeToVietnamese
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.LocalDate
@@ -185,7 +186,7 @@ fun BookingBlindScreen(
             BookingStep.SELECT_TIME -> {
                 FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
                 filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                    val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                    val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                     FocusTTS.speak("Đang hiển thị $timeText")
                 }
             }
@@ -281,7 +282,7 @@ fun BookingBlindScreen(
                                 }
                                 BookingStep.SELECT_TIME -> {
                                     filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                         FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                     }
                                 }
@@ -345,7 +346,7 @@ fun BookingBlindScreen(
                                 }
                                 BookingStep.SELECT_TIME -> {
                                     filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                         FocusTTS.speakAndWait("Bạn đã chọn $timeText")
                                         currentStep = BookingStep.CONFIRMATION
                                     }
@@ -358,6 +359,8 @@ fun BookingBlindScreen(
                                     val selectedDoctor = doctors[doctorIndex]
                                     val selectedSlot = filteredAvailableSlots.getOrNull(selectedDateIndex)
                                     val selectedTime = filteredTimeSlots.getOrNull(selectedTimeIndex)
+
+                                    val address = userViewModel.getUserAttribute("address", context)
                                     
                                     if (selectedSlot != null && selectedTime != null) {
                                         appointmentViewModel.createAppointment(
@@ -368,11 +371,11 @@ fun BookingBlindScreen(
                                                 patientModel = patientModel,
                                                 date = selectedSlot.date,
                                                 time = selectedTime.time,
-                                                examinationMethod = "at_clinic",
+                                                examinationMethod = "at_home",
                                                 notes = "Đặt lịch qua trợ lý giọng nói",
                                                 reason = "Đặt lịch qua trợ lý giọng nói",
                                                 totalCost = "0",
-                                                location = selectedDoctor.address ?: ""
+                                                location = address
                                             )
                                         )
                                     }
@@ -452,7 +455,7 @@ fun BookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
-                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                             FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }
@@ -491,7 +494,7 @@ fun BookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
-                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                             FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }

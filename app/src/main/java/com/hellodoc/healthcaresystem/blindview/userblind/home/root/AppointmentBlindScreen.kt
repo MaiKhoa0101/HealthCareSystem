@@ -25,6 +25,7 @@ import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.AppointmentViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.view.user.supportfunction.formatTimeToVietnamese
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
@@ -145,7 +146,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                             Triple("?", "?", "?")
                                         }
 
-                                        val timeStr = BlindNavigationHelpers.formatTimeStringForTTS(it.time)
+                                        val timeStr = formatTimeToVietnamese(it.time)
                                         val specialtyName = it.doctor.specialty ?: "Chưa xác định"
                                         val doctorName = it.doctor.name ?: "Bác sĩ"
                                         
