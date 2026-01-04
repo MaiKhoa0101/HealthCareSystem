@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
+import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.Neo4jPath
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEdgeEntity
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,19 +39,26 @@ class FastTalkViewModel @Inject constructor(
     fun getWordSimilar(word: String) {
         viewModelScope.launch {
             try {
-                val response = fastTalkRepository.getWordSimilar(word)
 
-                if (!response.isSuccessful || response.body()?.success == false) {
-                    println("API Fail hoặc Success=false: ${response.code()}")
-                    return@launch
+                if (!fastTalkRepository.isOnline()) {
+                    println("🌐 Đang Offline'")
+                } else {
+                    println("🌐 Đang Online: Gọi API cho từ '$word'")
+
+                    //Thêm data từ assets/datatest.json
+                    val response = fastTalkRepository.getWordSimilar(word)
+
+                    if (!response.isSuccessful || response.body()?.success == false) {
+                        println("API Fail hoặc Success=false: ${response.code()}")
+                        return@launch
+                    }
+
+                    // Lấy results từ JSON
+                    val data = response.body()?.results ?: emptyList()
+                    println("Data nhận được: ${data.size} từ")
+
+                    categorizeWords(data, word)
                 }
-
-                // Lấy results từ JSON
-                val data = response.body()?.results ?: emptyList()
-                println("Data nhận được: ${data.size} từ")
-
-                categorizeWords(data, word)
-
             } catch (e: Exception) {
                 println("Lỗi Exception: ${e.message}")
                 e.printStackTrace()
@@ -185,4 +196,28 @@ class FastTalkViewModel @Inject constructor(
             e.printStackTrace()
         }
     }
+
+
+    // Trạng thái loading
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+    // Hàm này được gọi khi có dữ liệu JSON (ví dụ: từ API trả về)
+    fun importData(jsonData: List<Neo4jPath>) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Gọi hàm repository (không cần tham số Database nữa)
+                fastTalkRepository.saveNeo4jDataToRoom(jsonData)
+                println("Import dữ liệu Neo4j thành công!")
+            } catch (e: Exception) {
+                println("Lỗi Import Neo4j: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Hàm lấy dự đoán (kết nối với UI)
+    fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
 }
