@@ -1,11 +1,13 @@
 package com.hellodoc.healthcaresystem.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
+import com.hellodoc.healthcaresystem.requestmodel.SuggestedAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CancelAppointmentResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CreateAppointmentResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.DoctorStatsResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SuggestedAppointmentResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UpdateAppointmentResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -51,4 +53,7 @@ interface AppointmentService {
     @GET("appointments/doctor/{doctorID}/stats")
     suspend fun getDoctorStats(@Path("doctorID") doctorId: String): Response<DoctorStatsResponse>
 
+    @Headers("Content-Type: application/json")
+    @POST("appointments/suggested")
+    suspend fun getSuggestedAppointments(@Body request: SuggestedAppointmentRequest): Response<List<SuggestedAppointmentResponse>>
 }

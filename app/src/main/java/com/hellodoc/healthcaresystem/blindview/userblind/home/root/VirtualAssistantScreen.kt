@@ -39,6 +39,7 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
     var resultText by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        FocusTTS.waitUntilReady()
         delay(500)
         FocusTTS.speakAndWait("Đây là trang trợ lý ảo, hiện tại ứng dụng có 3 tính năng là xem bài viết, đặt lịch khám, xem lịch khám. Để tiếp tục hãy nhấn giữ màn hình và đọc to tính năng bạn muốn sử dụng")
     }
@@ -68,7 +69,21 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
             .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {
                 detectTapGestures(
+                    onTap = {
+                        vibrate(context)
+                        SoundManager.playTap()
+                        coroutineScope.launch {
+                            FocusTTS.speak("Đây là trang trợ lý ảo, hiện tại ứng dụng có 3 tính năng là xem bài viết, đặt lịch khám, xem lịch khám. Để tiếp tục hãy nhấn giữ màn hình và đọc to tính năng bạn muốn sử dụng")
+                        }
+                    },
+                    onDoubleTap = {
+                        vibrate(context)
+                        SoundManager.playTap()
+                        FocusTTS.stop()
+                        navHostController.popBackStack()
+                    },
                     onLongPress = {
+                        FocusTTS.stop()
                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                             return@detectTapGestures
@@ -94,6 +109,19 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
                                 isListening = false 
                             }
                         )
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (dragAmount.x < -50) { // Swipe left
+                            vibrate(context)
+                            SoundManager.playTap()
+                            FocusTTS.stop()
+                            navHostController.navigate("home")
+                        }
                     }
                 )
             },
