@@ -8,7 +8,7 @@ import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
 
 
-@Database(entities = [AppointmentEntity::class, QuickResponseEntity::class ], version = 5)
+@Database(entities = [AppointmentEntity::class, QuickResponseEntity::class ], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appointmentDao(): AppointmentDao
     abstract fun QuickResponseDao(): QuickResponseDao

@@ -47,7 +47,7 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActivity
-import com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen.Intro2
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
 import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
@@ -152,54 +152,54 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         // (1) GỌI SUPER.ONCREATE ĐẦU TIÊN
-        // Đây là yêu cầu bắt buộc của Android và Hilt.
         super.onCreate(savedInstanceState)
 
-        // (2) LOGIC KIỂM TRA ĐĂNG NHẬP (Giữ nguyên)
+        // (2) LOGIC KIỂM TRA ĐĂNG NHẬP
         val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
         val token = sharedPreferences.getString("access_token", null)
 
         if (token == null || token == "unknown") {
-            // (3) CHƯA ĐĂNG NHẬP: Chuyển hướng về Intro
             Log.d("AuthCheck", "Không tìm thấy token, chuyển hướng tới Intro2...")
-            val intent = Intent(this, Intro2::class.java)
+            // Use Fully Qualified Name to avoid any import ambiguity or stale reference
+            val intent = Intent(this, com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            finish() // Đóng HomeActivity
-            return   // Dừng hàm onCreate
+            finish()
+            return
         }
 
-        // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
-        Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
+        // (4) ĐÃ ĐĂNG NHẬP
+        Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity.")
+
+        // Check for Blind user role locally before setContent
+        // We use ViewModelProvider instead of hiltViewModel() since we are in Activity scope, NOT Composable
+        val userViewModel = androidx.lifecycle.ViewModelProvider(this)[UserViewModel::class.java]
+        if (userViewModel.getUserAttribute("role", this) == "Blind") {
+             val intent = Intent(this, HomeBlindActivity::class.java)
+             startActivity(intent)
+             finish()
+             return
+        }
 
         // Connect Socket
         socketManager.connect(token)
 
         firebaseAnalytics = Firebase.analytics
-        checkAndRequestNotificationPermission() //kiem tra quyen thong bao
+        checkAndRequestNotificationPermission()
 
         enableEdgeToEdge()
         setContent {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
             val navHostController = rememberNavController()
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            var userViewModel: UserViewModel = hiltViewModel()
-            if (userViewModel.getUserAttribute("role", this) == "Blind") {
-                //Intent qua intro1
-                val intent = Intent(this, HomeBlindActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
-            else{
-                HealthCareSystemTheme(darkTheme = darkTheme) {
-                    val context = LocalContext.current
-                    Index(
-                        context = context,
-                        navHostController = navHostController,
-                        onToggleTheme = { darkTheme = !darkTheme },
-                        darkTheme = darkTheme
-                    )
-                }
+
+            HealthCareSystemTheme(darkTheme = darkTheme) {
+                val context = LocalContext.current
+                Index(
+                    context = context,
+                    navHostController = navHostController,
+                    onToggleTheme = { darkTheme = !darkTheme },
+                    darkTheme = darkTheme
+                )
             }
         }
     }

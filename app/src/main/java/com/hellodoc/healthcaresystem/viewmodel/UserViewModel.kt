@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn
+
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
@@ -112,7 +112,9 @@ class UserViewModel @Inject constructor(
 
     fun requestOtp(email: String) {
         viewModelScope.launch {
-            _otpResult.value = userRepo.requestOtp(email)
+            val res = userRepo.requestOtp(email)
+            _otpResult.value = res
+
         }
     }
 
@@ -213,7 +215,7 @@ class UserViewModel @Inject constructor(
         val sharedPreferences: SharedPreferences =
             context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         clearToken(sharedPreferences)
-        val intent = Intent(context, SignIn::class.java)
+        val intent = Intent(context, com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
     }
