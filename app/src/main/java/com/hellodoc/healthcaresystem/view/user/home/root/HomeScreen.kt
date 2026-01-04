@@ -354,6 +354,7 @@ fun HealthMateHomeScreen(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(10.dp))
                     // Header with Greeting and Profile
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),

@@ -213,6 +213,8 @@ object FocusTTS {
     private val initLock = Any()
     private val continuations = mutableMapOf<String, CancellableContinuation<Unit>>()
 
+    private var currentUtteranceId: String? = null
+
     fun init(context: Context) {
         synchronized(initLock) {
             if (tts != null) return
@@ -223,16 +225,25 @@ object FocusTTS {
 
                     tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                         override fun onStart(utteranceId: String?) {
-                            // Không cần xử lý gì
+                            currentUtteranceId = utteranceId
                         }
 
                         override fun onDone(utteranceId: String?) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
                             utteranceId?.let { id ->
                                 continuations.remove(id)?.resume(Unit)
                             }
                         }
 
                         override fun onError(utteranceId: String?) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
+                            utteranceId?.let { id ->
+                                continuations.remove(id)?.resume(Unit)
+                            }
+                        }
+
+                        override fun onStop(utteranceId: String?, interrupted: Boolean) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
                             utteranceId?.let { id ->
                                 continuations.remove(id)?.resume(Unit)
                             }
@@ -243,7 +254,17 @@ object FocusTTS {
         }
     }
 
+    fun isReady(): Boolean = ready
+
+    suspend fun waitUntilReady() {
+        while (!ready) {
+            delay(100)
+        }
+    }
+
     suspend fun speakAndWait(text: String) = suspendCancellableCoroutine { continuation ->
+        stop() // Aggressively stop all previous speech and cancel other continuations
+
         if (!ready || tts == null) {
             continuation.resume(Unit)
             return@suspendCancellableCoroutine
@@ -251,19 +272,25 @@ object FocusTTS {
 
         val utteranceId = System.currentTimeMillis().toString()
         continuations[utteranceId] = continuation
+        currentUtteranceId = utteranceId
 
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
 
         continuation.invokeOnCancellation {
             continuations.remove(utteranceId)
-            tts?.stop()
+            if (currentUtteranceId == utteranceId) {
+                tts?.stop()
+                currentUtteranceId = null
+            }
         }
     }
 
     fun speak(text: String) {
+        stop() // Aggressively stop all previous speech
         if (!ready || tts == null) return
-        tts?.stop()
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, System.currentTimeMillis().toString())
+        val utteranceId = System.currentTimeMillis().toString()
+        currentUtteranceId = utteranceId
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 
     fun isSpeaking(): Boolean = tts?.isSpeaking == true
@@ -281,6 +308,43 @@ object FocusTTS {
         ready = false
     }
 }
+
+fun formatTimeToVietnamese(time: String): String {
+    // Expected format "HH:mm" or "HH:mm:ss"
+    val parts = time.split(":")
+    if (parts.size < 2) return time
+
+    val hour24 = parts[0].toIntOrNull() ?: return time
+    val minute = parts[1].toIntOrNull() ?: return time
+
+    val period = when (hour24) {
+        in 0..3 -> "đêm"
+        in 4..10 -> "sáng"
+        in 11..12 -> "trưa"
+        in 13..17 -> "chiều"
+        in 18..23 -> "tối"
+        else -> "tối"
+    }
+
+    val hour12 = when {
+        hour24 == 0 -> 12
+        hour24 > 12 -> hour24 - 12
+        else -> hour24
+    }
+
+    val minuteStr = when (minute) {
+        0 -> ""
+        else -> minute.toString()
+    }
+
+    return "$hour12 giờ $minuteStr $period".replace("  ", " ").trim()
+}
+
+fun formatTimeToVietnamese(hour: Int, minute: Int): String {
+    val timeStr = String.format("%02d:%02d", hour, minute)
+    return formatTimeToVietnamese(timeStr)
+}
+
 
 suspend fun speakQueue(vararg texts: String) {
     println("speakQueue: $texts")

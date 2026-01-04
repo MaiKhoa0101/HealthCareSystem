@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.model.repository
 
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.dataclass.requestmodel.AnalyzeSpecialtyRequest
 import com.hellodoc.healthcaresystem.requestmodel.GetDoctorBySpecialtyNameRequest
 import jakarta.inject.Inject
 import okhttp3.MultipartBody
@@ -17,5 +18,8 @@ class SpecialtyRepository @Inject constructor(
     ) = specialtyService.createSpecialty(name, icon, description)
     suspend fun getSpecialtyByName(name: String) = specialtyService.getSpecialtyByName(
         GetDoctorBySpecialtyNameRequest(name))
+
+    suspend fun analyzeSpecialty(text: String, specialties: List<String>) = 
+        specialtyService.analyzeSpecialty(AnalyzeSpecialtyRequest(text, specialties))
 
 }

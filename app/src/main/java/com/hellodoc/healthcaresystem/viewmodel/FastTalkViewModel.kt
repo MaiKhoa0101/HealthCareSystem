@@ -7,6 +7,7 @@ import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.toMutableList
@@ -14,7 +15,7 @@ import kotlin.collections.toMutableList
 
 @HiltViewModel
 class FastTalkViewModel @Inject constructor(
-    private val fastTalkRepository: FastTalkRepository
+    private val fastTalkRepository: FastTalkRepository,
 ) : ViewModel() {
 
     // Sử dụng WordResult thay vì Word cũ
@@ -149,6 +150,39 @@ class FastTalkViewModel @Inject constructor(
             } catch (e: Exception) {
                 println("Lỗi Analyze: ${e.message}")
             }
+        }
+    }
+
+    private val _quickResponse = MutableStateFlow<List<String>>(emptyList())
+    val quickResponse: StateFlow<List<String>> = _quickResponse
+
+    fun findQuickResponse(question: String) { // ✅ Bỏ return type
+        viewModelScope.launch { // ✅ Thêm viewModelScope.launch
+            println("🔍 Tìm kiếm với question: '$question'")
+            try {
+                val result = fastTalkRepository.findQuickResponse(question)
+                println("📝 Kết quả tìm được: $result")
+                _quickResponse.value = result
+            } catch (e: Exception) {
+                println("❌ Lỗi khi tìm: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // Lưu câu hỏi-trả lời
+    suspend fun insertQuickResponse(question: String, answer: String) {
+        println("🔵 Đang lưu: Question='$question', Answer='$answer'")
+        try {
+            fastTalkRepository.insertQuickResponse(question, answer)
+            println("✅ Lưu thành công")
+
+            // Kiểm tra ngay sau khi lưu
+            val saved = fastTalkRepository.findQuickResponse(question)
+            println("🔍 Tìm lại ngay sau khi lưu: $saved")
+        } catch (e: Exception) {
+            println("❌ Lỗi khi lưu: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

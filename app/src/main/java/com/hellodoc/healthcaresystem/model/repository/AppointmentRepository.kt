@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.model.repository
 import com.hellodoc.healthcaresystem.api.AppointmentService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentResponse
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
+import com.hellodoc.healthcaresystem.requestmodel.SuggestedAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
@@ -45,6 +46,10 @@ class AppointmentRepository @Inject constructor(
     suspend fun getDoctorStats(
         doctorId: String
     ) = appointmentService.getDoctorStats(doctorId)
+
+    suspend fun getSuggestedAppointments(
+        request: SuggestedAppointmentRequest
+    ) = appointmentService.getSuggestedAppointments(request)
 
 
     suspend fun clearAppointments() = appointmentDao.clearAppointments()

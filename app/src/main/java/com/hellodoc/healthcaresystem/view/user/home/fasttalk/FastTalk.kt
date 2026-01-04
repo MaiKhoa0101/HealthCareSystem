@@ -83,6 +83,15 @@ fun FastTalk(
         if (theirsSentence != "") {
             println("Phân tích câu hỏi từ máy khách: $theirsSentence")
             viewModel.analyzeSentence(theirsSentence)
+            try{
+                println("bắt đầu tìm trong roomDB")
+
+                viewModel.findQuickResponse(theirsSentence)
+            } catch (e: Exception) {
+                println("lỗi database ${e.message}")
+                e.printStackTrace()
+            }
+
         }
     }
 
@@ -154,7 +163,6 @@ fun FastTalk(
                 }
             )
 
-            // ✅ Sử dụng yourSentenceValue.text
             val currentWordFromSentence = remember(yourSentenceValue.text, theirsSentence) {
                 getLastWord(
                     when {
@@ -164,7 +172,7 @@ fun FastTalk(
                     }
                 )
             }
-            SuggestionsRow { content ->
+            SuggestionsRow(viewModel) { content ->
                 val newText = yourSentenceValue.text + " $content"
                 yourSentenceValue = TextFieldValue(
                     text = newText,
@@ -184,7 +192,7 @@ fun FastTalk(
                     vibrate(context)
                 },
                 onExtend = {
-                    alignment -> extendedAlignment = alignment
+                        alignment -> extendedAlignment = alignment
                     vibrate(context)
                 }
             )
@@ -225,6 +233,11 @@ fun FastTalk(
                         speakText(context, yourSentenceValue.text)
                         coroutineScope.launch {
                             viewModel.analyzeSentence(yourSentenceValue.text)
+                            println("bắt đầu lưu trong roomDB")
+
+                            viewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
+                            println("đã lưu vào roomDB")
+                            viewModel.findQuickResponse(theirsSentence)
 
                         }
                     } else {

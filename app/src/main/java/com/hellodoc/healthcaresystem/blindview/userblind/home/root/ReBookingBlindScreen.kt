@@ -26,6 +26,7 @@ import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.view.user.supportfunction.speakQueue
+import com.hellodoc.healthcaresystem.view.user.supportfunction.formatTimeToVietnamese
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -173,7 +174,7 @@ fun ReBookingBlindScreen(
             ReBookingStep.SELECT_TIME -> {
                 FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
                 filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                    val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                    val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                     FocusTTS.speak("Đang hiển thị $timeText")
                 }
             }
@@ -223,7 +224,7 @@ fun ReBookingBlindScreen(
                                 }
                                 ReBookingStep.SELECT_TIME -> {
                                     filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                         FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                     }
                                 }
@@ -260,7 +261,7 @@ fun ReBookingBlindScreen(
                                 }
                                 ReBookingStep.SELECT_TIME -> {
                                     filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
-                                        val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                        val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                         FocusTTS.speakAndWait("Bạn đã chọn $timeText")
                                         currentStep = ReBookingStep.CONFIRMATION
                                     }
@@ -342,7 +343,7 @@ fun ReBookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
-                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                             FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }
@@ -365,7 +366,7 @@ fun ReBookingBlindScreen(
                                             SoundManager.playSwipe()
                                             vibrate(context)
                                             val timeSlot = filteredTimeSlots[selectedTimeIndex]
-                                            val timeText = BlindNavigationHelpers.formatTimeForTTS(timeSlot.hour, timeSlot.minute)
+                                            val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                                             FocusTTS.speak("Đang hiển thị $timeText, nhấn giữ vào màn hình để chọn giờ đang hiển thị")
                                         }
                                     }
