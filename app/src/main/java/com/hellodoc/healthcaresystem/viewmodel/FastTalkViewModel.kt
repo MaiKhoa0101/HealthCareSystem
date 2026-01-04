@@ -2,271 +2,187 @@ package com.hellodoc.healthcaresystem.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Word
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.toMutableList
+
 
 @HiltViewModel
 class FastTalkViewModel @Inject constructor(
     private val fastTalkRepository: FastTalkRepository,
 ) : ViewModel() {
-    private val _wordVerbSimilar = MutableStateFlow<List<Word>>(emptyList())
-    val wordVerbSimilar: StateFlow<List<Word>> get() = _wordVerbSimilar
 
-    private val _wordNounSimilar = MutableStateFlow<List<Word>>(emptyList())
-    val wordNounSimilar: StateFlow<List<Word>> get() = _wordNounSimilar
+    // Sử dụng WordResult thay vì Word cũ
+    private val _wordVerbSimilar = MutableStateFlow<List<WordResult>>(emptyList())
+    val wordVerbSimilar: StateFlow<List<WordResult>> get() = _wordVerbSimilar
 
-    private val _wordSupportSimilar = MutableStateFlow<List<Word>>(emptyList())
-    val wordSupportSimilar: StateFlow<List<Word>> get() = _wordSupportSimilar
+    private val _wordNounSimilar = MutableStateFlow<List<WordResult>>(emptyList())
+    val wordNounSimilar: StateFlow<List<WordResult>> get() = _wordNounSimilar
 
-    private val _wordPronounSimilar = MutableStateFlow<List<Word>>(emptyList())
-    val wordPronounSimilar: StateFlow<List<Word>> get() = _wordPronounSimilar
+    private val _wordSupportSimilar = MutableStateFlow<List<WordResult>>(emptyList())
+    val wordSupportSimilar: StateFlow<List<WordResult>> get() = _wordSupportSimilar
 
-    suspend fun getWordSimilar(word: String) {
-        try {
-            val response = fastTalkRepository.getWordSimilar(word)
-            println("Goi get word với ket qua: " + response.body())
-            if (!response.isSuccessful) {
-                println("Lỗi API: ${response.code()}")
-                return
-            }
-            val data = response.body()?.nodes ?: emptyList()
-            println("Data lay duoc là "+data)
+    private val _wordPronounSimilar = MutableStateFlow<List<WordResult>>(emptyList())
+    val wordPronounSimilar: StateFlow<List<WordResult>> get() = _wordPronounSimilar
 
-            // Nhóm theo yêu cầu
-            val nounTags = setOf("n", "np", "nc", "nu", "ny", "nb")
-            val verbTags = setOf("v", "vb", "vy", "a", "ab")
-            val pronounTags = setOf("p")
-
-            val verbs = mutableListOf<Word>()
-            val nouns = mutableListOf<Word>()
-            val support = mutableListOf<Word>()
-            val pronouns = mutableListOf<Word>()
-
-            data.forEach { wordItem ->
-                val tags = wordItem.label.map { it.lowercase() }
-                when {
-                    tags.any { nounTags.contains(it) } -> nouns.add(wordItem)
-                    tags.any { verbTags.contains(it) } -> verbs.add(wordItem)
-                    tags.any { pronounTags.contains(it) } -> pronouns.add(wordItem)
-                    else -> support.add(wordItem)
-                }
-            }
-
-            // ✅ Cập nhật các nhóm có dữ liệu
-            _wordVerbSimilar.value = verbs
-            _wordNounSimilar.value = nouns
-            _wordSupportSimilar.value = support
-            _wordPronounSimilar.value = pronouns
-
-            // ✅ Kiểm tra và tìm kiếm cho các nhóm bị rỗng
-            if (verbs.isEmpty()) {
-                println("Nhóm động từ rỗng, tìm kiếm thêm...")
-                getWordByLabelUntilFound(word, "v", "v", "verb")
-            }
-            if (nouns.isEmpty()) {
-                println("Nhóm danh từ rỗng, tìm kiếm thêm...")
-                getWordByLabelUntilFound(word, "n", "n", "noun")
-            }
-            if (support.isEmpty()) {
-                println("Nhóm tính từ rỗng, tìm kiếm thêm...")
-                getWordByLabelUntilFound(word, "a", "a", "support")
-            }
-            if (pronouns.isEmpty()) {
-                println("Nhóm đại từ rỗng, tìm kiếm thêm...")
-                getWordByLabelUntilFound(word, "p", "p", "pronoun")
-            }
-
-        } catch (e: Exception) {
-            println("Lỗi: ${e.message}")
-        }
-    }
-
-    // ✅ Hàm tìm kiếm đệ quy cho đến khi tìm được dữ liệu
-    private suspend fun getWordByLabelUntilFound(
-        word: String,
-        label: String,
-        toLabel: String,
-        groupType: String,
-        depth: Int = 0,
-        maxDepth: Int = 5 // Giới hạn độ sâu để tránh vòng lặp vô hạn
-    ) {
-        if (depth >= maxDepth) {
-            println("Đã đạt giới hạn tìm kiếm cho nhóm $groupType")
-            return
-        }
-
-        try {
-            val response = fastTalkRepository.getWordByLabel(word, label, toLabel)
-            if (!response.isSuccessful) {
-                println("Lỗi API getWordByLabel: ${response.code()}")
-                return
-            }
-
-            val data = response.body()?.nodes ?: emptyList()
-            println("Data tìm được cho $groupType (depth $depth): $data")
-
-            if (data.isEmpty()) {
-                println("Không tìm được dữ liệu cho $groupType, thử lại với từ khác...")
-                // Có thể thử với các biến thể khác của label hoặc dừng lại
-                return
-            }
-
-            // Nhóm theo yêu cầu
-            val nounTags = setOf("n", "np", "nc", "nu", "ny", "nb")
-            val verbTags = setOf("v", "vb", "vy", "a", "ab")
-            val pronounTags = setOf("p")
-
-            val verbs = mutableListOf<Word>()
-            val nouns = mutableListOf<Word>()
-            val adjectives = mutableListOf<Word>()
-            val pronouns = mutableListOf<Word>()
-
-            data.forEach { wordItem ->
-                val tags = wordItem.label.map { it.lowercase() }
-                when {
-                    tags.any { nounTags.contains(it) } -> nouns.add(wordItem)
-                    tags.any { verbTags.contains(it) } -> verbs.add(wordItem)
-                    tags.any { pronounTags.contains(it) } -> pronouns.add(wordItem)
-                    else -> adjectives.add(wordItem)
-                }
-            }
-
-            // ✅ Cập nhật nhóm tương ứng nếu tìm được dữ liệu
-            when (groupType) {
-                "verb" -> {
-                    if (verbs.isNotEmpty()) {
-                        _wordVerbSimilar.value = verbs
-                        println("✓ Đã tìm được ${verbs.size} động từ")
-                    } else {
-                        // Tìm tiếp với từ đầu tiên trong kết quả
-                        val nextWord = data.firstOrNull()?.suggestion
-                        if (nextWord != null) {
-                            println("Tìm tiếp với từ: $nextWord")
-                            getWordByLabelUntilFound(nextWord, label, toLabel, groupType, depth + 1, maxDepth)
-                        }
-                    }
-                }
-                "noun" -> {
-                    if (nouns.isNotEmpty()) {
-                        _wordNounSimilar.value = nouns
-                        println("✓ Đã tìm được ${nouns.size} danh từ")
-                    } else {
-                        val nextWord = data.firstOrNull()?.suggestion
-                        if (nextWord != null) {
-                            println("Tìm tiếp với từ: $nextWord")
-                            getWordByLabelUntilFound(nextWord, label, toLabel, groupType, depth + 1, maxDepth)
-                        }
-                    }
-                }
-                "support" -> {
-                    if (adjectives.isNotEmpty()) {
-                        _wordSupportSimilar.value = adjectives
-                        println("✓ Đã tìm được ${adjectives.size} tính từ")
-                    } else {
-                        val nextWord = data.firstOrNull()?.suggestion
-                        if (nextWord != null) {
-                            println("Tìm tiếp với từ: $nextWord")
-                            getWordByLabelUntilFound(nextWord, label, toLabel, groupType, depth + 1, maxDepth)
-                        }
-                    }
-                }
-                "pronoun" -> {
-                    if (pronouns.isNotEmpty()) {
-                        _wordPronounSimilar.value = pronouns
-                        println("✓ Đã tìm được ${pronouns.size} đại từ")
-                    } else {
-                        val nextWord = data.firstOrNull()?.suggestion
-                        if (nextWord != null) {
-                            println("Tìm tiếp với từ: $nextWord")
-                            getWordByLabelUntilFound(nextWord, label, toLabel, groupType, depth + 1, maxDepth)
-                        }
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            println("Lỗi khi tìm $groupType: ${e.message}")
-        }
-    }
-
-
-    suspend fun analyzeSentence (text: String){
-        try {
-            println("Thực hiện Phân tích + $text")
-            val response = fastTalkRepository.analyzeQuestion(text)
-            if (!response.isSuccessful) {
-                println("Lỗi Phân tích API getWordByLabel: ${response.code()}")
-            }
-            else{
-                val data = response.body()
-                println("Data tìm được cho $data")
-                //Pronounce sẽ được trả về cho nên phải thêm nó vào tập pro
-                if(data?.label?.contains("P") == true) {
-                    //nếu pro đã có từ này thì tăng score nó lên cao nhất
-                    val currentPronouns = _wordPronounSimilar.value
-                    val existingPronoun = currentPronouns.find { it.suggestion == data.suggestion }
-                    if (existingPronoun != null) {
-                        val updatedPronouns = currentPronouns.map {
-                            if (it == existingPronoun) {
-                                it.copy(score = it.score + data.score)
-                            } else {
-                                it
-                            }
-                        }
-                    }
-                    //nếu pro chưa có từ này thì thêm nó vào
-                    else{
-                        val updatedPronouns = currentPronouns.toMutableList()
-                        updatedPronouns.add(data)
-                        _wordPronounSimilar.value = updatedPronouns
-                    }
-                }
-            }
-        }
-        catch (e: Exception) {
-            println("Lỗi khi tìm : ${e.message}")
-        }
-
-    }
-
-    // ✅ Tìm câu trả lời và xử lý kết quả
-    fun findQuickResponse(sentence: String) {
+    // Hàm gọi chính
+    fun getWordSimilar(word: String) {
         viewModelScope.launch {
             try {
-                val response = fastTalkRepository.findQuickResponse(sentence)
-                if (response != null) {
-                    println("Tìm thấy câu trả lời: ${response.response}")
-                    // TODO: Cập nhật UI state để hiển thị câu trả lời
-                    // Ví dụ: _quickResponse.value = response.response
-                } else {
-                    println("Không tìm thấy câu trả lời cho: $sentence")
+                val response = fastTalkRepository.getWordSimilar(word)
+
+                if (!response.isSuccessful || response.body()?.success == false) {
+                    println("API Fail hoặc Success=false: ${response.code()}")
+                    return@launch
                 }
+
+                // Lấy results từ JSON
+                val data = response.body()?.results ?: emptyList()
+                println("Data nhận được: ${data.size} từ")
+
+                categorizeWords(data, word)
+
             } catch (e: Exception) {
-                println("Lỗi khi tìm kiếm: ${e.message}")
+                println("Lỗi Exception: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
 
-    // ✅ Lưu câu hỏi và câu trả lời
-    fun insertQuickResponse(theirSentence: String, yourSentence: String) {
+    // Tách logic phân loại ra hàm riêng cho gọn
+    private suspend fun categorizeWords(data: List<WordResult>, originalWord: String) {
+        val verbs = mutableListOf<WordResult>()
+        val nouns = mutableListOf<WordResult>()
+        val support = mutableListOf<WordResult>()
+        val pronouns = mutableListOf<WordResult>()
+
+        data.forEach { item ->
+            // posTag từ JSON ví dụ: "R", "V", "Ny", "N"
+            val tag = item.posTag.uppercase()
+
+            when {
+                // Danh từ: Bắt đầu bằng N (N, Np, Nc, Nu, Ny...)
+                tag.startsWith("N") -> nouns.add(item)
+
+                // Động từ: Bắt đầu bằng V
+                tag.startsWith("V") -> verbs.add(item)
+
+                // Đại từ: P
+                tag == "P" -> pronouns.add(item)
+
+                // Các loại khác vào Support (Tính từ A, Trạng từ R, Kết từ C...)
+                // Ví dụ: "sẽ" (R), "đã" (R), "rất" (R) sẽ vào đây
+                else -> support.add(item)
+            }
+        }
+
+        _wordVerbSimilar.value = verbs
+        _wordNounSimilar.value = nouns
+        _wordSupportSimilar.value = support
+        _wordPronounSimilar.value = pronouns
+
+        // Kiểm tra rỗng và tìm kiếm đệ quy (Fallback)
+        // Lưu ý: toLabel phải khớp với quy ước của Backend (ví dụ 'V', 'N', 'A')
+        if (verbs.isEmpty()) searchFallback(originalWord, "V", "verb")
+        if (nouns.isEmpty()) searchFallback(originalWord, "N", "noun")
+        if (support.isEmpty()) searchFallback(originalWord, "A", "support") // Giả sử A đại diện support
+        if (pronouns.isEmpty()) searchFallback(originalWord, "P", "pronoun")
+    }
+
+    private suspend fun searchFallback(word: String, toLabel: String, groupType: String, depth: Int = 0) {
+        if (depth >= 3) return // Giảm depth xuống 3 cho đỡ lag
+
+        try {
+            val response = fastTalkRepository.getWordByLabel(word, toLabel)
+            val data = response.body()?.results ?: emptyList()
+
+            if (data.isNotEmpty()) {
+                when (groupType) {
+                    "verb" -> _wordVerbSimilar.value = data
+                    "noun" -> _wordNounSimilar.value = data
+                    "support" -> _wordSupportSimilar.value = data
+                    "pronoun" -> _wordPronounSimilar.value = data
+                }
+                println("Fallback thành công cho $groupType với ${data.size} từ")
+            } else {
+                // Nếu vẫn rỗng, thử tìm tiếp dựa trên từ gợi ý đầu tiên của lần gọi trước (nếu có logic đó)
+                // Ở đây tôi tạm dừng để tránh spam API
+            }
+        } catch (e: Exception) {
+            println("Lỗi Fallback $groupType: ${e.message}")
+        }
+    }
+
+    fun analyzeSentence(text: String) {
         viewModelScope.launch {
             try {
-                fastTalkRepository.insertQuickResponse(theirSentence, yourSentence)
-                println("Đã lưu vào roomDB: Q='$theirSentence' A='$yourSentence'")
+                // API analyze trả về gì?
+                // Nếu nó trả về structure giống getWordSimilar, ta xử lý tương tự
+                val response = fastTalkRepository.analyzeQuestion(text)
+
+                // Giả sử logic là tìm đại từ trong câu hỏi để thêm vào danh sách Pronoun
+                val results = response.body()?.results ?: emptyList()
+
+                val foundPronouns = results.filter { it.posTag == "P" }
+
+                if (foundPronouns.isNotEmpty()) {
+                    val currentList = _wordPronounSimilar.value.toMutableList()
+                    // Merge logic: Thêm vào hoặc update score
+                    foundPronouns.forEach { p ->
+                        val exists = currentList.indexOfFirst { it.word == p.word }
+                        if (exists != -1) {
+                            // Update score (ví dụ cộng thêm)
+                            val old = currentList[exists]
+                            currentList[exists] = old.copy(score = old.score + p.score)
+                        } else {
+                            currentList.add(p)
+                        }
+                    }
+                    _wordPronounSimilar.value = currentList
+                }
+
             } catch (e: Exception) {
-                println("Lỗi database ${e.message}")
+                println("Lỗi Analyze: ${e.message}")
+            }
+        }
+    }
+
+    private val _quickResponse = MutableStateFlow<List<String>>(emptyList())
+    val quickResponse: StateFlow<List<String>> = _quickResponse
+
+    fun findQuickResponse(question: String) { // ✅ Bỏ return type
+        viewModelScope.launch { // ✅ Thêm viewModelScope.launch
+            println("🔍 Tìm kiếm với question: '$question'")
+            try {
+                val result = fastTalkRepository.findQuickResponse(question)
+                println("📝 Kết quả tìm được: $result")
+                _quickResponse.value = result
+            } catch (e: Exception) {
+                println("❌ Lỗi khi tìm: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
 
+    // Lưu câu hỏi-trả lời
+    suspend fun insertQuickResponse(question: String, answer: String) {
+        println("🔵 Đang lưu: Question='$question', Answer='$answer'")
+        try {
+            fastTalkRepository.insertQuickResponse(question, answer)
+            println("✅ Lưu thành công")
 
-
-
+            // Kiểm tra ngay sau khi lưu
+            val saved = fastTalkRepository.findQuickResponse(question)
+            println("🔍 Tìm lại ngay sau khi lưu: $saved")
+        } catch (e: Exception) {
+            println("❌ Lỗi khi lưu: ${e.message}")
+            e.printStackTrace()
+        }
+    }
 }

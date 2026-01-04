@@ -169,14 +169,14 @@ fun CircleButton(
             .graphicsLayer {
                 rotationZ = -angle // giữ icon + background không xoay theo
             }
-            .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+            .background(MaterialTheme.colorScheme.background, shape = CircleShape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Add",
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.size(size * 0.5f)
         )
     }
@@ -249,7 +249,7 @@ fun BoxItem(
             imageVector = iconchange,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+            tint = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -257,7 +257,7 @@ fun BoxItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
             )
         )
     }

@@ -12,8 +12,7 @@ interface QuickResponseDao {
     @Delete
     suspend fun delete(response: QuickResponseEntity)
 
-    // Tìm câu trả lời theo câu hỏi
-    @Query("SELECT * FROM quick_responses WHERE question = :question LIMIT 1")
-    suspend fun findResponse(question: String): QuickResponseEntity?
+    @Query("SELECT response FROM quick_responses WHERE question = :question")
+    suspend fun findByQuestion(question: String): List<String>
 
 }
