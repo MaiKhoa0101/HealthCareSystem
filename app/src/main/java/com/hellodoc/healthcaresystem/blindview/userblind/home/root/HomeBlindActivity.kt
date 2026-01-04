@@ -406,6 +406,12 @@ class HomeBlindActivity : BaseActivity() {
                     socketManager = socketManager
                 )
             }
+            composable("virtual_assistant_blind") {
+                VirtualAssistantScreen(navHostController)
+            }
+            composable("smart_booking_blind") {
+                SmartBookingScreen(navHostController)
+            }
         }
 
     }

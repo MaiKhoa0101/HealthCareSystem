@@ -19,6 +19,7 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Specialty
 import com.hellodoc.healthcaresystem.model.repository.DoctorRepository
 import com.hellodoc.healthcaresystem.model.repository.PostRepository
+import com.hellodoc.healthcaresystem.model.repository.SpecialtyRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
 import com.hellodoc.healthcaresystem.view.user.supportfunction.extractFrames
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -258,7 +259,8 @@ class GeminiHelper() {
 @HiltViewModel
 class GeminiViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val doctorRepository:DoctorRepository
+    private val doctorRepository: DoctorRepository,
+    private val specialtyRepository: SpecialtyRepository
 ) : ViewModel() {
     private val _question = MutableStateFlow("")
     val question: StateFlow<String> get() = _question
@@ -678,4 +680,33 @@ class GeminiViewModel @Inject constructor(
         return ""
     }
 
+    suspend fun analyzeSymptomsForSpecialty(symptoms: String, specialtyNames: List<String>): Int? {
+        // Gọi API backend trước
+        try {
+            val apiResponse = specialtyRepository.analyzeSpecialty(symptoms, specialtyNames)
+            if (apiResponse.isSuccessful) {
+                val index = apiResponse.body()
+                if (index != null && index != -1 && index in specialtyNames.indices) {
+                    Log.d("GeminiViewModel", "Dùng kết quả từ backend API: $index")
+                    return index
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("GeminiViewModel", "Lỗi khi gọi backend specialty analyze: ${e.message}")
+        }
+
+        // Fallback sang Gemini nếu backend trả về -1 hoặc lỗi
+        Log.d("GeminiViewModel", "Fallback sang Gemini analysis")
+        val prompt = """
+            chuyên ngành [${specialtyNames.joinToString(", ")}]. Phân tích câu "$symptoms" và chỉ trả về index chuyên ngành phù hợp, không trả gì thêm
+        """.trimIndent()
+
+        val response = askGeminiWithPrompt(prompt).trim()
+        return try {
+            val index = response.filter { it.isDigit() }.toInt()
+            if (index in specialtyNames.indices) index else null
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

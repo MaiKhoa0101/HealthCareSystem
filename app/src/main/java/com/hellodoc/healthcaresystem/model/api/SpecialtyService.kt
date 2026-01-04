@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.model.api
 
+import com.hellodoc.healthcaresystem.model.dataclass.requestmodel.AnalyzeSpecialtyRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.requestmodel.GetDoctorBySpecialtyNameRequest
 import okhttp3.MultipartBody
@@ -31,4 +32,8 @@ interface SpecialtyService {
     @Headers("Content-Type: application/json")
     @POST("specialty/specialty-by-name")
     suspend fun getSpecialtyByName(@Body dto: GetDoctorBySpecialtyNameRequest): Response<GetSpecialtyResponse>
+
+    @Headers("Content-Type: application/json")
+    @POST("specialty/analyze")
+    suspend fun analyzeSpecialty(@Body request: AnalyzeSpecialtyRequest): Response<Int>
 }

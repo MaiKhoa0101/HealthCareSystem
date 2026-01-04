@@ -358,6 +358,8 @@ fun BookingBlindScreen(
                                     val selectedDoctor = doctors[doctorIndex]
                                     val selectedSlot = filteredAvailableSlots.getOrNull(selectedDateIndex)
                                     val selectedTime = filteredTimeSlots.getOrNull(selectedTimeIndex)
+
+                                    val address = userViewModel.getUserAttribute("address", context)
                                     
                                     if (selectedSlot != null && selectedTime != null) {
                                         appointmentViewModel.createAppointment(
@@ -368,11 +370,11 @@ fun BookingBlindScreen(
                                                 patientModel = patientModel,
                                                 date = selectedSlot.date,
                                                 time = selectedTime.time,
-                                                examinationMethod = "at_clinic",
+                                                examinationMethod = "at_home",
                                                 notes = "Đặt lịch qua trợ lý giọng nói",
                                                 reason = "Đặt lịch qua trợ lý giọng nói",
                                                 totalCost = "0",
-                                                location = selectedDoctor.address ?: ""
+                                                location = address
                                             )
                                         )
                                     }
