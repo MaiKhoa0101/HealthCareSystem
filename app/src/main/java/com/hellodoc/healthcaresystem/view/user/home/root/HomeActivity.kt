@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,11 +25,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -50,7 +44,7 @@ import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActi
 import com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.chatAi.GeminiChatScreen
 import com.hellodoc.healthcaresystem.view.user.home.news.NewsDetailScreen
 import com.hellodoc.healthcaresystem.view.user.home.bmiChecking.BMICheckerScreen
@@ -74,7 +68,6 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
-import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager

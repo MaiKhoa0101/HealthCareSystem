@@ -286,10 +286,18 @@ fun HealthMateHomeScreen(
                     // Premium HelloDoc Welcome Banner
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 20.dp)
-                            .shadow(12.dp, RoundedCornerShape(24.dp))
+                            .fillMaxWidth() // 1. Xác định kích thước tổng thể trước
+
+                            // 2. Đổ bóng (Shadow) phải nằm ngoài cùng (trước clip/background) để không bị cắt mất
+                            .shadow(
+                                elevation = 12.dp,
+                                shape = RoundedCornerShape(24.dp) // Shape của bóng phải khớp với shape của Box
+                            )
+
+                            // 3. Cắt bo góc (Clip) để các layer màu/ảnh sau đó nằm gọn trong hình dáng này
                             .clip(RoundedCornerShape(24.dp))
+
+                            // 4. Tô màu nền (Background)
                             .background(
                                 brush = Brush.linearGradient(
                                     colors = listOf(
@@ -300,9 +308,17 @@ fun HealthMateHomeScreen(
                                     )
                                 )
                             )
-                            .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+
+                            // 5. Vẽ viền (Border) đè lên background (hoặc bao quanh)
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+
+                            // 6. Padding nội dung (Cuối cùng): Tạo khoảng cách giữa viền và nội dung bên trong Box
                             .padding(20.dp)
-                    ) {
+                    ){
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -899,7 +915,7 @@ fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (()
                         text = if (isExpanded) "Thu gọn" else "Xem tất cả",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     )
                     Spacer(modifier = Modifier.width(4.dp))

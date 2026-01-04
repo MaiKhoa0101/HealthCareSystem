@@ -28,11 +28,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -135,6 +132,7 @@ fun VideoPlayer(
 
         // 1. LỚP VIDEO (Nằm dưới)
         AndroidView(
+            modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer

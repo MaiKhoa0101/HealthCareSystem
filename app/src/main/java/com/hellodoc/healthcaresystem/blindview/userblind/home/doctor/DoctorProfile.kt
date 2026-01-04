@@ -31,19 +31,15 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.hellodoc.healthcaresystem.viewmodel.DoctorViewModel
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
-import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.skeleton.RatingOverviewSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserInfoSkeleton
@@ -52,7 +48,6 @@ import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostDoctor
 import com.hellodoc.healthcaresystem.view.user.post.PostColumn
 import com.hellodoc.healthcaresystem.view.user.supportfunction.AvatarDetailDialog
 
-import com.hellodoc.healthcaresystem.viewmodel.GeminiHelper
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
