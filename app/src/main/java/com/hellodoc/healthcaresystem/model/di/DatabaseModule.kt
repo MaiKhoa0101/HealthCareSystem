@@ -3,6 +3,7 @@ package com.hellodoc.healthcaresystem.model.di
 
 import android.content.Context
 import androidx.room.Room
+import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import dagger.Module
@@ -38,5 +39,12 @@ object DatabaseModule {
     @Singleton // Thường thì DAO cũng nên là Singleton
     fun provideAppointmentDao(database: AppDatabase): AppointmentDao { // <-- (1)
         return database.appointmentDao() // (Hàm này trong file AppDatabase của bạn)
+    }
+
+    @Provides
+    @Singleton
+    fun provideQuickResponseDao(database: AppDatabase): QuickResponseDao{
+        return database.QuickResponseDao()
+
     }
 }

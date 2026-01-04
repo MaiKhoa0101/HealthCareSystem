@@ -1,16 +1,18 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Word
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class FastTalkViewModel @Inject constructor(
-    private val fastTalkRepository: FastTalkRepository
+    private val fastTalkRepository: FastTalkRepository,
 ) : ViewModel() {
     private val _wordVerbSimilar = MutableStateFlow<List<Word>>(emptyList())
     val wordVerbSimilar: StateFlow<List<Word>> get() = _wordVerbSimilar
@@ -230,6 +232,38 @@ class FastTalkViewModel @Inject constructor(
             println("Lỗi khi tìm : ${e.message}")
         }
 
+    }
+
+    // ✅ Tìm câu trả lời và xử lý kết quả
+    fun findQuickResponse(sentence: String) {
+        viewModelScope.launch {
+            try {
+                val response = fastTalkRepository.findQuickResponse(sentence)
+                if (response != null) {
+                    println("Tìm thấy câu trả lời: ${response.response}")
+                    // TODO: Cập nhật UI state để hiển thị câu trả lời
+                    // Ví dụ: _quickResponse.value = response.response
+                } else {
+                    println("Không tìm thấy câu trả lời cho: $sentence")
+                }
+            } catch (e: Exception) {
+                println("Lỗi khi tìm kiếm: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // ✅ Lưu câu hỏi và câu trả lời
+    fun insertQuickResponse(theirSentence: String, yourSentence: String) {
+        viewModelScope.launch {
+            try {
+                fastTalkRepository.insertQuickResponse(theirSentence, yourSentence)
+                println("Đã lưu vào roomDB: Q='$theirSentence' A='$yourSentence'")
+            } catch (e: Exception) {
+                println("Lỗi database ${e.message}")
+                e.printStackTrace()
+            }
+        }
     }
 
 

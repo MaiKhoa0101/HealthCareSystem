@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
@@ -45,6 +46,8 @@ import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 import androidx.compose.ui.Modifier
+import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun FastTalk(
@@ -52,6 +55,7 @@ fun FastTalk(
     context: Context
 ) {
     val viewModel: FastTalkViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
 
     // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
@@ -75,6 +79,16 @@ fun FastTalk(
         if (theirsSentence != "") {
             println("Phân tích câu hỏi từ máy khách: $theirsSentence")
             viewModel.analyzeSentence(theirsSentence)
+            try{
+                println("bắt đầu tìm trong roomDB")
+
+                viewModel.findQuickResponse(theirsSentence)
+                //println("đã lưu vào roomDB")
+            } catch (e: Exception) {
+                println("lỗi database ${e.message}")
+                e.printStackTrace()
+            }
+
         }
     }
 
@@ -215,6 +229,16 @@ fun FastTalk(
                 onPronounce = {
                     if (yourSentenceValue.text.isNotBlank()) {
                         speakText(context, yourSentenceValue.text)
+                        try{
+                            println("bắt đầu lưu trong roomDB")
+
+                            viewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
+                            //println("đã lưu vào roomDB")
+                        } catch (e: Exception) {
+                            println("lỗi database ${e.message}")
+                            e.printStackTrace()
+                        }
+
                     } else {
                         Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
                     }
