@@ -12,9 +12,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,8 +28,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -67,16 +74,50 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 @HiltAndroidApp
-class MyApp : Application()
+class MyApp : Application(){
+
+    // CRITICAL: Dùng Main dispatcher để đảm bảo Engine.create() chạy trên Main thread
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d("MyApp", "🚀 Application onCreate")
+
+        // Khởi tạo SceneView trên Main thread
+        applicationScope.launch {
+            try {
+                SceneViewManager.initialize(applicationContext)
+                Log.d("MyApp", "✅ SceneView initialized successfully")
+            } catch (e: Exception) {
+                Log.e("MyApp", "❌ Failed to initialize SceneView", e)
+            }
+        }
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        Log.w("MyApp", "⚠️ Low memory warning")
+    }
+}
 
 @AndroidEntryPoint
 class HomeActivity : BaseActivity() {
@@ -106,6 +147,7 @@ class HomeActivity : BaseActivity() {
             }
         }
     }
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -227,166 +269,214 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
+
+
         val userViewModel: UserViewModel = hiltViewModel()
         val sharedPreferences = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
         val user by userViewModel.user.collectAsState()
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
-        NavHost(
-            navController = navHostController,
-            startDestination = defaultDestination,
-            modifier = modifier
-        ) {
-            composable("fast_talk") {
-                FastTalk(navHostController, context)
-            }
-            composable("home") {
-                HealthMateHomeScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    navHostController = navHostController,
-                )
-            }
-            composable("news_detail") {
-                NewsDetailScreen(navHostController)
-            }
-            composable("appointment") {
-                AppointmentListScreen(navHostController)
-            }
-            composable("notification") {
-                NotificationPage(context, navHostController)
-            }
-            composable("personal") {
-                ProfileUserPage(
-                    navHostController
-                )
-            }
-            composable(
-                "otherUserProfile/{userOwnerID}",
-                arguments = listOf(
-                    navArgument("userOwnerID")
-                    { type = NavType.StringType
-                    }
-                )
-            ) { backStackEntry ->
-                val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
-                ProfileOtherUserPage(
-                    navHostController,
-                    userOwnerID
-                )
-            }
-            composable("create_post") {
-                CreatePostScreen(context, navHostController)
-            }
-            composable("editProfile") {
-                EditUserProfile(navHostController)
-            }
-            composable("doctorRegister") {
-                RegisterClinic(navHostController)
-            }
-            composable("editClinic") {
-                EditClinicServiceScreen(navHostController)
-            }
-            composable("gemini_help") {
-                GeminiChatScreen(navHostController)
-            }
-            composable("other_user_profile") {
-                DoctorScreen(context, navHostController)
-            }
-            composable("appointment-detail") {
-                AppointmentDetailScreen(
-                    context = context,
-                    navHostController = navHostController
-                )
-            }
-            composable("doctor_list") {
-                DoctorListScreen(
-                    context = context,
-//                    onBack = {
-//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
-//                        startActivity(intent)
-//                    },
-                    navHostController = navHostController
-                )
-            }
-            composable("booking-calendar") {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    BookingCalendarScreen(context = context, navHostController = navHostController)
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navHostController,
+                startDestination = defaultDestination,
+                modifier = modifier
+            ) {
+                composable("fast_talk") {
+                    FastTalk(navHostController, context)
                 }
-            }
-            composable("booking") {
-                Column(modifier = Modifier.fillMaxSize()) {
+                composable("home") {
+                    HealthMateHomeScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        navHostController = navHostController,
+                    )
+                }
+                composable("news_detail") {
+                    NewsDetailScreen(navHostController)
+                }
+                composable("appointment") {
+                    AppointmentListScreen(navHostController)
+                }
+                composable("notification") {
+                    NotificationPage(context, navHostController)
+                }
+                composable("personal") {
+                    ProfileUserPage(
+                        navHostController
+                    )
+                }
+                composable(
+                    "otherUserProfile/{userOwnerID}",
+                    arguments = listOf(
+                        navArgument("userOwnerID")
+                        {
+                            type = NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+                    val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
+                    ProfileOtherUserPage(
+                        navHostController,
+                        userOwnerID
+                    )
+                }
+                composable("create_post") {
+                    CreatePostScreen(context, navHostController)
+                }
+                composable("editProfile") {
+                    EditUserProfile(navHostController)
+                }
+                composable("doctorRegister") {
+                    RegisterClinic(navHostController)
+                }
+                composable("editClinic") {
+                    EditClinicServiceScreen(navHostController)
+                }
+                composable("gemini_help") {
+                    GeminiChatScreen(navHostController)
+                }
+                composable("other_user_profile") {
+                    DoctorScreen(context, navHostController)
+                }
+                composable("appointment-detail") {
                     AppointmentDetailScreen(
                         context = context,
                         navHostController = navHostController
                     )
                 }
-            }
-            composable("booking-confirm") {
-                ConfirmBookingScreen(context = context, navHostController = navHostController)
-            }
+                composable("doctor_list") {
+                    DoctorListScreen(
+                        context = context,
+//                    onBack = {
+//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
+//                        startActivity(intent)
+//                    },
+                        navHostController = navHostController
+                    )
+                }
+                composable("booking-calendar") {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        BookingCalendarScreen(
+                            context = context,
+                            navHostController = navHostController
+                        )
+                    }
+                }
+                composable("booking") {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AppointmentDetailScreen(
+                            context = context,
+                            navHostController = navHostController
+                        )
+                    }
+                }
+                composable("booking-confirm") {
+                    ConfirmBookingScreen(context = context, navHostController = navHostController)
+                }
 
-            composable(
-                route = "service-selection/{appointmentId}/{patientName}",
-                arguments = listOf(
-                    navArgument("appointmentId") { type = NavType.StringType },
-                    navArgument("patientName") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-                val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
-                val patientName = backStackEntry.arguments?.getString("patientName") ?: ""
+                composable(
+                    route = "service-selection/{appointmentId}/{doctorId}/{patientName}",
+                    arguments = listOf(
+                        navArgument("appointmentId") { type = NavType.StringType },
+                        navArgument("doctorId") { type = NavType.StringType },
+                        navArgument("patientName") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
+                    val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                    val patientName = backStackEntry.arguments?.getString("patientName") ?: ""
 
-                ServiceSelectionScreen(
-                    navHostController = navHostController,
-                    appointmentId = appointmentId,
-                    patientName = patientName
-                )
-            }
-            composable("bmi-checking") {
-                BMICheckerScreen(navHostController)
-            }
-            composable("activity_manager") {
-                ActivityManagerScreen(
-                    onBack = { navHostController.popBackStack() },
-                    navHostController
-                )
-            }
-            composable("report_manager") {
-                reportManager(context = context, navHostController)
-            }
-            composable("userComment") {
-                CommentHistoryScreen(navHostController)
-            }
-            composable("userFavorite") {
-                FavouriteHistoryScreen(navHostController)
-            }
-            composable(
-                route = "edit_post/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                CreatePostScreen(context, navHostController, postId = postId)
-            }
-            composable(
-                route = "post-detail/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                PostDetailScreen(navHostController, postId)
-            }
+                    ServiceSelectionScreen(
+                        navHostController = navHostController,
+                        appointmentId = appointmentId,
+                        doctorId = doctorId,
+                        patientName = patientName
+                    )
+                }
+                composable("bmi-checking") {
+                    BMICheckerScreen(navHostController)
+                }
+                composable("activity_manager") {
+                    ActivityManagerScreen(
+                        onBack = { navHostController.popBackStack() },
+                        navHostController
+                    )
+                }
+                composable("report_manager") {
+                    reportManager(context = context, navHostController)
+                }
+                composable("userComment") {
+                    CommentHistoryScreen(navHostController)
+                }
+                composable("userFavorite") {
+                    FavouriteHistoryScreen(navHostController)
+                }
+                composable(
+                    route = "edit_post/{postId}",
+                    arguments = listOf(navArgument("postId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    CreatePostScreen(context, navHostController, postId = postId)
+                }
+                composable(
+                    route = "post-detail/{postId}",
+                    arguments = listOf(navArgument("postId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    PostDetailScreen(navHostController, postId)
+                }
 
-            composable("setting") {
-                Setting(
-                    navHostController,
-                    sharedPreferences,
-                    onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme,
-                    socketManager = socketManager
-                )
+                composable("setting") {
+                    Setting(
+                        navHostController,
+                        sharedPreferences,
+                        onToggleTheme = onToggleTheme,
+                        darkTheme = darkTheme,
+                        socketManager = socketManager
+                    )
+                }
+                composable("editOptionPage") {
+                    EditOptionPage(navHostController)
+                }
             }
-            composable("editOptionPage") {
-                EditOptionPage(navHostController)
-            }
+//            // LỚP 2: Floating 3D Assistant (Nằm đè lên trên)
+//            // Chỉ hiển thị khi Engine đã sẵn sàng (is3DReady = true)
+//            val is3DReady by SceneViewManager.initializationState.collectAsState()
+//            var is3DExpanded by remember { mutableStateOf(false) }
+//
+//            if (is3DReady) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .zIndex(100f) // Đảm bảo luôn nằm trên cùng
+//                        .padding(bottom = 80.dp, end = 16.dp), // Chỉnh padding để không che BottomBar
+//                    contentAlignment = Alignment.BottomEnd
+//                ) {
+//                    Floating3DAssistant(
+//                        isExpanded = is3DExpanded,
+//                        onExpandChange = { newValue -> is3DExpanded = newValue },
+//                        // Lấy dữ liệu an toàn từ Manager
+//                        engine = SceneViewManager.getEngine(),
+//                        modelInstance = SceneViewManager.getModelInstance(),
+//                        environment = SceneViewManager.getEnvironment()
+//                    )
+//                }
+//            } else {
+//                // Optional: Loading nhỏ ở góc nếu chưa load xong
+//                Box(
+//                    modifier = Modifier
+//                        .padding(bottom = 80.dp, end = 16.dp)
+//                        .align(Alignment.BottomEnd),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    CircularProgressIndicator(
+//                        modifier = Modifier.size(24.dp),
+//                        strokeWidth = 2.dp,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            }
+
         }
-
     }
 
 }

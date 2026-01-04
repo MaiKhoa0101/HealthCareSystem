@@ -111,7 +111,7 @@ fun DoctorScreen(
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
         }
-        doctorViewModel.fetchDoctorById(currentDoctorId)
+        //doctorViewModel.fetchDoctorById(currentDoctorId)
         savedStateHandle?.remove<String>("doctorId")
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
@@ -127,7 +127,7 @@ fun DoctorScreen(
             doctorViewModel.resetStates()
 
             // Fetch doctor data
-            doctorViewModel.fetchDoctorById(currentDoctorId)
+            //doctorViewModel.fetchDoctorById(currentDoctorId)
             doctorViewModel.fetchDoctorWithStats(currentDoctorId)
 
             // Reset tab về 0 khi chuyển sang bác sĩ khác
@@ -484,6 +484,8 @@ fun DoctorProfileScreen(
     var editingReviewId by remember { mutableStateOf<String?>(null) }
     var editingRating by remember { mutableStateOf<Int?>(null) }
     var editingComment by remember { mutableStateOf<String?>(null) }
+
+    println("current user trong doctor profile là $currentUser")
 
     LaunchedEffect(doctor?.id) {
         doctor?.id?.let {

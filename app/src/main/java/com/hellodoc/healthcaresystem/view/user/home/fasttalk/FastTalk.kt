@@ -18,9 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.ui.graphics.Brush
-
-import android.Manifest
-import android.speech.SpeechRecognizer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
@@ -31,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -42,9 +40,18 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
+import android.Manifest
+import android.speech.SpeechRecognizer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
-import androidx.compose.ui.Modifier
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun FastTalk(
@@ -52,6 +59,7 @@ fun FastTalk(
     context: Context
 ) {
     val viewModel: FastTalkViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
 
     // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
@@ -136,7 +144,7 @@ fun FastTalk(
                 onDelete = {
                     val currentText = yourSentenceValue.text
                     val newText = if (currentText.lastIndexOf(" ") != -1)
-                        currentText.substring(0, currentText.lastIndexOf(" "))
+                        currentText.take(currentText.lastIndexOf(" "))
                     else ""
                     yourSentenceValue = TextFieldValue(
                         text = newText,
@@ -215,6 +223,10 @@ fun FastTalk(
                 onPronounce = {
                     if (yourSentenceValue.text.isNotBlank()) {
                         speakText(context, yourSentenceValue.text)
+                        coroutineScope.launch {
+                            viewModel.analyzeSentence(yourSentenceValue.text)
+
+                        }
                     } else {
                         Toast.makeText(context, "Chưa có nội dung để đọc", Toast.LENGTH_SHORT).show()
                     }

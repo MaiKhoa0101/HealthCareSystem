@@ -424,9 +424,10 @@ fun AppointmentCard(
                                 // Điều hướng đến màn hình chọn dịch vụ
                                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                                     set("appointmentId", appointment.id)
+                                    set("doctorId", appointment.doctor.id)
                                     set("patientName", appointment.patient.name)
                                 }
-                                navHostController.navigate("service-selection/${appointment.id}/${appointment.patient.name}")
+                                navHostController.navigate("service-selection/${appointment.id}/${appointment.doctor.id}/${appointment.patient.name}")
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF1E293B),

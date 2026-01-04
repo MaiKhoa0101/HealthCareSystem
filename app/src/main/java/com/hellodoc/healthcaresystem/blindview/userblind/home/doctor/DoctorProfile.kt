@@ -105,13 +105,12 @@ fun DoctorScreen(
         savedStateHandle?.get<String>("doctorId")?.let { newDoctorId ->
             currentDoctorId = newDoctorId
         }
-        doctorViewModel.fetchDoctorById(currentDoctorId)
+        //doctorViewModel.fetchDoctorById(currentDoctorId)
         savedStateHandle?.remove<String>("doctorId")
 
         selectedTab = savedStateHandle?.get<Int>("selectedTab") ?: 0
         savedStateHandle?.remove<Int>("selectedTab")
         isRating = savedStateHandle?.get<Boolean>("isRating") ?: false
-        //viewModel.fetchDoctorById(doctorId)
     }
 
     // Theo dõi thay đổi doctorId và reset state khi cần
@@ -121,7 +120,7 @@ fun DoctorScreen(
             doctorViewModel.resetStates()
 
             // Fetch doctor data
-            doctorViewModel.fetchDoctorById(currentDoctorId)
+            //doctorViewModel.fetchDoctorById(currentDoctorId)
             doctorViewModel.fetchDoctorWithStats(currentDoctorId)
 
             // Reset tab về 0 khi chuyển sang bác sĩ khác
