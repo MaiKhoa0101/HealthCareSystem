@@ -63,6 +63,8 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
         }
     )
 
+    var wasLongPress by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -70,10 +72,12 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        vibrate(context)
-                        SoundManager.playTap()
-                        coroutineScope.launch {
-                            FocusTTS.speak("Đây là trang trợ lý ảo, hiện tại ứng dụng có 3 tính năng là xem bài viết, đặt lịch khám, xem lịch khám. Để tiếp tục hãy nhấn giữ màn hình và đọc to tính năng bạn muốn sử dụng")
+                        if (!wasLongPress) {
+                            vibrate(context)
+                            SoundManager.playTap()
+                            coroutineScope.launch {
+                                FocusTTS.speak("Đây là trang trợ lý ảo, hiện tại ứng dụng có 3 tính năng là xem bài viết, đặt lịch khám, xem lịch khám. Để tiếp tục hãy nhấn giữ màn hình và đọc to tính năng bạn muốn sử dụng")
+                            }
                         }
                     },
                     onDoubleTap = {
@@ -82,34 +86,45 @@ fun VirtualAssistantScreen(navHostController: NavHostController) {
                         FocusTTS.stop()
                         navHostController.popBackStack()
                     },
-                    onLongPress = {
-                        FocusTTS.stop()
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            return@detectTapGestures
+                    onPress = {
+                        wasLongPress = false
+                        val job = coroutineScope.launch {
+                            delay(500)
+                            wasLongPress = true
+                            FocusTTS.stop()
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            } else {
+                                vibrate(context)
+                                SoundManager.playHold()
+                                isListening = true
+                                startSpeechToTextRealtime(
+                                    context = context,
+                                    speechRecognizer = speechRecognizer,
+                                    onPartial = { resultText = it },
+                                    onFinal = { text ->
+                                        isListening = false
+                                        resultText = text
+                                        handleVoiceCommand(text, navHostController) {
+                                            coroutineScope.launch {
+                                                FocusTTS.speakAndWait("Tính năng không hợp lệ, hãy nhấn giữ và đọc to lại tính năng bạn muốn chọn. Xem bài viết, đặt lịch khám hay xem lịch khám")
+                                            }
+                                        }
+                                    },
+                                    onEnd = {
+                                        isListening = false
+                                    }
+                                )
+                            }
                         }
 
-                        vibrate(context)
-                        SoundManager.playHold()
-                        isListening = true
-                        startSpeechToTextRealtime(
-                            context = context,
-                            speechRecognizer = speechRecognizer,
-                            onPartial = { resultText = it },
-                            onFinal = { text ->
-                                isListening = false
-                                resultText = text
-                                handleVoiceCommand(text, navHostController) {
-                                    coroutineScope.launch {
-                                        FocusTTS.speakAndWait("Tính năng không hợp lệ, hãy nhấn giữ và đọc to lại tính năng bạn muốn chọn. Xem bài viết, đặt lịch khám hay xem lịch khám")
-                                    }
-                                }
-                            },
-                            onEnd = { 
-                                isListening = false 
-                            }
-                        )
-                    }
+                        tryAwaitRelease()
+                        job.cancel()
+                        if (isListening) {
+                            speechRecognizer.stopListening()
+                            isListening = false
+                        }
+                    },
                 )
             }
             .pointerInput(Unit) {

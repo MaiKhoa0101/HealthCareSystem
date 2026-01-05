@@ -137,6 +137,8 @@ fun SmartBookingScreen(
         }
     )
 
+    var wasLongPress by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -144,27 +146,29 @@ fun SmartBookingScreen(
             .pointerInput(specialties) {
                 detectTapGestures(
                     onTap = {
-                        vibrate(context)
-                        SoundManager.playTap()
-                        coroutineScope.launch {
-                            when (currentStep) {
-                                SmartBookingStep.SYMPTOMS -> {
-                                    FocusTTS.speak("Đây là trang Đặt lịch khám, để tiến hành đặt lịch, nhấn giữ vào màn hình và đọc to triệu chứng của bạn. Nhấn 2 lần để trở lại.")
-                                }
-                                SmartBookingStep.DATE_RANGE -> {
-                                    FocusTTS.speak("Bước 2: Chọn khoảng ngày rảnh. Nhấn giữ và đọc khoảng ngày bạn muốn tìm lịch. Ví dụ: từ thứ 2 đến thứ 6 tuần sau.")
-                                }
-                                SmartBookingStep.TIME_RANGE -> {
-                                    FocusTTS.speak("Bước 3: Chọn khoảng giờ rảnh. Nhấn giữ và đọc khoảng giờ bạn rảnh. Ví dụ: từ 8 giờ sáng đến 2 giờ chiều.")
-                                }
-                                SmartBookingStep.RESULTS -> {
-                                    if (suggestedAppointments.isNotEmpty()) {
-                                        val item = suggestedAppointments[currentResultIndex] // Get current item for TTS
-                                        val formattedDate = formatDateForTTS(item.date)
-                                        val formattedTime = formatTimeToVietnamese(item.time)
-                                        FocusTTS.speak("Đây là lịch khám lúc $formattedTime $formattedDate với bác sĩ ${item.doctorName} chuyên ngành ${item.specialtyName}. Nhấn giữ để tiến hành đặt lịch. Trượt lên hoặc xuống để xem lịch khác.")
-                                    } else {
-                                        FocusTTS.speak("Không tìm thấy lịch khám phù hợp. Nhấn 2 lần để quay lại.")
+                        if (!wasLongPress) {
+                            vibrate(context)
+                            SoundManager.playTap()
+                            coroutineScope.launch {
+                                when (currentStep) {
+                                    SmartBookingStep.SYMPTOMS -> {
+                                        FocusTTS.speak("Đây là trang Đặt lịch khám, để tiến hành đặt lịch, nhấn giữ vào màn hình và đọc to triệu chứng của bạn. Nhấn 2 lần để trở lại.")
+                                    }
+                                    SmartBookingStep.DATE_RANGE -> {
+                                        FocusTTS.speak("Bước 2: Chọn khoảng ngày rảnh. Nhấn giữ và đọc khoảng ngày bạn muốn tìm lịch. Ví dụ: từ thứ 2 đến thứ 6 tuần sau.")
+                                    }
+                                    SmartBookingStep.TIME_RANGE -> {
+                                        FocusTTS.speak("Bước 3: Chọn khoảng giờ rảnh. Nhấn giữ và đọc khoảng giờ bạn rảnh. Ví dụ: từ 8 giờ sáng đến 2 giờ chiều.")
+                                    }
+                                    SmartBookingStep.RESULTS -> {
+                                        if (suggestedAppointments.isNotEmpty()) {
+                                            val item = suggestedAppointments[currentResultIndex] // Get current item for TTS
+                                            val formattedDate = formatDateForTTS(item.date)
+                                            val formattedTime = formatTimeToVietnamese(item.time)
+                                            FocusTTS.speak("Đây là lịch khám lúc $formattedTime $formattedDate với bác sĩ ${item.doctorName} chuyên ngành ${item.specialtyName}. Nhấn giữ để tiến hành đặt lịch. Trượt lên hoặc xuống để xem lịch khác.")
+                                        } else {
+                                            FocusTTS.speak("Không tìm thấy lịch khám phù hợp. Nhấn 2 lần để quay lại.")
+                                        }
                                     }
                                 }
                             }
@@ -176,126 +180,136 @@ fun SmartBookingScreen(
                         FocusTTS.stop()
                         navHostController.popBackStack()
                     },
-                    onLongPress = {
-                        FocusTTS.stop()
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            return@detectTapGestures
-                        }
+                    onPress = {
+                        wasLongPress = false
+                        val job = coroutineScope.launch {
+                            delay(500)
+                            wasLongPress = true
+                            FocusTTS.stop()
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            } else {
+                                vibrate(context)
+                                SoundManager.playHold()
 
-                        vibrate(context)
-                        SoundManager.playHold()
+                                if (currentStep == SmartBookingStep.RESULTS && suggestedAppointments.isNotEmpty()) {
+                                    // Tiến hành đặt lịch với item hiện tại
+                                    coroutineScope.launch {
+                                        val item = suggestedAppointments[currentResultIndex]
+                                        val formattedDateForSpeech = LocalDate.parse(item.date).format(DateTimeFormatter.ofPattern("EEEE, 'ngày' dd 'tháng' MM", Locale("vi", "VN")))
+                                        val formattedTimeForSpeech = formatTimeToVietnamese(item.time)
+                                        FocusTTS.speakAndWait("Bạn đã chọn đặt lịch với bác sĩ ${item.doctorName}, chuyên khoa ${item.specialtyName}. Thời gian: $formattedTimeForSpeech, $formattedDateForSpeech. Hệ thống đang xử lý.")
+                                        
+                                        val token = userViewModel.getUserAttribute("access_token", context)
+                                        val patientID = userViewModel.getUserAttribute("userId", context)
+                                        val patientModel = userViewModel.getUserAttribute("role", context)
+                                        val address = userViewModel.getUserAttribute("address", context)
 
-                        if (currentStep == SmartBookingStep.RESULTS && suggestedAppointments.isNotEmpty()) {
-                            // Tiến hành đặt lịch với item hiện tại
-                            coroutineScope.launch {
-                                val item = suggestedAppointments[currentResultIndex]
-                                val formattedDateForSpeech = LocalDate.parse(item.date).format(DateTimeFormatter.ofPattern("EEEE, 'ngày' dd 'tháng' MM", Locale("vi", "VN")))
-                                val formattedTimeForSpeech = formatTimeToVietnamese(item.time)
-                                FocusTTS.speakAndWait("Bạn đã chọn đặt lịch với bác sĩ ${item.doctorName}, chuyên khoa ${item.specialtyName}. Thời gian: $formattedTimeForSpeech, $formattedDateForSpeech. Hệ thống đang xử lý.")
-                                
-                                val token = userViewModel.getUserAttribute("access_token", context)
-                                val patientID = userViewModel.getUserAttribute("userId", context)
-                                val patientModel = userViewModel.getUserAttribute("role", context)
-                                val address = userViewModel.getUserAttribute("address", context)
-
-                                appointmentViewModel.createAppointment(
-                                    token = token,
-                                    createAppointmentRequest = CreateAppointmentRequest(
-                                        doctorID = item.doctorId,
-                                        patientID = patientID,
-                                        patientModel = patientModel,
-                                        date = item.date,
-                                        time = item.time,
-                                        examinationMethod = "at_home",
-                                        notes = "Đặt lịch thông minh qua trợ lý giọng nói",
-                                        reason = "Đặt lịch thông minh",
-                                        totalCost = "0",
-                                        location = address
-                                    )
-                                )
-                            }
-                            return@detectTapGestures
-                        }
-
-                        isListening = true
-                        startSpeechToTextRealtime(
-                            context = context,
-                            speechRecognizer = speechRecognizer,
-                            onPartial = { resultText = it },
-                            onFinal = { text ->
-                                isListening = false
-                                resultText = text
-                                coroutineScope.launch {
-                                    isAnalyzing = true
-                                    when (currentStep) {
-                                        SmartBookingStep.SYMPTOMS -> {
-                                            FocusTTS.speakAndWait("Đang phân tích triệu chứng của bạn, vui lòng đợi giây lát")
-                                            val specialtyNames = specialties.map { it.name }
-                                            val matchedIndex = geminiViewModel.analyzeSymptomsForSpecialty(text, specialtyNames)
-                                            
-                                            if (matchedIndex != null) {
-                                                val specialty = specialties[matchedIndex]
-                                                recommendedSpecialty = specialty.name
-                                                recommendedSpecialtyId = specialty.id
-                                                FocusTTS.speakAndWait("Dựa trên triệu chứng $text, tôi đề xuất bạn nên khám chuyên khoa ${specialty.name}.")
-                                                
-                                                currentStep = SmartBookingStep.DATE_RANGE
-                                                FocusTTS.speakAndWait("Tiếp theo tôi sẽ giúp bạn tìm lịch khám với chuyên ngành ${specialty.name}. $currentDateTimeStr. Hãy đọc to khoảng ngày bạn rảnh để tôi tìm lịch phù hợp. Ví dụ: từ thứ 2 ngày 5 tháng 1 năm 2026 đến thứ 6 ngày 10 tháng 1 năm 2026.")
-                                            } else {
-                                                FocusTTS.speakAndWait("Tôi không tìm thấy chuyên khoa phù hợp với triệu chứng của bạn. Hãy thử mô tả cụ thể hơn")
-                                            }
-                                        }
-                                        SmartBookingStep.DATE_RANGE -> {
-                                            FocusTTS.speakAndWait("Đang ghi nhận khoảng ngày của bạn")
-                                            val request = geminiViewModel.analyzeDateTimeRange(text, currentDateTimeStr)
-                                            if (request != null) {
-                                                fromDate = request.fromDate
-                                                toDate = request.toDate
-                                                currentStep = SmartBookingStep.TIME_RANGE
-                                                FocusTTS.speakAndWait("Tiếp theo hãy đọc to khoảng giờ bạn rảnh. Ví dụ: từ 8 giờ 30 phút sáng đến 2 giờ 30 phút chiều.")
-                                            } else {
-                                                FocusTTS.speakAndWait("Tôi không rõ khoảng ngày bạn nói. Vui lòng đọc lại rõ ràng hơn.")
-                                            }
-                                        }
-                                        SmartBookingStep.TIME_RANGE -> {
-                                            FocusTTS.speakAndWait("Đang tìm lịch khám phù hợp, vui lòng đợi")
-                                            val timeRequest = geminiViewModel.analyzeDateTimeRange(text, currentDateTimeStr)
-                                            if (timeRequest != null && recommendedSpecialtyId != null) {
-                                                val finalRequest = SuggestedAppointmentRequest(
-                                                    specialtyId = recommendedSpecialtyId!!,
-                                                    fromDate = fromDate,
-                                                    toDate = toDate,
-                                                    fromHour = timeRequest.fromHour,
-                                                    toHour = timeRequest.toHour
-                                                )
-                                                val response = geminiViewModel.getSuggestedAppointments(finalRequest)
-                                                if (response.isSuccessful && !response.body().isNullOrEmpty()) {
-                                                    suggestedAppointments = response.body()!!
-                                                    currentStep = SmartBookingStep.RESULTS
-                                                    currentResultIndex = 0
-                                                    val item = suggestedAppointments[0]
-                                                    val formattedDate = formatDateForTTS(item.date)
-                                                    val formattedTime = formatTimeToVietnamese(item.time)
-                                                    FocusTTS.speakAndWait("Tôi đã tìm được lịch phù hợp cho bạn. Đây là lịch khám lúc $formattedTime $formattedDate với bác sĩ ${item.doctorName} chuyên ngành ${item.specialtyName}. Nhấn giữ để tiến hành đặt lịch. Trượt lên hoặc xuống để xem lịch khác.")
-                                                } else {
-                                                    FocusTTS.speakAndWait("Rất tiếc, tôi không tìm thấy lịch khám nào phù hợp trong khoảng thời gian này. Vui lòng thử lại với khoảng thời gian khác.")
-                                                    currentStep = SmartBookingStep.DATE_RANGE // Quay lại hỏi ngày
-                                                }
-                                            } else {
-                                                FocusTTS.speakAndWait("Tôi không rõ khoảng giờ bạn nói. Vui lòng đọc lại rõ ràng hơn.")
-                                            }
-                                        }
-                                        SmartBookingStep.RESULTS -> { /* Already handled above */ }
+                                        appointmentViewModel.createAppointment(
+                                            token = token,
+                                            createAppointmentRequest = CreateAppointmentRequest(
+                                                doctorID = item.doctorId,
+                                                patientID = patientID,
+                                                patientModel = patientModel,
+                                                date = item.date,
+                                                time = item.time,
+                                                examinationMethod = "at_home",
+                                                notes = "Đặt lịch thông minh qua trợ lý giọng nói",
+                                                reason = "Đặt lịch thông minh",
+                                                totalCost = "0",
+                                                location = address
+                                            )
+                                        )
                                     }
-                                    isAnalyzing = false
+                                } else {
+                                    isListening = true
+                                    startSpeechToTextRealtime(
+                                        context = context,
+                                        speechRecognizer = speechRecognizer,
+                                        onPartial = { resultText = it },
+                                        onFinal = { text ->
+                                            isListening = false
+                                            resultText = text
+                                            coroutineScope.launch {
+                                                isAnalyzing = true
+                                                when (currentStep) {
+                                                    SmartBookingStep.SYMPTOMS -> {
+                                                        FocusTTS.speakAndWait("Đang phân tích triệu chứng của bạn, vui lòng đợi giây lát")
+                                                        val specialtyNames = specialties.map { it.name }
+                                                        val matchedIndex = geminiViewModel.analyzeSymptomsForSpecialty(text, specialtyNames)
+                                                        
+                                                        if (matchedIndex != null) {
+                                                            val specialty = specialties[matchedIndex]
+                                                            recommendedSpecialty = specialty.name
+                                                            recommendedSpecialtyId = specialty.id
+                                                            FocusTTS.speakAndWait("Dựa trên triệu chứng $text, tôi đề xuất bạn nên khám chuyên khoa ${specialty.name}.")
+                                                            
+                                                            currentStep = SmartBookingStep.DATE_RANGE
+                                                            FocusTTS.speakAndWait("Tiếp theo tôi sẽ giúp bạn tìm lịch khám với chuyên ngành ${specialty.name}. $currentDateTimeStr. Hãy đọc to khoảng ngày bạn rảnh để tôi tìm lịch phù hợp. Ví dụ: từ thứ 2 ngày 5 tháng 1 năm 2026 đến thứ 6 ngày 10 tháng 1 năm 2026.")
+                                                        } else {
+                                                            FocusTTS.speakAndWait("Tôi không tìm thấy chuyên khoa phù hợp với triệu chứng của bạn. Hãy thử mô tả cụ thể hơn")
+                                                        }
+                                                    }
+                                                    SmartBookingStep.DATE_RANGE -> {
+                                                        FocusTTS.speakAndWait("Đang ghi nhận khoảng ngày của bạn")
+                                                        val request = geminiViewModel.analyzeDateTimeRange(text, currentDateTimeStr)
+                                                        if (request != null) {
+                                                            fromDate = request.fromDate
+                                                            toDate = request.toDate
+                                                            currentStep = SmartBookingStep.TIME_RANGE
+                                                            FocusTTS.speakAndWait("Tiếp theo hãy đọc to khoảng giờ bạn rảnh. Ví dụ: từ 8 giờ 30 phút sáng đến 2 giờ 30 phút chiều.")
+                                                        } else {
+                                                            FocusTTS.speakAndWait("Tôi không rõ khoảng ngày bạn nói. Vui lòng đọc lại rõ ràng hơn.")
+                                                        }
+                                                    }
+                                                    SmartBookingStep.TIME_RANGE -> {
+                                                        FocusTTS.speakAndWait("Đang tìm lịch khám phù hợp, vui lòng đợi")
+                                                        val timeRequest = geminiViewModel.analyzeDateTimeRange(text, currentDateTimeStr)
+                                                        if (timeRequest != null && recommendedSpecialtyId != null) {
+                                                            val finalRequest = SuggestedAppointmentRequest(
+                                                                specialtyId = recommendedSpecialtyId!!,
+                                                                fromDate = fromDate,
+                                                                toDate = toDate,
+                                                                fromHour = timeRequest.fromHour,
+                                                                toHour = timeRequest.toHour
+                                                            )
+                                                            val response = geminiViewModel.getSuggestedAppointments(finalRequest)
+                                                            if (response.isSuccessful && !response.body().isNullOrEmpty()) {
+                                                                suggestedAppointments = response.body()!!
+                                                                currentStep = SmartBookingStep.RESULTS
+                                                                currentResultIndex = 0
+                                                                val item = suggestedAppointments[0]
+                                                                val formattedDate = formatDateForTTS(item.date)
+                                                                val formattedTime = formatTimeToVietnamese(item.time)
+                                                                FocusTTS.speakAndWait("Tôi đã tìm được lịch phù hợp cho bạn. Đây là lịch khám lúc $formattedTime $formattedDate với bác sĩ ${item.doctorName} chuyên ngành ${item.specialtyName}. Nhấn giữ để tiến hành đặt lịch. Trượt lên hoặc xuống để xem lịch khác.")
+                                                            } else {
+                                                                FocusTTS.speakAndWait("Rất tiếc, tôi không tìm thấy lịch khám nào phù hợp trong khoảng thời gian này. Vui lòng thử lại với khoảng thời gian khác.")
+                                                                currentStep = SmartBookingStep.DATE_RANGE // Quay lại hỏi ngày
+                                                            }
+                                                        } else {
+                                                            FocusTTS.speakAndWait("Tôi không rõ khoảng giờ bạn nói. Vui lòng đọc lại rõ ràng hơn.")
+                                                        }
+                                                    }
+                                                    SmartBookingStep.RESULTS -> { /* Already handled above */ }
+                                                }
+                                                isAnalyzing = false
+                                            }
+                                        },
+                                        onEnd = {
+                                            isListening = false
+                                        }
+                                    )
                                 }
-                            },
-                            onEnd = { 
-                                isListening = false
                             }
-                        )
-                    }
+                        }
+
+                        tryAwaitRelease()
+                        job.cancel()
+                        if (isListening) {
+                            speechRecognizer.stopListening()
+                            isListening = false
+                        }
+                    },
                 )
             }
             .pointerInput(suggestedAppointments, currentResultIndex) {
