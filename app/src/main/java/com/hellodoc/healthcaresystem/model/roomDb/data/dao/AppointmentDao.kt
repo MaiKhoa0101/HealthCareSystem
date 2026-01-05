@@ -1,7 +1,7 @@
 package com.hellodoc.healthcaresystem.roomDb.data.dao
 
 import androidx.room.*
-import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.AppointmentEntity
 
 @Dao
 interface AppointmentDao {

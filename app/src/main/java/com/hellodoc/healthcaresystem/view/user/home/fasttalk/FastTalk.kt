@@ -50,6 +50,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
+import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -93,6 +94,10 @@ fun FastTalk(
             }
 
         }
+    }
+    LaunchedEffect(Unit) {
+        println("Gọi API để tải dữ liệu từ Neo4j")
+        viewModel.downloadDataFromNeo4j()
     }
 
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
@@ -288,6 +293,8 @@ fun getLastWord(text: String): String {
 
 @Composable
 fun HeaderFastTalk(navHostController: NavHostController, name: String) {
+
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 8.dp,

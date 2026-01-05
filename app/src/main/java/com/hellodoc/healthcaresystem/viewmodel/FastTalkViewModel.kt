@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
+import com.hellodoc.healthcaresystem.model.repository.SettingsRepository
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.Neo4jPath
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEdgeEntity
@@ -12,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.toMutableList
@@ -20,6 +22,7 @@ import kotlin.collections.toMutableList
 @HiltViewModel
 class FastTalkViewModel @Inject constructor(
     private val fastTalkRepository: FastTalkRepository,
+    private val settingsRepository: SettingsRepository // <--- 1. Inject thêm cái này
 ) : ViewModel() {
 
     // Sử dụng WordResult thay vì Word cũ
@@ -35,13 +38,60 @@ class FastTalkViewModel @Inject constructor(
     private val _wordPronounSimilar = MutableStateFlow<List<WordResult>>(emptyList())
     val wordPronounSimilar: StateFlow<List<WordResult>> get() = _wordPronounSimilar
 
+
+    // Trạng thái loading để UI hiển thị vòng xoay
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    fun downloadDataFromNeo4j() {
+        viewModelScope.launch {
+            val currentSettings = settingsRepository.appSettings.first()
+
+            if (currentSettings.isDataDownloaded) {
+                println("⚠️ Dữ liệu đã được tải trước đó. Bỏ qua.")
+                return@launch
+            }
+            println("Dữ liệu chưa được tải, bắt đầu tải dữ liệu từ Server...")
+
+            _isLoading.value = true
+            try {
+                // Hàm này trả về Response<List<WordResultResponse>>
+                val response = fastTalkRepository.getGraphData()
+
+                if (response.isSuccessful) {
+                    val data = response.body() // Kiểu: List<WordResultResponse>?
+
+                    if (!data.isNullOrEmpty()) {
+                        println("Tải thành công: ${data.size} items")
+
+                        // Gọi hàm save đã sửa ở Repository
+                        fastTalkRepository.saveNeo4jDataToRoom(data)
+
+                        settingsRepository.setDataDownloaded(true)
+                        println("✅ Lưu dữ liệu và cập nhật trạng thái thành công!")
+                    } else {
+                        println("⚠️ Data body is null or empty")
+                    }
+                } else {
+                    println("❌ Lỗi API: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: Exception) {
+                println("❌ Lỗi Exception khi tải Neo4j: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+
     // Hàm gọi chính
     fun getWordSimilar(word: String) {
         viewModelScope.launch {
             try {
 
                 if (!fastTalkRepository.isOnline()) {
-                    println("🌐 Đang Offline'")
+                    println("🌐 Đang offline'")
                 } else {
                     println("🌐 Đang Online: Gọi API cho từ '$word'")
 
@@ -198,25 +248,6 @@ class FastTalkViewModel @Inject constructor(
     }
 
 
-    // Trạng thái loading
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-    // Hàm này được gọi khi có dữ liệu JSON (ví dụ: từ API trả về)
-    fun importData(jsonData: List<Neo4jPath>) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Gọi hàm repository (không cần tham số Database nữa)
-                fastTalkRepository.saveNeo4jDataToRoom(jsonData)
-                println("Import dữ liệu Neo4j thành công!")
-            } catch (e: Exception) {
-                println("Lỗi Import Neo4j: ${e.message}")
-                e.printStackTrace()
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 
     // Hàm lấy dự đoán (kết nối với UI)
     fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)

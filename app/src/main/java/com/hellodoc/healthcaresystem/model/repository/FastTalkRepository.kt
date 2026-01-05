@@ -3,13 +3,13 @@ package com.hellodoc.healthcaresystem.model.repository
 import androidx.room.withTransaction
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
 import com.hellodoc.healthcaresystem.model.networksupport.NetworkHelper
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.* // Import hết entity
 import javax.inject.Inject // Lưu ý: Dùng javax.inject hoặc jakarta.inject tuỳ version Hilt
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 
 class FastTalkRepository @Inject constructor(
     private val networkHelper: NetworkHelper, // <--- 1. Inject thêm NetworkHelper
@@ -40,40 +40,48 @@ class FastTalkRepository @Inject constructor(
     fun getPredictions(input: String) = wordDao.getNextWordPredictions(input)
 
     // 2. Hàm lưu dữ liệu từ Neo4j
-    // Bỏ tham số database ở đây, dùng biến của class
-    suspend fun saveNeo4jDataToRoom(neo4jPaths: List<Neo4jPath>) {
-        // Sử dụng withTransaction từ biến database đã inject
+    suspend fun saveNeo4jDataToRoom(responseList: List<WordResultResponse>) {
         database.withTransaction {
-            neo4jPaths.forEach { path ->
-                path.segments.forEach { segment ->
-                    // Mapping Node Start
-                    val startEntity = WordEntity(
-                        word = segment.startNode.properties.name,
-                        label = segment.startNode.labels.firstOrNull() ?: "Unknown"
-                    )
+            responseList.forEach { item ->
+                val sourceText = item.source
+                val suggestionText = item.suggestion
 
-                    // Mapping Node End
+                // --- 1. XỬ LÝ NÚT ĐÍCH (SUGGESTION) ---
+                // Đây là cái bạn muốn giữ lại. Nếu có suggestion, lưu nó làm Node.
+                if (suggestionText != null) {
                     val endEntity = WordEntity(
-                        word = segment.endNode.properties.name,
-                        label = segment.endNode.labels.firstOrNull() ?: "Unknown"
+                        word = suggestionText,
+                        label = item.label.firstOrNull() ?: "Unknown"
                     )
-
-                    // Mapping Edge
-                    val edgeEntity = WordEdgeEntity(
-                        fromWord = startEntity.word,
-                        toWord = endEntity.word,
-                        relateType = segment.relationship.type,
-                        weight = segment.relationship.properties.weight
-                    )
-
-                    // Gọi DAO để lưu
-                    wordDao.insertFullRelationship(startEntity, endEntity, edgeEntity)
+                    // Gọi hàm insertWord riêng lẻ (cần đảm bảo hàm này dùng OnConflictStrategy.IGNORE)
+                    wordDao.insertWord(endEntity)
                 }
+
+                // --- 2. XỬ LÝ NÚT NGUỒN VÀ MỐI QUAN HỆ ---
+                // Chỉ khi nào CẢ source VÀ suggestion đều có, ta mới tạo mối nối (Edge)
+                if (sourceText != null && suggestionText != null) {
+
+                    // Lưu nút nguồn
+                    val startEntity = WordEntity(
+                        word = sourceText,
+                        label = "Unknown" // Hoặc lấy từ API nếu có update sau này
+                    )
+                    wordDao.insertWord(startEntity)
+
+                    // Lưu mối quan hệ (Cạnh)
+                    val edgeEntity = WordEdgeEntity(
+                        fromWord = sourceText,
+                        toWord = suggestionText,
+                        relateType = "Related_To",
+                        weight = item.score
+                    )
+                    wordDao.insertEdge(edgeEntity)
+                }
+                // Nếu sourceText == null, ta không làm gì ở bước 2 -> Không tạo Edge, không tạo Source node null.
+                // Nhưng Suggestion Node đã được lưu ở bước 1 rồi.
             }
         }
-    } // <--- Đóng ngoặc hàm saveNeo4jDataToRoom ở đây
-
-    // --- Các hàm dưới này phải nằm NGOÀI hàm saveNeo4jDataToRoom ---
+    }
 
     suspend fun deleteQuickResponse(quickResponse: QuickResponseEntity) =
         quickResponseDao.delete(quickResponse)
@@ -83,5 +91,7 @@ class FastTalkRepository @Inject constructor(
 
     suspend fun analyzeQuestion(text: String) =
         fastTalkService.analyzeQuestion(AnalyzeRequest(text))
+
+    suspend fun getGraphData()= fastTalkService.getGraphData()
 
 }

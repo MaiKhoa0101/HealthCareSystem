@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.model.di
 
 import android.content.Context
 import androidx.room.Room
+import com.hellodoc.healthcaresystem.model.roomDb.data.dao.AppSettingsDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao // Đã thêm import này
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
@@ -23,7 +24,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "your_database_name.db"
+            "HelloDocDatabase"
         )
             .fallbackToDestructiveMigration()
             .build()
@@ -44,7 +45,14 @@ object DatabaseModule {
     // --- BỔ SUNG PHẦN THIẾU QUAN TRỌNG ---
     @Provides
     @Singleton
+    fun provideAppSettingsDao(database: AppDatabase): AppSettingsDao {
+        return database.appSettingsDao()
+    }
+
+    // --- ĐÂY LÀ PHẦN BẠN ĐANG THIẾU ---
+    @Provides
+    @Singleton
     fun provideWordGraphDao(database: AppDatabase): WordGraphDao {
-        return database.wordDao() // Hàm này phải khớp tên trong AppDatabase
+        return database.wordDao() // Hàm này phải khớp tên với hàm trong AppDatabase
     }
 }

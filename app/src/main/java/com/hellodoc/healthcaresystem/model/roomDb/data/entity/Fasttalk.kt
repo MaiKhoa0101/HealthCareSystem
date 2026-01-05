@@ -46,6 +46,7 @@ data class WordEntity(
     // Index giúp truy vấn "Từ này liên kết đến từ nào?" cực nhanh
     indices = [Index("fromWord"), Index("toWord")]
 )
+
 data class WordEdgeEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fromWord: String, // Node bắt đầu (start)

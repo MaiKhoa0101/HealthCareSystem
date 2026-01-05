@@ -28,7 +28,7 @@ interface WordGraphDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWord(word: WordEntity)
 
-    // 2. Insert Edge
+    // Insert Edge (Nếu trùng thì đè lên)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEdge(edge: WordEdgeEntity)
 

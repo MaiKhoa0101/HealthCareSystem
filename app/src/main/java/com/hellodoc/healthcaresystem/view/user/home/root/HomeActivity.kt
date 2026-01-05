@@ -71,6 +71,7 @@ import com.hellodoc.healthcaresystem.model.socket.SocketManager
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
+import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
@@ -186,6 +187,9 @@ class HomeActivity : BaseActivity() {
             else{
                 HealthCareSystemTheme(darkTheme = darkTheme) {
                     val context = LocalContext.current
+                    val stateViewModel: StateViewModel =hiltViewModel()
+                    val settings by stateViewModel.appSettings.collectAsState()
+                    darkTheme = settings.isDarkMode
                     Index(
                         context = context,
                         navHostController = navHostController,
@@ -226,6 +230,7 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
+
         GetFcmInstance()
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
