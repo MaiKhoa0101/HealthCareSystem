@@ -66,7 +66,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
             appointmentViewModel.getAppointmentUser(userId)
         }
         
-        FocusTTS.speakAndWait("Đây là trang Xem lịch khám, đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, vuốt lên hoặc xuống để chuyển lịch, nhấn giữ để hủy hoặc đặt lại lịch, chạm hai lần để xem lịch khám đã hoàn thành")
+        FocusTTS.speakAndWait("Đây là trang Xem lịch khám, đang hiển thị các lịch khám đã đặt, nhấn vào màn hình để tôi đọc thông tin, vuốt lên hoặc xuống để chuyển lịch, nhấn giữ để hủy hoặc đặt lại lịch, nhấn hai lần để xem lịch khám đã hoàn thành")
     }
 
     LaunchedEffect(Unit) {
@@ -107,10 +107,10 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                         lastLongPressAppointmentId = ""
                         
                         val prompt = when (selectedStatusIndex) {
-                            0 -> "Đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, chạm hai lần để xem lịch khám đã hoàn thành"
-                            1 -> "Đang hiển thị các lịch khám đã hoàn thành, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, chạm hai lần để xem lịch khám đã hủy"
-                            2 -> "Đang hiển thị các lịch khám đã hủy, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, chạm hai lần để xem lịch khám đã đặt"
-                            else -> "Đang hiển thị các lịch khám đã đặt, chạm vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, chạm hai lần để xem lịch khám đã hoàn thành"
+                            0 -> "Đang hiển thị các lịch khám đã đặt, nhấn vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, nhấn hai lần để xem lịch khám đã hoàn thành"
+                            1 -> "Đang hiển thị các lịch khám đã hoàn thành, nhấn vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, nhấn hai lần để xem lịch khám đã hủy"
+                            2 -> "Đang hiển thị các lịch khám đã hủy, nhấn vào màn hình để tôi đọc thông tin, nhấn giữ để đặt lại lịch khám, nhấn hai lần để xem lịch khám đã đặt"
+                            else -> "Đang hiển thị các lịch khám đã đặt, nhấn vào màn hình để tôi đọc thông tin, nhấn giữ để hủy lịch khám, nhấn hai lần để xem lịch khám đã hoàn thành"
                         }
                         
                         coroutineScope.launch {
@@ -233,7 +233,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     coroutineScope.launch {
-                                        FocusTTS.speak("Đã chuyển lịch khám, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị")
+                                        FocusTTS.speak("Đã chuyển lịch khám, nhấn vào màn hình để tôi đọc thông tin lịch khám đang hiển thị")
                                     }
                                 } else {
                                     coroutineScope.launch {
@@ -247,7 +247,7 @@ fun AppointmentBlindScreen(navHostController: NavHostController) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     coroutineScope.launch {
-                                        FocusTTS.speak("Đã chuyển lịch khám, chạm vào màn hình để tôi đọc thông tin lịch khám đang hiển thị")
+                                        FocusTTS.speak("Đã chuyển lịch khám, nhấn vào màn hình để tôi đọc thông tin lịch khám đang hiển thị")
                                     }
                                 } else {
                                     coroutineScope.launch {

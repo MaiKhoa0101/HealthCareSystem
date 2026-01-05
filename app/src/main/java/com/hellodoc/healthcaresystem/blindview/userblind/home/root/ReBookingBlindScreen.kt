@@ -134,9 +134,9 @@ fun ReBookingBlindScreen(
         if (currentStep == ReBookingStep.SELECT_DATE && instructionsCompletedByStep == ReBookingStep.SELECT_DATE) {
             doctorDetail?.let { detail ->
                 if (detail.isClinicPaused == true) {
-                    FocusTTS.speak("Bác sĩ này đã tạm ngưng, hiện không thể đặt lịch, hãy chạm hai lần để quay lại.")
+                    FocusTTS.speak("Bác sĩ này đã tạm ngưng, hiện không thể đặt lịch, hãy nhấn hai lần để quay lại.")
                 } else if (detail.workingHours.isNullOrEmpty()) {
-                    FocusTTS.speak("Bác sĩ này chưa có thời gian làm việc hợp lệ, hãy chạm hai lần để quay lại.")
+                    FocusTTS.speak("Bác sĩ này chưa có thời gian làm việc hợp lệ, hãy nhấn hai lần để quay lại.")
                 } else {
                     if (filteredAvailableSlots.isNotEmpty()) {
                         val slot = filteredAvailableSlots[selectedDateIndex]
@@ -165,21 +165,21 @@ fun ReBookingBlindScreen(
         when (currentStep) {
             ReBookingStep.SELECT_DATE -> {
                 if (hasGreeted) { // Only speak if initial greeting is done
-                    FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn ngày đang hiển thị, vuốt lên hoặc xuống để thay đổi ngày, chạm hai lần để quay lại.")
+                    FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn ngày đang hiển thị, vuốt lên hoặc xuống để thay đổi ngày, nhấn hai lần để quay lại.")
                     filteredAvailableSlots.getOrNull(selectedDateIndex)?.let { slot ->
                         FocusTTS.speak("Đang hiển thị thứ ${slot.dayOfWeek} ngày ${slot.date}")
                     }
                 }
             }
             ReBookingStep.SELECT_TIME -> {
-                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, chạm hai lần để quay lại.")
+                FocusTTS.speakAndWait("Hãy nhấn giữ vào màn hình để chọn giờ đang hiển thị, vuốt lên hoặc xuống để chuyển giờ, nhấn hai lần để quay lại.")
                 filteredTimeSlots.getOrNull(selectedTimeIndex)?.let { timeSlot ->
                     val timeText = formatTimeToVietnamese(timeSlot.hour, timeSlot.minute)
                     FocusTTS.speak("Đang hiển thị $timeText")
                 }
             }
             ReBookingStep.CONFIRMATION -> {
-                 FocusTTS.speakAndWait("Đã hoàn thành lựa chọn, chạm vào màn hình để tôi đọc lại tóm tắt, nhấn giữ vào màn hình để xác nhận đặt lịch, chạm hai lần để quay lại.")
+                 FocusTTS.speakAndWait("Đã hoàn thành lựa chọn, nhấn vào màn hình để tôi đọc lại tóm tắt, nhấn giữ vào màn hình để xác nhận đặt lịch, nhấn hai lần để quay lại.")
             }
             else -> {}
         }

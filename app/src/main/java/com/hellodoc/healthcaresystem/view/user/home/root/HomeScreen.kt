@@ -190,7 +190,7 @@ fun HealthMateHomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // Bắt sự kiện chạm vào vùng trống để tắt 3D
+            // Bắt sự kiện nhấn vào vùng trống để tắt 3D
             .pointerInput(Unit) {
                 detectTapGestures {
                     postViewModel.closeAllPostMenus()

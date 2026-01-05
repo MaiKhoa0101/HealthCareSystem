@@ -76,8 +76,8 @@ fun Tutorial1(you: User, next: () -> Unit) {
         speakQueue(
             "Xin chào $name!",
             "Tôi sẽ hướng dẫn bạn sử dụng ứng dụng này thật dễ hiểu.",
-            "Các thao tác bạn cần biết là chạm, trượt và giữ.",
-            "Bây giờ, hãy chạm vào màn hình để tiếp tục."
+            "Các thao tác bạn cần biết là nhấn, trượt và giữ.",
+            "Bây giờ, hãy nhấn vào màn hình để tiếp tục."
         )
         speaking = false
     }
@@ -92,7 +92,7 @@ fun Tutorial1(you: User, next: () -> Unit) {
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(if (speaking) "Đang hướng dẫn..." else "Chạm để tiếp tục")
+        Text(if (speaking) "Đang hướng dẫn..." else "Nhấn để tiếp tục")
     }
 }
 
@@ -107,7 +107,7 @@ fun Tutorial2(you: User, next: () -> Unit, back: () -> Unit) {
         speakQueue(
             "Tốt lắm ${you.name}.",
             "Trên màn hình có một bài viết.",
-            "Nếu muốn nghe tôi đọc bài viết, hãy chạm vào màn hình."
+            "Nếu muốn nghe tôi đọc bài viết, hãy nhấn vào màn hình."
         )
         canTap = true
     }
@@ -127,7 +127,7 @@ fun Tutorial2(you: User, next: () -> Unit, back: () -> Unit) {
                             "Bạn làm tốt lắm, tôi sẽ đọc bài viết.",
                             "Bài viết có nội dung là: Chào mừng đến với hello doc, đây là bài viết mẫu để giới thiệu về ứng dụng hello doc.",
                             "Đây là ảnh minh họa, ảnh có nội dung là 1 bác sĩ đang nói chuyện trước màn hình.",
-                            "Chạm thêm một lần nữa để tiếp tục."
+                            "Nhấn thêm một lần nữa để tiếp tục."
                         )
                     }
                 } else {
@@ -254,7 +254,7 @@ fun Tutorial4(you: User, next: () -> Unit, back: () -> Unit) {
                             scope.launch {
                                 FocusTTS.speakAndWait("Bạn đã nhấn giữ thành công.")
                                 delay(500)
-                                FocusTTS.speakAndWait("Chạm vào màn hình để tiếp tục.")
+                                FocusTTS.speakAndWait("Nhấn vào màn hình để tiếp tục.")
                             }
                         }
                     },
@@ -269,7 +269,7 @@ fun Tutorial4(you: User, next: () -> Unit, back: () -> Unit) {
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(if (!longPressed) "Nhấn giữ vào màn hình" else "Chạm để tiếp tục")
+        Text(if (!longPressed) "Nhấn giữ vào màn hình" else "Nhấn để tiếp tục")
     }
 }
 
@@ -283,7 +283,7 @@ fun Tutorial5(you: User, next: () -> Unit, back: () -> Unit) {
     LaunchedEffect(Unit) {
         speakQueue(
             "Hãy thử lại các thao tác vừa học.",
-            "Bạn có thể chạm, trượt hoặc nhấn giữ để tiếp tục."
+            "Bạn có thể nhấn, trượt hoặc nhấn giữ để tiếp tục."
         )
     }
 
@@ -298,7 +298,7 @@ fun Tutorial5(you: User, next: () -> Unit, back: () -> Unit) {
                             SoundManager.playTap()
                             vibrate(context)
                             scope.launch {
-                                FocusTTS.speakAndWait("Bạn đã chạm.")
+                                FocusTTS.speakAndWait("Bạn đã nhấn.")
                                 delay(500)
                                 next()
                             }
@@ -350,7 +350,7 @@ fun Tutorial6(you: User, finish: () -> Unit) {
         speakQueue(
             "Chúc mừng $name.",
             "Bạn đã học xong tất cả thao tác cơ bản.",
-            "Chạm vào màn hình để bắt đầu sử dụng ứng dụng."
+            "Nhấn vào màn hình để bắt đầu sử dụng ứng dụng."
         )
     }
 
@@ -364,6 +364,6 @@ fun Tutorial6(you: User, finish: () -> Unit) {
             },
         contentAlignment = Alignment.Center
     ) {
-        Text("Chạm để vào ứng dụng")
+        Text("Nhấn để vào ứng dụng")
     }
 }
