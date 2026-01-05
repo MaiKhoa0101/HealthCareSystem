@@ -2,117 +2,175 @@ package com.hellodoc.healthcaresystem.view.user.home.startscreen
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
-import com.hellodoc.healthcaresystem.requestmodel.SignUpRequest
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.state.SignUpStep
+import com.hellodoc.healthcaresystem.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
-//import com.example.healthcaresystem.user.SignIn
-//import com.example.healthcaresystem.user.SignUpSuccess
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class SecondSignUp : BaseActivity() {
-    private lateinit var email: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.second_sign_up)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.sub_sign_up)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-        val btnSignUp = findViewById<TextView>(R.id.signupbtn)
-        btnSignUp.setOnClickListener {
-            val intent = Intent(this, SignUpSuccess::class.java)
-            startActivity(intent) // Chuyển đến SignUpSuccess
-        }
 
-        val btnNextPage = findViewById<TextView>(R.id.signinlink)
-        btnNextPage.setOnClickListener {
-            val intent = Intent(this, SignIn::class.java)
-            startActivity(intent) // Chuyển đến SecondActivity
-        }
-        val returnButton = findViewById<ImageButton>(R.id.returnButton)
-        returnButton.setOnClickListener {
-            val intent = Intent(this, StartScreen::class.java)
-            startActivity(intent) // Chuyển đến SecondActivity
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right) // Slide left when going back
-        }
+        val email = intent.getStringExtra("email") ?: ""
 
-        email = intent.getStringExtra("email") ?: ""
-        val usernameInput = findViewById<EditText>(R.id.username)
-        val phoneInput = findViewById<EditText>(R.id.phonenumber)
-        val passwordInput = findViewById<EditText>(R.id.password)
-        val repasswordInput = findViewById<EditText>(R.id.repassword)
+        setContent {
+            val viewModel: AuthViewModel = hiltViewModel()
+            val uiState by viewModel.signUpState.collectAsState()
 
-        val passwordEye = findViewById<ImageView>(R.id.password_eye)
-        val repasswordEye = findViewById<ImageView>(R.id.repassword_eye)
-
-
-
-        fun togglePasswordVisibility(editText: EditText, eyeIcon: ImageView) {
-            if (editText.transformationMethod is PasswordTransformationMethod) {
-                // Hiển thị mật khẩu
-                editText.transformationMethod = HideReturnsTransformationMethod.getInstance()
-                eyeIcon.setImageResource(R.drawable.baseline_disabled_visible_24) // Mắt bị gạch
-            } else {
-                // Ẩn mật khẩu
-                editText.transformationMethod = PasswordTransformationMethod.getInstance()
-                eyeIcon.setImageResource(R.drawable.baseline_remove_red_eye_24) // Mắt thường
-            }
-            // Giữ con trỏ ở cuối chuỗi
-            editText.setSelection(editText.text.length)
-        }
-
-        passwordEye.setOnClickListener {
-            togglePasswordVisibility(passwordInput, passwordEye)
-        }
-        repasswordEye.setOnClickListener {
-            togglePasswordVisibility(repasswordInput, repasswordEye)
-        }
-
-
-        btnSignUp.setOnClickListener {
-            val password = passwordInput.text.toString().trim()
-            val username = usernameInput.text.toString().trim()
-            val phoneNumber = phoneInput.text.toString().trim()
-            val repassword = repasswordInput.text.toString().trim()
-
-
-            if (password.isEmpty() || username.isEmpty() || phoneNumber.isEmpty() || repassword.isEmpty() ) {
-                Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // Initialize email from intent
+            LaunchedEffect(email) {
+                if (email.isNotEmpty()) {
+                    viewModel.onSignUpEmailChange(email)
+                }
             }
 
-            if (password!=repassword) {
-                Toast.makeText(this, "Mật khẩu nhập lại không trùng khớp", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // Handle navigation
+            LaunchedEffect(uiState.currentStep) {
+                if (uiState.currentStep == SignUpStep.ROLE_SELECTION) {
+                    val intent = Intent(this@SecondSignUp, ThirdSignUp::class.java).apply {
+                        putExtra("email", uiState.email)
+                        putExtra("username", uiState.username)
+                        putExtra("phone", uiState.phone)
+                        putExtra("password", uiState.password)
+                    }
+                    startActivity(intent)
+                }
             }
 
-            // Chuyển sang màn hình chọn role
-            val intent = Intent(this, ThirdSignUp::class.java).apply {
-                putExtra("email", email)
-                putExtra("username", username)
-                putExtra("phone", phoneNumber)
-                putExtra("password", password)
+            // Show error messages
+            LaunchedEffect(uiState.errorMessage) {
+                uiState.errorMessage?.let { message ->
+                    Toast.makeText(this@SecondSignUp, message, Toast.LENGTH_SHORT).show()
+                }
             }
-            startActivity(intent)
+
+            HealthCareSystemTheme {
+                SecondSignUpScreen(
+                    username = uiState.username,
+                    onUsernameChange = viewModel::onSignUpUsernameChange,
+                    phoneNumber = uiState.phone,
+                    onPhoneChange = viewModel::onSignUpPhoneChange,
+                    password = uiState.password,
+                    onPasswordChange = viewModel::onSignUpPasswordChange,
+                    repassword = uiState.confirmPassword,
+                    onRepasswordChange = viewModel::onSignUpConfirmPasswordChange,
+                    onNext = viewModel::moveToRoleSelection,
+                    onBack = { finish() }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun SecondSignUpScreen(
+        username: String,
+        onUsernameChange: (String) -> Unit,
+        phoneNumber: String,
+        onPhoneChange: (String) -> Unit,
+        password: String,
+        onPasswordChange: (String) -> Unit,
+        repassword: String,
+        onRepasswordChange: (String) -> Unit,
+        onNext: () -> Unit,
+        onBack: () -> Unit
+    ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                HelloDocLogo(modifier = Modifier.size(100.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Thông tin tài khoản",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Text(
+                    text = "Hãy hoàn tất thông tin cá nhân của bạn",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AuthTextField(
+                    value = username,
+                    onValueChange = onUsernameChange,
+                    label = "Họ và tên",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AuthTextField(
+                    value = phoneNumber,
+                    onValueChange = onPhoneChange,
+                    label = "Số điện thoại",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AuthTextField(
+                    value = password,
+                    onValueChange = onPasswordChange,
+                    label = "Mật khẩu",
+                    isPassword = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AuthTextField(
+                    value = repassword,
+                    onValueChange = onRepasswordChange,
+                    label = "Nhập lại mật khẩu",
+                    isPassword = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                PrimaryButton(text = "Tiếp theo", onClick = onNext)
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

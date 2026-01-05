@@ -98,35 +98,41 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
-        if (_isLoading.value) return false
-        _isLoading.value = true
-        return try {
-            val response = postRepository.getAllPosts(skip, limit)
-            if (response.isSuccessful) {
-                println("Get post: "+response.body())
-                val result = response.body()
-                val newPosts = result?.posts ?: emptyList()
-                val hasMore = result?.hasMore ?: false
-
-                if (append) {
-                    val current = _posts.value
-                    _posts.value = current + newPosts
-                } else {
-                    _posts.value = newPosts
-                }
-                _hasMorePosts.value = hasMore
-                true
-            } else {
-                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Post Fetch Error", e)
-            false
+    fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false) {
+        // Tránh gọi nhiều lần cùng lúc
+        if (_isLoadingMorePosts.value) {
+            println("⚠️ Đang load, bỏ qua request mới")
+            return
         }
-        finally {
-            _isLoading.value = false
+
+        viewModelScope.launch {
+            _isLoadingMorePosts.value = true
+            try {
+                println("📡 Fetching posts: skip=$skip, limit=$limit, append=$append")
+                val response = postRepository.getAllPosts(skip, limit)
+
+                if (response.isSuccessful) {
+                    val result = response.body()
+                    val newPosts = result?.posts ?: emptyList()
+                    val hasMore = result?.hasMore ?: false
+
+                    println("✅ Nhận được ${newPosts.size} posts, hasMore=$hasMore")
+
+                    if (append) {
+                        _posts.value = _posts.value + newPosts
+                    } else {
+                        _posts.value = newPosts
+                    }
+                    _hasMorePosts.value = hasMore
+                } else {
+                    Log.e("PostViewModel", "❌ Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "❌ Exception khi fetch posts", e)
+            } finally {
+                _isLoadingMorePosts.value = false
+                println("🏁 Load more hoàn tất")
+            }
         }
     }
 
@@ -542,6 +548,7 @@ class PostViewModel @Inject constructor(
                 delay(2000)
                 _uploadProgress.value = 0f
                 _uiStatePost.value = UiState.Idle
+                fetchPosts()
             }
         }
     }

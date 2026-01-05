@@ -74,7 +74,6 @@ fun SignLanguageAnimatableScreen(
         }
     }
 
-    // ===== KỊCH BẢN ANIMATION (giống code cũ) =====
     // ===== KỊCH BẢN ANIMATION =====
     LaunchedEffect(gestureFrames) {
         if (gestureFrames.isEmpty()) return@LaunchedEffect

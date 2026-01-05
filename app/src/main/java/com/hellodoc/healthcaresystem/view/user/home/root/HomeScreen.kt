@@ -131,114 +131,57 @@ fun HealthMateHomeScreen(
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
 
-//    // --- KHỞI TẠO ENGINE 3D Ở CẤP CAO NHẤT ---
-//    // Engine sẽ sống cùng vòng đời của HomeScreen -> Không bao giờ bị kill bất tử
-//    val engine = rememberEngine()
-//    val modelLoader = rememberModelLoader(engine)
-//    val environmentLoader = rememberEnvironmentLoader(engine) // Khởi tạo Loader
-//// --- 2. BIẾN LƯU TRỮ TÀI NGUYÊN TOÀN CỤC ---
-//    var ericModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
-//    var globalEnvironment by remember { mutableStateOf<Environment?>(null) }
-//    var is3DResourcesReady by remember { mutableStateOf(false) }
-//    var enable3DAssistant by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-
-        userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
-
-        doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
-        newsViewModel.getAllNews()
-//        if (ericModelInstance == null) {
-//            try {
-//                val inputStream = context.assets.open("BoneEric.glb")
-//                val bytes = inputStream.readBytes()
-//                inputStream.close()
-//                val buffer = ByteBuffer.wrap(bytes)
-////                ericModelInstance = modelLoader.createModelInstance(buffer)
-//                println("Lay hinh thanh cong")
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        }
-//        // B. Nạp Môi trường (HDR)
-//        if (globalEnvironment == null) {
-//            try {
-//                // Lưu ý: Đảm bảo file environment.hdr < 10MB để tránh OOM
-//                globalEnvironment = environmentLoader.createHDREnvironment(
-//                    assetFileLocation = "environment.hdr"
-//                )
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        }
-    }
-
+    val posts by postViewModel.posts.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
-    val posts by postViewModel.posts.collectAsState()
 
+    // Load initial posts chỉ 1 lần
+    LaunchedEffect(Unit) {
+        userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
+        doctorViewModel.fetchDoctors()
+        specialtyViewModel.fetchSpecialties()
+        newsViewModel.getAllNews()
+
+        // Chỉ fetch nếu chưa có posts
+        if (posts.isEmpty()) {
+            postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
+        }
+    }
+
+    // Load more khi scroll
     LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val total = layoutInfo.totalItemsCount
-            lastVisible >= total - 2
-        }.distinctUntilChanged().collect { isAtEnd ->
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
-                println("Load more với skip=${posts.size}")
-                postViewModel.fetchPosts(
-                    skip = posts.size,
-                    limit = 10,
-                    append = true
-                )
-            }
+
+            // Kiểm tra nếu đang ở gần cuối danh sách
+            lastVisible >= total - 3 && total > 0
         }
+            .distinctUntilChanged()
+            .collect { isNearEnd ->
+                if (isNearEnd && hasMorePosts && !isLoadingMorePosts) {
+                    println("🔄 Load more với skip=${posts.size}")
+                    postViewModel.fetchPosts(
+                        skip = posts.size,
+                        limit = 10,
+                        append = true
+                    )
+                }
+            }
     }
 
+    // Refresh khi quay lại home (nếu cần)
     LaunchedEffect(navHostController.currentBackStackEntry) {
-        if (navHostController.currentBackStackEntry?.destination?.route == "home") {
-            if (postViewModel.posts == emptyList<PostResponse>()) {
-                postIndex = 0
-                postViewModel.clearPosts()
-                postViewModel.fetchPosts()
-            }
+        val currentRoute = navHostController.currentBackStackEntry?.destination?.route
+        if (currentRoute == "home" && posts.isEmpty()) {
+            postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
         }
     }
-
-//    // ===== LOAD 3D ASSETS (CONDITIONAL) =====
-//    LaunchedEffect(enable3DAssistant) {
-//        if (modelLoader != null && environmentLoader != null) {
-//            try {
-//                // Load 3D Model
-//                context.assets.open("BoneEric.glb").use { inputStream ->
-//                    val bytes = inputStream.readBytes()
-//                    val buffer = ByteBuffer.wrap(bytes)
-//                    ericModelInstance = modelLoader.createModelInstance(buffer)
-//                }
-//
-//                // Load Environment
-//                globalEnvironment = environmentLoader.createHDREnvironment(
-//                    assetFileLocation = "environment.hdr"
-//                )
-//
-//                // Mark as ready
-//                is3DResourcesReady = ericModelInstance != null && globalEnvironment != null
-//
-//            } catch (e: Exception) {
-//                android.util.Log.e("VideoPlayer", "Error loading 3D resources", e)
-//                is3DResourcesReady = false
-//                ericModelInstance = null
-//                globalEnvironment = null
-//            }
-//        }
-//    }
 
 
     // State quản lý trạng thái mở rộng của nút 3D
@@ -525,9 +468,6 @@ fun HealthMateHomeScreen(
             }
 
 
-            item(key = "bottom_space") {
-                Spacer(modifier = Modifier.height(100.dp))
-            }
         }
 
         if (isScrollButtonVisible) {
@@ -596,6 +536,7 @@ fun HealthMateHomeScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
 //        Box(

@@ -2,26 +2,37 @@ package com.hellodoc.healthcaresystem.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Neo4jResultItem
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
 import com.hellodoc.healthcaresystem.model.repository.SettingsRepository
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.Neo4jPath
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEdgeEntity
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEntity
+import com.hellodoc.healthcaresystem.view.user.supportfunction.JsonAssetHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.isNotEmpty
 import kotlin.collections.toMutableList
 
 
 @HiltViewModel
 class FastTalkViewModel @Inject constructor(
     private val fastTalkRepository: FastTalkRepository,
+    private val jsonAssetHelper: JsonAssetHelper, // <--- 1. Inject Helper mới
     private val settingsRepository: SettingsRepository // <--- 1. Inject thêm cái này
 ) : ViewModel() {
 
@@ -82,6 +93,99 @@ class FastTalkViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    // 1. Hàm đọc file (Logic chính)
+    fun readFromLocalFile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Kiểm tra cài đặt xem đã tải chưa
+            val isDownloaded = settingsRepository.appSettings.first().isDataDownloaded
+
+            if (!isDownloaded) {
+                println("📂 Bắt đầu đọc file local 'fulldata.json'...")
+
+                try {
+                    // 1. Đọc dữ liệu thô (List<Neo4jResultItem>)
+                    // Giả định hàm getLocalNeo4jData đã viết đúng và trả về List
+                    val rawData = jsonAssetHelper.getLocalNeo4jData("fulldata.json")
+
+                    if (!rawData.isNullOrEmpty()) {
+                        println("📂 Đã đọc được ${rawData.size} path thô từ JSON.")
+
+                        // 2. CHUYỂN ĐỔI (MAPPING) AN TOÀN
+                        val flatList = mapComplexJsonToFlat(rawData)
+
+                        if (flatList.isNotEmpty()) {
+                            println("🔄 Đã chuyển đổi thành công sang ${flatList.size} item phẳng.")
+
+                            // 3. Lưu vào Room
+                            // Gọi hàm saveNeo4jDataToRoom trong Repository (hàm này đã xử lý check null ở các bước trước)
+                            fastTalkRepository.saveNeo4jDataToRoom(flatList)
+
+                            // 4. Cập nhật trạng thái
+                            settingsRepository.setDataDownloaded(true)
+                            println("✅ IMPORT THÀNH CÔNG! Dữ liệu đã sẵn sàng offline.")
+
+                        } else {
+                            println("⚠️ Danh sách sau khi map bị rỗng (Check lại cấu trúc JSON).")
+                        }
+                    } else {
+                        println("❌ File rỗng hoặc không đọc được.")
+                    }
+                } catch (e: Exception) {
+                    println("❌ Lỗi nghiêm trọng khi đọc file local: ${e.message}")
+                    e.printStackTrace()
+                }
+            } else {
+                println("ℹ️ Dữ liệu đã có sẵn trong máy, không cần nạp lại.")
+            }
+        }
+    }
+
+    // 2. Hàm chuyển đổi dữ liệu (FIX LỖI NULL POINTER Ở ĐÂY)
+    private fun mapComplexJsonToFlat(complexList: List<Neo4jResultItem>): List<WordResultResponse> {
+        val result = mutableListOf<WordResultResponse>()
+
+        complexList.forEach { item ->
+            // Sử dụng safe call (?.) cho pathData vì nó có thể null
+            item.pathData?.segments?.forEach { segment ->
+
+                // --- LẤY DỮ LIỆU AN TOÀN ---
+                // Dùng ?. để truy cập, nếu đoạn nào null thì trả về null chứ không crash
+                val startProps = segment.startNode?.properties
+                val endProps = segment.endNode?.properties
+                val relProps = segment.relationship?.properties
+
+                val sName = startProps?.name
+                val eName = endProps?.name
+
+                // --- CHỈ LẤY KHI CÓ ĐỦ TÊN 2 ĐẦU ---
+                if (!sName.isNullOrEmpty() && !eName.isNullOrEmpty()) {
+
+                    // Lấy Label đầu tiên, nếu không có thì gán "Unknown"
+                    val sLabel = segment.startNode?.labels?.firstOrNull() ?: "Unknown"
+                    val eLabel = segment.endNode?.labels?.firstOrNull() ?: "Unknown"
+
+                    // Lấy Weight, nếu null thì gán 0.0
+                    val w = relProps?.weight ?: 0.0
+
+                    // Lấy Type quan hệ
+                    val rType = segment.relationship?.type ?: "Related_To"
+
+                    // Tạo object phẳng
+                    val convertedItem = WordResultResponse(
+                        startNode = sName,
+                        startLabel = sLabel,
+                        endNode = eName,
+                        endLabel = eLabel,
+                        weight = w,
+                        relType = rType
+                    )
+                    result.add(convertedItem)
+                }
+            }
+        }
+        return result
     }
 
 

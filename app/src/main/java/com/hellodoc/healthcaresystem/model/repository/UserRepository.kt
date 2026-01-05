@@ -4,10 +4,8 @@ import android.util.Log
 import com.hellodoc.healthcaresystem.model.api.AdminService
 import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.model.api.UserService
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UserResponse
-import com.hellodoc.healthcaresystem.requestmodel.TokenRequest
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.*
+import com.hellodoc.healthcaresystem.requestmodel.*
 import okhttp3.MultipartBody
 import retrofit2.Response
 import javax.inject.Inject
@@ -37,9 +35,78 @@ class UserRepository @Inject constructor(
 
     suspend fun requestOtp(email: String): Result<OtpResponse> {
         return try {
-            val response = authenService.requestOtp(email)
+            val response = authenService.requestOtp(EmailRequest(email))
             if (response.isSuccessful) Result.success(response.body()!!)
             else Result.failure(Exception("Gửi OTP thất bại"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun login(email: String, password: String): Result<LoginResponse> {
+        return try {
+            val response = authenService.login(LoginRequest(email, password))
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Đăng nhập thất bại"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun loginGoogle(idToken: String, phone: String = ""): Result<LoginResponse> {
+        return try {
+            val response = authenService.loginGoogle(GoogleLoginRequest(idToken, phone))
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Đăng nhập Google thất bại"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signUp(username: String, email: String, phone: String, password: String, role: String): Result<SignUpResponse> {
+        return try {
+            val response = authenService.signUp(SignUpRequest(username, email, phone, password, role))
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Đăng ký thất bại"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun requestOtpSignUp(email: String): Result<OtpResponse> {
+        return try {
+            val response = authenService.requestOtpSignUp(EmailRequest(email))
+            if (response.isSuccessful) Result.success(response.body()!!)
+            else Result.failure(Exception("Gửi OTP thất bại"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun verifyOtp(email: String, otp: String): Result<GenericResponse> {
+        return try {
+            val response = authenService.verifyOtp(OtpVerifyRequest(email, otp))
+            if (response.isSuccessful) Result.success(response.body()!!)
+            else Result.failure(Exception("Xác minh thất bại"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun resetPassword(email: String, newPassword: String): Result<GenericResponse> {
+        return try {
+            val response = authenService.resetPassword(ResetPasswordRequest(email, newPassword))
+            if (response.isSuccessful) Result.success(response.body()!!)
+            else Result.failure(Exception("Đặt lại mật khẩu thất bại"))
         } catch (e: Exception) {
             Result.failure(e)
         }

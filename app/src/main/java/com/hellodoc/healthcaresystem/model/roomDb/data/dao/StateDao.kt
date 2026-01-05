@@ -12,4 +12,12 @@ interface AppSettingsDao {
     // Lưu hoặc Cập nhật cài đặt
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(settings: AppSettingsEntity)
+
+    @Query("SELECT isDataDownloaded FROM app_settings WHERE id = 0")
+    suspend fun getStateDownload(): Boolean
+
+    @Query("SELECT isDarkMode FROM app_settings WHERE id = 0")
+    suspend fun getThemeState(): Boolean
+
+
 }

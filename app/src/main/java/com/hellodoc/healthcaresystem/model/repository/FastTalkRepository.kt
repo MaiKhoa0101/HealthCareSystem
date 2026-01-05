@@ -41,45 +41,66 @@ class FastTalkRepository @Inject constructor(
 
     // 2. Hàm lưu dữ liệu từ Neo4j
     suspend fun saveNeo4jDataToRoom(responseList: List<WordResultResponse>) {
-        database.withTransaction {
-            responseList.forEach { item ->
-                val sourceText = item.source
-                val suggestionText = item.suggestion
+        println("🚀 Bắt đầu lưu ${responseList.size} dòng vào Room...")
 
-                // --- 1. XỬ LÝ NÚT ĐÍCH (SUGGESTION) ---
-                // Đây là cái bạn muốn giữ lại. Nếu có suggestion, lưu nó làm Node.
-                if (suggestionText != null) {
-                    val endEntity = WordEntity(
-                        word = suggestionText,
-                        label = item.label.firstOrNull() ?: "Unknown"
-                    )
-                    // Gọi hàm insertWord riêng lẻ (cần đảm bảo hàm này dùng OnConflictStrategy.IGNORE)
-                    wordDao.insertWord(endEntity)
+        try {
+            database.withTransaction {
+                responseList.forEachIndexed { index, item ->
+                    try {
+                        // --- KIỂM TRA DỮ LIỆU ĐẦU VÀO (Debug) ---
+                        // Nếu item null thì bỏ qua
+                        if (item == null) return@forEachIndexed
+
+                        // 1. Xử lý Start Node
+                        // Nếu startNode null -> bỏ qua dòng này
+                        val sNode = item.startNode
+                        if (sNode == null) {
+                            println("⚠️ Dòng $index: StartNode bị NULL. Bỏ qua.")
+                            return@forEachIndexed
+                        }
+                        // Nếu label null -> gán "Unknown"
+                        val sLabel = item.startLabel ?: "Unknown"
+
+                        // 2. Xử lý End Node
+                        val eNode = item.endNode
+                        if (eNode == null) {
+                            println("⚠️ Dòng $index: EndNode bị NULL. Bỏ qua.")
+                            return@forEachIndexed
+                        }
+                        val eLabel = item.endLabel ?: "Unknown"
+
+                        // 3. Xử lý các chỉ số khác
+                        val rType = item.relType ?: "Related_To"
+                        // Nếu weight null -> gán 0.0. Dùng Elvis operator ?:
+                        val w = item.weight ?: 0.0
+
+                        // --- TẠO ENTITY ---
+                        val startEntity = WordEntity(word = sNode, label = sLabel)
+                        val endEntity = WordEntity(word = eNode, label = eLabel)
+
+                        // --- LƯU VÀO DB ---
+                        wordDao.insertWord(startEntity)
+                        wordDao.insertWord(endEntity)
+
+                        val edgeEntity = WordEdgeEntity(
+                            fromWord = sNode,
+                            toWord = eNode,
+                            relateType = rType,
+                            weight = w
+                        )
+                        wordDao.insertEdge(edgeEntity)
+
+                    } catch (e: Exception) {
+                        // In ra chi tiết dòng bị lỗi để bạn biết sửa data
+                        println("❌ Lỗi tại dòng $index ($item): ${e.message}")
+                        e.printStackTrace() // Quan trọng: In stack trace để thấy dòng code lỗi
+                    }
                 }
-
-                // --- 2. XỬ LÝ NÚT NGUỒN VÀ MỐI QUAN HỆ ---
-                // Chỉ khi nào CẢ source VÀ suggestion đều có, ta mới tạo mối nối (Edge)
-                if (sourceText != null && suggestionText != null) {
-
-                    // Lưu nút nguồn
-                    val startEntity = WordEntity(
-                        word = sourceText,
-                        label = "Unknown" // Hoặc lấy từ API nếu có update sau này
-                    )
-                    wordDao.insertWord(startEntity)
-
-                    // Lưu mối quan hệ (Cạnh)
-                    val edgeEntity = WordEdgeEntity(
-                        fromWord = sourceText,
-                        toWord = suggestionText,
-                        relateType = "Related_To",
-                        weight = item.score
-                    )
-                    wordDao.insertEdge(edgeEntity)
-                }
-                // Nếu sourceText == null, ta không làm gì ở bước 2 -> Không tạo Edge, không tạo Source node null.
-                // Nhưng Suggestion Node đã được lưu ở bước 1 rồi.
             }
+            println("✅ Hoàn tất lưu dữ liệu vào Room!")
+        } catch (e: Exception) {
+            println("❌ Lỗi Transaction tổng: ${e.message}")
+            e.printStackTrace()
         }
     }
 

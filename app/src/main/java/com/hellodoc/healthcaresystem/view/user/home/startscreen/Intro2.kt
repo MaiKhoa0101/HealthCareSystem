@@ -2,32 +2,81 @@ package com.hellodoc.healthcaresystem.view.user.home.startscreen
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class Intro2 : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Intro2", "onCreate called")
         enableEdgeToEdge()
-        setContentView(R.layout.activity_intro2)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.intro2)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        setContent {
+            HealthCareSystemTheme {
+                Intro2Screen(
+                    onNext = {
+                        startActivity(Intent(this, Intro3::class.java))
+                    }
+                )
+            }
         }
-        val nextButton = findViewById<TextView>(R.id.btnNext)
-        nextButton.setOnClickListener {
-            val intent = Intent(this, Intro3::class.java)
-            startActivity(intent) // Chuyển đến SecondActivity
-        }
+    }
+}
 
+@Composable
+fun Intro2Screen(onNext: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(60.dp))
+                HelloDocLogo(modifier = Modifier.size(200.dp))
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = "Bác sĩ tận tâm",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Kết nối với những bác sĩ chuyên môn hàng đầu ngay tại nhà của bạn.",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+            }
+
+            PrimaryButton(
+                text = "Tiếp theo",
+                onClick = onNext,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+        }
     }
 }

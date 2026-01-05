@@ -28,19 +28,30 @@ class SettingsRepository @Inject constructor (
 
     // Hàm cập nhật trạng thái Đã tải data
     suspend fun setDataDownloaded(isDownloaded: Boolean) {
+        println("Gọi được set data downloaded")
         updateSettings { it.copy(isDataDownloaded = isDownloaded) }
     }
 
     private suspend fun updateSettings(transform: (AppSettingsEntity) -> AppSettingsEntity) {
-        var currentSettings = appSettingsDao.getSettings().firstOrNull()
-        if (currentSettings != null) {
-            currentSettings = transform(currentSettings)
-        }
-        appSettingsDao.insertOrUpdate(currentSettings!!)
+        // 1. Lấy setting hiện tại. Nếu null (chưa có trong DB) thì tạo object mặc định
+        // Toán tử ?: (Elvis operator) sẽ cứu bạn ở đây
+        val currentSettings = appSettingsDao.getSettings().firstOrNull() ?: AppSettingsEntity()
 
+        // 2. Áp dụng thay đổi
+        val updatedSettings = transform(currentSettings)
+
+        // 3. Lưu vào DB (Không còn !! nữa vì updatedSettings chắc chắn không null)
+        appSettingsDao.insertOrUpdate(updatedSettings)
     }
 
     suspend fun updateState(newState: AppSettingsEntity) {
         appSettingsDao.insertOrUpdate(newState)
+    }
+
+    suspend fun getStateDownload(): Boolean{
+        return appSettingsDao.getStateDownload()
+    }
+    suspend fun getThemeState():Boolean {
+        return appSettingsDao.getThemeState()
     }
 }

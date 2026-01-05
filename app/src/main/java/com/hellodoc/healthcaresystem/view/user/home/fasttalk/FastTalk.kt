@@ -34,7 +34,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -42,16 +41,17 @@ import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.R
 import android.Manifest
 import android.speech.SpeechRecognizer
-import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.DialogProperties
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,9 +59,10 @@ fun FastTalk(
     navHostController: NavHostController,
     context: Context
 ) {
-    val viewModel: FastTalkViewModel = hiltViewModel()
+    val fasttalkViewModel: FastTalkViewModel = hiltViewModel()
     val coroutineScope = rememberCoroutineScope()
 
+    val stateViewModel: StateViewModel = hiltViewModel()
     // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
     var theirsSentence by remember { mutableStateOf("") }
@@ -69,25 +70,25 @@ fun FastTalk(
     var tempTheirSpeech by remember { mutableStateOf("") }
     var isRecording by remember { mutableStateOf(false) }
     var extendedAlignment by remember { mutableStateOf<String?>(null) }
-    val verb by viewModel.wordVerbSimilar.collectAsState()
-    val noun by viewModel.wordNounSimilar.collectAsState()
-    val adj  by viewModel.wordSupportSimilar.collectAsState()
-    val pro  by viewModel.wordPronounSimilar.collectAsState()
+    val verb by fasttalkViewModel.wordVerbSimilar.collectAsState()
+    val noun by fasttalkViewModel.wordNounSimilar.collectAsState()
+    val adj  by fasttalkViewModel.wordSupportSimilar.collectAsState()
+    val pro  by fasttalkViewModel.wordPronounSimilar.collectAsState()
     // ✅ GỌI API KHI TỪ ĐỔI
     LaunchedEffect(Unit,yourSentenceValue.text) {
         if (yourSentenceValue.text.isNotBlank()) {
             println("Gọi API với từ: " + getLastWord(yourSentenceValue.text))
-            viewModel.getWordSimilar(getLastWord(yourSentenceValue.text))
+            fasttalkViewModel.getWordSimilar(getLastWord(yourSentenceValue.text))
         }
     }
     LaunchedEffect(Unit,theirsSentence) {
         if (theirsSentence != "") {
             println("Phân tích câu hỏi từ máy khách: $theirsSentence")
-            viewModel.analyzeSentence(theirsSentence)
+            fasttalkViewModel.analyzeSentence(theirsSentence)
             try{
                 println("bắt đầu tìm trong roomDB")
 
-                viewModel.findQuickResponse(theirsSentence)
+                fasttalkViewModel.findQuickResponse(theirsSentence)
             } catch (e: Exception) {
                 println("lỗi database ${e.message}")
                 e.printStackTrace()
@@ -95,9 +96,18 @@ fun FastTalk(
 
         }
     }
-    LaunchedEffect(Unit) {
-        println("Gọi API để tải dữ liệu từ Neo4j")
-        viewModel.downloadDataFromNeo4j()
+    // ===== STATE QUẢN LÝ DIALOG =====
+    var showDataLoadDialog by remember { mutableStateOf(false) }
+    val isDataDownloaded by stateViewModel.isDataDownloaded.collectAsState(initial = false)
+    val isLoading by fasttalkViewModel.isLoading.collectAsState()
+
+    // ===== KIỂM TRA DỮ LIỆU KHI VÀO MÀN HÌNH =====
+    LaunchedEffect(Unit,isDataDownloaded) {
+        stateViewModel.getDownloadStatus()
+        // Kiểm tra xem đã tải dữ liệu chưa
+        if (!isDataDownloaded) {
+            showDataLoadDialog = true
+        }
     }
 
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
@@ -177,7 +187,7 @@ fun FastTalk(
                     }
                 )
             }
-            SuggestionsRow(viewModel) { content ->
+            SuggestionsRow(fasttalkViewModel) { content ->
                 val newText = yourSentenceValue.text + " $content"
                 yourSentenceValue = TextFieldValue(
                     text = newText,
@@ -237,12 +247,12 @@ fun FastTalk(
                     if (yourSentenceValue.text.isNotBlank()) {
                         speakText(context, yourSentenceValue.text)
                         coroutineScope.launch {
-                            viewModel.analyzeSentence(yourSentenceValue.text)
+                            fasttalkViewModel.analyzeSentence(yourSentenceValue.text)
                             println("bắt đầu lưu trong roomDB")
 
-                            viewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
+                            fasttalkViewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
                             println("đã lưu vào roomDB")
-                            viewModel.findQuickResponse(theirsSentence)
+                            fasttalkViewModel.findQuickResponse(theirsSentence)
 
                         }
                     } else {
@@ -251,7 +261,20 @@ fun FastTalk(
                 }
             )
         }
-
+        // ===== DIALOG TẢI DỮ LIỆU =====
+        if (showDataLoadDialog) {
+            DataLoadingDialog(
+                isLoading = isLoading,
+                onConfirm = {
+                    fasttalkViewModel.readFromLocalFile()
+                    stateViewModel.setDownloadStatus(true)
+                    showDataLoadDialog=false
+                },
+                onDismiss = {
+                    showDataLoadDialog = false
+                }
+            )
+        }
         // ✅ Overlay menu mở rộng
         if (extendedAlignment != null) {
             val groupWord = when (extendedAlignment) {
@@ -285,6 +308,120 @@ fun FastTalk(
     }
 }
 
+
+// ===== DIALOG COMPONENT =====
+@Composable
+fun DataLoadingDialog(
+    isLoading: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isLoading) onDismiss() },
+        confirmButton = {
+            if (!isLoading) {
+                TextButton(onClick = {
+                    onConfirm()
+                }) {
+                    Text("Tải dữ liệu", color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        },
+        dismissButton = {
+            if (!isLoading) {
+                TextButton(onClick = onDismiss) {
+                    Text("Để sau", color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+        },
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = if (isLoading) "Đang tải dữ liệu..." else "Tải dữ liệu Fast Talk",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (isLoading) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Đang tải dữ liệu từ file local...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Vui lòng đợi trong giây lát",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "Chức năng Fast Talk cần tải dữ liệu từ kho dữ liệu cục bộ để hoạt động.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color.Green,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Không cần kết nối Internet",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Speed,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Tải nhanh, chỉ mất vài giây",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        properties = DialogProperties(
+            dismissOnBackPress = !isLoading,
+            dismissOnClickOutside = !isLoading
+        )
+    )
+}
 
 fun getLastWord(text: String): String {
     return text.trim().split("\\s+".toRegex()).lastOrNull() ?: ""

@@ -1,80 +1,142 @@
 package com.hellodoc.healthcaresystem.view.user.home.startscreen
 
-import android.content.Intent
-import android.os.Bundle
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.requestmodel.EmailRequest
-import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
-import dagger.hilt.android.AndroidEntryPoint
-//import com.example.healthcaresystem.user.SignIn
-//import com.example.healthcaresystem.user.SignUpSuccess
-import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.HelloDocLogo
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.PrimaryButton
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.AuthTextField
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.navigation.AuthScreen
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.state.SignUpStep
+import com.hellodoc.healthcaresystem.viewmodel.AuthViewModel
 
-@AndroidEntryPoint
-class SignUp : BaseActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.first_sign_up)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_sign_up)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+@Composable
+fun SignUpRoute(
+    navController: NavController,
+    viewModel: AuthViewModel
+) {
+    val context = LocalContext.current
+    val uiState by viewModel.signUpState.collectAsState()
 
-        val btnNextPage = findViewById<TextView>(R.id.signinlink)
-        btnNextPage.setOnClickListener {
-            val intent = Intent(this, SignIn::class.java)
-            startActivity(intent) // Chuyển đến SecondActivity
-        }
-        val returnButton = findViewById<ImageButton>(R.id.returnButton)
-        returnButton.setOnClickListener {
-            val intent = Intent(this, StartScreen::class.java)
-            startActivity(intent) // Chuyển đến SecondActivity
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right) // Slide left when going back
-        }
-
-        val emailInput = findViewById<EditText>(R.id.email)
-
-        val btnSignUp = findViewById<TextView>(R.id.signupbtn)
-        btnSignUp.setOnClickListener {
-            val email = emailInput.text.toString().trim()
-
-
-            if (email.isEmpty()) {
-                Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+    // Handle navigation based on steps
+    LaunchedEffect(uiState.currentStep) {
+        when (uiState.currentStep) {
+            SignUpStep.EMAIL -> { /* Stay here */ }
+            SignUpStep.OTP_VERIFICATION -> {
+                navController.navigate(AuthScreen.VerifyOtpSignUp.route)
+                // We should assume VerifyOtpSignUpScreen will observe the same ViewModel
             }
-
-            sendOtpToEmailForSignUp(email)
+            else -> {}
         }
     }
 
-    private fun sendOtpToEmailForSignUp(email: String) {
-        lifecycleScope.launch {
-            try {
-                val response = RetrofitInstance.api.requestOtpSignUp(EmailRequest(email))
-                if (response.isSuccessful && response.body() != null) {
-                    val otpResponse = response.body()!!
-                    Toast.makeText(this@SignUp, otpResponse.message, Toast.LENGTH_SHORT).show()
+    // Show error messages
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
-                    val intent = Intent(this@SignUp, VerifyOtpSignUpAcctivity::class.java)
-                    intent.putExtra("email", email)
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this@SignUp, "Gửi OTP thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
+    SignUpScreen(
+        email = uiState.email,
+        onEmailChange = viewModel::onSignUpEmailChange,
+        isLoading = uiState.isLoading,
+        onContinue = viewModel::requestSignUpOtp,
+        onSignIn = {
+            navController.navigate(AuthScreen.SignIn.route) {
+                popUpTo(AuthScreen.Start.route)
+            }
+        },
+        onBack = { navController.popBackStack() }
+    )
+}
+
+@Composable
+fun SignUpScreen(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    isLoading: Boolean,
+    onContinue: () -> Unit,
+    onSignIn: () -> Unit,
+    onBack: () -> Unit
+) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
+                    Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                 }
-            } catch (e: Exception) {
-                Toast.makeText(this@SignUp, "Lỗi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HelloDocLogo(modifier = Modifier.size(120.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Tạo tài khoản mới",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Text(
+                text = "Hãy nhập email của bạn để bắt đầu",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            AuthTextField(
+                value = email,
+                onValueChange = onEmailChange,
+                label = "Email",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (isLoading) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            } else {
+                PrimaryButton(text = "Tiếp tục", onClick = onContinue)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text(text = "Đã có tài khoản? ", color = Color.Gray)
+                Text(
+                    text = "Đăng nhập",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onSignIn() }
+                )
             }
         }
     }
