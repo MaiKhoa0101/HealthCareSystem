@@ -12,10 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.google.android.filament.Engine
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GestureFrame
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Rotation
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
+import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import io.github.sceneview.Scene
 import io.github.sceneview.environment.Environment
 import io.github.sceneview.math.Position
@@ -34,7 +36,8 @@ import java.io.InputStream
 fun SignLanguageAnimatableScreen(
     engine: Engine?,
     modelInstance: ModelInstance?,
-    environment: Environment?
+    environment: Environment?,
+    videoUrl: String
 ) {
     val context = LocalContext.current
     var characterNode by remember { mutableStateOf<ModelNode?>(null) }
@@ -47,30 +50,46 @@ fun SignLanguageAnimatableScreen(
     // ===== ANIMATABLE CHÍNH =====
     val frameProgress = remember { Animatable(0f) }
 
-    LaunchedEffect(Unit) {
+    val postViewModel: PostViewModel = hiltViewModel()
+    val gestureCode = postViewModel.gestureCode.collectAsState()
+
+    LaunchedEffect(videoUrl) {
         try {
-            val inputStream: InputStream = context.assets.open("model3d_gestures.json")
-            val jsonString = inputStream.bufferedReader().use { it.readText() }
-
-            val json = Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            }
-            println("Đọc được json "+ json)
-            val frames = json.decodeFromString(
-                ListSerializer(GestureFrame.serializer()),
-                jsonString
-            )
-
-            gestureFrames = frames
-            isLoading = false
-
-            // ===== DEBUG LOG =====
-            Log.d("SignLanguage", "✅ Loaded ${frames.size} frames")
-
+            isLoading = true
+            postViewModel.getGestureCode(videoUrl)
         } catch (e: Exception) {
-            Log.e("SignLanguage", "❌ Error loading JSON", e)
+            Log.e("SignLanguage", "❌ Error calling API", e)
+            isLoading = false
+        }
+    }
+
+    // ===== LẮNG NGHE DỮ LIỆU TỪ API =====
+    LaunchedEffect(gestureCode.value) {
+        try {
+            val response = gestureCode.value
+
+            // Kiểm tra response không null và có dữ liệu
+            if (response != null && response.isNotEmpty()) {
+                // Lấy gestureData từ response đầu tiên (hoặc xử lý theo logic của bạn)
+                val frames = response.firstOrNull()?.gestureData ?: emptyList()
+
+                if (frames.isNotEmpty()) {
+                    gestureFrames = frames
+                    isLoading = false
+
+                    // ===== DEBUG LOG =====
+                    Log.d("SignLanguage", "✅ Loaded ${frames.size} frames from API")
+                    Log.d("SignLanguage", "✅ Word: ${response.first().word}")
+                    Log.d("SignLanguage", "✅ Gross: ${response.first().gross}")
+                } else {
+                    Log.w("SignLanguage", "⚠️ API returned empty gesture data")
+                    isLoading = false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("SignLanguage", "❌ Error processing API response", e)
             e.printStackTrace()
+            isLoading = false
         }
     }
 
@@ -142,6 +161,7 @@ fun SignLanguageAnimatableScreen(
             characterNode = node
         }
     }
+
     LaunchedEffect(modelInstance) {
         if (modelInstance != null) {
             val asset = modelInstance.asset
@@ -163,6 +183,7 @@ fun SignLanguageAnimatableScreen(
             }
         }
     }
+
     DisposableEffect(Unit) {
         onDispose {
             characterNode?.destroy()
@@ -206,6 +227,7 @@ fun SignLanguageAnimatableScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
+
 
 //        //Thông tin debug
 //        Text(

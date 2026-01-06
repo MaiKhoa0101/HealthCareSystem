@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.requestmodel.Content
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
@@ -17,6 +20,7 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GestureCodeResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SubtitleResponse
@@ -54,7 +58,7 @@ import kotlin.text.trim
 class PostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val geminiRepository: GeminiRepository,
-    private val subtitleRepository: SubtitleRepository
+    private val subtitleRepository: SubtitleRepository,
     ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
@@ -529,6 +533,11 @@ class PostViewModel @Inject constructor(
                         Toast.makeText(context, "Đăng bài thành công", Toast.LENGTH_SHORT).show()
                     }
                     fetchPosts()
+                    if (response.body()?.media?.isNotEmpty() == true){
+                        for ( i in 0 until response.body()!!.media.size){
+                            getSubtitle(response.body()!!.media[i])
+                        }
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string().orEmpty()
                     _uiStatePost.value = UiState.Error("Đăng bài thất bại: $errorBody")
@@ -853,12 +862,81 @@ class PostViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     println("Get subtitle: " + response.body())
                     _subtitle.value = response.body()
+                    postVideoToGetGestureCode(videoUrl)
                 } else {
                     Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
                 }
             }
             catch (e: Exception) {
                 Log.e("PostViewModel", "Get Subtitle Error", e)
+            }
+        }
+    }
+
+    private val _gestureCode = MutableStateFlow<List<GestureCodeResponse>>(emptyList())
+    val gestureCode: StateFlow<List<GestureCodeResponse>> get() = _gestureCode
+
+    fun getGestureCode(videoUrl: String) {
+        viewModelScope.launch {
+            try {
+                val response = postRepository.getGestureCode(videoUrl)
+
+                // 1. Kiểm tra body khác null an toàn hơn dùng !!
+                val responseBody = response.body()
+                if (response.isSuccessful && responseBody != null) {
+
+                    val downloadUrl = responseBody.wordCode
+
+                    // 2. Tải JSON từ URL (IO Thread)
+                    val jsonContent = withContext(Dispatchers.IO) {
+                        try {
+                            java.net.URL(downloadUrl).readText()
+                        } catch (e: Exception) {
+                            Log.e("API", "Lỗi tải file JSON: ${e.message}")
+                            null
+                        }
+                    }
+
+                    // 3. Parse JSON (Quan trọng: Sửa phần này)
+                    if (jsonContent != null) {
+                        Log.d("API", "Nội dung JSON: $jsonContent")
+
+                        try {
+                            // FIX: Dùng TypeToken để giữ được kiểu List<GestureCodeResponse>
+                            val type = object : TypeToken<List<GestureCodeResponse>>() {}.type
+                            val gestureData: List<GestureCodeResponse> = Gson().fromJson(jsonContent, type)
+
+                            _gestureCode.value = gestureData
+
+                        } catch (e: Exception) {
+                            Log.e("API", "Lỗi parse JSON: ${e.message}")
+                        }
+                    }
+                } else {
+                    // Nếu thất bại thì gọi API post video
+                    Log.w("API", "Get thất bại, đang thử Post lại video...")
+                    postVideoToGetGestureCode(videoUrl)
+                }
+            } catch (e: Exception) {
+                println("Lỗi ở getGestureCode $e")
+            }
+        }
+    }
+
+    fun postVideoToGetGestureCode(
+        videoUrl: String
+    ){
+        viewModelScope.launch {
+            try{
+                val response = postRepository.postVideoToGetGestureCode(videoUrl)
+                if (response.isSuccessful) {
+                    println("Post video thành công và lấy được listcode: "+ response.body()?.size)
+                    _gestureCode.value = response.body()!!
+                }
+            }
+            catch (e:Exception){
+                println("Lỗi ở postVideoToGetGestureCode $e")
+
             }
         }
     }

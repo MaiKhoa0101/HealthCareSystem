@@ -1,7 +1,7 @@
 package com.hellodoc.healthcaresystem.model.retrofit
 
 import com.hellodoc.healthcaresystem.model.api.AdminService
-import com.hellodoc.healthcaresystem.api.AppointmentService
+import com.hellodoc.healthcaresystem.model.api.AppointmentService
 import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
@@ -13,6 +13,7 @@ import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
+import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
@@ -84,8 +85,9 @@ object RetrofitInstance {
     @Provides fun provideGeminiService(retrofit: Retrofit): GeminiService = retrofit.create(GeminiService::class.java)
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
-
     @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
+
+    @Provides fun provideGestureCode(retrofit: Retrofit): GestureCodeService = retrofit.create(GestureCodeService::class.java)
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()

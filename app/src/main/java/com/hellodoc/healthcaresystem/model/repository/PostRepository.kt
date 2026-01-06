@@ -1,5 +1,6 @@
 package com.hellodoc.healthcaresystem.model.repository
 
+import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
@@ -7,7 +8,10 @@ import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
 import jakarta.inject.Inject
 import okhttp3.MultipartBody
 
-class PostRepository @Inject constructor(private val postService: PostService){
+class PostRepository @Inject constructor(
+    private val postService: PostService,
+    private val gestureCodeService: GestureCodeService
+){
     suspend fun getAllPosts(skip: Int ,limit: Int) = postService.getAllPosts(skip, limit)
     suspend fun getPostById(id: String) = postService.getPostById(id)
     suspend fun getPostByUserId(userId: String, skip: Int, limit: Int)
@@ -99,6 +103,6 @@ class PostRepository @Inject constructor(private val postService: PostService){
         keyword: String
     ) = postService.searchAdvanced(keyword)
 
-
-
+    suspend fun getGestureCode(urlMedia:String) = gestureCodeService.getGestureCode(urlMedia)
+    suspend fun postVideoToGetGestureCode(urlMedia: String) = gestureCodeService.postVideoToGetGestureCode(urlMedia)
 }

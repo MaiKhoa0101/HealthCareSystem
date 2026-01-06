@@ -40,7 +40,8 @@ fun Floating3DAssistant(
     onExpandChange: (Boolean) -> Unit,
     engine: Engine?,
     modelInstance: ModelInstance?,
-    environment: Environment?
+    environment: Environment?,
+    videoUrl: String
 ) {
     // ===== AUTO-CLOSE KHI MẤT RESOURCES =====
     LaunchedEffect(engine, modelInstance, environment) {
@@ -94,7 +95,8 @@ fun Floating3DAssistant(
                     SignLanguageAnimatableScreen(
                         engine = engine,
                         modelInstance = modelInstance,
-                        environment = environment
+                        environment = environment,
+                        videoUrl = videoUrl
                     )
 
                     // Overlay để đóng

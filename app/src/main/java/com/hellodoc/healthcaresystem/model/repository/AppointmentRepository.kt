@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.model.repository
 
-import com.hellodoc.healthcaresystem.api.AppointmentService
+import com.hellodoc.healthcaresystem.model.api.AppointmentService
 import com.hellodoc.healthcaresystem.requestmodel.CreateAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.SuggestedAppointmentRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateAppointmentRequest

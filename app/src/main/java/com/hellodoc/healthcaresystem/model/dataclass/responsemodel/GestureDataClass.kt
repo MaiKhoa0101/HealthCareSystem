@@ -12,6 +12,16 @@ import kotlin.math.sqrt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+data class WordCode(
+    val wordCode: String
+)
+
+data class GestureCodeResponse(
+    @SerializedName("word") val word: String,
+    @SerializedName("gestureData") val gestureData: List<GestureFrame>,
+    @SerializedName("gross") val gross: String
+)
+
 @Serializable
 data class GestureFrame(
     val frame: Int,
@@ -19,9 +29,7 @@ data class GestureFrame(
     val gestures: BoneData
 )
 
-/**
- * Class này chứa toàn bộ các key trong "gestures" của JSON mới (Cấu trúc phẳng)
- */
+
 @Serializable
 data class BoneData(
     // --- Spine ---

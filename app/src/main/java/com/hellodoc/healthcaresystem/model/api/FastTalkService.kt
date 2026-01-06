@@ -30,5 +30,5 @@ interface FastTalkService {
     ): Response<WordResponse> // Giả sử nó trả về cấu trúc giống tìm từ hoặc bạn cần định nghĩa class riêng nếu khác
 
     @GET("neo4j/get-all")
-    suspend fun getGraphData(): Response<List<WordResultResponse>>
+    suspend fun getGraphData(): Response<List<WordResultResponse>?>
 }

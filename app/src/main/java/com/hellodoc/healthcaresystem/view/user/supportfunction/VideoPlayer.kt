@@ -37,7 +37,6 @@ fun VideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
     autoPlay: Boolean = true,
-    enable3DAssistant: Boolean = true, // Tùy chọn bật tắt 3D trong video
     postViewModel: PostViewModel = hiltViewModel()
 ) {
     // Check URL rỗng để tránh NullPointerException
@@ -104,9 +103,8 @@ fun VideoPlayer(
         if (isPlayerReleased) return@LaunchedEffect
         try {
             // Lấy subtitle nếu chưa có
-            if (subtitleUri == null) {
-                postViewModel.getSubtitle(videoUrl)
-            }
+            postViewModel.getSubtitle(videoUrl)
+            postViewModel.getGestureCode(videoUrl)
 
             val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
             subtitleUri?.let { uri ->
@@ -173,7 +171,8 @@ fun VideoPlayer(
                         // Lấy dữ liệu an toàn từ Manager
                         engine = SceneViewManager.getEngine(),
                         modelInstance = SceneViewManager.getModelInstance(),
-                        environment = SceneViewManager.getEnvironment()
+                        environment = SceneViewManager.getEnvironment(),
+                        videoUrl = videoUrl
                     )
                 }
             } else {
