@@ -50,7 +50,8 @@ class DoctorRepository @Inject constructor(
         images: List<MultipartBody.Part>,
         oldService:MultipartBody.Part,
         hasHomeService:MultipartBody.Part,
-        isClinicPaused:MultipartBody.Part
+        isClinicPaused:MultipartBody.Part,
+        specialty: MultipartBody.Part
     ) = doctorService.updateClinic(
         doctorId,
         address,
@@ -61,7 +62,8 @@ class DoctorRepository @Inject constructor(
         images,
         oldService,
         hasHomeService,
-        isClinicPaused
+        isClinicPaused,
+        specialty
     )
 
     suspend fun getPendingDoctor() = doctorService.getPendingDoctor()

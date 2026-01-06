@@ -54,7 +54,8 @@ interface DoctorService {
         @Part images: List<MultipartBody.Part>,
         @Part oldService:MultipartBody.Part,
         @Part hasHomeService:MultipartBody.Part,
-        @Part isClinicPaused:MultipartBody.Part
+        @Part isClinicPaused:MultipartBody.Part,
+        @Part specialty:MultipartBody.Part
     ): Response<ModifyClinicRequest>
 
     @GET("doctor/pending-doctors")
