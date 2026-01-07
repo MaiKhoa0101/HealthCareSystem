@@ -862,7 +862,6 @@ class PostViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     println("Get subtitle: " + response.body())
                     _subtitle.value = response.body()
-                    postVideoToGetGestureCode(videoUrl)
                 } else {
                     Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
                 }
