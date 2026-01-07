@@ -1,11 +1,11 @@
 package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -28,4 +28,7 @@ interface FastTalkService {
     suspend fun analyzeQuestion(
         @Body request: AnalyzeRequest // Gửi object { "text": "..." }
     ): Response<WordResponse> // Giả sử nó trả về cấu trúc giống tìm từ hoặc bạn cần định nghĩa class riêng nếu khác
+
+    @GET("neo4j/get-all")
+    suspend fun getGraphData(): Response<List<WordResultResponse>?>
 }

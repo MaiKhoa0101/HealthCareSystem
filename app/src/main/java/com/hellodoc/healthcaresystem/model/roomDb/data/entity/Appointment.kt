@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.roomDb.data.entity
+package com.hellodoc.healthcaresystem.model.roomDb.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

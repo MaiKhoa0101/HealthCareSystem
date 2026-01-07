@@ -18,14 +18,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.R
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SidebarItem
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
 import javax.inject.Inject
-import android.util.Log
 
 @AndroidEntryPoint
 class AdminRoot : BaseActivity() {

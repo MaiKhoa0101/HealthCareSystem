@@ -28,9 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Neo4jResultItem
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.speakText
 import com.hellodoc.healthcaresystem.view.user.post.ZoomableImage
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -354,3 +360,45 @@ suspend fun speakQueue(vararg texts: String) {
     }
 }
 
+@Singleton
+class JsonAssetHelper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    fun getLocalNeo4jData(fileName: String): List<Neo4jResultItem> {
+        println("--- BẮT ĐẦU DEBUG ASSETS ---")
+
+        // 1. Kiểm tra xem file có tồn tại trong assets không
+        try {
+            val allFiles = context.assets.list("") ?: emptyArray()
+            println("📂 Các file hiện có trong assets: ${allFiles.joinToString()}")
+
+            if (fileName !in allFiles) {
+                println("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file '$fileName' trong danh sách trên.")
+                println("👉 Hãy kiểm tra kỹ: Chữ hoa/thường (FullData.json khác fulldata.json), đuôi file (.json.json?)")
+                return emptyList()
+            } else {
+                println("✅ Đã tìm thấy file '$fileName'. Bắt đầu đọc...")
+            }
+        } catch (e: Exception) {
+            println("Lỗi khi liệt kê assets: ${e.message}")
+        }
+
+        return try {
+            // 2. Đọc file
+            val jsonString = context.assets.open(fileName).bufferedReader().use { it.readText() }
+            println("📖 Đọc thành công! Độ dài chuỗi JSON: ${jsonString.length} ký tự")
+
+            // 3. Parse JSON
+            val listType = object : TypeToken<List<Neo4jResultItem>>() {}.type
+            val result = Gson().fromJson<List<Neo4jResultItem>>(jsonString, listType)
+
+            println("✅ Parse thành công: ${result?.size ?: 0} phần tử")
+            result ?: emptyList()
+
+        } catch (e: Exception) {
+            println("❌ LỖI KHI ĐỌC/PARSE: ${e}")
+            e.printStackTrace() // Quan trọng: Xem logcat để biết lỗi là FileNotFound hay JsonSyntax
+            emptyList()
+        }
+    }
+}

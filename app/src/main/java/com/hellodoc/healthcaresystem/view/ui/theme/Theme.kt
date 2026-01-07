@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.ui.theme
+package com.hellodoc.healthcaresystem.view.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -10,15 +10,10 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.hellodoc.healthcaresystem.view.ui.theme.AmberCustom
-import com.hellodoc.healthcaresystem.view.ui.theme.BoxGrey
-import com.hellodoc.healthcaresystem.view.ui.theme.BoxLightGrey
-import com.hellodoc.healthcaresystem.view.ui.theme.HelloDocYellow
-import com.hellodoc.healthcaresystem.view.ui.theme.LightDarkTheme
-import com.hellodoc.healthcaresystem.view.ui.theme.secondContainer
+import com.hellodoc.healthcaresystem.ui.theme.Typography
 
 private val DarkColorScheme = darkColorScheme(
-    primary = HelloDocYellow,
+    primary = DarkHelloDocYellow,
     onPrimary = Color.Black,
     primaryContainer = BoxGrey,
     onPrimaryContainer = Color.White,

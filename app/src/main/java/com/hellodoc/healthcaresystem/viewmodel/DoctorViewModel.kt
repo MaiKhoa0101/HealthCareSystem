@@ -274,6 +274,7 @@ class DoctorViewModel @Inject constructor(
 
                 val hasHomeServicePart = MultipartBody.Part.createFormData("hasHomeService", clinicUpdateData.hasHomeService.toString())
                 val isClinicPausedPart = MultipartBody.Part.createFormData("isClinicPaused", clinicUpdateData.isClinicPaused.toString())
+                val specialtyPart = MultipartBody.Part.createFormData("specialty", clinicUpdateData.specialtyId)
 
                 val servicesJsonList = clinicUpdateData.services.map {
                     ServiceInput(
@@ -308,7 +309,8 @@ class DoctorViewModel @Inject constructor(
                     imageParts,
                     oldservicesPart,
                     hasHomeServicePart,
-                    isClinicPausedPart
+                    isClinicPausedPart,
+                    specialtyPart
                 )
                 println("Ket qua cap nhat: "+response.body())
                 withContext(Dispatchers.Main) {

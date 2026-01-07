@@ -1,7 +1,7 @@
 package com.hellodoc.healthcaresystem.roomDb.mapper
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentResponse
-import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.AppointmentEntity
 
 // Response -> Entity (Fixed với null safety)
 fun AppointmentResponse.toEntity(): AppointmentEntity {

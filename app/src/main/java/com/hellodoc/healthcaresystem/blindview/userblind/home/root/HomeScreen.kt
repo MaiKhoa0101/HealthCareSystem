@@ -113,7 +113,8 @@ fun HealthMateHomeScreen(
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var userModel by remember { mutableStateOf("") }
-    var doneListening by remember { mutableStateOf(false) }
+
+
 
 
     LaunchedEffect(Unit) {
@@ -128,14 +129,8 @@ fun HealthMateHomeScreen(
         newsViewModel.getAllNews()
         delay(2000)
 
-        FocusTTS.speakAndWait("Bạn đang trong trang chủ chứa các bài viết")
-        FocusTTS.speakAndWait("Chạm để nghe bài viết hiện tại")
-        FocusTTS.speakAndWait("Trượt lên để xem bài viết mới hơn, trượt xuống để quay lại bài viết cũ hơn.")
-        FocusTTS.speakAndWait("Trượt sang trái để chuyển sang trang đặt lịch khám")
-        FocusTTS.speakAndWait("Trượt sang phải để chuyển sang trang trợ lý ảo")
-        FocusTTS.speakAndWait("Ấn giữ màn hình để nghe lại hướng dẫn và hỗ trợ")
-        delay(2000)
-        doneListening = true
+        FocusTTS.speak("Đây là trang chủ chứa các bài viết, nhấn vào màn hình để tôi đọc nội dung bài viết cho bạn, trượt lên hoặc xuống để chuyển bài viết, trượt sang phải hoặc trái để chuyển trang.")
+
     }
 
     LaunchedEffect(currentPostIndex, hasMorePosts, isLoadingMorePosts) {
@@ -182,7 +177,8 @@ fun HealthMateHomeScreen(
         }
     }
 
-    if (doneListening) {
+    if (true) {
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -328,14 +324,8 @@ fun HealthMateHomeScreen(
             }
 
         }
-    } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Đang hướng dẫn...")
-        }
     }
+
 }
 
 

@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,11 +25,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -50,7 +44,7 @@ import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActi
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.chatAi.GeminiChatScreen
 import com.hellodoc.healthcaresystem.view.user.home.news.NewsDetailScreen
 import com.hellodoc.healthcaresystem.view.user.home.bmiChecking.BMICheckerScreen
@@ -74,10 +68,10 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
-import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
+import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
@@ -152,6 +146,7 @@ class HomeActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         // (1) GỌI SUPER.ONCREATE ĐẦU TIÊN
+        // Đây là yêu cầu bắt buộc của Android và Hilt.
         super.onCreate(savedInstanceState)
 
         // (2) LOGIC KIỂM TRA ĐĂNG NHẬP
@@ -159,9 +154,9 @@ class HomeActivity : BaseActivity() {
         val token = sharedPreferences.getString("access_token", null)
 
         if (token == null || token == "unknown") {
+            // (3) CHƯA ĐĂNG NHẬP: Chuyển hướng về Intro
             Log.d("AuthCheck", "Không tìm thấy token, chuyển hướng tới Intro2...")
-            // Use Fully Qualified Name to avoid any import ambiguity or stale reference
-            val intent = Intent(this, com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2::class.java)
+            val intent = Intent(this, Intro2::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
@@ -187,13 +182,15 @@ class HomeActivity : BaseActivity() {
         firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission()
 
-        enableEdgeToEdge()
         setContent {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
             val navHostController = rememberNavController()
-
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             HealthCareSystemTheme(darkTheme = darkTheme) {
                 val context = LocalContext.current
+                val stateViewModel: StateViewModel =hiltViewModel()
+                val settings by stateViewModel.appSettings.collectAsState()
+                darkTheme = settings.isDarkMode
                 Index(
                     context = context,
                     navHostController = navHostController,
@@ -233,6 +230,7 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
+
         GetFcmInstance()
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -241,7 +239,7 @@ class HomeActivity : BaseActivity() {
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
         var showFullScreenComment by remember { mutableStateOf(false) } // Local state
         Scaffold(
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             topBar = {
                 if (showTopBars && !showFullScreenComment) HeadBar()
             },

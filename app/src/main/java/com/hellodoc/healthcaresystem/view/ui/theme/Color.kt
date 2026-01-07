@@ -26,3 +26,4 @@ val LightRedCustom = Color(0xFFFFCDD2) // Màu đỏ nhạt
 val CyanDarkCustom = Color(0xFF0097A7) // Màu xanh cyan đậm
 val AmberCustom = Color(0xFFFFAA00) // Màu vàng cam tươi (Amber)
 val HelloDocYellow = Color(0xFFFFD846) // Màu chủ đạo mới của HelloDoc
+val DarkHelloDocYellow = Color(0xFFFF8C00)

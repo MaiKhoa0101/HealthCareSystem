@@ -369,6 +369,7 @@ fun SaveFloatingButton(
                     oldServices = servicesCreated,
                     images = imageUris,
                     hasHomeService = hasHomeService,
+                    specialtyId = "",
                     isClinicPaused = isClinicPaused
                 )
                 println (address)

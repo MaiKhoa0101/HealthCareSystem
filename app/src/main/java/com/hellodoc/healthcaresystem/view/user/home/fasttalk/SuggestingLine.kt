@@ -21,8 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 
 @Composable
-fun SuggestionsRow(onChoice: (String) -> Unit) {
-    val viewModel: FastTalkViewModel = hiltViewModel()
+fun SuggestionsRow(viewModel: FastTalkViewModel, onChoice: (String) -> Unit) {
     val quickResponses by viewModel.quickResponse.collectAsState()
 
     if (quickResponses.isNotEmpty()) {

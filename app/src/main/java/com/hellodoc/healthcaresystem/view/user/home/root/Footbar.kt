@@ -62,25 +62,11 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
-            .height(105.dp),
+            .background(
+                Color.Transparent
+            ),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Transparent gradient overlay for smooth transition
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(105.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-        )
 
         // The background bar with premium styling
         Surface(
@@ -119,7 +105,7 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
             onClick = { navHostController.navigate("create_post") },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = 4.dp), 
+                .offset(y = -24.dp),
         )
     }
 }
@@ -127,7 +113,6 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
 @Composable
 fun CircleButton(
     onClick: () -> Unit,
-    backgroundColor: Color = MaterialTheme.colorScheme.background,
     size: Dp = 64.dp,
     modifier: Modifier = Modifier
 ) {

@@ -1,7 +1,7 @@
 package com.hellodoc.healthcaresystem.model.retrofit
 
 import com.hellodoc.healthcaresystem.model.api.AdminService
-import com.hellodoc.healthcaresystem.api.AppointmentService
+import com.hellodoc.healthcaresystem.model.api.AppointmentService
 import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
@@ -13,6 +13,7 @@ import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
+import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
@@ -31,15 +32,15 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    const val BASE_URL = "http://192.168.1.120:4000"
+    const val BASE_URL = "http://192.168.1.121:4000"
 
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     @Provides
@@ -52,9 +53,9 @@ object RetrofitInstance {
             .build()
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
-        .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
-        .readTimeout(60, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
+        .connectTimeout(120, TimeUnit.SECONDS)  // Thời gian timeout kết nối
+        .writeTimeout(120, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
+        .readTimeout(120, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
         .build()
 
     // Tạo instance Retrofit duy nhất
@@ -84,8 +85,9 @@ object RetrofitInstance {
     @Provides fun provideGeminiService(retrofit: Retrofit): GeminiService = retrofit.create(GeminiService::class.java)
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
-
     @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
+
+    @Provides fun provideGestureCode(retrofit: Retrofit): GestureCodeService = retrofit.create(GestureCodeService::class.java)
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()

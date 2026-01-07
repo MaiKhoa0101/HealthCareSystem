@@ -100,15 +100,22 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
     val userViewModel: UserViewModel = hiltViewModel()
 
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
-    val specialty by specialtyViewModel.specialties.collectAsState()
+    val specialties by specialtyViewModel.specialties.collectAsState()
+    val context = LocalContext.current
+    val you by userViewModel.you.collectAsState()
 
     LaunchedEffect(Unit) {
         specialtyViewModel.fetchSpecialties()
+        userViewModel.getYou(context)
     }
 
-    val context = LocalContext.current
+    LaunchedEffect(you) {
+        you?.let { user ->
+             doctorViewModel.fetchDoctorById(user.id)
+        }
+    }
+
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val doctorId = userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
     var oldSchedule by remember { mutableStateOf(listOf<WorkHour>())}
     var servicesInput by remember { mutableStateOf<List<ServiceInput>>(emptyList()) }
     var servicesCreated by remember { mutableStateOf(listOf<ServiceOutput>()) }
@@ -116,13 +123,6 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
     var newSchedule by remember { mutableStateOf<List<WorkHour>>(emptyList()) }
 
 
-    // Gọi API để fetch user từ server
-    LaunchedEffect(doctorId) {
-        doctorId?.let {
-            doctorViewModel.fetchDoctorById(it.toString())
-        }
-
-    }
     // Lấy dữ liệu doctor từ StateFlow
     val doctor by doctorViewModel.doctor.collectAsState()
 
@@ -133,9 +133,14 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
     var minprice by remember { mutableStateOf("") }
     var maxprice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
     var hasHomeService by remember { mutableStateOf(false) }
+    var address by remember { mutableStateOf("") }
+    var specialtyName by remember { mutableStateOf("") }
     var isClinicPaused by remember { mutableStateOf(false) }
+    
+    // Clinic Specialty State
+    var clinicSpecialtyId by remember { mutableStateOf("") }
+    var clinicSpecialtyName by remember { mutableStateOf("") }
 
     println("Dữ liệu đã sửa schedule: "+newSchedule)
     println("Dữ liệu đã sửa service: "+servicesInput)
@@ -149,146 +154,172 @@ fun BodyEditClinicServiceScreen(modifier:Modifier, navHostController:NavHostCont
             address = doctor?.address ?: ""
             hasHomeService = doctor?.hasHomeService ?: false
             isClinicPaused = doctor?.isClinicPaused ?: false
+            
+            // Initialize clinic specialty
+            clinicSpecialtyId = doctor?.specialty?.id ?: ""
+            clinicSpecialtyName = doctor?.specialty?.name ?: ""
         }
 
     }
-
-    LazyColumn(
-        modifier = modifier
-    ) {
-        item {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    "Chức năng này sẽ cho phép bạn chỉnh sửa thông tin phòng khám, dịch vụ của bạn",
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(16.dp))
-                SpecializationSection(
-                    allSpecialties = specialty,
-                    selectedSpecializationId = selectedSpecializationId,
-                    selectedSpecialization = selectedSpecializationName,
-                    onSpecializationSelected = { id, name ->
-                        selectedSpecializationId = id
-                        selectedSpecializationName = name
-                    }
-                )
-                Spacer(Modifier.height(16.dp))
-                ServiceImagePicker(imageService) { pickedUri ->
-                    imageService = pickedUri
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                PriceRangeInput(
-                    priceFrom = minprice,
-                    priceTo = maxprice,
-                    onFromChanged = { minprice = it },
-                    onToChanged = { maxprice = it }
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                DescriptionInput(description) { description = it }
-
-                Spacer(Modifier.height(8.dp))
-
-                AddServiceButton {
-                    if (selectedSpecializationId.isNotBlank()
-                        && selectedSpecializationName.isNotBlank()
-                        && minprice.isNotBlank()
-                        && maxprice.isNotBlank()
-                    ) {
-                        val newInputs = addService(
-                            selectedSpecializationId,
-                            selectedSpecializationName,
-                            imageService,
-                            minprice,
-                            maxprice,
-                            description,
-                            servicesInput,
-                        )
-
-                        servicesInput = newInputs
-
-                        println("So service da them: $servicesInput")
-
-                        // Reset form
-                        selectedSpecializationId = ""
-                        selectedSpecializationName = ""
-                        imageService = emptyList()
-                        minprice = ""
-                        maxprice = ""
-                        description = ""
-                    }
-                }
-
-
-                Spacer(Modifier.height(12.dp))
-                ServiceTags(servicesCreated) { removed ->
-                    val (newInputs, newOutputs) = removeService(removed, servicesInput, servicesCreated)
-                    servicesInput = newInputs
-                    servicesCreated = newOutputs
-                    println("service input: "+newInputs)
-                    println("service input: "+servicesInput)
-                    println("service output: "+newOutputs)
-                    println("service output: "+servicesCreated)
-                }
-                Spacer(Modifier.height(12.dp))
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
-            }
-
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(Modifier.height(8.dp))
-                AddressSection(
-                    address = address,
-                    onAddressChange = { address = it },
-                    hasHomeService = hasHomeService,
-                    onHomeServiceChange = { hasHomeService = it }
-                )
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
-
-                WorkScheduleSection(
-                    schedule = oldSchedule,
-                    onDelete = { time ->
-                        oldSchedule = removeTime(time, oldSchedule)
-                    }
-                )
-                Spacer(Modifier.height(8.dp))
-                TimePickerSection(
-                    tempSchedule = newSchedule,
-                    onAddTime = { newHour ->
-                        newSchedule = newSchedule + newHour
-                    }
-                )
-                Spacer(Modifier.height(8.dp))
-                ClinicPauseSwitch(
-                    isPaused = isClinicPaused,
-                    onTogglePause = { isClinicPaused = it }
-                )
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
-
-                Box(modifier = Modifier.fillMaxSize()) {
-                    SaveFloatingButton (
-                        imageService,
-                        newSchedule,
-                        oldSchedule,
-                        servicesInput,
-                        servicesCreated,
-                        address,
-                        description,
-                        hasHomeService,
-                        isClinicPaused,
-                        doctorViewModel,
-                        doctorId!!.toString(),
-                        navHostController
+    
+    if (you == null) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier
+        ) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        "Chức năng này sẽ cho phép bạn chỉnh sửa thông tin phòng khám, dịch vụ của bạn",
+                        fontWeight = FontWeight.Medium
                     )
+                    Spacer(Modifier.height(16.dp))
+
+                    // Clinic Specialty Section
+                    Text("Chuyên khoa phòng khám", fontWeight = FontWeight.Bold)
+                    SpecializationSection(
+                        allSpecialties = specialties, // Use 'specialties' from User's previous edit
+                        selectedSpecializationId = clinicSpecialtyId,
+                        selectedSpecialization = clinicSpecialtyName,
+                        onSpecializationSelected = { id, name ->
+                            clinicSpecialtyId = id
+                            clinicSpecialtyName = name
+                        }
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                    Text("Thêm dịch vụ mới", fontWeight = FontWeight.Bold)
+                    SpecializationSection(
+                        allSpecialties = specialties,
+                        selectedSpecializationId = selectedSpecializationId,
+                        selectedSpecialization = selectedSpecializationName,
+                        onSpecializationSelected = { id, name ->
+                            selectedSpecializationId = id
+                            selectedSpecializationName = name
+                        }
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    ServiceImagePicker(imageService) { pickedUri ->
+                        imageService = pickedUri
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    PriceRangeInput(
+                        priceFrom = minprice,
+                        priceTo = maxprice,
+                        onFromChanged = { minprice = it },
+                        onToChanged = { maxprice = it }
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    DescriptionInput(description) { description = it }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    AddServiceButton {
+                        if (selectedSpecializationId.isNotBlank()
+                            && selectedSpecializationName.isNotBlank()
+                            && minprice.isNotBlank()
+                            && maxprice.isNotBlank()
+                        ) {
+                            val newInputs = addService(
+                                selectedSpecializationId,
+                                selectedSpecializationName,
+                                imageService,
+                                minprice,
+                                maxprice,
+                                description,
+                                servicesInput,
+                            )
+
+                            servicesInput = newInputs
+
+                            println("So service da them: $servicesInput")
+
+                            // Reset form
+                            selectedSpecializationId = ""
+                            selectedSpecializationName = ""
+                            imageService = emptyList()
+                            minprice = ""
+                            maxprice = ""
+                            description = ""
+                        }
+                    }
+
+
+                    Spacer(Modifier.height(12.dp))
+                    ServiceTags(servicesCreated) { removed ->
+                        val (newInputs, newOutputs) = removeService(removed, servicesInput, servicesCreated)
+                        servicesInput = newInputs
+                        servicesCreated = newOutputs
+                        println("service input: "+newInputs)
+                        println("service input: "+servicesInput)
+                        println("service output: "+newOutputs)
+                        println("service output: "+servicesCreated)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Spacer(Modifier.height(8.dp))
+                    AddressSection(
+                        address = address,
+                        onAddressChange = { address = it },
+                        hasHomeService = hasHomeService,
+                        onHomeServiceChange = { hasHomeService = it }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
+
+                    WorkScheduleSection(
+                        schedule = oldSchedule,
+                        onDelete = { time ->
+                            oldSchedule = removeTime(time, oldSchedule)
+                        }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    TimePickerSection(
+                        tempSchedule = newSchedule,
+                        onAddTime = { newHour ->
+                            newSchedule = newSchedule + newHour
+                        }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ClinicPauseSwitch(
+                        isPaused = isClinicPaused,
+                        onTogglePause = { isClinicPaused = it }
+                    )
+                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        SaveFloatingButton (
+                            imageService,
+                            newSchedule,
+                            oldSchedule,
+                            servicesInput,
+                            servicesCreated,
+                            address,
+                            description,
+                            hasHomeService,
+                            isClinicPaused,
+                            clinicSpecialtyId,
+                            doctorViewModel,
+                            you!!.id,
+                            navHostController
+                        )
+                    }
                 }
             }
         }
@@ -347,6 +378,7 @@ fun SaveFloatingButton(
     description: String,
     hasHomeService: Boolean,
     isClinicPaused: Boolean,
+    specialtyId: String, // Added parameter
     doctorViewModel: DoctorViewModel,
     doctorID: String,
     navHostController: NavHostController
@@ -369,7 +401,8 @@ fun SaveFloatingButton(
                     oldServices = servicesCreated,
                     images = imageUris,
                     hasHomeService = hasHomeService,
-                    isClinicPaused = isClinicPaused
+                    isClinicPaused = isClinicPaused,
+                    specialtyId = specialtyId // Include in request
                 )
                 println (address)
                 doctorViewModel.updateClinic(clinicUpdateData, doctorID, context)
@@ -752,6 +785,11 @@ fun AutoCompleteSpecialization(
     var query by remember { mutableStateOf(selectedName) }
     var expanded by remember { mutableStateOf(false) }
 
+    // Update query when selectedName changes (e.g. initial load)
+    LaunchedEffect(selectedName) {
+        query = selectedName
+    }
+
     // Lọc danh sách theo tên chuyên khoa
     val filtered = remember(query, allSpecializations) {
         if (query.isBlank()) emptyList()
@@ -761,7 +799,7 @@ fun AutoCompleteSpecialization(
     }
 
     Column {
-        Text("Chuyên khoa của bạn", fontWeight = FontWeight.Bold)
+        Text("Dịch vụ của bạn", fontWeight = FontWeight.Bold)
 
         OutlinedTextField(
             value = query,
@@ -770,7 +808,7 @@ fun AutoCompleteSpecialization(
                 expanded = true
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Nhập chuyên khoa") },
+            placeholder = { Text("Nhập tên dịch vụ") },
             singleLine = true
         )
 

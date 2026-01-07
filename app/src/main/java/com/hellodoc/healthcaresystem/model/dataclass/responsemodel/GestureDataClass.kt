@@ -12,22 +12,36 @@ import kotlin.math.sqrt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+data class WordCode(
+    val wordCodes: String
+)
+data class urlMedia(
+    val urlMedia :String
+)
+
+data class GestureCodeResponse(
+    @SerializedName("word") val word: String,
+    @SerializedName("gestureData") val gestureData: List<GestureFrame>,
+    @SerializedName("cached") val cached: Boolean = false,
+    @SerializedName("accuracy") val accuracy: Double = 0.0,
+    @SerializedName("gross") val gross: String
+)
+
 @Serializable
 data class GestureFrame(
     val frame: Int,
     val timestamp: Float,
+    @SerializedName("original_image") val originalImage: String? = null,
+    @SerializedName("skeleton_image") val skeletonImage: String? = null,
     val gestures: BoneData
 )
 
-/**
- * Class này chứa toàn bộ các key trong "gestures" của JSON mới (Cấu trúc phẳng)
- */
 @Serializable
 data class BoneData(
     // --- Spine ---
-    @SerialName("spine_01") val spine01: String = "",
-    @SerialName("spine_02") val spine02: String = "",
-    @SerialName("spine_03") val spine03: String = "",
+    @SerializedName("spine_01") val spine01: String = "",
+    @SerializedName("spine_02") val spine02: String = "",
+    @SerializedName("spine_03") val spine03: String = "",
 
     // --- Head & Neck ---
     val neck: String = "",
@@ -35,10 +49,10 @@ data class BoneData(
 
     // --- Facial (Single) ---
     val jaw: String = "",
-    @SerialName("eyelid_l") val eyelidL: String = "",
-    @SerialName("eyelid_r") val eyelidR: String = "",
-    @SerialName("mouth_l") val mouthL: String = "",
-    @SerialName("mouth_r") val mouthR: String = "",
+    @SerializedName("eyelid_l") val eyelidL: String = "",
+    @SerializedName("eyelid_r") val eyelidR: String = "",
+    @SerializedName("mouth_l") val mouthL: String = "",
+    @SerializedName("mouth_r") val mouthR: String = "",
 
     // --- Facial (Multiple/Combined) ---
     // Chứa "eye_l(...); eye_r(...)"
@@ -47,30 +61,30 @@ data class BoneData(
     val eyebrows: String = "",
 
     // --- Left Arm ---
-    @SerialName("shoulder_l") val shoulderL: String = "",
-    @SerialName("upperarm_l") val upperarmL: String = "",
-    @SerialName("lowerarm_l") val lowerarmL: String = "",
-    @SerialName("hand_l") val handL: String = "",
+    @SerializedName("shoulder_l") val shoulderL: String = "",
+    @SerializedName("upperarm_l") val upperarmL: String = "",
+    @SerializedName("lowerarm_l") val lowerarmL: String = "",
+    @SerializedName("hand_l") val handL: String = "",
 
     // --- Left Fingers (Multiple) ---
-    @SerialName("thumb_l") val thumbL: String = "",
-    @SerialName("index_l") val indexL: String = "",
-    @SerialName("middle_l") val middleL: String = "",
-    @SerialName("ring_l") val ringL: String = "",
-    @SerialName("pinky_l") val pinkyL: String = "",
+    @SerializedName("thumb_l") val thumbL: String = "",
+    @SerializedName("index_l") val indexL: String = "",
+    @SerializedName("middle_l") val middleL: String = "",
+    @SerializedName("ring_l") val ringL: String = "",
+    @SerializedName("pinky_l") val pinkyL: String = "",
 
     // --- Right Arm ---
-    @SerialName("shoulder_r") val shoulderR: String = "",
-    @SerialName("upperarm_r") val upperarmR: String = "",
-    @SerialName("lowerarm_r") val lowerarmR: String = "",
-    @SerialName("hand_r") val handR: String = "",
+    @SerializedName("shoulder_r") val shoulderR: String = "",
+    @SerializedName("upperarm_r") val upperarmR: String = "",
+    @SerializedName("lowerarm_r") val lowerarmR: String = "",
+    @SerializedName("hand_r") val handR: String = "",
 
     // --- Right Fingers (Multiple) ---
-    @SerialName("thumb_r") val thumbR: String = "",
-    @SerialName("index_r") val indexR: String = "",
-    @SerialName("middle_r") val middleR: String = "",
-    @SerialName("ring_r") val ringR: String = "",
-    @SerialName("pinky_r") val pinkyR: String = ""
+    @SerializedName("thumb_r") val thumbR: String = "",
+    @SerializedName("index_r") val indexR: String = "",
+    @SerializedName("middle_r") val middleR: String = "",
+    @SerializedName("ring_r") val ringR: String = "",
+    @SerializedName("pinky_r") val pinkyR: String = ""
 )
 
 // =======================

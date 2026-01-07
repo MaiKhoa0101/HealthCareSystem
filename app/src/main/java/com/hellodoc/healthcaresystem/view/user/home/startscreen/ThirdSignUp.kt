@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.HelloDocLogo
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.PrimaryButton
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUpSuccess

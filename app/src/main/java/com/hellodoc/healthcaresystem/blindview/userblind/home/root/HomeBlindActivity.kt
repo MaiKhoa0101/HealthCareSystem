@@ -42,7 +42,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.blindview.userblind.home.tutorial.Tutorial
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.chatAi.GeminiChatScreen
 import com.hellodoc.healthcaresystem.view.user.home.news.NewsDetailScreen
 import com.hellodoc.healthcaresystem.view.user.home.bmiChecking.BMICheckerScreen
@@ -54,7 +54,6 @@ import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
-import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
@@ -71,6 +70,7 @@ import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.content.edit
 import com.hellodoc.healthcaresystem.blindview.userblind.home.doctor.DoctorListBlindScreen
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 
@@ -150,12 +150,12 @@ class HomeBlindActivity : BaseActivity() {
             HealthCareSystemTheme(darkTheme = darkTheme) {
                 val context = LocalContext.current
                 FocusTTS.init(context)
-                com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager.init(context)
+                SoundManager.init(context)
 
                 DisposableEffect(Unit) {
                     onDispose {
                         FocusTTS.shutdown()
-                        com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager.release()
+                        SoundManager.release()
                     }
                 }
 

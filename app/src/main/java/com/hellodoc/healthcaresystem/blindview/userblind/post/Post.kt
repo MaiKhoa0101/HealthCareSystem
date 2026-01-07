@@ -123,7 +123,7 @@ fun Post(
         )
     }
 
-    // Thêm các thao tác chạm/nhấn giữ cho người khiếm thị
+    // Thêm các thao tác nhấn/nhấn giữ cho người khiếm thị
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -165,7 +165,7 @@ fun Post(
                 .fillMaxSize()
                 .pointerInput(post.id) {
                     detectTapGestures(
-                        // Chạm đơn: Đọc lại bài viết
+                        // Nhấn đơn: Đọc lại bài viết
                         onTap = {
                             println("Đã nhận ra cham")
                             SoundManager.playTap()
@@ -176,7 +176,7 @@ fun Post(
                                 speakQueue("Nội dung bài viết: ${postText}.")
                             }
                         },
-                        // Chạm đúp: Chuyển đến chi tiết bài viết
+                        // Nhấn đúp: Chuyển đến chi tiết bài viết
                         onDoubleTap = {
                             SoundManager.playTap()
                             vibrate(context, 100)

@@ -28,11 +28,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -40,7 +37,6 @@ fun VideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
     autoPlay: Boolean = true,
-    enable3DAssistant: Boolean = true, // Tùy chọn bật tắt 3D trong video
     postViewModel: PostViewModel = hiltViewModel()
 ) {
     // Check URL rỗng để tránh NullPointerException
@@ -107,9 +103,7 @@ fun VideoPlayer(
         if (isPlayerReleased) return@LaunchedEffect
         try {
             // Lấy subtitle nếu chưa có
-            if (subtitleUri == null) {
-                postViewModel.getSubtitle(videoUrl)
-            }
+            postViewModel.getSubtitle(videoUrl)
 
             val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
             subtitleUri?.let { uri ->
@@ -135,6 +129,7 @@ fun VideoPlayer(
 
         // 1. LỚP VIDEO (Nằm dưới)
         AndroidView(
+            modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer
@@ -175,7 +170,8 @@ fun VideoPlayer(
                         // Lấy dữ liệu an toàn từ Manager
                         engine = SceneViewManager.getEngine(),
                         modelInstance = SceneViewManager.getModelInstance(),
-                        environment = SceneViewManager.getEnvironment()
+                        environment = SceneViewManager.getEnvironment(),
+                        videoUrl = videoUrl
                     )
                 }
             } else {

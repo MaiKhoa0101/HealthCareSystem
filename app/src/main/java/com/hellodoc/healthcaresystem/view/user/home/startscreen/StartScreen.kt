@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.hellodoc.core.common.activity.BaseActivity
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.root.HomeActivity
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.navigation.AuthNavGraph
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.navigation.AuthScreen
