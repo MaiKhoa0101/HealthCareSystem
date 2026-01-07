@@ -130,6 +130,7 @@ fun HealthMateHomeScreen(
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
+    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
 
 
     val posts by postViewModel.posts.collectAsState()

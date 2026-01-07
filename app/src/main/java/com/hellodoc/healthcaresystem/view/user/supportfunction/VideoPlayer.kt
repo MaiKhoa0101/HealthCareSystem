@@ -104,7 +104,6 @@ fun VideoPlayer(
         try {
             // Lấy subtitle nếu chưa có
             postViewModel.getSubtitle(videoUrl)
-            postViewModel.getGestureCode(videoUrl)
 
             val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
             subtitleUri?.let { uri ->

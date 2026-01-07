@@ -32,15 +32,15 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    const val BASE_URL = "http://192.168.1.228:4000"
+    const val BASE_URL = "http://192.168.1.235:4000"
 
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     @Provides
@@ -53,9 +53,9 @@ object RetrofitInstance {
             .build()
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
-        .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
-        .readTimeout(60, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
+        .connectTimeout(120, TimeUnit.SECONDS)  // Thời gian timeout kết nối
+        .writeTimeout(120, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
+        .readTimeout(120, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
         .build()
 
     // Tạo instance Retrofit duy nhất

@@ -2,6 +2,7 @@ package com.hellodoc.healthcaresystem.model.repository
 
 import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.PostService
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.urlMedia
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
@@ -104,5 +105,7 @@ class PostRepository @Inject constructor(
     ) = postService.searchAdvanced(keyword)
 
     suspend fun getGestureCode(urlMedia:String) = gestureCodeService.getGestureCode(urlMedia)
-    suspend fun postVideoToGetGestureCode(urlMedia: String) = gestureCodeService.postVideoToGetGestureCode(urlMedia)
+    suspend fun postVideoToGetGestureCode(urlMedia: String) = gestureCodeService.postVideoToGetGestureCode(
+        urlMedia(urlMedia)
+    )
 }

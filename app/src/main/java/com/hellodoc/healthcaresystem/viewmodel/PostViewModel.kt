@@ -879,13 +879,14 @@ class PostViewModel @Inject constructor(
     fun getGestureCode(videoUrl: String) {
         viewModelScope.launch {
             try {
+                println("urlVideo: "+videoUrl )
                 val response = postRepository.getGestureCode(videoUrl)
-
+                println("Kết quả trả về: "+response.body())
                 // 1. Kiểm tra body khác null an toàn hơn dùng !!
                 val responseBody = response.body()
-                if (response.isSuccessful && responseBody != null) {
-
-                    val downloadUrl = responseBody.wordCode
+                if (response.isSuccessful && responseBody != null ) {
+                    println("Có tồn tại subtite " + response.body())
+                    val downloadUrl = responseBody.wordCodes
 
                     // 2. Tải JSON từ URL (IO Thread)
                     val jsonContent = withContext(Dispatchers.IO) {
@@ -929,10 +930,12 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try{
                 val response = postRepository.postVideoToGetGestureCode(videoUrl)
+                println("KẾt quả lấy được là " + response.body())
                 if (response.isSuccessful) {
                     println("Post video thành công và lấy được listcode: "+ response.body()?.size)
                     _gestureCode.value = response.body()!!
                 }
+                println("Response ko thành coonng "+response)
             }
             catch (e:Exception){
                 println("Lỗi ở postVideoToGetGestureCode $e")

@@ -113,7 +113,6 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
 @Composable
 fun CircleButton(
     onClick: () -> Unit,
-    backgroundColor: Color = MaterialTheme.colorScheme.background,
     size: Dp = 64.dp,
     modifier: Modifier = Modifier
 ) {
