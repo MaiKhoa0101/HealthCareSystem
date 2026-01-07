@@ -6,6 +6,8 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,7 +67,7 @@ fun SignLanguageAnimatableScreen(
         try {
             Log.d("SignLanguage", "🚀 Gọi getGestureCode với URL: $videoUrl")
             isLoading = true
-            postViewModel.postVideoToGetGestureCode(videoUrl)
+            postViewModel.getGestureCode(videoUrl)
         } catch (e: Exception) {
             Log.e("SignLanguage", "❌ Error calling API", e)
             isLoading = false
@@ -130,15 +132,43 @@ fun SignLanguageAnimatableScreen(
 
     // ===== KỊCH BẢN ANIMATION =====
     LaunchedEffect(gestureFrames) {
-        if (gestureFrames.isNotEmpty()) {
-            val firstFrame = gestureFrames.first()
-            Log.d("FingerTest", "thumb_l: ${firstFrame.gestures.thumbL}")
+        if (gestureFrames.isEmpty()) return@LaunchedEffect
 
-            // Test parsing
-            val parsed = Rotation.parseMultiple(firstFrame.gestures.thumbL)
-            parsed.forEach { (name, rot) ->
-                Log.d("FingerTest", "$name -> x=${rot.x}, y=${rot.y}, z=${rot.z}")
+        Log.d("SignLanguage", "🎬 Starting animation loop with ${gestureFrames.size} frames")
+
+        while (isActive) { // Loop vô hạn
+            for (frameIndex in gestureFrames.indices) {
+                currentFrameIndex = frameIndex
+
+                // Animate từ 0.0 -> 1.0 trong khoảng thời gian của frame
+                val currentFrame = gestureFrames[frameIndex]
+                val nextFrame = gestureFrames.getOrNull(frameIndex + 1)
+                    ?: gestureFrames.first() // Loop lại frame đầu
+
+                val frameDuration = if (frameIndex < gestureFrames.size - 1) {
+                    ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
+                } else {
+                    33L // Frame cuối dùng ~30fps
+                }
+
+                // Log mỗi 30 frames
+                if (frameIndex % 30 == 0) {
+                    Log.d("SignLanguage", "🎬 Frame $frameIndex/${gestureFrames.size} | Duration: ${frameDuration}ms")
+                }
+
+                // Animate progress từ 0 -> 1
+                frameProgress.snapTo(0f)
+                frameProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        durationMillis = frameDuration.toInt(),
+                        easing = LinearEasing
+                    )
+                )
             }
+
+            // Sau khi hết tất cả frames, lặp lại từ đầu
+            Log.d("SignLanguage", "🔄 Animation completed, looping...")
         }
     }
 
@@ -222,6 +252,26 @@ fun SignLanguageAnimatableScreen(
 
     val childNodes = remember(characterNode) {
         if (characterNode != null) listOf(characterNode!!) else emptyList()
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Scene hiện tại của bạn
+
+        // THÊM NÚT RELOAD
+        FloatingActionButton(
+            onClick = {
+                Log.d("SignLanguage", "🔄 Reloading gesture data...")
+                postViewModel.clearGestureCode()
+                postViewModel.getGestureCode(videoUrl)
+            },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh, // Cần import androidx.compose.material.icons.Icons
+                contentDescription = "Reload"
+            )
+        }
     }
 
     // Box chứa Scene

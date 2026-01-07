@@ -875,6 +875,11 @@ class PostViewModel @Inject constructor(
     private val _gestureCode = MutableStateFlow<List<GestureCodeResponse>>(emptyList())
     val gestureCode: StateFlow<List<GestureCodeResponse>> get() = _gestureCode
 
+    fun clearGestureCode() {
+        _gestureCode.value = emptyList()
+        Log.d("PostViewModel", "🗑️ Gesture data cleared")
+    }
+
     fun getGestureCode(videoUrl: String) {
         viewModelScope.launch {
             try {
@@ -884,28 +889,39 @@ class PostViewModel @Inject constructor(
                 // 1. Kiểm tra body khác null an toàn hơn dùng !!
                 val responseBody = response.body()
                 if (response.isSuccessful && responseBody != null ) {
-                    println("Có tồn tại subtite " + response.body())
+                    println("Có tồn tại subtitle " + response.body())
                     val downloadUrl = responseBody.wordCodes
+
+                    if (downloadUrl.isNullOrEmpty()) {
+                        Log.e("API", "Download URL trống")
+                        return@launch
+                    }
+
+                    println("Download URL: $downloadUrl")
 
                     // 2. Tải JSON từ URL (IO Thread)
                     val jsonContent = withContext(Dispatchers.IO) {
                         try {
-                            java.net.URL(downloadUrl).readText()
+                            val url = java.net.URL(downloadUrl)
+                            val connection = url.openConnection()
+                            connection.connectTimeout = 15000
+                            connection.readTimeout = 15000
+                            connection.getInputStream().bufferedReader().use { it.readText() }
                         } catch (e: Exception) {
-                            Log.e("API", "Lỗi tải file JSON: ${e.message}")
+                            Log.e("API", "Lỗi tải JSON: ${e.message}", e)
                             null
                         }
                     }
 
-                    // 3. Parse JSON (Quan trọng: Sửa phần này)
-                    if (jsonContent != null) {
-                        Log.d("API", "Nội dung JSON: $jsonContent")
+                    // 3. Parse JSON
+                    if (!jsonContent.isNullOrEmpty()) {
+                        Log.d("API", "JSON length: ${jsonContent.length}")
 
                         try {
                             // FIX: Dùng TypeToken để giữ được kiểu List<GestureCodeResponse>
                             val type = object : TypeToken<List<GestureCodeResponse>>() {}.type
                             val gestureData: List<GestureCodeResponse> = Gson().fromJson(jsonContent, type)
-
+                            println("có $gestureData gestureCode dc lấy")
                             _gestureCode.value = gestureData
 
                         } catch (e: Exception) {
