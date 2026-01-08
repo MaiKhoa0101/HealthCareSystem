@@ -6,8 +6,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -131,6 +129,7 @@ fun SignLanguageAnimatableScreen(
     }
 
     // ===== KỊCH BẢN ANIMATION =====
+    // ===== THÊM ĐOẠN NÀY: ANIMATION LOOP =====
     LaunchedEffect(gestureFrames) {
         if (gestureFrames.isEmpty()) return@LaunchedEffect
 
@@ -252,26 +251,6 @@ fun SignLanguageAnimatableScreen(
 
     val childNodes = remember(characterNode) {
         if (characterNode != null) listOf(characterNode!!) else emptyList()
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Scene hiện tại của bạn
-
-        // THÊM NÚT RELOAD
-        FloatingActionButton(
-            onClick = {
-                Log.d("SignLanguage", "🔄 Reloading gesture data...")
-                postViewModel.clearGestureCode()
-                postViewModel.getGestureCode(videoUrl)
-            },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Refresh, // Cần import androidx.compose.material.icons.Icons
-                contentDescription = "Reload"
-            )
-        }
     }
 
     // Box chứa Scene
