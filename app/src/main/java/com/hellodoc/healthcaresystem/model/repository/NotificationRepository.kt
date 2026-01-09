@@ -1,6 +1,6 @@
 package com.hellodoc.healthcaresystem.model.repository
 
-import com.hellodoc.healthcaresystem.api.NotificationService
+import com.hellodoc.healthcaresystem.model.api.NotificationService
 import com.hellodoc.healthcaresystem.requestmodel.CreateNotificationRequest
 import jakarta.inject.Inject
 

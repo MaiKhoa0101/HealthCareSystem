@@ -158,7 +158,7 @@ fun SignLanguageAnimatableScreen(
                         ?: gestureFrames.first() // Loop lại frame đầu
 
                     val frameDuration = if (frameIndex < gestureFrames.size - 1) {
-                        ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
+                        ((nextFrame.timestamp - currentFrame.timestamp) * 400).toLong()
                     } else {
                         33L // Frame cuối dùng ~30fps
                     }

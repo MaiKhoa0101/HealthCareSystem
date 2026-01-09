@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.api
+package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateNotificationRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NotificationResponse
@@ -13,7 +13,7 @@ import retrofit2.http.Path
 
 interface NotificationService {
     @Headers("Content-Type: application/json")
-    @GET("notification/user/{userId}")
+    @GET("notification/get-by-user-id/{userId}")
     suspend fun getNotificationByUserId(
         @Path("userId") userId: String
     ): Response<List<NotificationResponse>>

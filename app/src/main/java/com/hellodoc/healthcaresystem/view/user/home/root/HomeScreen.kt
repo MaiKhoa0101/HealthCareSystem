@@ -643,7 +643,7 @@ fun MarqueeNewsTicker(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.background,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         shadowElevation = 4.dp
     ) {
@@ -839,14 +839,14 @@ fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (()
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onPrimary // Use brand yellow
+                color = MaterialTheme.colorScheme.primary // Use brand yellow
             )
         )
         if (onSeeAllClick != null) {
             Surface(
                 onClick = onSeeAllClick,
                 shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primary, // Solid Brand Yellow
+                color = MaterialTheme.colorScheme.primaryContainer, // Solid Brand Yellow
                 modifier = Modifier.clickableWithScale { onSeeAllClick() },
                 shadowElevation = 4.dp
             ) {
@@ -858,7 +858,7 @@ fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (()
                         text = if (isExpanded) "Thu gọn" else "Xem tất cả",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -914,7 +914,7 @@ fun AssistantQueryRow(
             Text(
                 "Bạn muốn hỏi gì hôm nay?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onBackground
             )
         },
         leadingIcon = {
@@ -953,13 +953,14 @@ fun AssistantQueryRow(
         },
         shape = RoundedCornerShape(24.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         ),
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color.Transparent)
             .shadow(8.dp, RoundedCornerShape(24.dp)),
         singleLine = true
     )
@@ -1102,7 +1103,7 @@ fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
                                 .height(85.dp)
                                 .clickableWithScale { onClick(item) },
                             shape = RoundedCornerShape(24.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
                             tonalElevation = 4.dp,
                             shadowElevation = 8.dp,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
@@ -1281,7 +1282,7 @@ fun SpecialtyItem(
                 navHostController.navigate("doctor_list")
             },
         shape = RoundedCornerShape(28.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.secondaryContainer,
         tonalElevation = 4.dp
     ) {
         Column(
@@ -1296,7 +1297,7 @@ fun SpecialtyItem(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    if (!specialty.icon.isNullOrBlank()) {
+                    if (specialty.icon.isNotBlank()) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(specialty.icon)
@@ -1323,7 +1324,7 @@ fun SpecialtyItem(
                 text = specialty.name,
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp,
                     fontSize = 12.sp
@@ -1459,7 +1460,7 @@ fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
             .width(150.dp)
             .clickableWithScale { onClick() },
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.secondaryContainer,
         shadowElevation = 8.dp,
         tonalElevation = 4.dp
     ) {

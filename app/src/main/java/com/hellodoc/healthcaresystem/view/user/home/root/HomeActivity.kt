@@ -194,7 +194,7 @@ class HomeActivity : BaseActivity() {
                 Index(
                     context = context,
                     navHostController = navHostController,
-                    onToggleTheme = { darkTheme = !darkTheme },
+                    onToggleTheme = { stateViewModel.toggleDarkMode() },
                     darkTheme = darkTheme
                 )
             }
