@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ApiResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResponse
 import retrofit2.Response
@@ -31,4 +32,8 @@ interface FastTalkService {
 
     @GET("neo4j/get-all")
     suspend fun getGraphData(): Response<List<WordResultResponse>?>
+
+    @POST("nlp/process-question-answer")
+    suspend fun processQuestionAnswer(question: String, answer: String): Response<ApiResponse>
+
 }

@@ -115,4 +115,6 @@ class FastTalkRepository @Inject constructor(
 
     suspend fun getGraphData()= fastTalkService.getGraphData()
 
+    suspend fun createQuestionAnswer(question: String, answer: String) = fastTalkService.processQuestionAnswer(question, answer)
+
 }
