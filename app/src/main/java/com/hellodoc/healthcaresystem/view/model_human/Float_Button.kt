@@ -44,11 +44,27 @@ fun Floating3DAssistant(
     videoUrl: String
 ) {
     // ===== AUTO-CLOSE KHI MẤT RESOURCES =====
-    LaunchedEffect(engine, modelInstance, environment) {
-        // Nếu đang mở nhưng thiếu resources → Tự động đóng
-        if (isExpanded && (engine == null || modelInstance == null || environment == null)) {
-            android.util.Log.d("Floating3D", "⚠️ Resources null, auto-closing assistant")
+    LaunchedEffect(engine, environment) {
+        // Nếu đang mở nhưng Engine hoặc Environment hỏng → Tự động đóng
+        // Note: modelInstance có thể null tạm thời khi đang loading
+        val isCoreResourcesInvalid = engine == null || !engine.isValid || environment == null
+        
+        if (isExpanded && isCoreResourcesInvalid) {
+            android.util.Log.w("Floating3D", "⚠️ Core resources invalid, auto-closing assistant")
             onExpandChange(false)
+        }
+    }
+    
+    // ===== FLUSH GPU WHEN CLOSING =====
+    LaunchedEffect(isExpanded) {
+        if (!isExpanded && engine?.isValid == true) {
+            // When closing, flush GPU to free command buffer
+            try {
+                engine.flushAndWait()
+                android.util.Log.d("Floating3D", "🧹 GPU flushed on close")
+            } catch (e: Exception) {
+                android.util.Log.e("Floating3D", "❌ Error flushing on close", e)
+            }
         }
     }
 
@@ -74,17 +90,25 @@ fun Floating3DAssistant(
             )
             .clip(CircleShape)
             .clickable(enabled = !isExpanded) {
-                // CHỈ MỞ KHI CÓ ĐỦ RESOURCES
-                if (engine != null && modelInstance != null && environment != null) {
+                // CHỈ MỞ KHI ENGINE VÀ ENVIRONMENT HỢP LỆ
+                // ModelInstance sẽ được VideoPlayer tạo khi thấy isExpanded = true
+                val canStartOpening = engine != null && engine.isValid && environment != null
+                             
+                if (canStartOpening) {
                     onExpandChange(true)
                 } else {
-                    android.util.Log.w("Floating3D", "Cannot open: Resources not ready")
+                    android.util.Log.w("Floating3D", "Cannot open: Core resources not ready")
                 }
             }
     ) {
         if (isExpanded) {
-            // ===== KIỂM TRA NULL TRƯỚC KHI RENDER =====
-            if (engine != null && modelInstance != null && environment != null) {
+            // ===== KIỂM TRA NULL VÀ VALIDITY TRƯỚC KHI RENDER =====
+            val canRender = engine != null && 
+                           engine.isValid && 
+                           modelInstance != null && 
+                           environment != null
+                           
+            if (canRender) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
