@@ -3,6 +3,8 @@ package com.hellodoc.healthcaresystem.model.repository
 import androidx.room.withTransaction
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.QA
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ResponseFromAnalyst
 import com.hellodoc.healthcaresystem.model.networksupport.NetworkHelper
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
@@ -10,6 +12,7 @@ import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.* // Import hết entity
 import javax.inject.Inject // Lưu ý: Dùng javax.inject hoặc jakarta.inject tuỳ version Hilt
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
+import retrofit2.Response
 
 class FastTalkRepository @Inject constructor(
     private val networkHelper: NetworkHelper, // <--- 1. Inject thêm NetworkHelper
@@ -110,8 +113,10 @@ class FastTalkRepository @Inject constructor(
     suspend fun findQuickResponse(question: String): List<String> =
         quickResponseDao.findByQuestion(question)
 
-    suspend fun analyzeQuestion(text: String) =
+    suspend fun analyzeQuestion(text: String): Response<ResponseFromAnalyst> =
         fastTalkService.analyzeQuestion(AnalyzeRequest(text))
+
+    suspend fun processQuestionAnswer(request: QA) = fastTalkService.processQuestionAnswer(request)
 
     suspend fun getGraphData()= fastTalkService.getGraphData()
 

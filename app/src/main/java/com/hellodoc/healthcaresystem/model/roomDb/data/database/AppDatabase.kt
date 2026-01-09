@@ -12,8 +12,8 @@ import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEntity
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.AppointmentEntity
 
-
 @Database(
+    exportSchema = false,
     entities = [
         AppointmentEntity::class,
         QuickResponseEntity::class,

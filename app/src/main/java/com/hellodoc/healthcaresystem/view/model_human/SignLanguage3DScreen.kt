@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -146,7 +148,7 @@ fun SignLanguageAnimatableScreen(
                     ?: gestureFrames.first() // Loop lại frame đầu
 
                 val frameDuration = if (frameIndex < gestureFrames.size - 1) {
-                    ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
+                    ((nextFrame.timestamp - currentFrame.timestamp) * 300).toLong()
                 } else {
                     33L // Frame cuối dùng ~30fps
                 }
@@ -289,7 +291,7 @@ fun SignLanguageAnimatableScreen(
                     },
                     childNodes = childNodes,
                     environment = environment,
-                    modifier = Modifier.clip(CircleShape)
+                    modifier = Modifier.background(Color.Black).clip(CircleShape)
                 )
             }
 

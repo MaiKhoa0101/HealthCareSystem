@@ -1,6 +1,8 @@
 package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.QA
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ResponseFromAnalyst
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResponse
 import retrofit2.Response
@@ -27,8 +29,13 @@ interface FastTalkService {
     @POST("nlp/analyze-semantic")
     suspend fun analyzeQuestion(
         @Body request: AnalyzeRequest // Gửi object { "text": "..." }
-    ): Response<WordResponse> // Giả sử nó trả về cấu trúc giống tìm từ hoặc bạn cần định nghĩa class riêng nếu khác
+    ): Response<ResponseFromAnalyst> // Giả sử nó trả về cấu trúc giống tìm từ hoặc bạn cần định nghĩa class riêng nếu khác
 
     @GET("neo4j/get-all")
     suspend fun getGraphData(): Response<List<WordResultResponse>?>
+
+    @POST("nlp/process-question-answer")
+    suspend fun processQuestionAnswer(
+        @Body request: QA
+    ): Response<ResponseFromAnalyst>
 }
