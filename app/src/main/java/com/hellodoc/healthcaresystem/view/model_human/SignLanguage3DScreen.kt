@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -34,7 +35,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.builtins.ListSerializer
-import updateBoneRotation
 import java.io.InputStream
 
 
@@ -59,6 +59,9 @@ fun SignLanguageAnimatableScreen(
 
     // ===== ANIMATABLE CHÍNH =====
     val frameProgress = remember { Animatable(0f) }
+    
+    // ===== COROUTINE JOB TRACKING =====
+    val animationJob = remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     val postViewModel: PostViewModel = hiltViewModel()
     val gestureCode = postViewModel.gestureCode.collectAsState()
@@ -132,75 +135,119 @@ fun SignLanguageAnimatableScreen(
 
     // ===== KỊCH BẢN ANIMATION =====
     LaunchedEffect(gestureFrames) {
-        if (gestureFrames.isEmpty()) return@LaunchedEffect
+        if (gestureFrames.isEmpty()) {
+            animationJob.value?.cancel()
+            animationJob.value = null
+            return@LaunchedEffect
+        }
 
         Log.d("SignLanguage", "🎬 Starting animation loop with ${gestureFrames.size} frames")
+        
+        // Store job reference for cancellation
+        animationJob.value = coroutineContext[kotlinx.coroutines.Job]
 
-        while (isActive) { // Loop vô hạn
-            for (frameIndex in gestureFrames.indices) {
-                currentFrameIndex = frameIndex
+        try {
+            while (isActive) { // Loop vô hạn
+                for (frameIndex in gestureFrames.indices) {
+                    if (!isActive) break // Check cancellation
+                    
+                    currentFrameIndex = frameIndex
 
-                // Animate từ 0.0 -> 1.0 trong khoảng thời gian của frame
-                val currentFrame = gestureFrames[frameIndex]
-                val nextFrame = gestureFrames.getOrNull(frameIndex + 1)
-                    ?: gestureFrames.first() // Loop lại frame đầu
+                    // Animate từ 0.0 -> 1.0 trong khoảng thời gian của frame
+                    val currentFrame = gestureFrames[frameIndex]
+                    val nextFrame = gestureFrames.getOrNull(frameIndex + 1)
+                        ?: gestureFrames.first() // Loop lại frame đầu
 
-                val frameDuration = if (frameIndex < gestureFrames.size - 1) {
-                    ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
-                } else {
-                    33L // Frame cuối dùng ~30fps
-                }
+                    val frameDuration = if (frameIndex < gestureFrames.size - 1) {
+                        ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
+                    } else {
+                        33L // Frame cuối dùng ~30fps
+                    }
 
-                // Log mỗi 30 frames
-                if (frameIndex % 30 == 0) {
-                    Log.d("SignLanguage", "🎬 Frame $frameIndex/${gestureFrames.size} | Duration: ${frameDuration}ms")
-                }
+                    // Log mỗi 30 frames
+                    if (frameIndex % 30 == 0) {
+                        Log.d("SignLanguage", "🎬 Frame $frameIndex/${gestureFrames.size} | Duration: ${frameDuration}ms")
+                    }
 
-                // Animate progress từ 0 -> 1
-                frameProgress.snapTo(0f)
-                frameProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(
-                        durationMillis = frameDuration.toInt(),
-                        easing = LinearEasing
+                    // Animate progress từ 0 -> 1
+                    frameProgress.snapTo(0f)
+                    frameProgress.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = frameDuration.toInt(),
+                            easing = LinearEasing
+                        )
                     )
-                )
-            }
+                }
 
-            // Sau khi hết tất cả frames, lặp lại từ đầu
-            Log.d("SignLanguage", "🔄 Animation completed, looping...")
+                // Sau khi hết tất cả frames, lặp lại từ đầu
+                if (isActive) {
+                    Log.d("SignLanguage", "🔄 Animation completed, looping...")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("SignLanguage", "❌ Animation error", e)
         }
     }
 
     // ===== LOGIC CẬP NHẬT XƯƠNG =====
     LaunchedEffect(engine, modelInstance, gestureFrames) {
-        if (modelInstance == null || gestureFrames.isEmpty()) {
+        // Validate resources
+        if (engine == null || !engine.isValid || modelInstance == null || gestureFrames.isEmpty()) {
             Log.d("SignLanguage", "⏸️ Waiting for model or frames...")
             return@LaunchedEffect
         }
 
         Log.d("SignLanguage", "🦴 Starting bone update loop")
+        
+        var frameCounter = 0  // Track frames for periodic flushing
 
-        snapshotFlow {
-            Triple(frameProgress.value, currentFrameIndex, gestureFrames.size)
-        }.collect { (progress, frameIdx, totalFrames) ->
+        try {
+            snapshotFlow {
+                Triple(frameProgress.value, currentFrameIndex, gestureFrames.size)
+            }.collect { (progress, frameIdx, totalFrames) ->
+                // Double-check engine validity during animation
+                if (!engine.isValid) {
+                    Log.w("SignLanguage", "⚠️ Engine became invalid, stopping bone updates")
+                    return@collect
+                }
 
-            val currentFrame = gestureFrames[frameIdx]
-            val nextFrameIdx = if (frameIdx >= totalFrames - 1) 0 else frameIdx + 1
-            val nextFrame = gestureFrames[nextFrameIdx]
+                val currentFrame = gestureFrames[frameIdx]
+                val nextFrameIdx = if (frameIdx >= totalFrames - 1) 0 else frameIdx + 1
+                val nextFrame = gestureFrames[nextFrameIdx]
 
-            // Log mỗi 30 frames để không spam log
-            if (frameIdx % 30 == 0) {
-                Log.d("SignLanguage", "🎬 Frame $frameIdx/$totalFrames (progress: ${(progress * 100).toInt()}%)")
+                // Log mỗi 30 frames để không spam log
+                if (frameIdx % 30 == 0) {
+                    Log.d("SignLanguage", "🎬 Frame $frameIdx/$totalFrames (progress: ${(progress * 100).toInt()}%)")
+                }
+
+                applyInterpolatedFrameRotations(
+                    engine,
+                    modelInstance,
+                    currentFrame,
+                    nextFrame,
+                    progress
+                )
+                
+                // ===== PERIODIC FLUSH TO PREVENT BUFFER OVERFLOW =====
+                // Flush every 60 frames to keep buffer clean
+                frameCounter++
+                if (frameCounter >= 60) {
+                    try {
+                        engine.flushAndWait()
+                        frameCounter = 0
+                        Log.d("SignLanguage", "🧹 Periodic GPU flush (every 60 frames)")
+                    } catch (e: Exception) {
+                        Log.e("SignLanguage", "❌ Error during periodic flush", e)
+                    }
+                }
             }
-
-            applyInterpolatedFrameRotations(
-                engine!!,
-                modelInstance,
-                currentFrame,
-                nextFrame,
-                progress
-            )
+        } catch (e: Exception) {
+            // Chỉ log lỗi nếu không phải là cancellation bình thường
+            // kotlinx.coroutines.CancellationException covers both standard and compose-specific cancellations
+            if (e !is kotlinx.coroutines.CancellationException) {
+                Log.e("SignLanguage", "❌ Bone update error", e)
+            }
         }
     }
 
@@ -244,9 +291,34 @@ fun SignLanguageAnimatableScreen(
 
     DisposableEffect(Unit) {
         onDispose {
-            Log.d("SignLanguage", "🧹 Cleaning up character node")
-            characterNode?.destroy()
+            Log.d("SignLanguage", "🧹 Starting cleanup sequence...")
+            
+            // 1. Cancel animation coroutines
+            animationJob.value?.cancel()
+            animationJob.value = null
+            Log.d("SignLanguage", "✅ Animation job cancelled")
+            
+            // 2. Remove node from parent and destroy
+            characterNode?.let { node ->
+                try {
+                    node.parent?.removeChildNode(node)
+                    node.destroy()
+                    Log.d("SignLanguage", "✅ Character node destroyed")
+                } catch (e: Exception) {
+                    Log.e("SignLanguage", "❌ Error destroying node", e)
+                }
+            }
             characterNode = null
+            
+            // 3. Flush GPU commands
+            try {
+                engine?.flushAndWait()
+                Log.d("SignLanguage", "✅ GPU commands flushed")
+            } catch (e: Exception) {
+                Log.e("SignLanguage", "❌ Error flushing GPU", e)
+            }
+            
+            Log.d("SignLanguage", "🧹 Cleanup completed")
         }
     }
 
@@ -254,52 +326,53 @@ fun SignLanguageAnimatableScreen(
         if (characterNode != null) listOf(characterNode!!) else emptyList()
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        // Scene hiện tại của bạn
-
-        // THÊM NÚT RELOAD
-        FloatingActionButton(
-            onClick = {
-                Log.d("SignLanguage", "🔄 Reloading gesture data...")
-                postViewModel.clearGestureCode()
-                postViewModel.getGestureCode(videoUrl)
-            },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Refresh, // Cần import androidx.compose.material.icons.Icons
-                contentDescription = "Reload"
-            )
-        }
-    }
-
-    // Box chứa Scene
-    Box(modifier = Modifier.clip(CircleShape)) {
-        if (engine != null && modelInstance != null && environment != null && !isLoading) {
-            key(engine) {
-                Scene(
-                    engine = engine,
-                    mainLightNode = rememberMainLightNode(engine) {
-                        intensity = 70_000.0f
-                        isShadowCaster = true
-                    },
-                    cameraNode = rememberCameraNode(engine) {
-                        position = Position(z = 2f)
-                    },
-                    childNodes = childNodes,
-                    environment = environment,
-                    modifier = Modifier.clip(CircleShape)
-                )
+        // Validate resources before rendering
+        if (engine != null && engine.isValid && modelInstance != null && environment != null && !isLoading) {
+            // Use unique key to force Scene recreation when needed
+            key("scene_${videoUrl.hashCode()}") {
+                // ✅ FIX: Wrap Scene in Box with fixed size for perfect circle
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(400.dp) // Fixed size ensures perfect circle
+                            .align(Alignment.Center)
+                            .clip(CircleShape) // Clip to circle AFTER setting size
+                            .background(MaterialTheme.colorScheme.surfaceVariant) // Background color
+                    ) {
+                        Scene(
+                            engine = engine,
+                            mainLightNode = rememberMainLightNode(engine) {
+                                intensity = 70_000.0f
+                                isShadowCaster = true
+                            },
+                            cameraNode = rememberCameraNode(engine) {
+                                position = Position(z = 2f)
+                            },
+                            childNodes = childNodes,
+                            environment = environment,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
 
-            DisposableEffect(Unit) {
+            DisposableEffect("scene_dispose_${videoUrl.hashCode()}") {
                 onDispose {
-                    Log.d("SignLanguage", "🛑 Scene disposed, blocking GPU")
-                    SceneViewManager.blockUntilGPUCompletes()
+                    Log.d("SignLanguage", "🛑 Scene disposed, flushing GPU...")
+                    try {
+                        SceneViewManager.blockUntilGPUCompletes()
+                        Log.d("SignLanguage", "✅ GPU flush completed")
+                    } catch (e: Exception) {
+                        Log.e("SignLanguage", "❌ Error during Scene disposal", e)
+                    }
                 }
             }
         } else {
+            // Loading or invalid state
             Column(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -307,7 +380,11 @@ fun SignLanguageAnimatableScreen(
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Loading gesture data...",
+                    text = if (!isLoading && engine?.isValid == false) {
+                        "3D Engine unavailable"
+                    } else {
+                        "Loading gesture data..."
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -491,16 +568,19 @@ fun interpolateAndApplyMultiple(
 
     // Xử lý từng xương
     allBoneNames.forEach { boneName ->
-        val currentRot = currentBones[boneName] ?: Rotation(0f, 0f, 0f)
-        val nextRot = nextBones[boneName] ?: currentRot
+        // Double check validity before each bone update
+        if (engine.isValid) {
+            val currentRot = currentBones[boneName] ?: Rotation(0f, 0f, 0f)
+            val nextRot = nextBones[boneName] ?: currentRot
 
-        // Nội suy
-        val x = currentRot.x + (nextRot.x - currentRot.x) * progress
-        val y = currentRot.y + (nextRot.y - currentRot.y) * progress
-        val z = currentRot.z + (nextRot.z - currentRot.z) * progress
+            // Nội suy
+            val x = currentRot.x + (nextRot.x - currentRot.x) * progress
+            val y = currentRot.y + (nextRot.y - currentRot.y) * progress
+            val z = currentRot.z + (nextRot.z - currentRot.z) * progress
 
-        // Apply rotation
-        updateBoneRotation(engine, modelInstance, boneName, x, y, z)
+            // Apply rotation
+            updateBoneRotation(engine, modelInstance, boneName, x, y, z)
+        }
     }
 }
 
@@ -564,11 +644,16 @@ fun debugBoneRotations(frame: GestureFrame) {
 // debugBoneRotations(gestureFrames.first())
 
 fun getCurrentBoneRotation(
-    engine: Engine,
-    modelInstance: ModelInstance,
+    engine: Engine?,
+    modelInstance: ModelInstance?,
     boneName: String
 ): Rotation {
-    val entity = modelInstance.asset.getFirstEntityByName(boneName)
+    if (engine == null || !engine.isValid || modelInstance == null) return Rotation()
+    
+    val asset = modelInstance.asset
+    if (asset == null) return Rotation()
+    
+    val entity = asset.getFirstEntityByName(boneName)
     if (entity == 0) return Rotation()
 
     val tcm = engine.transformManager

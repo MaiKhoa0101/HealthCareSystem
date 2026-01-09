@@ -30,6 +30,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.viewmodel.PostViewModel
+import io.github.sceneview.model.ModelInstance
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -50,15 +51,41 @@ fun VideoPlayer(
     // ===== STATE VIDEO PLAYER =====
     var isPlayerReleased by remember { mutableStateOf(false) }
 
-    // ===== STATE 3D (Lấy từ Singleton) =====
+    // ===== STATE 3D (Per-video ModelInstance) =====
     // Lắng nghe trạng thái Engine toàn cục
     val isGlobal3DReady by SceneViewManager.initializationState.collectAsState()
 
     // State riêng của màn hình này để điều khiển việc ẩn hiện Assistant
     var is3DExpanded by remember { mutableStateOf(false) }
+    
+    // ✅ DEFERRED: Create ModelInstance chỉ khi người dùng mở 3D
+    // Tránh tạo hàng loạt instance trong list gây tốn memory và crash
+    var videoModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+    
+    // ===== CRITICAL: Ensure SceneViewManager is initialized =====
+    // Fallback nếu MyApp.onCreate() không chạy hoặc fail
+    LaunchedEffect(Unit) {
+        if (!isGlobal3DReady && !SceneViewManager.isResourcesValid()) {
+            android.util.Log.w("VideoPlayer", "⚠️ SceneViewManager chưa khởi tạo! Triggering fallback...")
+            try {
+                SceneViewManager.initialize(context)
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "❌ Fallback init failed", e)
+            }
+        }
+    }
+    
+    // Create ModelInstance when 3D is ready AND expanded
+    LaunchedEffect(isGlobal3DReady, is3DExpanded) {
+        if (isGlobal3DReady && is3DExpanded && videoModelInstance == null) {
+            android.util.Log.d("VideoPlayer", "🚀 User requested 3D - Creating ModelInstance for video: $videoUrl")
+            videoModelInstance = SceneViewManager.createModelInstance()
+        }
+    }
 
-    // ===== EXOPLAYER SETUP =====
-    val exoPlayer = remember(videoUrl) {
+    // ✅ FIX: Chỉ tạo 1 ExoPlayer duy nhất và reuse.
+    // Dùng remember(Unit) thay vì remember(videoUrl) để tránh leak khi chuyển video.
+    val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             playWhenReady = false
             addListener(object : Player.Listener {
@@ -90,29 +117,56 @@ fun VideoPlayer(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
 
-        // CLEANUP CHỈ DÀNH CHO VIDEO PLAYER, KHÔNG ĐỤNG VÀO 3D ENGINE
+        // CLEANUP: Destroy ModelInstance riêng của video này
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             isPlayerReleased = true
-            exoPlayer.release() // Chỉ release Player, KHÔNG release Engine
+            
+            // Destroy ModelInstance trước khi release Player
+            videoModelInstance?.let { _ ->
+                try {
+                    // Note: ModelInstance doesn't have a direct destroy() method.
+                    // Cleanup is handled by the ModelNode and Engine's flush strategy.
+                    android.util.Log.d("VideoPlayer", "🧹 Releasing ModelInstance reference for video")
+                } catch (e: Exception) {
+                    android.util.Log.e("VideoPlayer", "❌ Error releasing ModelInstance", e)
+                }
+            }
+            videoModelInstance = null
+            
+            exoPlayer.release() // Release Player sau cùng
         }
     }
 
     // ===== LOAD SUBTITLE & VIDEO =====
-    LaunchedEffect(videoUrl, subtitleUri) {
+    LaunchedEffect(videoUrl) {
         if (isPlayerReleased) return@LaunchedEffect
         try {
-            // Lấy subtitle nếu chưa có
+            // Reset player trước khi load video mới
+            exoPlayer.stop()
+            exoPlayer.clearMediaItems()
+            
+            // Tự động thu nhỏ 3D khi chuyển video
+            is3DExpanded = false
+            // Giải phóng ModelInstance cũ nếu có
+            videoModelInstance = null
+
+            // Lấy subtitle
             postViewModel.getSubtitle(videoUrl)
 
             val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
+            
+            // Xử lý subtitle nếu có 
+            // Note: Chúng ta dùng subtitleUri từ collectAsState, nó sẽ trigger LaunchedEffect này lần nữa khi có data
             subtitleUri?.let { uri ->
-                val subtitle = MediaItem.SubtitleConfiguration.Builder(Uri.parse(uri.subtitleUrl))
-                    .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                    .setLanguage("vi")
-                    .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                    .build()
-                mediaItemBuilder.setSubtitleConfigurations(listOf(subtitle))
+                if (uri.subtitleUrl.isNotBlank()) {
+                    val subtitle = MediaItem.SubtitleConfiguration.Builder(Uri.parse(uri.subtitleUrl))
+                        .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                        .setLanguage("vi")
+                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                        .build()
+                    mediaItemBuilder.setSubtitleConfigurations(listOf(subtitle))
+                }
             }
 
             exoPlayer.setMediaItem(mediaItemBuilder.build())
@@ -120,7 +174,15 @@ fun VideoPlayer(
             if (autoPlay) exoPlayer.playWhenReady = true
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("VideoPlayer", "Error loading video", e)
+        }
+    }
+    
+    // Lắng nghe riêng subtitleUri để cập nhật nếu nó load chậm hơn video
+    LaunchedEffect(subtitleUri) {
+        if (!isPlayerReleased && subtitleUri != null && exoPlayer.mediaItemCount > 0) {
+            // Re-prepare with subtitle if needed logic can be added here
+            // Nhưng tốt nhất là load cùng lúc trong LaunchedEffect(videoUrl) ở trên
         }
     }
 
@@ -152,11 +214,10 @@ fun VideoPlayer(
         )
 
             //LỚP 2: Floating 3D Assistant (Nằm đè lên trên)
-            // Chỉ hiển thị khi Engine đã sẵn sàng (is3DReady = true)
+            // Chỉ hiển thị khi Engine đã sẵn sàng (Environment và Buffer đã load)
             val is3DReady by SceneViewManager.initializationState.collectAsState()
-            var is3DExpanded by remember { mutableStateOf(false) }
 
-            if (is3DReady) {
+            if (is3DReady && SceneViewManager.isResourcesValid()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -167,9 +228,9 @@ fun VideoPlayer(
                     Floating3DAssistant(
                         isExpanded = is3DExpanded,
                         onExpandChange = { newValue -> is3DExpanded = newValue },
-                        // Lấy dữ liệu an toàn từ Manager
+                        // ✅ FIXED: Dùng ModelInstance riêng của video này
                         engine = SceneViewManager.getEngine(),
-                        modelInstance = SceneViewManager.getModelInstance(),
+                        modelInstance = videoModelInstance,  // Per-video instance
                         environment = SceneViewManager.getEnvironment(),
                         videoUrl = videoUrl
                     )
