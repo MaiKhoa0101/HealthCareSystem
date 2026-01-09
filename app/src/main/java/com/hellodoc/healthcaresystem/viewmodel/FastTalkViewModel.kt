@@ -294,6 +294,8 @@ class FastTalkViewModel @Inject constructor(
                 // Giả sử logic là tìm đại từ trong câu hỏi để thêm vào danh sách Pronoun
                 val results = response.body()?.results ?: emptyList()
 
+                println("Analyze: $results")
+
                 val foundPronouns = results.filter { it.posTag == "P" }
 
                 if (foundPronouns.isNotEmpty()) {
@@ -351,6 +353,7 @@ class FastTalkViewModel @Inject constructor(
         }
     }
 
+    suspend fun createQuestionAnswer(question: String, answer: String) = fastTalkRepository.createQuestionAnswer(question, answer)
 
 
     // Hàm lấy dự đoán (kết nối với UI)
