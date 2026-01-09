@@ -875,10 +875,6 @@ class PostViewModel @Inject constructor(
     private val _gestureCode = MutableStateFlow<List<GestureCodeResponse>>(emptyList())
     val gestureCode: StateFlow<List<GestureCodeResponse>> get() = _gestureCode
 
-    fun clearGestureCode() {
-        _gestureCode.value = emptyList()
-        Log.d("PostViewModel", "🗑️ Gesture data cleared")
-    }
 
     fun getGestureCode(videoUrl: String) {
         viewModelScope.launch {

@@ -215,6 +215,30 @@ class FastTalkViewModel @Inject constructor(
         }
     }
 
+    private suspend fun searchFallback(word: String, toLabel: String, groupType: String, depth: Int = 0) {
+        if (depth >= 3) return // Giảm depth xuống 3 cho đỡ lag
+
+        try {
+            val response = fastTalkRepository.getWordByLabel(word, toLabel)
+            val data = response.body()?.results ?: emptyList()
+
+            if (data.isNotEmpty()) {
+                when (groupType) {
+                    "verb" -> _wordVerbSimilar.value = data
+                    "noun" -> _wordNounSimilar.value = data
+                    "support" -> _wordSupportSimilar.value = data
+                    "pronoun" -> _wordPronounSimilar.value = data
+                }
+                println("Fallback thành công cho $groupType với ${data.size} từ")
+            } else {
+                // Nếu vẫn rỗng, thử tìm tiếp dựa trên từ gợi ý đầu tiên của lần gọi trước (nếu có logic đó)
+                // Ở đây tôi tạm dừng để tránh spam API
+            }
+        } catch (e: Exception) {
+            println("Lỗi Fallback $groupType: ${e.message}")
+        }
+    }
+
     fun analyzeSentence(text: String) {
         viewModelScope.launch {
             try {
@@ -416,4 +440,7 @@ class FastTalkViewModel @Inject constructor(
         e.printStackTrace()
     }
 
+
+    // Hàm lấy dự đoán (kết nối với UI)
+    fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
 }

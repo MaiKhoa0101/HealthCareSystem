@@ -256,6 +256,7 @@ fun FastTalk(
                             fastTalkViewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
                             println("đã lưu vào roomDB")
                             fastTalkViewModel.updateQA(QA(theirsSentence, yourSentenceValue.text))
+                            fastTalkViewModel.findQuickResponse(theirsSentence)
 
                         }
                     } else {
