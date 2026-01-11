@@ -69,7 +69,6 @@ fun FastTalk(
     // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
     var theirsSentence by remember { mutableStateOf("") }
-    var tempSpeech by remember { mutableStateOf("") }
     var tempTheirSpeech by remember { mutableStateOf("") }
     var isRecording by remember { mutableStateOf(false) }
     var extendedAlignment by remember { mutableStateOf<String?>(null) }
@@ -89,8 +88,6 @@ fun FastTalk(
             println("Phân tích câu hỏi từ máy khách: $theirsSentence")
             fastTalkViewModel.analyzeSentence(theirsSentence)
             try{
-                println("bắt đầu tìm trong roomDB")
-
                 fastTalkViewModel.findQuickResponse(theirsSentence)
             } catch (e: Exception) {
                 println("lỗi database ${e.message}")
@@ -135,7 +132,6 @@ fun FastTalk(
                             startSpeechToTextRealtime(
                                 context,
                                 speechRecognizer,
-                                onPartial = { tempTheirSpeech = it },
                                 onFinal = { result ->
                                     theirsSentence += " $result"
                                     tempTheirSpeech = ""
@@ -228,14 +224,12 @@ fun FastTalk(
                             startSpeechToTextRealtime(
                                 context,
                                 speechRecognizer,
-                                onPartial = { tempSpeech = it },
                                 onFinal = { result ->
                                     val newText = yourSentenceValue.text + " $result"
                                     yourSentenceValue = TextFieldValue(
                                         text = newText,
                                         selection = TextRange(newText.length)
                                     )
-                                    tempSpeech = ""
                                     isRecording = false
                                 },
                                 onEnd = { isRecording = false }
