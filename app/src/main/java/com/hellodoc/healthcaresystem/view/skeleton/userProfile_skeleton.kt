@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,8 +30,8 @@ fun UserSkeleton() {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF00E5FF),
-                        Color(0xFF00C5CB)
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.primaryContainer
                     )
                 )
             )
