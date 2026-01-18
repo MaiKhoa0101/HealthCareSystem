@@ -9,7 +9,7 @@ import android.speech.SpeechRecognizer
 import android.widget.Toast
 
 
-fun startSpeechToTextRealtime(
+fun  startSpeechToTextRealtime(
     context: Context,
     speechRecognizer: SpeechRecognizer,
     onFinal: (String) -> Unit,
