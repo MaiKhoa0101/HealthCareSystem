@@ -109,17 +109,12 @@ fun HealthMateHomeScreen(
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
     val posts by postViewModel.posts.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    var showReportBox by remember { mutableStateOf(false) }
-    var userModel by remember { mutableStateOf("") }
+
 
 
 
 
     LaunchedEffect(Unit) {
-        val username = userViewModel.getUserAttribute("name", context)
-        userModel = userViewModel.getUserAttribute("role", context)
 
         userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
         postViewModel.fetchPosts()
@@ -177,153 +172,149 @@ fun HealthMateHomeScreen(
         }
     }
 
-    if (true) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    postViewModel.closeAllPostMenus()
+                }
+            }
+    ) {
+        var offsetY by remember { mutableFloatStateOf(0f) }
+        var offsetX by remember { mutableFloatStateOf(0f) }
+        val dragThreshold = 100f
+        val horizontalDragThreshold = 150f // Ngưỡng cho vuốt ngang
 
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        postViewModel.closeAllPostMenus()
-                        showReportBox = false
-                    }
-                }
-        ) {
-            var offsetY by remember { mutableFloatStateOf(0f) }
-            var offsetX by remember { mutableFloatStateOf(0f) }
-            val dragThreshold = 100f
-            val horizontalDragThreshold = 150f // Ngưỡng cho vuốt ngang
+                .background(MaterialTheme.colorScheme.background)
+                .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            offsetY = 0f
+                            offsetX = 0f
+                        }
+                    ) { change, dragAmount ->
+                        val dragX = dragAmount.x
+                        val dragY = dragAmount.y
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
-                        detectDragGestures(
-                            onDragEnd = {
-                                offsetY = 0f
+                        // Kiểm tra hướng vuốt chính (ngang hay dọc)
+                        if (kotlin.math.abs(dragX) > kotlin.math.abs(dragY)) {
+                            // Vuốt ngang
+                            offsetX += dragX
+
+                            if (offsetX < -horizontalDragThreshold) {
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.navigate("booking_blind")
+                                offsetX = 0f
+                            } else if (offsetX > horizontalDragThreshold) {
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.navigate("virtual_assistant_blind")
                                 offsetX = 0f
                             }
-                        ) { change, dragAmount ->
-                            val dragX = dragAmount.x
-                            val dragY = dragAmount.y
+                        } else {
+                            // Vuốt dọc
+                            offsetY += dragY
 
-                            // Kiểm tra hướng vuốt chính (ngang hay dọc)
-                            if (kotlin.math.abs(dragX) > kotlin.math.abs(dragY)) {
-                                // Vuốt ngang
-                                offsetX += dragX
-
-                                if (offsetX < -horizontalDragThreshold) {
+                            // Swipe UP -> Bài mới hơn
+                            if (offsetY < -dragThreshold) {
+                                val nextIndex = currentPostIndex + 1
+                                if (nextIndex < posts.size) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
-                                    navHostController.navigate("booking_blind")
-                                    offsetX = 0f
-                                } else if (offsetX > horizontalDragThreshold) {
+                                    currentPostIndex = nextIndex
+                                    offsetY = 0f
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
+                                    }
+                                } else if (hasMorePosts && !isLoadingMorePosts) {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đang tải thêm bài viết mới.")
+                                    }
+                                    offsetY = 0f
+                                } else if (!hasMorePosts) {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Bạn đã xem hết tất cả bài viết.")
+                                    }
+                                    offsetY = 0f
+                                }
+                            }
+
+                            // Swipe DOWN -> Bài cũ hơn
+                            if (offsetY > dragThreshold) {
+                                val previousIndex = currentPostIndex - 1
+                                if (previousIndex >= 0) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
-                                    navHostController.navigate("virtual_assistant_blind")
-                                    offsetX = 0f
-                                }
-                            } else {
-                                // Vuốt dọc
-                                offsetY += dragY
-
-                                // Swipe UP -> Bài mới hơn
-                                if (offsetY < -dragThreshold) {
-                                    val nextIndex = currentPostIndex + 1
-                                    if (nextIndex < posts.size) {
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        currentPostIndex = nextIndex
-                                        offsetY = 0f
-                                        coroutineScope.launch {
-                                            FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
-                                        }
-                                    } else if (hasMorePosts && !isLoadingMorePosts) {
-                                        coroutineScope.launch {
-                                            FocusTTS.speakAndWait("Đang tải thêm bài viết mới.")
-                                        }
-                                        offsetY = 0f
-                                    } else if (!hasMorePosts) {
-                                        coroutineScope.launch {
-                                            FocusTTS.speakAndWait("Bạn đã xem hết tất cả bài viết.")
-                                        }
-                                        offsetY = 0f
+                                    currentPostIndex = previousIndex
+                                    offsetY = 0f
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
                                     }
-                                }
-
-                                // Swipe DOWN -> Bài cũ hơn
-                                if (offsetY > dragThreshold) {
-                                    val previousIndex = currentPostIndex - 1
-                                    if (previousIndex >= 0) {
-                                        SoundManager.playSwipe()
-                                        vibrate(context)
-                                        currentPostIndex = previousIndex
-                                        offsetY = 0f
-                                        coroutineScope.launch {
-                                            FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
-                                        }
-                                    } else {
-                                        coroutineScope.launch {
-                                            FocusTTS.speakAndWait("Bạn đã ở bài viết đầu tiên.")
-                                        }
-                                        offsetY = 0f
+                                } else {
+                                    coroutineScope.launch {
+                                        FocusTTS.speakAndWait("Bạn đã ở bài viết đầu tiên.")
                                     }
+                                    offsetY = 0f
                                 }
                             }
                         }
-                    },
-                state = listState,
-                userScrollEnabled = false
-            ) {
-                items(posts) { post ->
-                    var showPostReportDialog by remember { mutableStateOf(false) }
-                    var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+                    }
+                },
+            state = listState,
+            userScrollEnabled = false
+        ) {
+            items(posts) { post ->
+                var showPostReportDialog by remember { mutableStateOf(false) }
+                var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-                    Box(modifier = Modifier.fillParentMaxSize()) {
-                        Post(
-                            navHostController = navHostController,
-                            postViewModel = postViewModel,
-                            post = post,
-                            userWhoInteractWithThisPost = user!!,
-                            onClickReport = {
-                                showPostReportDialog = !showPostReportDialog
-                            },
-                            onClickDelete = {
-                                showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                            },
-                        )
+                Box(modifier = Modifier.fillParentMaxSize()) {
+                    Post(
+                        navHostController = navHostController,
+                        postViewModel = postViewModel,
+                        post = post,
+                        userWhoInteractWithThisPost = user!!,
+                        onClickReport = {
+                            showPostReportDialog = !showPostReportDialog
+                        },
+                        onClickDelete = {
+                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                        },
+                    )
 
-                        if (showPostReportDialog) {
-                            post.userInfo?.let {
-                                ReportPostUser(
-                                    context = navHostController.context,
-                                    youTheCurrentUserUseThisApp = user!!,
-                                    userReported = it,
-                                    postId = post.id,
-                                    onClickShowPostReportDialog = { showPostReportDialog = false }
-                                )
-                            }
-                        }
-
-                        if (showPostDeleteConfirmDialog) {
-                            ConfirmDeletePostModal(
+                    if (showPostReportDialog) {
+                        post.userInfo?.let {
+                            ReportPostUser(
+                                context = navHostController.context,
+                                youTheCurrentUserUseThisApp = user!!,
+                                userReported = it,
                                 postId = post.id,
-                                postViewModel = postViewModel,
-                                sharedPreferences = navHostController.context.getSharedPreferences(
-                                    "user_prefs",
-                                    Context.MODE_PRIVATE
-                                ),
-                                onClickShowConfirmDeleteDialog = {
-                                    showPostDeleteConfirmDialog = false
-                                },
+                                onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }
                     }
+
+                    if (showPostDeleteConfirmDialog) {
+                        ConfirmDeletePostModal(
+                            postId = post.id,
+                            postViewModel = postViewModel,
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "user_prefs",
+                                Context.MODE_PRIVATE
+                            ),
+                            onClickShowConfirmDeleteDialog = {
+                                showPostDeleteConfirmDialog = false
+                            },
+                        )
+                    }
                 }
             }
-
         }
+
     }
 
 }

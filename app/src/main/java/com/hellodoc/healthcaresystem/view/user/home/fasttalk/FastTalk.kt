@@ -66,7 +66,6 @@ fun FastTalk(
     val coroutineScope = rememberCoroutineScope()
 
     val stateViewModel: StateViewModel = hiltViewModel()
-    // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
     var theirsSentence by remember { mutableStateOf("") }
     var tempTheirSpeech by remember { mutableStateOf("") }
