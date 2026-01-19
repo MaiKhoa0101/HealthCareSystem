@@ -136,6 +136,9 @@ fun FastTalk(
                                     tempTheirSpeech = ""
                                     isRecording = false
                                 },
+                                onPartial = { result ->
+                                    tempTheirSpeech = result
+                                },
                                 onEnd = { isRecording = false }
                             )
                         }
@@ -230,6 +233,9 @@ fun FastTalk(
                                         selection = TextRange(newText.length)
                                     )
                                     isRecording = false
+                                },
+                                onPartial = {
+
                                 },
                                 onEnd = { isRecording = false }
                             )

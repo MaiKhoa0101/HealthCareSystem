@@ -12,6 +12,7 @@ import android.widget.Toast
 fun  startSpeechToTextRealtime(
     context: Context,
     speechRecognizer: SpeechRecognizer,
+    onPartial: (String) -> Unit,
     onFinal: (String) -> Unit,
     onEnd: () -> Unit
 ) {
@@ -39,7 +40,9 @@ fun  startSpeechToTextRealtime(
             if (!data.isNullOrEmpty()) onFinal(data[0])
         }
 
-        override fun onPartialResults(partialResults: Bundle?) {}
+        override fun onPartialResults(partialResults: Bundle?) {
+
+        }
 
         override fun onEvent(eventType: Int, params: Bundle?) {}
     })
