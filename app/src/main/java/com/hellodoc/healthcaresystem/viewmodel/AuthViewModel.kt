@@ -96,7 +96,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _signInState.update { it.copy(isLoading = true, errorMessage = null) }
             
-            userRepository.loginGoogle(idToken)
+            userRepository.loginGoogle(idToken,"")
                 .onSuccess { response ->
                     saveToken(response.accessToken) // SAVE TOKEN HERE
                     val role = extractRoleFromToken(response.accessToken)

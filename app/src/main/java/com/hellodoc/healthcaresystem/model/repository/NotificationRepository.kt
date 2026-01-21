@@ -1,37 +1,70 @@
 package com.hellodoc.healthcaresystem.model.repository
 
 import com.hellodoc.healthcaresystem.model.api.NotificationService
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NotificationResponse
 import com.hellodoc.healthcaresystem.requestmodel.CreateNotificationRequest
 import jakarta.inject.Inject
+import retrofit2.Response
 
-class NotificationRepository @Inject constructor(
-    private val notificationService: NotificationService
-) {
+interface NotificationRepository{
     suspend fun getNotificationByUserId(
         userId: String
-    ) = notificationService.getNotificationByUserId(userId)
+    ): Response<List<NotificationResponse>>
+
 
     suspend fun getUnreadNotifications(
         userId: String
-    ) = notificationService.getUnreadNotifications(userId)
+    ): Response<List<NotificationResponse>>
 
     suspend fun getUnreadCount(
         userId: String
-    ) = notificationService.getUnreadCount(userId)
+    ): Response<Int>
 
     suspend fun createNotification(
         createNotificationRequest: CreateNotificationRequest
-    ) = notificationService.createNotification(createNotificationRequest)
+    ): Response<NotificationResponse>
 
     suspend fun markAsRead(
         notificationId: String
-    ) = notificationService.markAsRead(notificationId)
+    ): Response<NotificationResponse>
 
     suspend fun markAllAsRead(
         userId: String
-    ) = notificationService.markAllAsRead(userId)
+    ): Response<List<NotificationResponse>>
 
     suspend fun deleteNotification(
+        notificationId: String
+    ): Response<Unit>
+}
+
+class NotificationRepositoryImpl @Inject constructor(
+    private val notificationService: NotificationService
+): NotificationRepository {
+    override suspend fun getNotificationByUserId(
+        userId: String
+    ) = notificationService.getNotificationByUserId(userId)
+
+    override suspend fun getUnreadNotifications(
+        userId: String
+    ) = notificationService.getUnreadNotifications(userId)
+
+    override suspend fun getUnreadCount(
+        userId: String
+    ) = notificationService.getUnreadCount(userId)
+
+    override suspend fun createNotification(
+        createNotificationRequest: CreateNotificationRequest
+    ) = notificationService.createNotification(createNotificationRequest)
+
+    override suspend fun markAsRead(
+        notificationId: String
+    ) = notificationService.markAsRead(notificationId)
+
+    override suspend fun markAllAsRead(
+        userId: String
+    ) = notificationService.markAllAsRead(userId)
+
+    override suspend fun deleteNotification(
         notificationId: String
     ) = notificationService.deleteNotification(notificationId)
 }

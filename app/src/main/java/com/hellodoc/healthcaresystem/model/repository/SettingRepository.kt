@@ -9,30 +9,49 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
-class SettingsRepository @Inject constructor (
+interface SettingsRepository{
+    val appSettings: Flow<AppSettingsEntity>
+    suspend fun setDarkMode(
+        isDark: Boolean
+    )
+    suspend fun setFirstLaunchCompleted()
+    suspend fun setDataDownloaded(
+        isDownloaded: Boolean
+    )
+    suspend fun updateState(
+        newState: AppSettingsEntity
+    )
+    suspend fun getStateDownload(): Boolean
+    suspend fun getThemeState(): Boolean
+    suspend fun updateSettings(
+        transform: (AppSettingsEntity) -> AppSettingsEntity
+    )
+}
+
+class SettingsRepositoryImpl @Inject constructor (
     private val appSettingsDao: AppSettingsDao
-) {
+): SettingsRepository {
     // Lấy setting, nếu null (chưa có) thì trả về đối tượng mặc định
-    val appSettings: Flow<AppSettingsEntity> = appSettingsDao.getSettings()
+    override val appSettings: Flow<AppSettingsEntity> = appSettingsDao.getSettings()
         .map { it ?: AppSettingsEntity() }
 
     // Hàm cập nhật trạng thái Dark Mode
-    suspend fun setDarkMode(isDark: Boolean) {
+    override suspend fun setDarkMode(isDark: Boolean) {
         updateSettings { it.copy(isDarkMode = isDark) }
     }
 
     // Hàm cập nhật trạng thái Đã mở app lần đầu xong
-    suspend fun setFirstLaunchCompleted() {
+    override suspend fun setFirstLaunchCompleted() {
         updateSettings { it.copy(isFirstLaunch = false) }
     }
 
     // Hàm cập nhật trạng thái Đã tải data
-    suspend fun setDataDownloaded(isDownloaded: Boolean) {
+    override suspend fun setDataDownloaded(isDownloaded: Boolean) {
         println("Gọi được set data downloaded")
         updateSettings { it.copy(isDataDownloaded = isDownloaded) }
     }
 
-    private suspend fun updateSettings(transform: (AppSettingsEntity) -> AppSettingsEntity) {
+    override suspend fun updateSettings(transform: (AppSettingsEntity) -> AppSettingsEntity) {
         // 1. Lấy setting hiện tại. Nếu null (chưa có trong DB) thì tạo object mặc định
         // Toán tử ?: (Elvis operator) sẽ cứu bạn ở đây
         val currentSettings = appSettingsDao.getSettings().firstOrNull() ?: AppSettingsEntity()
@@ -44,14 +63,14 @@ class SettingsRepository @Inject constructor (
         appSettingsDao.insertOrUpdate(updatedSettings)
     }
 
-    suspend fun updateState(newState: AppSettingsEntity) {
+     override suspend fun updateState(newState: AppSettingsEntity) {
         appSettingsDao.insertOrUpdate(newState)
     }
 
-    suspend fun getStateDownload(): Boolean{
+    override suspend fun getStateDownload(): Boolean{
         return appSettingsDao.getStateDownload()
     }
-    suspend fun getThemeState():Boolean {
+    override suspend fun getThemeState():Boolean {
         return appSettingsDao.getThemeState()
     }
 }

@@ -13,7 +13,7 @@ import retrofit2.http.Path
 
 interface ReportService {
     @POST("/report")
-    suspend fun sendReport(@Body report: ReportRequest): Response<Void>
+    suspend fun sendReport(@Body report: ReportRequest): Response<Unit>
 
     @GET("/report")
     suspend fun getAllReports(): List<ReportResponse>

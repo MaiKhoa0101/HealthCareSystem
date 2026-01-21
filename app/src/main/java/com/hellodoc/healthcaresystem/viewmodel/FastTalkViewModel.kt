@@ -442,5 +442,5 @@ class FastTalkViewModel @Inject constructor(
 
 
     // Hàm lấy dự đoán (kết nối với UI)
-    fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
+    suspend fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
 }
