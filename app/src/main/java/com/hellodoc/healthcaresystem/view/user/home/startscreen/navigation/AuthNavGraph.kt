@@ -154,6 +154,5 @@ fun AuthNavGraph(
                 navHostController = navController
             )
         }
-
     }
 }
