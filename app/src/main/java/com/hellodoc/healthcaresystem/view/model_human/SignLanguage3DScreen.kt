@@ -31,6 +31,7 @@ import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberMainLightNode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.builtins.ListSerializer
 import java.io.InputStream
@@ -180,6 +181,9 @@ fun SignLanguageAnimatableScreen(
             // ✅ Animation hoàn thành, dừng ở frame cuối
             Log.d("SignLanguage", "✅ Animation completed (one-time playback finished)")
 
+        } catch (e: CancellationException) {
+            // Normal when user closes 3D / composable leaves composition
+            Log.d("SignLanguage", "⏹️ Animation cancelled")
         } catch (e: Exception) {
             Log.e("SignLanguage", "❌ Animation error", e)
         }
@@ -238,11 +242,11 @@ fun SignLanguageAnimatableScreen(
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // Normal when user closes 3D / composable leaves composition
+            Log.d("SignLanguage", "⏹️ Bone update cancelled")
         } catch (e: Exception) {
-            // Chỉ log lỗi nếu không phải là cancellation bình thường
-            if (e !is kotlinx.coroutines.CancellationException) {
-                Log.e("SignLanguage", "❌ Bone update error", e)
-            }
+            Log.e("SignLanguage", "❌ Bone update error", e)
         }
     }
 
@@ -297,8 +301,11 @@ fun SignLanguageAnimatableScreen(
             characterNode?.let { node ->
                 try {
                     node.parent?.removeChildNode(node)
-                    node.destroy()
-                    Log.d("SignLanguage", "✅ Character node destroyed")
+                    // NOTE:
+                    // Avoid destroying Filament entities from Compose dispose; when SceneView's
+                    // Surface/SwapChain is stopping this can SIGSEGV in libfilament-jni.so.
+                    // Let SceneView/Engine manage entity lifetimes.
+                    Log.d("SignLanguage", "✅ Character node detached")
                 } catch (e: Exception) {
                     Log.e("SignLanguage", "❌ Error destroying node", e)
                 }

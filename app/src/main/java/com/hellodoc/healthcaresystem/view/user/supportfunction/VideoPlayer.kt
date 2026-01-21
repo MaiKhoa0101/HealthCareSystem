@@ -20,6 +20,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.runtime.withFrameNanos
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -147,7 +148,12 @@ fun VideoPlayer(
             exoPlayer.clearMediaItems()
             
             // Tự động thu nhỏ 3D khi chuyển video
-            is3DExpanded = false
+            // IMPORTANT: Close 3D first, then wait 1 frame so Scene/Surface can dispose cleanly
+            // before we drop the ModelInstance reference. This reduces native Filament crashes.
+            if (is3DExpanded) {
+                is3DExpanded = false
+                withFrameNanos { /* wait a frame for Compose to dispose Scene */ }
+            }
             // Giải phóng ModelInstance cũ nếu có
             videoModelInstance = null
 
@@ -177,14 +183,7 @@ fun VideoPlayer(
             android.util.Log.e("VideoPlayer", "Error loading video", e)
         }
     }
-    
-    // Lắng nghe riêng subtitleUri để cập nhật nếu nó load chậm hơn video
-    LaunchedEffect(subtitleUri) {
-        if (!isPlayerReleased && subtitleUri != null && exoPlayer.mediaItemCount > 0) {
-            // Re-prepare with subtitle if needed logic can be added here
-            // Nhưng tốt nhất là load cùng lúc trong LaunchedEffect(videoUrl) ở trên
-        }
-    }
+
 
     // ===== UI LAYOUT =====
     Box(modifier = modifier.fillMaxSize()) {
@@ -213,42 +212,41 @@ fun VideoPlayer(
             onRelease = { pv -> pv.player = null }
         )
 
-            //LỚP 2: Floating 3D Assistant (Nằm đè lên trên)
-            // Chỉ hiển thị khi Engine đã sẵn sàng (Environment và Buffer đã load)
-            val is3DReady by SceneViewManager.initializationState.collectAsState()
+        //LỚP 2: Floating 3D Assistant (Nằm đè lên trên)
+        // Chỉ hiển thị khi Engine đã sẵn sàng (Environment và Buffer đã load)
+        val is3DReady by SceneViewManager.initializationState.collectAsState()
 
-            if (is3DReady && SceneViewManager.isResourcesValid()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(100f) // Đảm bảo luôn nằm trên cùng
-                        .padding(bottom = 80.dp, end = 16.dp), // Chỉnh padding để không che BottomBar
-                    contentAlignment = Alignment.BottomEnd
-                ) {
-                    Floating3DAssistant(
-                        isExpanded = is3DExpanded,
-                        onExpandChange = { newValue -> is3DExpanded = newValue },
-                        // ✅ FIXED: Dùng ModelInstance riêng của video này
-                        engine = SceneViewManager.getEngine(),
-                        modelInstance = videoModelInstance,  // Per-video instance
-                        environment = SceneViewManager.getEnvironment(),
-                        videoUrl = videoUrl
-                    )
-                }
-            } else {
-                // Optional: Loading nhỏ ở góc nếu chưa load xong
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 80.dp, end = 16.dp)
-                        .align(Alignment.BottomEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+        if (is3DReady && SceneViewManager.isResourcesValid()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(100f) // Đảm bảo luôn nằm trên cùng
+                    .padding(bottom = 80.dp, end = 16.dp), // Chỉnh padding để không che BottomBar
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Floating3DAssistant(
+                    isExpanded = is3DExpanded,
+                    onExpandChange = { newValue -> is3DExpanded = newValue },
+                    engine = SceneViewManager.getEngine(),
+                    modelInstance = videoModelInstance,  // Per-video instance
+                    environment = SceneViewManager.getEnvironment(),
+                    videoUrl = videoUrl
+                )
             }
+        } else {
+            // Optional: Loading nhỏ ở góc nếu chưa load xong
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 80.dp, end = 16.dp)
+                    .align(Alignment.BottomEnd),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
     }
 }

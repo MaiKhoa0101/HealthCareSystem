@@ -57,15 +57,10 @@ fun Floating3DAssistant(
     
     // ===== FLUSH GPU WHEN CLOSING =====
     LaunchedEffect(isExpanded) {
-        if (!isExpanded && engine?.isValid == true) {
-            // When closing, flush GPU to free command buffer
-            try {
-                engine.flushAndWait()
-                android.util.Log.d("Floating3D", "🧹 GPU flushed on close")
-            } catch (e: Exception) {
-                android.util.Log.e("Floating3D", "❌ Error flushing on close", e)
-            }
-        }
+        // NOTE:
+        // Avoid calling Engine.flushAndWait() here; when SceneView surface is stopping (e.g. user
+        // switches video quickly) this can SIGSEGV in native Filament (libfilament-jni.so).
+        // SceneView handles its own GPU synchronization.
     }
 
     // Animation kích thước

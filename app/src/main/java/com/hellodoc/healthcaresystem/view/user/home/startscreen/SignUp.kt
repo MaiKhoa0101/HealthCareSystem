@@ -39,8 +39,7 @@ fun SignUpRoute(
         when (uiState.currentStep) {
             SignUpStep.EMAIL -> { /* Stay here */ }
             SignUpStep.OTP_VERIFICATION -> {
-                navController.navigate(AuthScreen.VerifyOtpSignUp.route)
-                // We should assume VerifyOtpSignUpScreen will observe the same ViewModel
+                navController.navigate("verify_otp_forgot_screen/${uiState.email}")
             }
             else -> {}
         }
@@ -57,7 +56,9 @@ fun SignUpRoute(
         email = uiState.email,
         onEmailChange = viewModel::onSignUpEmailChange,
         isLoading = uiState.isLoading,
-        onContinue = viewModel::requestSignUpOtp,
+        onContinue = {
+            navController.navigate(AuthScreen.VerifyOtpSignUp.route)
+        },
         onSignIn = {
             navController.navigate(AuthScreen.SignIn.route) {
                 popUpTo(AuthScreen.Start.route)
