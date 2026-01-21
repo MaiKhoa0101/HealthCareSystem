@@ -177,9 +177,9 @@ fun HealthMateHomeScreen(
     }
 
     // Refresh khi quay lại home (nếu cần)
-    LaunchedEffect(navHostController.currentBackStackEntry) {
+    LaunchedEffect(navHostController.currentBackStackEntry,uiStatePost) {
         val currentRoute = navHostController.currentBackStackEntry?.destination?.route
-        if (currentRoute == "home" && posts.isEmpty()) {
+        if (currentRoute == "home") {
             postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
         }
     }
