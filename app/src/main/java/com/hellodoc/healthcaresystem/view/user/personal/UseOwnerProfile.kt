@@ -162,7 +162,8 @@ fun ProfileUserPage(
                     modifier = Modifier.fillMaxWidth(),
                 ){
                     if (user == null) {
-                        UserSkeleton()
+
+                        UserSkeleton(navHostController)
                     } else {
                         ProfileSection(
                             user = user!!,
