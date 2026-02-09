@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -82,10 +83,10 @@ fun SignLanguageScreen(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(20.dp)
+                        .rotate(90f)
                         .background(Color.Black.copy(alpha = 0.6f))
                         .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .align(Alignment.CenterStart)
                 )
             }
         }
