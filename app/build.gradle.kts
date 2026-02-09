@@ -150,4 +150,19 @@ dependencies {
     implementation("com.google.zxing:core:3.5.2")
     // Socket.IO
     implementation("io.socket:socket.io-client:2.1.1")
+
+    // CameraX core library using the camera2 implementation
+    val camerax_version = "1.3.1"
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-view:${camerax_version}")
+
+    // TensorFlow Lite (để chạy model của bạn)
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+
+    // MediaPipe (để lấy landmarks làm đầu vào cho model của bạn)
+    implementation("com.google.mediapipe:tasks-vision:0.10.9")
 }

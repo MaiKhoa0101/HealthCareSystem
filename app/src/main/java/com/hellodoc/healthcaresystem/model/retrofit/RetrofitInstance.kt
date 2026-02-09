@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    const val BASE_URL = "http://192.168.1.18:4000"
+    const val BASE_URL = "http://192.168.1.10:4000"
 
 
     @Provides
@@ -96,4 +96,6 @@ object RetrofitInstance {
             .build()
             .create(GeminiService::class.java)
     }
+
+
 }

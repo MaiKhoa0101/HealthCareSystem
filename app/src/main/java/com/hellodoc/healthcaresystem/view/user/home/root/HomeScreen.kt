@@ -120,7 +120,7 @@ fun HealthMateHomeScreen(
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
     val specialtyState by specialtyViewModel.specialties.collectAsState()
-    val medicalOptions = listOf("Tính BMI", "Fast Talk")
+    val medicalOptions = listOf("Tính BMI", "Fast Talk", "Ngôn ngữ kí hiệu")
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
@@ -378,6 +378,7 @@ fun HealthMateHomeScreen(
                     when (optionName) {
                         "Tính BMI" -> navHostController.navigate("bmi-checking")
                         "Fast Talk" -> navHostController.navigate("fast_talk")
+                        "Ngôn ngữ kí hiệu" -> navHostController.navigate("sign_language")
                         else -> {
 
                         }
