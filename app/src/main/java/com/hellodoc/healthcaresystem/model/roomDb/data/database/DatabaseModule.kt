@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.model.di
+package com.hellodoc.healthcaresystem.model.roomDb.data.database
 
 import android.content.Context
 import androidx.room.Room
@@ -6,7 +6,6 @@ import com.hellodoc.healthcaresystem.model.roomDb.data.dao.AppSettingsDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao // Đã thêm import này
 import com.hellodoc.healthcaresystem.roomDb.data.dao.AppointmentDao
-import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

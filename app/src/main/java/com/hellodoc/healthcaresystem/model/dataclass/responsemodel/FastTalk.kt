@@ -5,6 +5,35 @@ data class SuggestLine(
     val content:String,
     val id: String
 )
+
+data class ResponseFromAnalyst(
+    val answer_tokens_json: String,
+    val answer_posTags_json: String? = null, // có thì dùng, chưa có thì null
+    val answer_tokens_length: Int,
+    val answer_text: String,
+    val success: Boolean
+)
+data class CategorizedWords(
+    val verbs: List<WordResult>,
+    val nouns: List<WordResult>,
+    val support: List<WordResult>,
+    val pronouns: List<WordResult>
+)
+
+/**
+ * Enum cho các loại từ
+ */
+enum class WordCategory(val displayName: String) {
+    VERB("verb"),
+    NOUN("noun"),
+    SUPPORT("support"),
+    PRONOUN("pronoun")
+}
+
+data class QA(
+    val question: String,
+    val answer: String
+)
 data class WordResultResponse(
     val startNode: String?,      // Có thể null
     val startLabel: String?,     // Có thể null

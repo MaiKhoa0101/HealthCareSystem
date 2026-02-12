@@ -9,7 +9,7 @@ import android.speech.SpeechRecognizer
 import android.widget.Toast
 
 
-fun startSpeechToTextRealtime(
+fun  startSpeechToTextRealtime(
     context: Context,
     speechRecognizer: SpeechRecognizer,
     onPartial: (String) -> Unit,
@@ -41,8 +41,7 @@ fun startSpeechToTextRealtime(
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
-            val partialData = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            if (!partialData.isNullOrEmpty()) onPartial(partialData[0])
+
         }
 
         override fun onEvent(eventType: Int, params: Bundle?) {}

@@ -31,10 +31,10 @@ import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberMainLightNode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.builtins.ListSerializer
 import java.io.InputStream
-
 
 @Composable
 fun SignLanguageAnimatableScreen(
@@ -57,14 +57,14 @@ fun SignLanguageAnimatableScreen(
 
     // ===== ANIMATABLE CHÍNH =====
     val frameProgress = remember { Animatable(0f) }
-    
+
     // ===== COROUTINE JOB TRACKING =====
     val animationJob = remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     val postViewModel: PostViewModel = hiltViewModel()
     val gestureCode = postViewModel.gestureCode.collectAsState()
 
-    LaunchedEffect(Unit,videoUrl)  {
+    LaunchedEffect(Unit, videoUrl) {
         try {
             Log.d("SignLanguage", "🚀 Gọi getGestureCode với URL: $videoUrl")
             isLoading = true
@@ -99,14 +99,14 @@ fun SignLanguageAnimatableScreen(
                     isLoading = false
 
                     // ===== DEBUG LOG CHI TIẾT =====
-                    Log.d("SignLanguage", "=" .repeat(50))
+                    Log.d("SignLanguage", "=".repeat(50))
                     Log.d("SignLanguage", "✅ LOADED SUCCESSFULLY")
                     Log.d("SignLanguage", "✅ Total words: ${response.size}")
                     response.forEachIndexed { index, word ->
                         Log.d("SignLanguage", "   [$index] '${word.word}' -> ${word.gestureData.size} frames (accuracy: ${word.accuracy}%)")
                     }
                     Log.d("SignLanguage", "✅ Total frames combined: ${allFrames.size}")
-                    Log.d("SignLanguage", "=" .repeat(50))
+                    Log.d("SignLanguage", "=".repeat(50))
 
                     // Log frame đầu tiên để kiểm tra cấu trúc dữ liệu
                     if (allFrames.isNotEmpty()) {
@@ -131,8 +131,7 @@ fun SignLanguageAnimatableScreen(
         }
     }
 
-    // ===== KỊCH BẢN ANIMATION =====
-    // ===== THÊM ĐOẠN NÀY: ANIMATION LOOP =====
+    // ===== KỊCH BẢN ANIMATION - CHỈ CHẠY 1 LẦN =====
     LaunchedEffect(gestureFrames) {
         if (gestureFrames.isEmpty()) {
             animationJob.value?.cancel()
@@ -140,50 +139,51 @@ fun SignLanguageAnimatableScreen(
             return@LaunchedEffect
         }
 
-        Log.d("SignLanguage", "🎬 Starting animation loop with ${gestureFrames.size} frames")
-        
+        Log.d("SignLanguage", "🎬 Starting animation (ONE-TIME ONLY) with ${gestureFrames.size} frames")
+
         // Store job reference for cancellation
         animationJob.value = coroutineContext[kotlinx.coroutines.Job]
 
         try {
-            while (isActive) { // Loop vô hạn
-                for (frameIndex in gestureFrames.indices) {
-                    if (!isActive) break // Check cancellation
-                    
-                    currentFrameIndex = frameIndex
+            // ✅ FIX: Loại bỏ while(isActive), chỉ chạy 1 lần
+            for (frameIndex in gestureFrames.indices step 5) {
+                if (!isActive) break // Check cancellation
 
-                    // Animate từ 0.0 -> 1.0 trong khoảng thời gian của frame
-                    val currentFrame = gestureFrames[frameIndex]
-                    val nextFrame = gestureFrames.getOrNull(frameIndex + 1)
-                        ?: gestureFrames.first() // Loop lại frame đầu
+                currentFrameIndex = frameIndex
 
-                    val frameDuration = if (frameIndex < gestureFrames.size - 1) {
-                        ((nextFrame.timestamp - currentFrame.timestamp) * 1000).toLong()
-                    } else {
-                        33L // Frame cuối dùng ~30fps
-                    }
+                // Animate từ 0.0 -> 1.0 trong khoảng thời gian của frame
+                val currentFrame = gestureFrames[frameIndex]
+                val nextFrame = gestureFrames.getOrNull(frameIndex + 1)
+                    ?: gestureFrames.last() // Frame cuối thì giữ nguyên
 
-                    // Log mỗi 30 frames
-                    if (frameIndex % 30 == 0) {
-                        Log.d("SignLanguage", "🎬 Frame $frameIndex/${gestureFrames.size} | Duration: ${frameDuration}ms")
-                    }
+                val frameDuration = if (frameIndex < gestureFrames.size - 1) {
+                    ((nextFrame.timestamp - currentFrame.timestamp) * 800).toLong()
+                } else {
+                    33L // Frame cuối dùng ~30fps
+                }
 
-                    // Animate progress từ 0 -> 1
-                    frameProgress.snapTo(0f)
-                    frameProgress.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(
-                            durationMillis = frameDuration.toInt(),
-                            easing = LinearEasing
-                        )
+                // Log mỗi 30 frames
+                if (frameIndex % 30 == 0) {
+                    Log.d("SignLanguage", "🎬 Frame $frameIndex/${gestureFrames.size} | Duration: ${frameDuration}ms")
+                }
+
+                // Animate progress từ 0 -> 1
+                frameProgress.snapTo(0f)
+                frameProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        durationMillis = frameDuration.toInt(),
+                        easing = LinearEasing
                     )
-                }
-
-                // Sau khi hết tất cả frames, lặp lại từ đầu
-                if (isActive) {
-                    Log.d("SignLanguage", "🔄 Animation completed, looping...")
-                }
+                )
             }
+
+            // ✅ Animation hoàn thành, dừng ở frame cuối
+            Log.d("SignLanguage", "✅ Animation completed (one-time playback finished)")
+
+        } catch (e: CancellationException) {
+            // Normal when user closes 3D / composable leaves composition
+            Log.d("SignLanguage", "⏹️ Animation cancelled")
         } catch (e: Exception) {
             Log.e("SignLanguage", "❌ Animation error", e)
         }
@@ -198,7 +198,7 @@ fun SignLanguageAnimatableScreen(
         }
 
         Log.d("SignLanguage", "🦴 Starting bone update loop")
-        
+
         var frameCounter = 0  // Track frames for periodic flushing
 
         try {
@@ -212,7 +212,8 @@ fun SignLanguageAnimatableScreen(
                 }
 
                 val currentFrame = gestureFrames[frameIdx]
-                val nextFrameIdx = if (frameIdx >= totalFrames - 1) 0 else frameIdx + 1
+                // ✅ FIX: Không loop về frame 0, giữ ở frame cuối
+                val nextFrameIdx = if (frameIdx >= totalFrames - 1) totalFrames - 1 else frameIdx + 1
                 val nextFrame = gestureFrames[nextFrameIdx]
 
                 // Log mỗi 30 frames để không spam log
@@ -227,7 +228,7 @@ fun SignLanguageAnimatableScreen(
                     nextFrame,
                     progress
                 )
-                
+
                 // ===== PERIODIC FLUSH TO PREVENT BUFFER OVERFLOW =====
                 // Flush every 60 frames to keep buffer clean
                 frameCounter++
@@ -241,12 +242,11 @@ fun SignLanguageAnimatableScreen(
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // Normal when user closes 3D / composable leaves composition
+            Log.d("SignLanguage", "⏹️ Bone update cancelled")
         } catch (e: Exception) {
-            // Chỉ log lỗi nếu không phải là cancellation bình thường
-            // kotlinx.coroutines.CancellationException covers both standard and compose-specific cancellations
-            if (e !is kotlinx.coroutines.CancellationException) {
-                Log.e("SignLanguage", "❌ Bone update error", e)
-            }
+            Log.e("SignLanguage", "❌ Bone update error", e)
         }
     }
 
@@ -291,24 +291,27 @@ fun SignLanguageAnimatableScreen(
     DisposableEffect(Unit) {
         onDispose {
             Log.d("SignLanguage", "🧹 Starting cleanup sequence...")
-            
+
             // 1. Cancel animation coroutines
             animationJob.value?.cancel()
             animationJob.value = null
             Log.d("SignLanguage", "✅ Animation job cancelled")
-            
+
             // 2. Remove node from parent and destroy
             characterNode?.let { node ->
                 try {
                     node.parent?.removeChildNode(node)
-                    node.destroy()
-                    Log.d("SignLanguage", "✅ Character node destroyed")
+                    // NOTE:
+                    // Avoid destroying Filament entities from Compose dispose; when SceneView's
+                    // Surface/SwapChain is stopping this can SIGSEGV in libfilament-jni.so.
+                    // Let SceneView/Engine manage entity lifetimes.
+                    Log.d("SignLanguage", "✅ Character node detached")
                 } catch (e: Exception) {
                     Log.e("SignLanguage", "❌ Error destroying node", e)
                 }
             }
             characterNode = null
-            
+
             // 3. Flush GPU commands
             try {
                 engine?.flushAndWait()
@@ -316,7 +319,7 @@ fun SignLanguageAnimatableScreen(
             } catch (e: Exception) {
                 Log.e("SignLanguage", "❌ Error flushing GPU", e)
             }
-            
+
             Log.d("SignLanguage", "🧹 Cleanup completed")
         }
     }
@@ -324,12 +327,12 @@ fun SignLanguageAnimatableScreen(
     val childNodes = remember(characterNode) {
         if (characterNode != null) listOf(characterNode!!) else emptyList()
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Validate resources before rendering
         if (engine != null && engine.isValid && modelInstance != null && environment != null && !isLoading) {
             // Use unique key to force Scene recreation when needed
             key("scene_${videoUrl.hashCode()}") {
-                // ✅ FIX: Wrap Scene in Box with fixed size for perfect circle
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -337,10 +340,10 @@ fun SignLanguageAnimatableScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(400.dp) // Fixed size ensures perfect circle
+                            .size(400.dp)
                             .align(Alignment.Center)
-                            .clip(CircleShape) // Clip to circle AFTER setting size
-                            .background(MaterialTheme.colorScheme.surfaceVariant) // Background color
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Scene(
                             engine = engine,

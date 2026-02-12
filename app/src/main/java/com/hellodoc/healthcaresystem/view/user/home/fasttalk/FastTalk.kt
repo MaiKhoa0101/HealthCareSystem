@@ -49,6 +49,9 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.DialogProperties
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.QA
 import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.FastTalkViewModel
 import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
@@ -59,36 +62,32 @@ fun FastTalk(
     navHostController: NavHostController,
     context: Context
 ) {
-    val fasttalkViewModel: FastTalkViewModel = hiltViewModel()
+    val fastTalkViewModel: FastTalkViewModel = hiltViewModel()
     val coroutineScope = rememberCoroutineScope()
 
     val stateViewModel: StateViewModel = hiltViewModel()
-    // ✅ Chỉ dùng TextFieldValue
     var yourSentenceValue by remember { mutableStateOf(TextFieldValue(text = "")) }
     var theirsSentence by remember { mutableStateOf("") }
-    var tempSpeech by remember { mutableStateOf("") }
     var tempTheirSpeech by remember { mutableStateOf("") }
     var isRecording by remember { mutableStateOf(false) }
     var extendedAlignment by remember { mutableStateOf<String?>(null) }
-    val verb by fasttalkViewModel.wordVerbSimilar.collectAsState()
-    val noun by fasttalkViewModel.wordNounSimilar.collectAsState()
-    val adj  by fasttalkViewModel.wordSupportSimilar.collectAsState()
-    val pro  by fasttalkViewModel.wordPronounSimilar.collectAsState()
+    val verb by fastTalkViewModel.wordVerbSimilar.collectAsState()
+    val noun by fastTalkViewModel.wordNounSimilar.collectAsState()
+    val adj  by fastTalkViewModel.wordSupportSimilar.collectAsState()
+    val pro  by fastTalkViewModel.wordPronounSimilar.collectAsState()
     // ✅ GỌI API KHI TỪ ĐỔI
     LaunchedEffect(Unit,yourSentenceValue.text) {
         if (yourSentenceValue.text.isNotBlank()) {
             println("Gọi API với từ: " + getLastWord(yourSentenceValue.text))
-            fasttalkViewModel.getWordSimilar(getLastWord(yourSentenceValue.text))
+            fastTalkViewModel.getWordSimilar(getLastWord(yourSentenceValue.text))
         }
     }
     LaunchedEffect(Unit,theirsSentence) {
         if (theirsSentence != "") {
             println("Phân tích câu hỏi từ máy khách: $theirsSentence")
-            fasttalkViewModel.analyzeSentence(theirsSentence)
+            fastTalkViewModel.analyzeSentence(theirsSentence)
             try{
-                println("bắt đầu tìm trong roomDB")
-
-                fasttalkViewModel.findQuickResponse(theirsSentence)
+                fastTalkViewModel.findQuickResponse(theirsSentence)
             } catch (e: Exception) {
                 println("lỗi database ${e.message}")
                 e.printStackTrace()
@@ -99,7 +98,7 @@ fun FastTalk(
     // ===== STATE QUẢN LÝ DIALOG =====
     var showDataLoadDialog by remember { mutableStateOf(false) }
     val isDataDownloaded by stateViewModel.isDataDownloaded.collectAsState(initial = false)
-    val isLoading by fasttalkViewModel.isLoading.collectAsState()
+    val isLoading by fastTalkViewModel.isLoading.collectAsState()
 
     // ===== KIỂM TRA DỮ LIỆU KHI VÀO MÀN HÌNH =====
     LaunchedEffect(Unit,isDataDownloaded) {
@@ -132,11 +131,13 @@ fun FastTalk(
                             startSpeechToTextRealtime(
                                 context,
                                 speechRecognizer,
-                                onPartial = { tempTheirSpeech = it },
                                 onFinal = { result ->
                                     theirsSentence += " $result"
                                     tempTheirSpeech = ""
                                     isRecording = false
+                                },
+                                onPartial = { result ->
+                                    tempTheirSpeech = result
                                 },
                                 onEnd = { isRecording = false }
                             )
@@ -187,7 +188,7 @@ fun FastTalk(
                     }
                 )
             }
-            SuggestionsRow(fasttalkViewModel) { content ->
+            SuggestionsRow(fastTalkViewModel) { content ->
                 val newText = yourSentenceValue.text + " $content"
                 yourSentenceValue = TextFieldValue(
                     text = newText,
@@ -207,7 +208,7 @@ fun FastTalk(
                     vibrate(context)
                 },
                 onExtend = {
-                        alignment -> extendedAlignment = alignment
+                    alignment -> extendedAlignment = alignment
                     vibrate(context)
                 }
             )
@@ -225,15 +226,16 @@ fun FastTalk(
                             startSpeechToTextRealtime(
                                 context,
                                 speechRecognizer,
-                                onPartial = { tempSpeech = it },
                                 onFinal = { result ->
                                     val newText = yourSentenceValue.text + " $result"
                                     yourSentenceValue = TextFieldValue(
                                         text = newText,
                                         selection = TextRange(newText.length)
                                     )
-                                    tempSpeech = ""
                                     isRecording = false
+                                },
+                                onPartial = {
+
                                 },
                                 onEnd = { isRecording = false }
                             )
@@ -247,13 +249,13 @@ fun FastTalk(
                     if (yourSentenceValue.text.isNotBlank()) {
                         speakText(context, yourSentenceValue.text)
                         coroutineScope.launch {
-                            fasttalkViewModel.analyzeSentence(yourSentenceValue.text)
-                            println("bắt đầu lưu trong roomDB")
+                            fastTalkViewModel.analyzeSentence(yourSentenceValue.text)
 
-                            fasttalkViewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
+                            println("bắt đầu lưu trong roomDB")
+                            fastTalkViewModel.insertQuickResponse(theirsSentence, yourSentenceValue.text)
                             println("đã lưu vào roomDB")
-                            fasttalkViewModel.findQuickResponse(theirsSentence)
-                            fasttalkViewModel.createQuestionAnswer(theirsSentence, yourSentenceValue.text)
+                            fastTalkViewModel.updateQA(QA(theirsSentence, yourSentenceValue.text))
+                            fastTalkViewModel.findQuickResponse(theirsSentence)
 
                         }
                     } else {
@@ -267,7 +269,7 @@ fun FastTalk(
             DataLoadingDialog(
                 isLoading = isLoading,
                 onConfirm = {
-                    fasttalkViewModel.readFromLocalFile()
+                    fastTalkViewModel.readFromLocalFile()
                     stateViewModel.setDownloadStatus(true)
                     showDataLoadDialog=false
                 },
@@ -309,7 +311,14 @@ fun FastTalk(
     }
 }
 
-
+fun parseTokenJson(json: String?): List<String> {
+    return try {
+        val type = object : TypeToken<List<String>>() {}.type
+        Gson().fromJson(json, type)
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
 // ===== DIALOG COMPONENT =====
 @Composable
 fun DataLoadingDialog(

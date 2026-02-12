@@ -10,8 +10,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordScreen
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignInRoute
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignUpRoute
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpScreen
 import com.hellodoc.healthcaresystem.viewmodel.AuthViewModel
 
 @Composable
@@ -23,6 +28,8 @@ fun AuthNavGraph(
     onStartSignUp: () -> Unit,
     onBackToStart: () -> Unit
 ) {
+    var email by remember { mutableStateOf("") }
+
     NavHost(
         navController = navController,
         startDestination = AuthScreen.Start.route,
@@ -58,7 +65,6 @@ fun AuthNavGraph(
             route = AuthScreen.VerifyOtpForgot.route,
             arguments = listOf(androidx.navigation.navArgument("email") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
             val uiState by authViewModel.otpState.collectAsState()
             val context = LocalContext.current
 
@@ -96,16 +102,9 @@ fun AuthNavGraph(
                 }
             }
 
-            com.hellodoc.healthcaresystem.view.user.home.startscreen.VerifyOtpScreen(
+            VerifyOtpScreen(
                 email = email,
-                otp = uiState.otp,
-                onOtpChange = { if (it.length <= 6) authViewModel.onOtpChange(it) },
-                secondsLeft = uiState.secondsLeft,
-                isCanResend = uiState.canResend,
-                isLoading = uiState.isLoading,
-                onVerify = authViewModel::verifyOtp,
-                onResend = { authViewModel.resendOtp(isSignUp = false) },
-                onBack = { navController.popBackStack() }
+                navHostController = navController
             )
         }
         
@@ -138,7 +137,7 @@ fun AuthNavGraph(
                 }
             }
 
-             com.hellodoc.healthcaresystem.view.user.home.startscreen.ResetPasswordScreen(
+             ResetPasswordScreen(
                     newPassword = uiState.newPassword,
                     onNewPasswordChange = authViewModel::onResetPasswordChange,
                     confirmPassword = uiState.confirmPassword,
@@ -149,9 +148,11 @@ fun AuthNavGraph(
              )
         }
 
-        
         composable(AuthScreen.VerifyOtpSignUp.route) {
-            Text("Verify OTP SignUp Screen (Todo)")
+            VerifyOtpScreen(
+                email = "",
+                navHostController = navController
+            )
         }
     }
 }

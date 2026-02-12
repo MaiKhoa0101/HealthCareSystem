@@ -25,6 +25,11 @@ import androidx.compose.ui.unit.sp
 import com.hellodoc.healthcaresystem.R
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.hellodoc.healthcaresystem.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.delay
 
 @Composable
 fun HelloDocLogo(modifier: Modifier = Modifier) {
@@ -200,15 +205,22 @@ fun GoogleButton(onClick: () -> Unit) {
 @Composable
 fun VerifyOtpScreen(
     email: String,
-    otp: String,
-    onOtpChange: (String) -> Unit,
-    secondsLeft: Int,
-    isCanResend: Boolean,
-    isLoading: Boolean,
-    onVerify: () -> Unit,
-    onResend: () -> Unit,
-    onBack: () -> Unit
+    navHostController: NavHostController
 ) {
+    var otp by remember { mutableStateOf("") }
+    var isCanResend by remember { mutableStateOf(true) }
+    var secondsLeft by remember { mutableIntStateOf(0) }
+    val authViewModel: AuthViewModel = hiltViewModel()
+
+    LaunchedEffect(secondsLeft) {
+        if (secondsLeft > 0) {
+            delay(1000)
+            secondsLeft--
+        } else {
+            isCanResend = true
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Column(
             modifier = Modifier
@@ -217,7 +229,7 @@ fun VerifyOtpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
+                IconButton(onClick = navHostController::popBackStack, modifier = Modifier.align(Alignment.CenterStart)) {
                     Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
                 }
             }
@@ -243,22 +255,23 @@ fun VerifyOtpScreen(
 
             AuthTextField(
                 value = otp,
-                onValueChange = onOtpChange,
+                onValueChange = { if (it.length <= 6) otp = it },
                 label = "Mã OTP",
                 keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (isLoading) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            } else {
-                PrimaryButton(
-                    text = "Xác nhận",
-                    onClick = onVerify,
-                    enabled = otp.length == 6
-                )
-            }
+            PrimaryButton(
+                text = "Xác nhận",
+                onClick = {
+                    authViewModel.verifyOtp(
+                        email = email,
+                        otp = otp
+                    )
+                },
+                enabled = otp.length == 6
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -269,7 +282,9 @@ fun VerifyOtpScreen(
                         text = "Gửi lại",
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { onResend() }
+                        modifier = Modifier.clickable {
+                            println("EHEHEHEHEHe")
+                        }
                     )
                 } else {
                     Text(

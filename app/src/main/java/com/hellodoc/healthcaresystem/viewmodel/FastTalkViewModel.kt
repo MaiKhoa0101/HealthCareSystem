@@ -2,27 +2,21 @@ package com.hellodoc.healthcaresystem.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CategorizedWords
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Neo4jResultItem
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.QA
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordCategory
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResult
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
 import com.hellodoc.healthcaresystem.model.repository.FastTalkRepository
 import com.hellodoc.healthcaresystem.model.repository.SettingsRepository
-import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
-import com.hellodoc.healthcaresystem.model.roomDb.data.entity.Neo4jPath
-import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEdgeEntity
-import com.hellodoc.healthcaresystem.model.roomDb.data.entity.WordEntity
+import com.hellodoc.healthcaresystem.view.user.home.fasttalk.parseTokenJson
 import com.hellodoc.healthcaresystem.view.user.supportfunction.JsonAssetHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.isNotEmpty
@@ -48,6 +42,9 @@ class FastTalkViewModel @Inject constructor(
 
     private val _wordPronounSimilar = MutableStateFlow<List<WordResult>>(emptyList())
     val wordPronounSimilar: StateFlow<List<WordResult>> get() = _wordPronounSimilar
+
+    private val _quickResponse = MutableStateFlow<List<String>>(emptyList())
+    val quickResponse: StateFlow<List<String>> get() = _quickResponse
 
 
     // Trạng thái loading để UI hiển thị vòng xoay
@@ -190,74 +187,32 @@ class FastTalkViewModel @Inject constructor(
 
 
     // Hàm gọi chính
+    // ========== PUBLIC METHODS ==========
+
     fun getWordSimilar(word: String) {
         viewModelScope.launch {
             try {
-
                 if (!fastTalkRepository.isOnline()) {
-                    println("🌐 Đang offline'")
-                } else {
-                    println("🌐 Đang Online: Gọi API cho từ '$word'")
-
-                    //Thêm data từ assets/datatest.json
-                    val response = fastTalkRepository.getWordSimilar(word)
-
-                    if (!response.isSuccessful || response.body()?.success == false) {
-                        println("API Fail hoặc Success=false: ${response.code()}")
-                        return@launch
-                    }
-
-                    // Lấy results từ JSON
-                    val data = response.body()?.results ?: emptyList()
-                    println("Data nhận được: ${data.size} từ")
-
-                    categorizeWords(data, word)
+                    println("🌐 Đang offline")
+                    return@launch
                 }
+
+                println("🌐 Đang Online: Gọi API cho từ '$word'")
+                val response = fastTalkRepository.getWordSimilar(word)
+
+                if (!response.isSuccessful || response.body()?.success == false) {
+                    println("API Fail hoặc Success=false: ${response.code()}")
+                    return@launch
+                }
+
+                val data = response.body()?.results ?: emptyList()
+                println("Data nhận được: ${data.size} từ")
+
+                categorizeAndUpdateWords(data, word, shouldMerge = false)
             } catch (e: Exception) {
-                println("Lỗi Exception: ${e.message}")
-                e.printStackTrace()
+                handleException("getWordSimilar", e)
             }
         }
-    }
-
-    // Tách logic phân loại ra hàm riêng cho gọn
-    private suspend fun categorizeWords(data: List<WordResult>, originalWord: String) {
-        val verbs = mutableListOf<WordResult>()
-        val nouns = mutableListOf<WordResult>()
-        val support = mutableListOf<WordResult>()
-        val pronouns = mutableListOf<WordResult>()
-
-        data.forEach { item ->
-            // posTag từ JSON ví dụ: "R", "V", "Ny", "N"
-            val tag = item.posTag.uppercase()
-
-            when {
-                // Danh từ: Bắt đầu bằng N (N, Np, Nc, Nu, Ny...)
-                tag.startsWith("N") -> nouns.add(item)
-
-                // Động từ: Bắt đầu bằng V
-                tag.startsWith("V") -> verbs.add(item)
-
-                // Đại từ: P
-                tag == "P" -> pronouns.add(item)
-
-                // Các loại khác vào Support (Tính từ A, Trạng từ R, Kết từ C...)
-                // Ví dụ: "sẽ" (R), "đã" (R), "rất" (R) sẽ vào đây
-                else -> support.add(item)
-            }
-        }
-
-        _wordVerbSimilar.value = verbs
-        _wordNounSimilar.value = nouns
-        _wordSupportSimilar.value = support
-        _wordPronounSimilar.value = pronouns
-
-        // Kiểm tra rỗng và tìm kiếm đệ quy (Fallback)
-        // Lưu ý: toLabel phải khớp với quy ước của Backend (ví dụ 'V', 'N', 'A')
-        if (verbs.isEmpty()) searchFallback(originalWord, "V", "verb")
-        if (nouns.isEmpty()) searchFallback(originalWord, "N", "noun")
-        if (support.isEmpty()) searchFallback(originalWord, "A", "support") // Giả sử A đại diện support
-        if (pronouns.isEmpty()) searchFallback(originalWord, "P", "pronoun")
     }
 
     private suspend fun searchFallback(word: String, toLabel: String, groupType: String, depth: Int = 0) {
@@ -287,57 +242,48 @@ class FastTalkViewModel @Inject constructor(
     fun analyzeSentence(text: String) {
         viewModelScope.launch {
             try {
-                // API analyze trả về gì?
-                // Nếu nó trả về structure giống getWordSimilar, ta xử lý tương tự
                 val response = fastTalkRepository.analyzeQuestion(text)
 
-                // Giả sử logic là tìm đại từ trong câu hỏi để thêm vào danh sách Pronoun
-                val results = response.body()?.results ?: emptyList()
-
-                println("Analyze: $results")
-
-                val foundPronouns = results.filter { it.posTag == "P" }
-
-                if (foundPronouns.isNotEmpty()) {
-                    val currentList = _wordPronounSimilar.value.toMutableList()
-                    // Merge logic: Thêm vào hoặc update score
-                    foundPronouns.forEach { p ->
-                        val exists = currentList.indexOfFirst { it.word == p.word }
-                        if (exists != -1) {
-                            // Update score (ví dụ cộng thêm)
-                            val old = currentList[exists]
-                            currentList[exists] = old.copy(score = old.score + p.score)
-                        } else {
-                            currentList.add(p)
-                        }
-                    }
-                    _wordPronounSimilar.value = currentList
+                if (!response.isSuccessful || response.body()?.success == false) {
+                    println("Analyze API fail")
+                    return@launch
                 }
 
+                val body = response.body()!!
+                val tokens = parseTokenJson(body.answer_tokens_json)
+                val posTags = parseTokenJson(body.answer_posTags_json)
+                val size = minOf(tokens.size, posTags.size)
+
+                val results = (0 until size).map { index ->
+                    WordResult(
+                        word = tokens[index],
+                        score = 1.0,
+                        posTag = posTags[index],
+                        relationType = "sentence"
+                    )
+                }
+
+                categorizeAndUpdateWords(results, shouldMerge = true)
+                logCategorizedWords(results)
             } catch (e: Exception) {
-                println("Lỗi Analyze: ${e.message}")
+                handleException("analyzeSentence", e)
             }
         }
     }
 
-    private val _quickResponse = MutableStateFlow<List<String>>(emptyList())
-    val quickResponse: StateFlow<List<String>> = _quickResponse
-
-    fun findQuickResponse(question: String) { // ✅ Bỏ return type
-        viewModelScope.launch { // ✅ Thêm viewModelScope.launch
+    fun findQuickResponse(question: String) {
+        viewModelScope.launch {
             println("🔍 Tìm kiếm với question: '$question'")
             try {
                 val result = fastTalkRepository.findQuickResponse(question)
                 println("📝 Kết quả tìm được: $result")
                 _quickResponse.value = result
             } catch (e: Exception) {
-                println("❌ Lỗi khi tìm: ${e.message}")
-                e.printStackTrace()
+                handleException("findQuickResponse", e)
             }
         }
     }
 
-    // Lưu câu hỏi-trả lời
     suspend fun insertQuickResponse(question: String, answer: String) {
         println("🔵 Đang lưu: Question='$question', Answer='$answer'")
         try {
@@ -348,14 +294,153 @@ class FastTalkViewModel @Inject constructor(
             val saved = fastTalkRepository.findQuickResponse(question)
             println("🔍 Tìm lại ngay sau khi lưu: $saved")
         } catch (e: Exception) {
-            println("❌ Lỗi khi lưu: ${e.message}")
-            e.printStackTrace()
+            handleException("insertQuickResponse", e)
         }
     }
 
-    suspend fun createQuestionAnswer(question: String, answer: String) = fastTalkRepository.createQuestionAnswer(question, answer)
+    suspend fun updateQA(request: QA) {
+        try {
+            val response = fastTalkRepository.processQuestionAnswer(request)
+            if (response.isSuccessful) {
+                println("✅ Lưu question và answer thành công")
+            } else {
+                println("❌ Lỗi khi lưu question và answer: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            handleException("updateQA", e)
+        }
+    }
+
+    // ========== PRIVATE HELPER METHODS ==========
+
+    /**
+     * Phân loại từ theo POS tag và cập nhật StateFlow
+     * @param shouldMerge: true = merge với dữ liệu cũ, false = thay thế hoàn toàn
+     */
+    private suspend fun categorizeAndUpdateWords(
+        words: List<WordResult>,
+        originalWord: String? = null,
+        shouldMerge: Boolean
+    ) {
+        val categorized = categorizeWordsByPosTag(words)
+
+        if (shouldMerge) {
+            // Merge với dữ liệu cũ
+            _wordVerbSimilar.value = mergeWordLists(_wordVerbSimilar.value, categorized.verbs)
+            _wordNounSimilar.value = mergeWordLists(_wordNounSimilar.value, categorized.nouns)
+            _wordSupportSimilar.value = mergeWordLists(_wordSupportSimilar.value, categorized.support)
+            _wordPronounSimilar.value = mergeWordLists(_wordPronounSimilar.value, categorized.pronouns)
+        } else {
+            // Thay thế hoàn toàn
+            _wordVerbSimilar.value = categorized.verbs
+            _wordNounSimilar.value = categorized.nouns
+            _wordSupportSimilar.value = categorized.support
+            _wordPronounSimilar.value = categorized.pronouns
+
+            // Chỉ gọi fallback khi không merge và có originalWord
+            originalWord?.let { word ->
+                executeFallbackIfNeeded(categorized, word)
+            }
+        }
+    }
+
+    /**
+     * Phân loại danh sách từ theo POS tag
+     */
+    private fun categorizeWordsByPosTag(words: List<WordResult>): CategorizedWords {
+        val verbs = mutableListOf<WordResult>()
+        val nouns = mutableListOf<WordResult>()
+        val support = mutableListOf<WordResult>()
+        val pronouns = mutableListOf<WordResult>()
+
+        words.forEach { item ->
+            val tag = item.posTag.uppercase()
+            when {
+                tag.startsWith("N") -> nouns.add(item)
+                tag.startsWith("V") -> verbs.add(item)
+                tag == "P" -> pronouns.add(item)
+                else -> support.add(item)
+            }
+        }
+
+        return CategorizedWords(verbs, nouns, support, pronouns)
+    }
+
+    /**
+     * Merge hai danh sách từ (ưu tiên từ mới)
+     */
+    private fun mergeWordLists(
+        oldList: List<WordResult>,
+        newList: List<WordResult>
+    ): List<WordResult> {
+        val map = oldList.associateBy { it.word }.toMutableMap()
+        newList.forEach { map[it.word] = it }
+        return map.values.toList()
+    }
+
+    /**
+     * Thực hiện fallback cho các category rỗng
+     */
+    private suspend fun executeFallbackIfNeeded(categorized: CategorizedWords, word: String) {
+        if (categorized.verbs.isEmpty()) {
+            searchFallback(word, "V", WordCategory.VERB)
+        }
+        if (categorized.nouns.isEmpty()) {
+            searchFallback(word, "N", WordCategory.NOUN)
+        }
+        if (categorized.support.isEmpty()) {
+            searchFallback(word, "A", WordCategory.SUPPORT)
+        }
+        if (categorized.pronouns.isEmpty()) {
+            searchFallback(word, "P", WordCategory.PRONOUN)
+        }
+    }
+
+    private suspend fun searchFallback(
+        word: String,
+        toLabel: String,
+        category: WordCategory,
+        depth: Int = 0
+    ) {
+        if (depth >= 3) return // Giới hạn độ sâu để tránh lag
+
+        try {
+            val response = fastTalkRepository.getWordByLabel(word, toLabel)
+            val data = response.body()?.results ?: emptyList()
+
+            if (data.isNotEmpty()) {
+                updateStateFlowByCategory(category, data)
+                println("✅ Fallback thành công cho ${category.displayName} với ${data.size} từ")
+            }
+        } catch (e: Exception) {
+            println("❌ Lỗi Fallback ${category.displayName}: ${e.message}")
+        }
+    }
+
+    private fun updateStateFlowByCategory(category: WordCategory, data: List<WordResult>) {
+        when (category) {
+            WordCategory.VERB -> _wordVerbSimilar.value = data
+            WordCategory.NOUN -> _wordNounSimilar.value = data
+            WordCategory.SUPPORT -> _wordSupportSimilar.value = data
+            WordCategory.PRONOUN -> _wordPronounSimilar.value = data
+        }
+    }
+
+    private fun logCategorizedWords(words: List<WordResult>) {
+        val categorized = categorizeWordsByPosTag(words)
+        println("✅ Added from sentence:")
+        println("VERB=${categorized.verbs.map { it.word }}")
+        println("NOUN=${categorized.nouns.map { it.word }}")
+        println("PRON=${categorized.pronouns.map { it.word }}")
+        println("ADV=${categorized.support.map { it.word }}")
+    }
+
+    private fun handleException(functionName: String, e: Exception) {
+        println("❌ Lỗi $functionName: ${e.message}")
+        e.printStackTrace()
+    }
 
 
     // Hàm lấy dự đoán (kết nối với UI)
-    fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
+    suspend fun getPredictions(word: String) = fastTalkRepository.getPredictions(word)
 }

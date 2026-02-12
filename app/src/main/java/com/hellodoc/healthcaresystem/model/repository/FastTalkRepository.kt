@@ -3,6 +3,9 @@ package com.hellodoc.healthcaresystem.model.repository
 import androidx.room.withTransaction
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AnalyzeRequest
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.QA
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ResponseFromAnalyst
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResponse
 import com.hellodoc.healthcaresystem.model.networksupport.NetworkHelper
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.QuickResponseDao
 import com.hellodoc.healthcaresystem.model.roomDb.data.dao.WordGraphDao
@@ -10,23 +13,39 @@ import com.hellodoc.healthcaresystem.model.roomDb.data.database.AppDatabase
 import com.hellodoc.healthcaresystem.model.roomDb.data.entity.* // Import hết entity
 import javax.inject.Inject // Lưu ý: Dùng javax.inject hoặc jakarta.inject tuỳ version Hilt
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.WordResultResponse
+import kotlinx.coroutines.flow.Flow
+import retrofit2.Response
 
-class FastTalkRepository @Inject constructor(
+interface FastTalkRepository {
+    suspend fun isOnline(): Boolean
+    suspend fun getWordSimilar(word: String): Response<WordResponse>
+    suspend fun getWordByLabel(word: String, toLabel: String): Response<WordResponse>
+    suspend fun getPredictions(input: String): Flow<List<WordPrediction>>
+    suspend fun saveNeo4jDataToRoom(responseList: List<WordResultResponse>)
+    suspend fun insertQuickResponse(question: String, answer: String)
+    suspend fun deleteQuickResponse(quickResponse: QuickResponseEntity)
+    suspend fun findQuickResponse(question: String): List<String>
+    suspend fun analyzeQuestion(text: String): Response<ResponseFromAnalyst>
+    suspend fun processQuestionAnswer(request: QA): Response<ResponseFromAnalyst>
+    suspend fun getGraphData(): Response<List<WordResultResponse>?>
+
+}
+class FastTalkRepositoryImpl @Inject constructor(
     private val networkHelper: NetworkHelper, // <--- 1. Inject thêm NetworkHelper
     private val fastTalkService: FastTalkService,
     private val quickResponseDao: QuickResponseDao,
     private val wordDao: WordGraphDao,
     private val database: AppDatabase // <--- 1. Inject Database vào đây
-) {
+): FastTalkRepository {
 
-    fun isOnline(): Boolean = networkHelper.isNetworkAvailable()
+    override suspend fun isOnline(): Boolean = networkHelper.isNetworkAvailable()
 
 
 
-    suspend fun getWordSimilar(word: String) = fastTalkService.getWordSimilar(word)
+    override suspend fun getWordSimilar(word: String) = fastTalkService.getWordSimilar(word)
 
     // Quick Response functions
-    suspend fun insertQuickResponse(question: String, answer: String) {
+    override suspend fun insertQuickResponse(question: String, answer: String) {
         val entity = QuickResponseEntity(
             question = question,
             response = answer
@@ -34,13 +53,13 @@ class FastTalkRepository @Inject constructor(
         quickResponseDao.insert(entity)
     }
 
-    suspend fun getWordByLabel(word: String, toLabel: String) =
+    override suspend fun getWordByLabel(word: String, toLabel: String) =
         fastTalkService.getWordByLabel(word, toLabel)
 
-    fun getPredictions(input: String) = wordDao.getNextWordPredictions(input)
+    override suspend fun getPredictions(input: String) = wordDao.getNextWordPredictions(input)
 
     // 2. Hàm lưu dữ liệu từ Neo4j
-    suspend fun saveNeo4jDataToRoom(responseList: List<WordResultResponse>) {
+    override suspend fun saveNeo4jDataToRoom(responseList: List<WordResultResponse>) {
         println("🚀 Bắt đầu lưu ${responseList.size} dòng vào Room...")
 
         try {
@@ -104,17 +123,17 @@ class FastTalkRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteQuickResponse(quickResponse: QuickResponseEntity) =
+    override suspend fun deleteQuickResponse(quickResponse: QuickResponseEntity) =
         quickResponseDao.delete(quickResponse)
 
-    suspend fun findQuickResponse(question: String): List<String> =
+    override suspend fun findQuickResponse(question: String): List<String> =
         quickResponseDao.findByQuestion(question)
 
-    suspend fun analyzeQuestion(text: String) =
+    override suspend fun analyzeQuestion(text: String): Response<ResponseFromAnalyst> =
         fastTalkService.analyzeQuestion(AnalyzeRequest(text))
 
-    suspend fun getGraphData()= fastTalkService.getGraphData()
+    override suspend fun processQuestionAnswer(request: QA) = fastTalkService.processQuestionAnswer(request)
 
-    suspend fun createQuestionAnswer(question: String, answer: String) = fastTalkService.processQuestionAnswer(question, answer)
+    override suspend fun getGraphData()= fastTalkService.getGraphData()
 
 }

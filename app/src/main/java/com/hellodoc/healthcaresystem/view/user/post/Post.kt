@@ -711,7 +711,7 @@ fun SkeletonAsyncImage(url: String, modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Gray)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             )
         }
     )

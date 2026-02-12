@@ -123,7 +123,7 @@ class PostViewModel @Inject constructor(
                     println("✅ Nhận được ${newPosts.size} posts, hasMore=$hasMore")
 
                     if (append) {
-                        _posts.value = _posts.value + newPosts
+                        _posts.value += newPosts
                     } else {
                         _posts.value = newPosts
                     }

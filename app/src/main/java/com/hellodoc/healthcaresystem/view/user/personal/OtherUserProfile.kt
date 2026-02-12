@@ -59,6 +59,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.skeleton.OtherUserSkeleton
 import com.hellodoc.healthcaresystem.skeleton.PostSkeleton
 import com.hellodoc.healthcaresystem.skeleton.UserSkeleton
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
@@ -250,7 +251,7 @@ fun ProfileOtherUserPage(
         }
     } else {
         Column {
-            UserSkeleton()
+            OtherUserSkeleton()
             PostSkeleton()
         }
     }

@@ -96,7 +96,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _signInState.update { it.copy(isLoading = true, errorMessage = null) }
             
-            userRepository.loginGoogle(idToken)
+            userRepository.loginGoogle(idToken,"")
                 .onSuccess { response ->
                     saveToken(response.accessToken) // SAVE TOKEN HERE
                     val role = extractRoleFromToken(response.accessToken)
@@ -264,18 +264,16 @@ class AuthViewModel @Inject constructor(
         _otpState.update { it.copy(secondsLeft = secondsLeft, canResend = canResend) }
     }
     
-    fun verifyOtp() {
-        val state = _otpState.value
-        
-        if (state.otp.isBlank()) {
-            _otpState.update { it.copy(errorMessage = "Vui lòng nhập mã OTP") }
-            return
-        }
+    fun verifyOtp(
+        email: String,
+        otp: String
+    ) {
+
         
         viewModelScope.launch {
             _otpState.update { it.copy(isLoading = true, errorMessage = null) }
             
-            userRepository.verifyOtp(state.email, state.otp)
+            userRepository.verifyOtp(email, otp)
                 .onSuccess {
                     _otpState.update { it.copy(isLoading = false, isVerified = true) }
                 }

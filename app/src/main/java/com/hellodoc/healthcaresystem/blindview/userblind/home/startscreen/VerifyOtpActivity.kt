@@ -90,7 +90,10 @@ class VerifyOtpActivity : BaseActivity() {
                     secondsLeft = uiState.secondsLeft,
                     isCanResend = uiState.canResend,
                     isLoading = uiState.isLoading,
-                    onVerify = viewModel::verifyOtp,
+                    onVerify = { viewModel.verifyOtp(
+                        email = email,
+                        otp = uiState.otp
+                    ) },
                     onResend = { viewModel.resendOtp(isSignUp = false) },
                     onBack = { finish() }
                 )

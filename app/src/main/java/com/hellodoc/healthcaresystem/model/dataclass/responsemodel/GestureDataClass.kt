@@ -145,7 +145,7 @@ data class Rotation(
                 val openParenIndex = trimmed.indexOf('(')
 
                 if (openParenIndex > 0) {
-                    val boneName = trimmed.substring(0, openParenIndex).trim()
+                    val boneName = trimmed.take(openParenIndex).trim()
                     // Phần còn lại chính là data để parse rotation
                     val rotationData = trimmed.substring(openParenIndex)
 
