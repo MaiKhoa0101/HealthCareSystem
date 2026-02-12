@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -140,6 +141,7 @@ class UserViewModel @Inject constructor(
     fun updateUser(id: String, updatedUser: UpdateUserInput, context: Context){
         viewModelScope.launch {
             try {
+                _isUpdating.value = true
                 _isUserLoading.value = true
                 Log.d("UserViewModel", "Đang cập nhật user có ID: ${id}")
                 println("===== Thông tin gửi lên =====")
@@ -176,19 +178,24 @@ class UserViewModel @Inject constructor(
                 )
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
+                    Toast.makeText(context, "Cập nhật thông tin thành công!", Toast.LENGTH_SHORT).show()
                     getAllUsers()
                     _updateSuccess.value = true
                 }
                 else {
-                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("UserViewModel", "Cập nhật thất bại: $errorBody")
+                    Toast.makeText(context, "Cập nhật thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
                     _updateSuccess.value = false
                 }
-                _isUpdating.value = false
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
-                _updateSuccess.value = false }
+                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}", e)
+                Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                _updateSuccess.value = false
+            }
             finally {
                 _isUpdating.value = false
+                _isUserLoading.value = false
             }
         }
     }
