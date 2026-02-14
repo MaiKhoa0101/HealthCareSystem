@@ -55,16 +55,16 @@ fun ClarifyManagerScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Tiêu đề
+        Spacer(modifier = Modifier.height(100.dp))
 
-            Text(
-                text = "Xác thực tài khoản",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Xác thực tài khoản",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
-            ClarifyTable(accountList, doctorViewModel, navController = navController)
+        ClarifyTable(accountList, doctorViewModel, navController = navController)
 
     }
 }
@@ -75,7 +75,7 @@ fun ClarifyTable(clarifies: List<PendingDoctorResponse>, doctorViewModel: Doctor
         Column {
             Row(
                 modifier = Modifier
-                    .background(Color(0xFF2B544F))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(vertical = 8.dp)
             ) {
                 TableCell("ID", isHeader = true, width = 60.dp)

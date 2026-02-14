@@ -41,9 +41,11 @@ fun AppointmentManagerScreen(
 
     LazyColumn(modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)) {
-
+        .padding(16.dp)
+    ) {
         item {
+            Spacer(modifier = Modifier.height(100.dp))
+
             Text("Danh sách lịch hẹn", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 

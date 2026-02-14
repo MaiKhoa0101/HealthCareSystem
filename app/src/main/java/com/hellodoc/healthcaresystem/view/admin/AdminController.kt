@@ -34,10 +34,11 @@ fun PreviewControllerListScreen() {
 @Composable
 fun ControllerManagerScreen() {
     LazyColumn (
-        modifier = Modifier.background(Color(0xFFF7F8FA))
+        modifier = Modifier
+            .background(Color.White)
     ){
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(100.dp))
 
             Text(
                 modifier = Modifier.padding(10.dp),
