@@ -210,20 +210,8 @@ fun BoxItem(
 
     Column(
         modifier = modifier
-            .offset { IntOffset(0, offsetY.roundToInt()) }
             .alpha(alpha)
-            .clip(
-                if (!isSelected){
-                RoundedCornerShape(20.dp)
-            }else{
-                CircleShape
-            })
-            .background(if (!isSelected) {
-                backgroundColor
-            }else{
-                MaterialTheme.colorScheme.primaryContainer
-            })
-            .padding(vertical = 4.dp, horizontal = 12.dp)
+            .clip(CircleShape)
             .clickable {
                 if (nameDirection.isNotEmpty()) {
                     navHostController.navigate(nameDirection) {
@@ -234,10 +222,17 @@ fun BoxItem(
                         launchSingleTop = true
                     }
                 }
-            },
+            }
+            .background(if (!isSelected) {
+                backgroundColor
+            }else{
+                MaterialTheme.colorScheme.primaryContainer
+            })
+            .padding(vertical = 2.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(4.dp))
         Icon(
             imageVector = iconchange,
             contentDescription = null,
@@ -253,6 +248,8 @@ fun BoxItem(
                 color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
             )
         )
+        Spacer(modifier = Modifier.height(4.dp))
+
     }
 }
 
