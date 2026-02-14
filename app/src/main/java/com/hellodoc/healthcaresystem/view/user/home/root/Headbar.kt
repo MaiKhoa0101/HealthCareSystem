@@ -58,20 +58,21 @@ fun HeadBar() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-                        Color.Transparent
-                    )
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = 12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.background,
+                            Color.Transparent
+                        )
+                    )
+                )
                 .padding(horizontal = 20.dp)
                 .padding(top = 16.dp),
             verticalAlignment = Alignment.CenterVertically

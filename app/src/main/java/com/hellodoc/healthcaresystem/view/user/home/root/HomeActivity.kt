@@ -12,6 +12,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +31,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -231,32 +244,61 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
-
         GetFcmInstance()
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
-        var showFullScreenComment by remember { mutableStateOf(false) } // Local state
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                if (showTopBars && !showFullScreenComment) HeadBar()
-            },
-            bottomBar = {
-                if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)
+        var showFullScreenComment by remember { mutableStateOf(false) }
+
+        var isBarsVisible by remember { mutableStateOf(true) }
+
+        val nestedScrollConnection = remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    if (available.y < -15f) isBarsVisible = false
+                    if (available.y > 15f) isBarsVisible = true
+                    return Offset.Zero
+                }
             }
-        ) { paddingValues ->
+        }
+
+        // THAY ĐỔI LỚN: Dùng Box làm Root thay vì Scaffold
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
+        ) {
+            // 1. LỚP ĐÁY: Content (Chiếm full màn hình, không bao giờ bị tính toán lại kích thước)
             NavigationHost(
                 context = context,
                 navHostController = navHostController,
-                modifier = Modifier.padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 onToggleTheme = onToggleTheme,
                 darkTheme = darkTheme
             )
-        }
 
+            // 2. LỚP TRÊN CÙNG (TOP): Nổi đè lên content và chỉ trượt bằng GPU
+            AnimatedVisibility(
+                visible = showTopBars && !showFullScreenComment && isBarsVisible,
+                enter = slideInVertically(initialOffsetY = { -it }), // Bỏ expand đi
+                exit = slideOutVertically(targetOffsetY = { -it }),  // Bỏ shrink đi
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                HeadBar()
+            }
+
+            // 3. LỚP TRÊN CÙNG (BOTTOM)
+            AnimatedVisibility(
+                visible = showFootBars && !showFullScreenComment && isBarsVisible,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it }),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                FootBar(currentRoute, navHostController)
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
