@@ -226,6 +226,7 @@ fun HealthMateHomeScreen(
                             )
                         )
                         .padding(16.dp)
+                        .padding(top = 80.dp)
                 ) {
                     // Premium HelloDoc Welcome Banner
                     Box(

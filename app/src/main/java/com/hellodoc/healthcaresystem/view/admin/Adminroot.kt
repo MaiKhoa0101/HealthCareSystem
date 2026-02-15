@@ -6,12 +6,32 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +44,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import com.hellodoc.healthcaresystem.view.user.home.root.HeadBar
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -132,7 +153,16 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
+    var isBarsVisible by remember { mutableStateOf(true) }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -15f) isBarsVisible = false
+                if (available.y > 15f) isBarsVisible = true
+                return Offset.Zero
+            }
+        }
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -151,31 +181,29 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
             }
         }
     ) {
-        Scaffold(
-            topBar = {
-                HeadbarAdmin(
-                    opendrawer = {
-                        scope.launch {
-                            drawerState.open()
-                        }
-                    }
-                )
-            },
-            content = { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Spacer(modifier = Modifier.height(15.dp))
+
                 NavHost(
+                    modifier = Modifier.fillMaxSize(),
                     navController = navController,
                     startDestination = "Controller",
-                    modifier = Modifier.padding(paddingValues)
                 ) {
                     composable("Controller") {
                         ControllerManagerScreen()
                     }
-                    composable("UserManager"){
+                    composable("UserManager") {
                         UserListScreen()
                     }
-//                    composable("DoctorManager") {
-//                        DoctorListScreen(sharedPreferences = sharedPreferences)
-//                    }
+
                     composable("CreateSpecialty") {
                         CreateSpecialtyScreen()
                     }
@@ -186,9 +214,12 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                         NewsManagerScreen(navController = navController)
                     }
                     composable("CreateNews") {
-                        NewsCreateScreen(sharedPreferences = sharedPreferences, navController = navController)
+                        NewsCreateScreen(
+                            sharedPreferences = sharedPreferences,
+                            navController = navController
+                        )
                     }
-                    composable("PostManager"){
+                    composable("PostManager") {
                         PostManagerScreen()
                     }
                     composable("AppointmentManager") {
@@ -197,7 +228,7 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     composable("ClarifyManager") {
                         ClarifyManagerScreen(navController)
                     }
-                    composable("pendingDoctorDetail/{userId}") {backStackEntry ->
+                    composable("pendingDoctorDetail/{userId}") { backStackEntry ->
                         val userId = backStackEntry.arguments?.getString("userId") ?: ""
                         PendingDoctorDetailScreen(
                             userId = userId,
@@ -207,7 +238,21 @@ fun AdminScreen(sharedPreferences: SharedPreferences) {
                     }
                 }
             }
-        )
+
+            AnimatedVisibility(
+                visible = isBarsVisible,
+                enter = slideInVertically(initialOffsetY = { -it }), // Bỏ expand đi
+                exit = slideOutVertically(targetOffsetY = { -it }),  // Bỏ shrink đi
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                HeadbarAdmin(
+                    opendrawer = {
+                        scope.launch {
+                            drawerState.open()
+                        }
+                    }
+                )
+            }
+        }
     }
 }
-

@@ -58,7 +58,7 @@ fun PendingDoctorDetailScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Avatar + Name
+        Spacer(modifier = Modifier.height(100.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(
                 model = doctor?.avatarURL,

@@ -51,6 +51,8 @@ fun CreateSpecialtyScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        Spacer(modifier = Modifier.height(100.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
