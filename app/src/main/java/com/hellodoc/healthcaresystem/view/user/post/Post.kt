@@ -282,6 +282,16 @@ fun PostHeader(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
+                modifier = Modifier.clickable {
+                    if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
+                        navHostController.navigate("otherUserProfile/${post.userInfo?.id}"){
+                            restoreState = true
+                            launchSingleTop = true
+                        }
+                    } else {
+                        navHostController.navigate("personal")
+                    }
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
@@ -289,40 +299,24 @@ fun PostHeader(
                     contentDescription = "Avatar of ${post.userInfo?.name}",
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.userInfo?.id}"){
-                                    restoreState = true
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                navHostController.navigate("personal")
-                            }
-                        },
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Column(
-                    modifier = Modifier.clickable {
-                        if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.userInfo?.id}")
-                        } else {
-                            navHostController.navigate("personal")
-                        }
-                    }
-                ) {
+                Column() {
                     Text(
                         text = post.userInfo?.name ?: "Người dùng ẩn",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = formatDateTime(post.createdAt),
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -381,7 +375,8 @@ fun PostBody(post: PostResponse){
     Text(
         text = post.content,
         fontSize = 15.sp,
-        modifier = Modifier.padding(start = 8.dp)
+        modifier = Modifier.padding(start = 8.dp),
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 

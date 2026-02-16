@@ -29,13 +29,13 @@ class SpecialtyViewModel @Inject constructor(
     private val _specialties = MutableStateFlow<List<GetSpecialtyResponse>>(emptyList())
     val specialties: StateFlow<List<GetSpecialtyResponse>> get() = _specialties
 
-    fun fetchSpecialties(forceRefresh: Boolean = false) {
-        // Tránh gọi lại nếu đã có dữ liệu và không yêu cầu refresh
-        if(_specialties.value.isNotEmpty() &&forceRefresh) return
-
+    fun fetchSpecialties(forceRefresh: Boolean = true) {
+        println("Force Refresh: $forceRefresh")
+        if(!forceRefresh) return
         viewModelScope.launch {
             try {
                 val response = specialtyRepository.getSpecialties()
+                println("Response cua specialty la: "+response.body())
                 if (response.isSuccessful) {
                     _specialties.value = response.body() ?: emptyList()
                     //println("OK 1" + response.body())

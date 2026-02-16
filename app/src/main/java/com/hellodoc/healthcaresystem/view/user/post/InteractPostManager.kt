@@ -157,6 +157,8 @@ fun CommentButton(
         painter = painterResource(R.drawable.comment),
         contentDescription = "Comment",
         modifier = modifier
-            .size(size)
+            .size(size),
+        tint = MaterialTheme.colorScheme.onBackground
+
     )
 }
