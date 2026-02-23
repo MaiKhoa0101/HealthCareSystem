@@ -3,7 +3,6 @@ package com.hellodoc.healthcaresystem.view.user.home.detection
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -20,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -30,9 +30,13 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.DetectionData
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Rotation
 import com.hellodoc.healthcaresystem.view.model_human.updateBoneRotation
+import com.hellodoc.healthcaresystem.view.user.supportfunction.PoseDetector
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import com.hellodoc.healthcaresystem.viewmodel.DetectionViewModel
 import io.github.sceneview.Scene
@@ -46,6 +50,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -84,11 +89,41 @@ fun CameraDetectionContent(
     val scope = rememberCoroutineScope()
     
     val previewView = remember { PreviewView(context) }
-    val imageCapture = remember { ImageCapture.Builder().build() }
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
     val detectionData by viewModel.detectionData.collectAsState()
     val isDetecting by viewModel.isDetecting.collectAsState()
+
+    var poseResults by remember { mutableStateOf<PoseLandmarkerResult?>(null) }
+    var handResults by remember { mutableStateOf<HandLandmarkerResult?>(null) }
+    var faceResults by remember { mutableStateOf<FaceLandmarkerResult?>(null) }
+    val modelWarnings = remember { mutableStateListOf<String>() }
+
+    val poseDetector = remember {
+        PoseDetector(
+            context = context,
+            onPoseResults = { result -> 
+                poseResults = result
+            },
+            onHandResults = { result ->
+                handResults = result
+            },
+            onFaceResults = { result ->
+                faceResults = result
+            },
+            onInitializationError = { error ->
+                if (!modelWarnings.contains(error)) {
+                    modelWarnings.add(error)
+                }
+            }
+        )
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            poseDetector.close()
+        }
+    }
 
     // 3D Resources
     val is3DReady by SceneViewManager.initializationState.collectAsState()
@@ -123,42 +158,73 @@ fun CameraDetectionContent(
         applyDetectionDataToBones(engine, instance, data)
     }
 
-    // Capture logic (every 1 second)
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            delay(1000)
-            if (!isDetecting) {
-                captureAndDetect(context, imageCapture, cameraExecutor, viewModel)
-            }
-        }
-    }
+    var lastCaptureTime by remember { mutableLongStateOf(0L) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Camera Preview
+    // Stable camera setup
+    LaunchedEffect(lifecycleOwner) {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(previewView.surfaceProvider)
+            }
+
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor) { imageProxy ->
+                        val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                        val bitmap = imageProxy.toBitmap()
+                        
+                        // 1. Real-time overlay
+                        poseDetector.detectPose(bitmap, rotationDegrees, true)
+                        
+                        // 2. Periodic API detection (Throttled)
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastCaptureTime > 5000 && !isDetecting) {
+                            lastCaptureTime = currentTime
+                            saveBitmapToFile(context, bitmap)?.let { file ->
+                                viewModel.detectJoints(file)
+                            }
+                        }
+                        
+                        imageProxy.close()
+                    }
+                }
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_FRONT_CAMERA,
+                    preview,
+                    imageAnalysis
+                )
+            } catch (e: Exception) {
+                Log.e("Detection3D", "Camera binding failed", e)
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Camera Preview (Stable)
         AndroidView(
             factory = { previewView },
             modifier = Modifier.fillMaxSize()
         ) {
-            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-            cameraProviderFuture.addListener({
-                val cameraProvider = cameraProviderFuture.get()
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-                try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        CameraSelector.DEFAULT_FRONT_CAMERA,
-                        preview,
-                        imageCapture
-                    )
-                } catch (e: Exception) {
-                    Log.e("Detection3D", "Camera binding failed", e)
-                }
-            }, ContextCompat.getMainExecutor(context))
+            // Update block is now empty to prevent re-binding on recomposition
         }
+
+        // Real-time Skeleton Overlay
+        PoseOverlay(
+            poseResults = poseResults,
+            handResults = handResults,
+            faceResults = faceResults
+        )
 
         // Overlay 3D Model Room (Bottom Right)
         if (is3DReady && modelInstance != null && characterNode != null) {
@@ -196,6 +262,29 @@ fun CameraDetectionContent(
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
 
+        // Model Loading Warnings
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .padding(top = 60.dp)
+        ) {
+            modelWarnings.forEach { warning ->
+                Surface(
+                    color = Color.Red.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    Text(
+                        text = warning,
+                        color = Color.White,
+                        modifier = Modifier.padding(8.dp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+
         // Processing Indicator
         if (isDetecting) {
             CircularProgressIndicator(
@@ -207,35 +296,22 @@ fun CameraDetectionContent(
                 strokeWidth = 2.dp
             )
         }
+        }
     }
 }
 
-private fun captureAndDetect(
-    context: Context,
-    imageCapture: ImageCapture,
-    executor: ExecutorService,
-    viewModel: DetectionViewModel
-) {
-    val photoFile = File(
-        context.cacheDir,
-        "detection_capture.jpg"
-    )
-
-    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-    imageCapture.takePicture(
-        outputOptions,
-        executor,
-        object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                viewModel.detectJoints(photoFile)
-            }
-
-            override fun onError(exception: ImageCaptureException) {
-                Log.e("Detection3D", "Photo capture failed: ${exception.message}", exception)
-            }
-        }
-    )
+private fun saveBitmapToFile(context: Context, bitmap: android.graphics.Bitmap): File? {
+    return try {
+        val file = File(context.cacheDir, "detection_api_frame.jpg")
+        val out = FileOutputStream(file)
+        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+        out.flush()
+        out.close()
+        file
+    } catch (e: Exception) {
+        Log.e("Detection3D", "Error saving bitmap to file", e)
+        null
+    }
 }
 
 fun applyDetectionDataToBones(
