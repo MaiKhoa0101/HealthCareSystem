@@ -84,6 +84,7 @@ import com.hellodoc.healthcaresystem.model.socket.SocketManager
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import com.hellodoc.healthcaresystem.view.user.otherUI.SignLanguageScreen
+import com.hellodoc.healthcaresystem.view.user.home.detection.Detection3DScreen
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import javax.inject.Inject
@@ -486,6 +487,9 @@ class HomeActivity : BaseActivity() {
                 }
                 composable("sign_language") {
                     SignLanguageScreen()
+                }
+                composable("detection_3d") {
+                    Detection3DScreen(navHostController)
                 }
 
             }
