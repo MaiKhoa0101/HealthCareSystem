@@ -17,6 +17,7 @@ import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
+import com.hellodoc.healthcaresystem.model.api.DetectionApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,6 +34,7 @@ object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
     const val BASE_URL = "http://192.168.1.10:4000"
+    const val BASE_URL_DETECTION = "https://lorriane-noncongregative-benson.ngrok-free.dev/"
 
 
     @Provides
@@ -88,6 +90,17 @@ object RetrofitInstance {
     @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
 
     @Provides fun provideGestureCode(retrofit: Retrofit): GestureCodeService = retrofit.create(GestureCodeService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDetectionApiService(client: OkHttpClient): DetectionApiService {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL_DETECTION)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(DetectionApiService::class.java)
+    }
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()
