@@ -77,7 +77,6 @@ fun Detection3DScreen(
         }
     }
 }
-
 @SuppressLint("RestrictedApi")
 @Composable
 fun CameraDetectionContent(
@@ -87,8 +86,17 @@ fun CameraDetectionContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    
-    val previewView = remember { PreviewView(context) }
+
+    // ✅ Ép PreviewView dùng TextureView thay vì SurfaceView
+    // SurfaceView luôn render trên cùng (z-order cao nhất) bất kể Compose layout
+    // TextureView render như một texture bình thường, cho phép Compose đè lên
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+        }
+    }
+
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
     val detectionData by viewModel.detectionData.collectAsState()
@@ -102,27 +110,17 @@ fun CameraDetectionContent(
     val poseDetector = remember {
         PoseDetector(
             context = context,
-            onPoseResults = { result -> 
-                poseResults = result
-            },
-            onHandResults = { result ->
-                handResults = result
-            },
-            onFaceResults = { result ->
-                faceResults = result
-            },
+            onPoseResults = { result -> poseResults = result },
+            onHandResults = { result -> handResults = result },
+            onFaceResults = { result -> faceResults = result },
             onInitializationError = { error ->
-                if (!modelWarnings.contains(error)) {
-                    modelWarnings.add(error)
-                }
+                if (!modelWarnings.contains(error)) modelWarnings.add(error)
             }
         )
     }
 
     DisposableEffect(Unit) {
-        onDispose {
-            poseDetector.close()
-        }
+        onDispose { poseDetector.close() }
     }
 
     // 3D Resources
@@ -149,20 +147,16 @@ fun CameraDetectionContent(
         }
     }
 
-    // Apply rotation data to bones
     LaunchedEffect(detectionData) {
         val data = detectionData ?: return@LaunchedEffect
         val engine = SceneViewManager.getEngine() ?: return@LaunchedEffect
         val instance = modelInstance ?: return@LaunchedEffect
-        
         applyDetectionDataToBones(engine, instance, data)
     }
 
     var lastCaptureTime by remember { mutableLongStateOf(0L) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Camera Preview
-    // Stable camera setup
+    // ✅ Camera LaunchedEffect đặt NGOÀI Box
     LaunchedEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
@@ -172,18 +166,17 @@ fun CameraDetectionContent(
             }
 
             val imageAnalysis = ImageAnalysis.Builder()
+                .setTargetResolution(android.util.Size(640, 480))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor) { imageProxy ->
                         val rotationDegrees = imageProxy.imageInfo.rotationDegrees
                         val bitmap = imageProxy.toBitmap()
-                        
-                        // 1. Real-time overlay
+
                         poseDetector.detectPose(bitmap, rotationDegrees, true)
-                        
-                        // 2. Periodic API detection (Throttled)
+
                         val currentTime = System.currentTimeMillis()
                         if (currentTime - lastCaptureTime > 5000 && !isDetecting) {
                             lastCaptureTime = currentTime
@@ -191,7 +184,7 @@ fun CameraDetectionContent(
                                 viewModel.detectJoints(file)
                             }
                         }
-                        
+
                         imageProxy.close()
                     }
                 }
@@ -211,22 +204,22 @@ fun CameraDetectionContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Camera Preview (Stable)
+
+        // Layer 1: Camera Preview dùng TextureView (COMPATIBLE mode)
+        // ✅ COMPATIBLE mode = TextureView → Compose có thể đè lên được
         AndroidView(
             factory = { previewView },
             modifier = Modifier.fillMaxSize()
-        ) {
-            // Update block is now empty to prevent re-binding on recomposition
-        }
+        )
 
-        // Real-time Skeleton Overlay
+        // Layer 2: Skeleton Overlay
         PoseOverlay(
             poseResults = poseResults,
             handResults = handResults,
             faceResults = faceResults
         )
 
-        // Overlay 3D Model Room (Bottom Right)
+        // Layer 3: Scene 3D — nằm trên camera vì TextureView không chiếm z-order đặc biệt
         if (is3DReady && modelInstance != null && characterNode != null) {
             Box(
                 modifier = Modifier
@@ -252,17 +245,18 @@ fun CameraDetectionContent(
             }
         }
 
-        // Back Button
+        // Layer 4: Back Button
         IconButton(
             onClick = { navHostController.popBackStack() },
             modifier = Modifier
+                .align(Alignment.TopStart)
                 .padding(16.dp)
                 .background(Color.Black.copy(alpha = 0.5f), CircleShape)
         ) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
 
-        // Model Loading Warnings
+        // Layer 4: Warnings
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -285,7 +279,7 @@ fun CameraDetectionContent(
             }
         }
 
-        // Processing Indicator
+        // Layer 4: Processing Indicator
         if (isDetecting) {
             CircularProgressIndicator(
                 modifier = Modifier
@@ -296,10 +290,8 @@ fun CameraDetectionContent(
                 strokeWidth = 2.dp
             )
         }
-        }
     }
 }
-
 private fun saveBitmapToFile(context: Context, bitmap: android.graphics.Bitmap): File? {
     return try {
         val file = File(context.cacheDir, "detection_api_frame.jpg")
