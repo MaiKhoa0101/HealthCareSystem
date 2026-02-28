@@ -14,6 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -42,6 +43,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.auth0.android.jwt.JWT
 import com.hellodoc.healthcaresystem.R
@@ -86,8 +89,10 @@ fun NewsCreateScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
+        Spacer(modifier = Modifier.height(100.dp))
+
         // Header
         Box(
             modifier = Modifier
@@ -265,23 +270,17 @@ fun NewsCreateScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsManagerScreen(
-    navController: NavController
+    navController: NavHostController
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Button(
-            onClick = { navController.navigate("CreateNews") },
-            modifier = Modifier.align(Alignment.End).padding(16.dp)
-        ) {
-            Text("+ Tạo tin tức mới")
-        }
-
-        NewsListScreen()
+        NewsListScreen(navController)
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsListScreen(
+    navController : NavController,
     newsViewModel: NewsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
@@ -291,34 +290,41 @@ fun NewsListScreen(
         newsViewModel.getAllNews()
     }
 
-    Column(
-        modifier = modifier.padding(16.dp),
+    Row(
+        modifier= Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 90.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Danh sách tin tức",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Button(
+            onClick = { navController.navigate("CreateNews") },
+        ) {
+            Text("+ Tạo tin mới")
+        }
+    }
+    LazyColumn (
+        modifier = modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-        Text("Danh sách tin tức", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-
         if (newsList.isEmpty()) {
-            EmptyPostList()
+            item{
+                EmptyPostList()
+            }
         } else {
-            NewsList(news = newsList, newsViewModel = newsViewModel)
+            items(newsList) {item ->
+                NewsItem(news = item, newsViewModel = newsViewModel)
+            }
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NewsList(news: List<NewsResponse>, newsViewModel: NewsViewModel) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
-        itemsIndexed(news) { index, item ->
-            NewsItem(id = index + 1, news = item, newsViewModel = newsViewModel)
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel = hiltViewModel()) {
+fun NewsItem(news: NewsResponse, newsViewModel: NewsViewModel = hiltViewModel()) {
     var showDetail by remember { mutableStateOf(false) }
     var showImageDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -332,322 +338,309 @@ fun NewsItem(id: Int, news: NewsResponse, newsViewModel: NewsViewModel = hiltVie
     val commentsCount = comments.size
 
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(0.8f))
+                .padding(8.dp)
         ) {
-            Card(
+            Text(
+                text = "Tiêu đề: ${news.title}",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Người tạo: Admin",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Bold
+
+            )
+            Text(
+                text = "Số lượng ảnh: ${news.media.size}",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Bold
+
+            )
+            Text(
+                text = "Ngày tạo: ${news.createdAt.timeInVietnam()}",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Bold
+
+            )
+
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(28.dp.times(6))
-                    .clickable { showDetail = true },
-                shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    bottomStart = 16.dp,
-                    topEnd = 0.dp,
-                    bottomEnd = 0.dp
-                ),
-                elevation = CardDefaults.cardElevation(5.dp)
+                    .fillMaxSize()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                IconButton(
+                    onClick = { showImageDialog = true },
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    Text(
-                        text = "ID: $id",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_image),
+                        contentDescription = "Ảnh",
+                        modifier = Modifier.size(30.dp)
                     )
-                    Text(
-                        text = "Tiêu đề: ${news.title}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                }
+
+                IconButton(
+                    onClick = {
+                        isCheckingComments = !isCheckingComments
+                        if (isCheckingComments) {
+                            newsViewModel.getComments(news.id)
+                        }
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.comment),
+                        contentDescription = "Bình luận",
+                        modifier = Modifier.size(30.dp)
                     )
-                    Text(
-                        text = "Người tạo: Admin",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Số lượng ảnh: ${news.media.size}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Ngày tạo: ${news.createdAt.timeInVietnam()}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                }
+
+                IconButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.minus),
+                        contentDescription = "Xoá",
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             }
-
-            Card(
-                modifier = Modifier
-                    .height(28.dp.times(6))
-                    .width(100.dp),
-                shape = RoundedCornerShape(
-                    topStart = 0.dp,
-                    bottomStart = 0.dp,
-                    topEnd = 16.dp,
-                    bottomEnd = 16.dp
-                ),
-                elevation = CardDefaults.cardElevation(5.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Cyan)
-            ) {
-                Column(
+            if (isCheckingComments && comments.isNotEmpty()) {
+                LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .height(300.dp)
                 ) {
-                    IconButton(
-                        onClick = { showImageDialog = true },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_image),
-                            contentDescription = "Ảnh",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            isCheckingComments = !isCheckingComments
-                            if (isCheckingComments) {
-                                newsViewModel.getComments(news.id)
-                            }
-                                  },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.comment),
-                            contentDescription = "Bình luận",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.minus),
-                            contentDescription = "Xoá",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-            }
-        }
-        if (isCheckingComments && comments.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            ) {
-                itemsIndexed(comments) { index, comment ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Card(
+                    itemsIndexed(comments) { index, comment ->
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .height(29.dp.times(4))
-                                .clickable { showCommentsDialog = true },
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(2.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp) // Space between text items
-                            ) {
-                                Text(
-                                    text = "ID: ${index + 1}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 15.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = "Tên người bình luận: ${comment.user.name}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 15.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = "Nội dung: ${comment.content}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 15.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = "Ngày tạo: ${comment.createdAt.timeInVietnam()}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 15.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                            }
-                        Card(
-                            modifier = Modifier
-                                .height(29.dp.times(4)) // Match the height of the first card
-                                .width(100.dp), // Fixed width for the buttons card
-                            shape = RoundedCornerShape(
-                                topStart = 0.dp,
-                                bottomStart = 0.dp,
-                                topEnd = 16.dp,
-                                bottomEnd = 16.dp
-                            ),
-                            elevation = CardDefaults.cardElevation(2.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFE0F7FA) // Màu xanh nhạt dễ nhìn
-                            )
-                        ) {
-                            Row(
+                            Card(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.Center, // Center the buttons
-                                verticalAlignment = Alignment.CenterVertically
+                                    .weight(1f)
+                                    .height(29.dp.times(4))
+                                    .clickable { showCommentsDialog = true },
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(2.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
                             ) {
-                                IconButton(
-                                    onClick = { newsViewModel.deleteComment(comment.id, news.id) },
-                                    modifier = Modifier.size(40.dp)
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp) // Space between text items
                                 ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.minus),
-                                        contentDescription = "Remove",
-                                        tint = Color.Unspecified,
-                                        modifier = Modifier.size(30.dp)
+                                    Text(
+                                        text = "ID: ${index + 1}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 15.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Tên người bình luận: ${comment.user.name}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 15.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Nội dung: ${comment.content}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 15.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Ngày tạo: ${comment.createdAt.timeInVietnam()}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 15.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
-                        }
-                    }
-
-
-                    if (showCommentsDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showCommentsDialog = false },
-                            confirmButton = {
-                                TextButton(onClick = { showCommentsDialog = false }) {
-                                    Text("Đóng")
-                                }
-                            },
-                            title = { Text("Chi tiết bình luận") },
-                            text = {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    modifier = Modifier.verticalScroll(rememberScrollState())
+                            Card(
+                                modifier = Modifier
+                                    .height(29.dp.times(4)) // Match the height of the first card
+                                    .width(100.dp), // Fixed width for the buttons card
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    bottomStart = 0.dp,
+                                    topEnd = 16.dp,
+                                    bottomEnd = 16.dp
+                                ),
+                                elevation = CardDefaults.cardElevation(2.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFE0F7FA) // Màu xanh nhạt dễ nhìn
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.Center, // Center the buttons
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("ID: ${index + 1}", fontSize = 15.sp)
-                                    Text("Tên người bình luận: ${comment.user.name}", fontSize = 15.sp)
-                                    Text("Nội dung: ${comment.content}", fontSize = 15.sp)
-                                    Text("Ngày tạo: ${comment.createdAt.timeInVietnam()}", fontSize = 15.sp)
+                                    IconButton(
+                                        onClick = {
+                                            newsViewModel.deleteComment(
+                                                comment.id,
+                                                news.id
+                                            )
+                                        },
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.minus),
+                                            contentDescription = "Remove",
+                                            tint = Color.Unspecified,
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
                                 }
                             }
-                        )
-                    }
-                }
+                        }
 
-                }
-            }
-        }
 
-        if (showDetail) {
-            AlertDialog(
-                onDismissRequest = { showDetail = false },
-                confirmButton = {
-                    TextButton(onClick = { showDetail = false }) {
-                        Text("Đóng")
-                    }
-                },
-                title = { Text("Chi tiết tin tức") },
-                text = {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        item {
-                            Text("Tiêu đề: ${news.title}", fontSize = 15.sp)
-                        }
-                        item {
-                            Text("Nội dung: ${news.content}", fontSize = 15.sp)
-                        }
-                        item {
-                            Text("Ngày tạo: ${news.createdAt.timeInVietnam()}", fontSize = 15.sp)
-                        }
-                    }
-                }
-            )
-        }
-        if (showImageDialog) {
-            AlertDialog(
-                onDismissRequest = { showImageDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showImageDialog = false }) {
-                        Text("Đóng")
-                    }
-                },
-                title = { Text("Ảnh bài viết") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        news.media.forEach { imageUrl ->
-                            Image(
-                                painter = rememberAsyncImagePainter(imageUrl),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Inside
+                        if (showCommentsDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showCommentsDialog = false },
+                                confirmButton = {
+                                    TextButton(onClick = { showCommentsDialog = false }) {
+                                        Text("Đóng")
+                                    }
+                                },
+                                title = { Text("Chi tiết bình luận") },
+                                text = {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        modifier = Modifier.verticalScroll(rememberScrollState())
+                                    ) {
+                                        Text("ID: ${index + 1}", fontSize = 15.sp)
+                                        Text(
+                                            "Tên người bình luận: ${comment.user.name}",
+                                            fontSize = 15.sp
+                                        )
+                                        Text("Nội dung: ${comment.content}", fontSize = 15.sp)
+                                        Text(
+                                            "Ngày tạo: ${comment.createdAt.timeInVietnam()}",
+                                            fontSize = 15.sp
+                                        )
+                                    }
+                                }
                             )
                         }
                     }
                 }
-            )
-        }
+            }
 
-        if (showDeleteConfirm) {
-            AlertDialog(
-                onDismissRequest = { showDeleteConfirm = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        newsViewModel.deleteNews(news.id, context)
-                        showDeleteConfirm = false
-                    }) {
-                        Text("Xoá")
+
+            if (showDetail) {
+                AlertDialog(
+                    onDismissRequest = { showDetail = false },
+                    confirmButton = {
+                        TextButton(onClick = { showDetail = false }) {
+                            Text("Đóng")
+                        }
+                    },
+                    title = { Text("Chi tiết tin tức") },
+                    text = {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            item {
+                                Text("Tiêu đề: ${news.title}", fontSize = 15.sp)
+                            }
+                            item {
+                                Text("Nội dung: ${news.content}", fontSize = 15.sp)
+                            }
+                            item {
+                                Text(
+                                    "Ngày tạo: ${news.createdAt.timeInVietnam()}",
+                                    fontSize = 15.sp
+                                )
+                            }
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteConfirm = false }) {
-                        Text("Huỷ")
+                )
+            }
+            if (showImageDialog) {
+                AlertDialog(
+                    onDismissRequest = { showImageDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showImageDialog = false }) {
+                            Text("Đóng")
+                        }
+                    },
+                    title = { Text("Ảnh bài viết") },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            news.media.forEach { imageUrl ->
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Inside
+                                )
+                            }
+                        }
                     }
-                },
-                title = { Text("Xác nhận xoá") },
-                text = { Text("Bạn có chắc muốn xoá bài tin tức này?") }
-            )
+                )
+            }
+
+            if (showDeleteConfirm) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteConfirm = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            newsViewModel.deleteNews(news.id, context)
+                            showDeleteConfirm = false
+                        }) {
+                            Text("Xoá")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteConfirm = false }) {
+                            Text("Huỷ")
+                        }
+                    },
+                    title = { Text("Xác nhận xoá") },
+                    text = { Text("Bạn có chắc muốn xoá bài tin tức này?") }
+                )
+            }
         }
     }
+}
 
 
 

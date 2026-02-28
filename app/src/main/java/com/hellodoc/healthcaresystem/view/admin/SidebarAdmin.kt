@@ -15,6 +15,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +36,7 @@ fun DrawerContent(
     closedrawer: () -> Unit
 ) {
     // Track the currently selected item
-    val currentDestination = navController.currentDestination?.route
+    var currentDestination = mutableStateOf(navController.currentDestination?.route)
 
     Column(
         modifier = modifier
@@ -73,13 +75,14 @@ fun DrawerContent(
                 DrawerMenuItem(
                     iconResId = item.iconField,
                     label = item.nameField,
-                    isSelected = currentDestination == item.navigationField,
+                    isSelected = currentDestination.value == item.navigationField,
                     onClick = {
                         navController.navigate(item.navigationField) {
                             // Avoid multiple copies of the same destination in the back stack
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
+                            currentDestination.value = item.navigationField
                             closedrawer()
                         }
                     }
@@ -113,8 +116,3 @@ fun DrawerMenuItem(
     )
 }
 
-// This function can be used for vector icons if needed
-@Composable
-fun DrawerMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
-
-}

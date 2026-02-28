@@ -246,7 +246,7 @@ fun ProfileOtherUserPage(
         }
     } else {
         Column {
-            UserSkeleton()
+            UserSkeleton(navHostController)
             PostSkeleton()
         }
     }

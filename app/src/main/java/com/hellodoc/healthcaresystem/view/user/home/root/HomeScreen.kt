@@ -120,7 +120,7 @@ fun HealthMateHomeScreen(
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
     val specialtyState by specialtyViewModel.specialties.collectAsState()
-    val medicalOptions = listOf("Tính BMI", "Fast Talk")
+    val medicalOptions = listOf("Tính BMI", "Fast Talk", "Ngôn ngữ kí hiệu")
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
@@ -177,9 +177,9 @@ fun HealthMateHomeScreen(
     }
 
     // Refresh khi quay lại home (nếu cần)
-    LaunchedEffect(navHostController.currentBackStackEntry) {
+    LaunchedEffect(navHostController.currentBackStackEntry,uiStatePost) {
         val currentRoute = navHostController.currentBackStackEntry?.destination?.route
-        if (currentRoute == "home" && posts.isEmpty()) {
+        if (currentRoute == "home") {
             postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
         }
     }
@@ -226,6 +226,7 @@ fun HealthMateHomeScreen(
                             )
                         )
                         .padding(16.dp)
+                        .padding(top = 80.dp)
                 ) {
                     // Premium HelloDoc Welcome Banner
                     Box(
@@ -378,6 +379,7 @@ fun HealthMateHomeScreen(
                     when (optionName) {
                         "Tính BMI" -> navHostController.navigate("bmi-checking")
                         "Fast Talk" -> navHostController.navigate("fast_talk")
+                        "Ngôn ngữ kí hiệu" -> navHostController.navigate("sign_language")
                         else -> {
 
                         }

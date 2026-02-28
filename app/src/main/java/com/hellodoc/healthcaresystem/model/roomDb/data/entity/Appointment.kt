@@ -25,4 +25,3 @@ data class AppointmentEntity(
     val patientAvatarUrl: String?,
     val specialtyName: String?
 )
-

@@ -61,10 +61,7 @@ import kotlin.math.roundToInt
 fun FootBar(currentRoute: String?, navHostController: NavHostController) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Color.Transparent
-            ),
+            .fillMaxWidth(),
         contentAlignment = Alignment.BottomCenter
     ) {
 
@@ -73,6 +70,8 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp)
+                .background(Color.Transparent)
+
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
@@ -105,7 +104,7 @@ fun FootBar(currentRoute: String?, navHostController: NavHostController) {
             onClick = { navHostController.navigate("create_post") },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = -24.dp),
+                .offset(y = -20.dp),
         )
     }
 }
@@ -211,11 +210,8 @@ fun BoxItem(
 
     Column(
         modifier = modifier
-            .offset { IntOffset(0, offsetY.roundToInt()) }
             .alpha(alpha)
-            .clip(RoundedCornerShape(20.dp))
-            .background(backgroundColor)
-            .padding(vertical = 4.dp, horizontal = 12.dp)
+            .clip(CircleShape)
             .clickable {
                 if (nameDirection.isNotEmpty()) {
                     navHostController.navigate(nameDirection) {
@@ -226,15 +222,22 @@ fun BoxItem(
                         launchSingleTop = true
                     }
                 }
-            },
+            }
+            .background(if (!isSelected) {
+                backgroundColor
+            }else{
+                MaterialTheme.colorScheme.primaryContainer
+            })
+            .padding(vertical = 2.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(4.dp))
         Icon(
             imageVector = iconchange,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+            tint = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -242,9 +245,11 @@ fun BoxItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
             )
         )
+        Spacer(modifier = Modifier.height(4.dp))
+
     }
 }
 

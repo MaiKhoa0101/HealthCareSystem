@@ -59,8 +59,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 8.dp,
-            color = MaterialTheme.colorScheme.primaryContainer
+            shadowElevation = 8.dp
         ) {
             Box(
                 modifier = Modifier
@@ -73,6 +72,7 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
                             )
                         )
                     )
+                    .padding(top = 15.dp)
                     .height(80.dp)
             ) {
                 // Left Icon (Menu)

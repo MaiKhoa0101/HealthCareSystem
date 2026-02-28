@@ -48,7 +48,7 @@ fun PostManagerScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(100.dp))
 
         Text(
             text = "Danh sách bài viết",
