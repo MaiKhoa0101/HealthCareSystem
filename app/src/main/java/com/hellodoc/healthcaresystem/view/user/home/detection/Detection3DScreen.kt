@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -40,15 +39,11 @@ import com.hellodoc.healthcaresystem.view.user.supportfunction.PoseDetector
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import com.hellodoc.healthcaresystem.viewmodel.DetectionViewModel
 import io.github.sceneview.Scene
-import io.github.sceneview.environment.Environment
 import io.github.sceneview.math.Position
 import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberMainLightNode
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ExecutorService
@@ -77,6 +72,7 @@ fun Detection3DScreen(
         }
     }
 }
+
 @SuppressLint("RestrictedApi")
 @Composable
 fun CameraDetectionContent(
@@ -85,11 +81,8 @@ fun CameraDetectionContent(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val scope = rememberCoroutineScope()
 
-    // ✅ Ép PreviewView dùng TextureView thay vì SurfaceView
-    // SurfaceView luôn render trên cùng (z-order cao nhất) bất kể Compose layout
-    // TextureView render như một texture bình thường, cho phép Compose đè lên
+    // ✅ Dùng TextureView (COMPATIBLE mode) để Compose có thể đè lên trên
     val previewView = remember {
         PreviewView(context).apply {
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
@@ -123,7 +116,7 @@ fun CameraDetectionContent(
         onDispose { poseDetector.close() }
     }
 
-    // 3D Resources
+    // ===== 3D RESOURCES =====
     val is3DReady by SceneViewManager.initializationState.collectAsState()
     var modelInstance by remember { mutableStateOf<ModelInstance?>(null) }
     var characterNode by remember { mutableStateOf<ModelNode?>(null) }
@@ -147,16 +140,25 @@ fun CameraDetectionContent(
         }
     }
 
+    // ===== APPLY REAL-TIME DETECTION DATA =====
+    // Mỗi khi API trả về data mới, apply thẳng lên model — không cần interpolation
     LaunchedEffect(detectionData) {
         val data = detectionData ?: return@LaunchedEffect
         val engine = SceneViewManager.getEngine() ?: return@LaunchedEffect
         val instance = modelInstance ?: return@LaunchedEffect
+
+        if (!engine.isValid) {
+            Log.w("Detection3D", "⚠️ Engine không hợp lệ, bỏ qua update")
+            return@LaunchedEffect
+        }
+
+        Log.d("Detection3D", "🦴 Applying detection data to bones...")
         applyDetectionDataToBones(engine, instance, data)
     }
 
     var lastCaptureTime by remember { mutableLongStateOf(0L) }
 
-    // ✅ Camera LaunchedEffect đặt NGOÀI Box
+    // ===== CAMERA =====
     LaunchedEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
@@ -203,10 +205,10 @@ fun CameraDetectionContent(
         }, ContextCompat.getMainExecutor(context))
     }
 
+    // ===== UI =====
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Layer 1: Camera Preview dùng TextureView (COMPATIBLE mode)
-        // ✅ COMPATIBLE mode = TextureView → Compose có thể đè lên được
+        // Layer 1: Camera Preview (TextureView — Compose có thể đè lên)
         AndroidView(
             factory = { previewView },
             modifier = Modifier.fillMaxSize()
@@ -219,7 +221,7 @@ fun CameraDetectionContent(
             faceResults = faceResults
         )
 
-        // Layer 3: Scene 3D — nằm trên camera vì TextureView không chiếm z-order đặc biệt
+        // Layer 3: Scene 3D — hiển thị góc dưới phải
         if (is3DReady && modelInstance != null && characterNode != null) {
             Box(
                 modifier = Modifier
@@ -256,7 +258,7 @@ fun CameraDetectionContent(
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
 
-        // Layer 4: Warnings
+        // Layer 5: Model Warnings
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -279,7 +281,7 @@ fun CameraDetectionContent(
             }
         }
 
-        // Layer 4: Processing Indicator
+        // Layer 6: Processing Indicator
         if (isDetecting) {
             CircularProgressIndicator(
                 modifier = Modifier
@@ -292,6 +294,9 @@ fun CameraDetectionContent(
         }
     }
 }
+
+// ===== HELPERS =====
+
 private fun saveBitmapToFile(context: Context, bitmap: android.graphics.Bitmap): File? {
     return try {
         val file = File(context.cacheDir, "detection_api_frame.jpg")
@@ -306,44 +311,62 @@ private fun saveBitmapToFile(context: Context, bitmap: android.graphics.Bitmap):
     }
 }
 
+// ===== BONE APPLICATION =====
+
+/**
+ * Apply toàn bộ DetectionData lên model 3D.
+ * Dùng cho real-time detection — apply thẳng, không interpolate.
+ */
 fun applyDetectionDataToBones(
     engine: com.google.android.filament.Engine,
     modelInstance: ModelInstance,
     data: DetectionData
 ) {
-    // Standard singular bones
+    // --- Spine ---
     applyRotation(engine, modelInstance, "spine_01", data.spine01)
     applyRotation(engine, modelInstance, "spine_02", data.spine02)
     applyRotation(engine, modelInstance, "spine_03", data.spine03)
+
+    // --- Head & Neck ---
     applyRotation(engine, modelInstance, "neck", data.neck)
     applyRotation(engine, modelInstance, "head", data.head)
+
+    // --- Facial (Single) ---
     applyRotation(engine, modelInstance, "jaw", data.jaw)
     applyRotation(engine, modelInstance, "eyelid_l", data.eyelidL)
     applyRotation(engine, modelInstance, "eyelid_r", data.eyelidR)
     applyRotation(engine, modelInstance, "mouth_l", data.mouthL)
     applyRotation(engine, modelInstance, "mouth_r", data.mouthR)
-    applyRotation(engine, modelInstance, "shoulder_l", data.shoulderL)
-    applyRotation(engine, modelInstance, "shoulder_r", data.shoulderR)
-    applyRotation(engine, modelInstance, "upperarm_l", data.upperarmL)
-    applyRotation(engine, modelInstance, "upperarm_r", data.upperarmR)
-    applyRotation(engine, modelInstance, "lowerarm_l", data.lowerarmL)
-    applyRotation(engine, modelInstance, "lowerarm_r", data.lowerarmR)
-    applyRotation(engine, modelInstance, "hand_l", data.handL)
-    applyRotation(engine, modelInstance, "hand_r", data.handR)
 
-    // Multiple bones (Strings contain multiple bone info)
+    // --- Facial (Multiple) ---
     applyMultipleRotations(engine, modelInstance, data.eyes)
     applyMultipleRotations(engine, modelInstance, data.eyebrows)
+
+    // --- Left Arm ---
+    applyRotation(engine, modelInstance, "shoulder_l", data.shoulderL)
+    applyRotation(engine, modelInstance, "upperarm_l", data.upperarmL)
+    applyRotation(engine, modelInstance, "lowerarm_l", data.lowerarmL)
+    applyRotation(engine, modelInstance, "hand_l", data.handL)
+
+    // --- Left Fingers (Multiple) ---
     applyMultipleRotations(engine, modelInstance, data.thumbL)
     applyMultipleRotations(engine, modelInstance, data.indexL)
     applyMultipleRotations(engine, modelInstance, data.middleL)
     applyMultipleRotations(engine, modelInstance, data.ringL)
     applyMultipleRotations(engine, modelInstance, data.pinkyL)
+
+    // --- Right Arm ---
+    applyRotation(engine, modelInstance, "shoulder_r", data.shoulderR)
+    applyRotation(engine, modelInstance, "upperarm_r", data.upperarmR)
+    applyRotation(engine, modelInstance, "lowerarm_r", data.lowerarmR)
+    applyRotation(engine, modelInstance, "hand_r", data.handR)
+
+    // --- Right Fingers (Multiple) ---
     applyMultipleRotations(engine, modelInstance, data.thumbR)
     applyMultipleRotations(engine, modelInstance, data.indexR)
     applyMultipleRotations(engine, modelInstance, data.middleR)
     applyMultipleRotations(engine, modelInstance, data.ringR)
-    applyMultipleRotations(engine, modelInstance, data.pinky_r)
+    applyMultipleRotations(engine, modelInstance, data.pinky_r)  // field name là pinky_r theo DetectionData
 }
 
 private fun applyRotation(

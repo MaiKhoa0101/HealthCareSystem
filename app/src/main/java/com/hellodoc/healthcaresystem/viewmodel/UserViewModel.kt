@@ -29,7 +29,6 @@ import androidx.core.content.edit
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val userRepo: UserRepository
-
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)

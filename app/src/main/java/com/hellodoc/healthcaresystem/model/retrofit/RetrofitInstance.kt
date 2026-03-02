@@ -18,6 +18,7 @@ import com.hellodoc.healthcaresystem.model.api.SpecialtyService
 import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
 import com.hellodoc.healthcaresystem.model.api.DetectionApiService
+import com.hellodoc.healthcaresystem.model.api.VSLService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    const val BASE_URL = "http://192.168.1.71:4000"
+    const val BASE_URL = "http://192.168.1.51:4000"
     const val BASE_URL_DETECTION = "https://lorriane-noncongregative-benson.ngrok-free.dev/"
 
 
@@ -88,8 +89,8 @@ object RetrofitInstance {
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
     @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
-
     @Provides fun provideGestureCode(retrofit: Retrofit): GestureCodeService = retrofit.create(GestureCodeService::class.java)
+    @Provides fun provideVSLService(retrofit: Retrofit): VSLService = retrofit.create(VSLService::class.java)
 
     @Provides
     @Singleton
@@ -101,6 +102,7 @@ object RetrofitInstance {
             .build()
             .create(DetectionApiService::class.java)
     }
+
 
     val geminiService: GeminiService by lazy {
         Retrofit.Builder()

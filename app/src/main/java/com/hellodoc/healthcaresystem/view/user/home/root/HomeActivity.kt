@@ -85,6 +85,7 @@ import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScree
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
 import com.hellodoc.healthcaresystem.view.user.otherUI.SignLanguageScreen
 import com.hellodoc.healthcaresystem.view.user.home.detection.Detection3DScreen
+import com.hellodoc.healthcaresystem.view.user.home.detection.TranslateVoiceToVid
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import javax.inject.Inject
@@ -331,6 +332,9 @@ class HomeActivity : BaseActivity() {
                         modifier = Modifier.fillMaxSize(),
                         navHostController = navHostController,
                     )
+                }
+                composable("text_to_video"){
+                    TranslateVoiceToVid(navHostController)
                 }
                 composable("news_detail") {
                     NewsDetailScreen(navHostController)
