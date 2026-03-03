@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    const val BASE_URL = "http://192.168.1.51:4000"
+    const val BASE_URL = "http://192.168.1.219:4000"
     const val BASE_URL_DETECTION = "https://lorriane-noncongregative-benson.ngrok-free.dev/"
 
 

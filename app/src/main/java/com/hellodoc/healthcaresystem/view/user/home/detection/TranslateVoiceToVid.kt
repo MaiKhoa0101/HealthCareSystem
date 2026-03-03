@@ -42,6 +42,7 @@ import android.net.Uri
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.alpha
+import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.VSL
@@ -196,7 +197,6 @@ fun TranslateVoiceToVid(
         }
     }
 }
-
 @Composable
 fun SequentialVideoPlayer(
     vslList: List<VSL>,
@@ -205,48 +205,64 @@ fun SequentialVideoPlayer(
     val context = LocalContext.current
 
     val exoPlayer = remember {
-        // 1. Tạo một TrustManager bỏ qua mọi chứng chỉ
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         })
-
         val sslContext = SSLContext.getInstance("SSL")
         sslContext.init(null, trustAllCerts, SecureRandom())
 
-        // 2. Tạo OkHttpClient "vượt rào" SSL
         val unsafeOkHttpClient = OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .build()
 
-        // 3. Truyền OkHttpClient này vào ExoPlayer
         val dataSourceFactory = OkHttpDataSource.Factory(unsafeOkHttpClient)
-        val mediaSourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
+        val mediaSourceFactory = DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(dataSourceFactory)
 
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
             .build().apply {
                 playWhenReady = true
+                addListener(object : androidx.media3.common.Player.Listener {
+                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                        Log.e("VideoPlayerError", "Lỗi: ${error.errorCodeName} | ${error.message}")
+                    }
+                })
             }
     }
 
     LaunchedEffect(vslList) {
         if (vslList.isNotEmpty()) {
             exoPlayer.clearMediaItems()
-            val mediaItems = vslList.map {
-                MediaItem.fromUri(Uri.parse(it.url))
+
+            val mediaItems = vslList.map { vsl ->
+                val url = resolveVideoUrl(vsl.url)
+                Log.d("CheckVideoURL", "Resolved URL: $url")
+
+                val builder = MediaItem.Builder().setUri(Uri.parse(url))
+
+                // Chỉ set MIME type khi chắc chắn là HLS
+                when {
+                    url.endsWith(".m3u8", ignoreCase = true) ||
+                            url.contains("stream.mux.com") ->
+                        builder.setMimeType(MimeTypes.APPLICATION_M3U8)
+                    // MP4 và các định dạng khác: để ExoPlayer tự nhận dạng
+                }
+
+                builder.build()
             }
+
             exoPlayer.setMediaItems(mediaItems)
             exoPlayer.prepare()
+            exoPlayer.play()
         }
     }
 
     DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
+        onDispose { exoPlayer.release() }
     }
 
     AndroidView(
@@ -256,13 +272,19 @@ fun SequentialVideoPlayer(
                 player = exoPlayer
                 useController = false
                 resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
-
             }
         },
-        update = { playerView ->
-            playerView.player = exoPlayer
-        }
+        update = { playerView -> playerView.player = exoPlayer }
     )
+}
+
+fun resolveVideoUrl(url: String): String {
+    return if (url.contains("player.mux.com/")) {
+        val playbackId = url.substringAfterLast("/")
+        "https://stream.mux.com/$playbackId.m3u8"
+    } else {
+        url // MP4 (qipedc...), HLS trực tiếp, v.v.
+    }
 }
 
 @Composable
