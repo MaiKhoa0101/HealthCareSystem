@@ -9,20 +9,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,12 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -83,7 +75,9 @@ import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import com.hellodoc.healthcaresystem.model.socket.SocketManager
 import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
 import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
-import com.hellodoc.healthcaresystem.view.user.otherUI.SignLanguageScreen
+import com.hellodoc.healthcaresystem.view.user.VSL.SignLanguageScreen
+import com.hellodoc.healthcaresystem.view.user.home.detection.Detection3DScreen
+import com.hellodoc.healthcaresystem.view.user.VSL.TranslateVoiceToVid
 import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
 import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
 import javax.inject.Inject
@@ -331,6 +325,9 @@ class HomeActivity : BaseActivity() {
                         navHostController = navHostController,
                     )
                 }
+                composable("text_to_video"){
+                    TranslateVoiceToVid(navHostController)
+                }
                 composable("news_detail") {
                     NewsDetailScreen(navHostController)
                 }
@@ -486,6 +483,9 @@ class HomeActivity : BaseActivity() {
                 }
                 composable("sign_language") {
                     SignLanguageScreen()
+                }
+                composable("detection_3d") {
+                    Detection3DScreen(navHostController)
                 }
 
             }

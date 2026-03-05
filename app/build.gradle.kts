@@ -130,8 +130,10 @@ dependencies {
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
     //Hiển thị video
-    implementation("androidx.media3:media3-exoplayer:1.7.1")
-    implementation("androidx.media3:media3-ui:1.7.1")
+    implementation("androidx.media3:media3-exoplayer:1.9.2")
+    implementation("androidx.media3:media3-ui:1.9.2")
+    implementation("androidx.media3:media3-datasource-okhttp:1.2.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.9.2")
 
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
@@ -167,4 +169,5 @@ dependencies {
 
     // MediaPipe (để lấy landmarks làm đầu vào cho model của bạn)
     implementation("com.google.mediapipe:tasks-vision:0.10.9")
+
 }

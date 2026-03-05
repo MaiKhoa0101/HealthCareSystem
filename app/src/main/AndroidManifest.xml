@@ -25,6 +25,7 @@
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.HealthCareSystem"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
 
