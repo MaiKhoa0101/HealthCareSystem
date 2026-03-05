@@ -41,6 +41,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.view.TextureView
@@ -50,6 +52,8 @@ import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -250,34 +254,43 @@ fun TranslateVoiceToVid(
                 .align(Alignment.CenterStart),
             contentAlignment = Alignment.Center
         ) {
-            SequentialVideoPlayer(
-                vslList = vslResponse,
-                trimStartMs = 500L,
-                trimEndFromLastMs = 1_000L,
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .alpha(if (vslResponse.isNotEmpty()) 1f else 0f),
-
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SequentialVideoPlayer(
+                    vslList = vslResponse,
+                    trimStartMs = 500L,
+                    trimEndFromLastMs = 1_000L,
+                    backgroundRemoval = BackgroundRemovalMode.None,
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .alpha(if (vslResponse.isNotEmpty()) 1f else 0f)
+                )
+                AutoInputConversation(
+                    inputText = if (partialText.isNotEmpty()) "$displayText $partialText".trim() else displayText,
+                    isRecording = isListening
+                )
+            }
         }
 
-        // 3. UI text + trạng thái
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.BottomCenter)
-        ) {
-            AutoInputConversation(
-                // Bỏ onMicToggle thủ công, giờ là auto
-                onMicToggle = {},
-                onDelete = {
-                    displayText = ""
-                    partialText = ""
-                },
-                inputText = if (partialText.isNotEmpty()) "$displayText $partialText".trim() else displayText,
-                isRecording = isListening
-            )
-        }
+//        // 3. UI text + trạng thái
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .align(Alignment.CenterEnd)
+//        ) {
+//            AutoInputConversation(
+//                // Bỏ onMicToggle thủ công, giờ là auto
+//                onMicToggle = {},
+//                onDelete = {
+//                    displayText = ""
+//                    partialText = ""
+//                },
+//                inputText = if (partialText.isNotEmpty()) "$displayText $partialText".trim() else displayText,
+//                isRecording = isListening
+//            )
+//        }
     }
 }
 @OptIn(UnstableApi::class)
@@ -386,7 +399,6 @@ fun SequentialVideoPlayer(
             )
         }
 
-        // ── Chroma Key (màu đơn sắc) ───────────────────────────────
         is BackgroundRemovalMode.ChromaKey -> {
             val mode = backgroundRemoval
             AndroidView(
@@ -396,17 +408,44 @@ fun SequentialVideoPlayer(
                         clipChildren = true
                         outlineProvider = ViewOutlineProvider.BOUNDS
                         clipToOutline = true
-                        val glView = ChromaKeyGLSurfaceView(
-                            ctx,
-                            exoPlayer,
-                            mode.colorRGB,
-                            mode.threshold
-                        ).apply {
+
+                        // ✅ 1x1px — không ảnh hưởng display, getBitmap() vẫn hoạt động
+                        val sourceTexture = TextureView(ctx).apply {
+                            layoutParams = FrameLayout.LayoutParams(1, 1)
+                        }
+                        val outputView = ImageView(ctx).apply {
                             layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                            scaleType = ImageView.ScaleType.FIT_XY
                             rotation = 90f
                         }
-                        addView(glView)
-                        setupScaleListener(this, glView, exoPlayer)
+
+                        addView(sourceTexture)
+                        addView(outputView)
+
+                        sourceTexture.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                            override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {
+                                Log.d("ChromaKey", "Surface available: ${w}x${h}")
+                                // Resize SurfaceTexture về resolution video thực tế
+                                Handler(Looper.getMainLooper()).post {
+                                    exoPlayer.setVideoTextureView(sourceTexture)
+                                }
+                            }
+                            override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {}
+                            override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
+                                Handler(Looper.getMainLooper()).post {
+                                    exoPlayer.clearVideoTextureView(sourceTexture)
+                                }
+                                return true
+                            }
+                            override fun onSurfaceTextureUpdated(st: SurfaceTexture) {
+                                val bitmap = sourceTexture.getBitmap(sourceTexture.width, sourceTexture.height) ?: return
+                                Log.d("ChromaKey", "Frame: ${bitmap.width}x${bitmap.height}")
+                                val output = applyChromaKey(bitmap, mode.colorRGB, mode.threshold)
+                                outputView.post { outputView.setImageBitmap(output) }
+                            }
+                        }
+
+                        setupScaleListener(this, outputView, exoPlayer)
                     }
                 }
             )
@@ -437,7 +476,7 @@ fun SequentialVideoPlayer(
                         // TextureView nhận frame gốc (ẩn)
                         val sourceTexture = TextureView(ctx).apply {
                             layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-                            alpha = 0f // ẩn, chỉ dùng để lấy frame
+                            rotation = 90f
                         }
                         // ImageView hiển thị kết quả sau khi xóa nền
                         val outputView = ImageView(ctx).apply {
@@ -575,4 +614,42 @@ fun CameraPreviewView(modifier: Modifier = Modifier) {
             previewView
         }
     )
+}
+
+private fun applyChromaKey(original: Bitmap, chromaRGB: FloatArray, threshold: Float): Bitmap {
+    val result = original.copy(Bitmap.Config.ARGB_8888, true)
+    val pixels = IntArray(result.width * result.height)
+    result.getPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
+
+    val cr = if (chromaRGB[0] > 1f) chromaRGB[0] / 255f else chromaRGB[0]
+    val cg = if (chromaRGB[1] > 1f) chromaRGB[1] / 255f else chromaRGB[1]
+    val cb = if (chromaRGB[2] > 1f) chromaRGB[2] / 255f else chromaRGB[2]
+
+    // 🔍 Log diff của center pixel để biết cần threshold bao nhiêu
+    val centerIdx = (result.height / 2) * result.width + (result.width / 2)
+    if (pixels.isNotEmpty()) {
+        val cp = pixels[centerIdx]
+        val dr = Color.red(cp) / 255f - cr
+        val dg = Color.green(cp) / 255f - cg
+        val db = Color.blue(cp) / 255f - cb
+        val diff = kotlin.math.sqrt(dr*dr + dg*dg + db*db)
+        Log.d("ChromaKey", "Center diff=$diff (threshold=$threshold) → sẽ ${if (diff < threshold) "XÓA" else "GIỮ"}")
+    }
+
+    var removedCount = 0
+    for (i in pixels.indices) {
+        val pixel = pixels[i]
+        val r = Color.red(pixel) / 255f
+        val g = Color.green(pixel) / 255f
+        val b = Color.blue(pixel) / 255f
+        val diff = kotlin.math.sqrt((r-cr)*(r-cr) + (g-cg)*(g-cg) + (b-cb)*(b-cb))
+        if (diff < threshold) {
+            pixels[i] = Color.TRANSPARENT
+            removedCount++
+        }
+    }
+    Log.d("ChromaKey", "Removed $removedCount / ${pixels.size} pixels")
+
+    result.setPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
+    return result
 }
