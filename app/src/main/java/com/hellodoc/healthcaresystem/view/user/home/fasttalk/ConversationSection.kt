@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -146,7 +147,9 @@ fun AutoInputConversation(
         // Khung chứa Text hiển thị
         Text(
             text = inputText.ifEmpty { if (isRecording) "Đang nghe..." else "Nhấn để nói" },
-            modifier = Modifier.weight(1f).padding(end = 8.dp),
+            modifier = Modifier
+                .rotate(90f)
+                .weight(1f).padding(end = 8.dp),
             fontWeight = FontWeight.Bold,
             color = if (isRecording) androidx.compose.ui.graphics.Color.Blue else androidx.compose.ui.graphics.Color.Black
         )

@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.SurfaceTexture
 import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -41,21 +43,37 @@ import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.view.TextureView
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewOutlineProvider
+import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.segmentation.Segmentation
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.VSL
+import com.hellodoc.healthcaresystem.view.user.supportfunction.BackgroundRemovalMode
+import com.hellodoc.healthcaresystem.view.user.supportfunction.ChromaKeyGLSurfaceView
 import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
+import java.nio.ByteBuffer
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -227,9 +245,9 @@ fun TranslateVoiceToVid(
 
         // 2. Video Player
         Box(
-            modifier = Modifier
-                .fillMaxSize(0.3f)
-                .align(Alignment.Center),
+            modifier = Modifier.padding(20.dp)
+                .fillMaxSize(0.4f)
+                .align(Alignment.CenterStart),
             contentAlignment = Alignment.Center
         ) {
             SequentialVideoPlayer(
@@ -238,8 +256,8 @@ fun TranslateVoiceToVid(
                 trimEndFromLastMs = 1_000L,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .aspectRatio(9f / 16f)
-                    .alpha(if (vslResponse.isNotEmpty()) 1f else 0f)
+                    .alpha(if (vslResponse.isNotEmpty()) 1f else 0f),
+
             )
         }
 
@@ -269,6 +287,7 @@ fun SequentialVideoPlayer(
     modifier: Modifier = Modifier,
     trimStartMs: Long = 0L,
     trimEndFromLastMs: Long = 0L,
+    backgroundRemoval: BackgroundRemovalMode = BackgroundRemovalMode.None
 ) {
     val context = LocalContext.current
 
@@ -280,34 +299,21 @@ fun SequentialVideoPlayer(
         })
         val sslContext = SSLContext.getInstance("SSL")
         sslContext.init(null, trustAllCerts, SecureRandom())
-
         val unsafeOkHttpClient = OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .build()
-
         val dataSourceFactory = OkHttpDataSource.Factory(unsafeOkHttpClient)
-        val mediaSourceFactory = DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(dataSourceFactory)
-
-        // ✅ Load control: buffer trước video tiếp theo
+        val mediaSourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
         val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                /* minBufferMs */        1_000,   // Bắt đầu phát khi có 1s trong buffer
-                /* maxBufferMs */        10_000,  // Buffer tối đa 10s
-                /* bufferForPlaybackMs */     500,// Chỉ cần 0.5s để bắt đầu phát
-                /* bufferForPlaybackAfterRebufferMs */ 1_000
-            )
+            .setBufferDurationsMs(1_000, 10_000, 500, 1_000)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
-
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
             .setLoadControl(loadControl)
             .build().apply {
                 playWhenReady = true
-                // Xóa dòng keepContentDuringLoad = true ❌
-
                 addListener(object : Player.Listener {
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         if (trimStartMs > 0) seekTo(trimStartMs)
@@ -319,7 +325,6 @@ fun SequentialVideoPlayer(
             }
     }
 
-    // ✅ Preload: khi video hiện tại sắp kết thúc thì prepare video tiếp theo
     LaunchedEffect(exoPlayer, trimEndFromLastMs) {
         while (true) {
             delay(100)
@@ -338,19 +343,15 @@ fun SequentialVideoPlayer(
     LaunchedEffect(vslList) {
         if (vslList.isNotEmpty()) {
             exoPlayer.clearMediaItems()
-
             val mediaItems = vslList.map { vsl ->
                 val url = resolveVideoUrl(vsl.url)
-                Log.d("CheckVideoURL", "URL: $url")
                 val builder = MediaItem.Builder().setUri(Uri.parse(url))
                 when {
                     url.endsWith(".m3u8", ignoreCase = true) ||
-                            url.contains("stream.mux.com") ->
-                        builder.setMimeType(MimeTypes.APPLICATION_M3U8)
+                            url.contains("stream.mux.com") -> builder.setMimeType(MimeTypes.APPLICATION_M3U8)
                 }
                 builder.build()
             }
-
             exoPlayer.setMediaItems(mediaItems)
             exoPlayer.prepare()
             if (trimStartMs > 0) exoPlayer.seekTo(trimStartMs)
@@ -362,18 +363,167 @@ fun SequentialVideoPlayer(
         onDispose { exoPlayer.release() }
     }
 
-    AndroidView(
-        modifier = modifier,
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                player = exoPlayer
-                useController = false
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                setKeepContentOnPlayerReset(true) // ✅ Đây là đủ
+    when (backgroundRemoval) {
+
+        // ── Không xóa nền ──────────────────────────────────────────
+        is BackgroundRemovalMode.None -> {
+            AndroidView(
+                modifier = modifier.aspectRatio(16f / 9f),
+                factory = { ctx ->
+                    FrameLayout(ctx).apply {
+                        clipChildren = true
+                        outlineProvider = ViewOutlineProvider.BOUNDS
+                        clipToOutline = true
+                        val textureView = TextureView(ctx).apply {
+                            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                            rotation = 90f
+                        }
+                        addView(textureView)
+                        exoPlayer.setVideoTextureView(textureView)
+                        setupScaleListener(this, textureView, exoPlayer)
+                    }
+                }
+            )
+        }
+
+        // ── Chroma Key (màu đơn sắc) ───────────────────────────────
+        is BackgroundRemovalMode.ChromaKey -> {
+            val mode = backgroundRemoval
+            AndroidView(
+                modifier = modifier.aspectRatio(16f / 9f),
+                factory = { ctx ->
+                    FrameLayout(ctx).apply {
+                        clipChildren = true
+                        outlineProvider = ViewOutlineProvider.BOUNDS
+                        clipToOutline = true
+                        val glView = ChromaKeyGLSurfaceView(
+                            ctx,
+                            exoPlayer,
+                            mode.colorRGB,
+                            mode.threshold
+                        ).apply {
+                            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                            rotation = 90f
+                        }
+                        addView(glView)
+                        setupScaleListener(this, glView, exoPlayer)
+                    }
+                }
+            )
+        }
+
+        // ── ML Kit Segmentation (nền phức tạp) ────────────────────
+        is BackgroundRemovalMode.Segmentation -> {
+            val segmenter = remember {
+                Segmentation.getClient(
+                    SelfieSegmenterOptions.Builder()
+                        .setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
+                        .enableRawSizeMask()
+                        .build()
+                )
             }
-        },
-        update = { playerView -> playerView.player = exoPlayer }
-    )
+            DisposableEffect(Unit) {
+                onDispose { segmenter.close() }
+            }
+
+            AndroidView(
+                modifier = modifier.aspectRatio(16f / 9f),
+                factory = { ctx ->
+                    FrameLayout(ctx).apply {
+                        clipChildren = true
+                        outlineProvider = ViewOutlineProvider.BOUNDS
+                        clipToOutline = true
+
+                        // TextureView nhận frame gốc (ẩn)
+                        val sourceTexture = TextureView(ctx).apply {
+                            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                            alpha = 0f // ẩn, chỉ dùng để lấy frame
+                        }
+                        // ImageView hiển thị kết quả sau khi xóa nền
+                        val outputView = ImageView(ctx).apply {
+                            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                            scaleType = ImageView.ScaleType.FIT_XY
+                            rotation = 90f
+                        }
+
+                        addView(sourceTexture)
+                        addView(outputView)
+                        exoPlayer.setVideoTextureView(sourceTexture)
+
+                        // Mỗi frame → chạy segmentation → update outputView
+                        sourceTexture.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                            override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {}
+                            override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {}
+                            override fun onSurfaceTextureDestroyed(st: SurfaceTexture) = true
+                            override fun onSurfaceTextureUpdated(st: SurfaceTexture) {
+                                val bitmap = sourceTexture.bitmap ?: return
+                                val inputImage = InputImage.fromBitmap(bitmap, 0)
+                                segmenter.process(inputImage)
+                                    .addOnSuccessListener { result ->
+                                        val mask = result.buffer
+                                        val maskW = result.width
+                                        val maskH = result.height
+                                        val output = applySegmentationMask(bitmap, mask, maskW, maskH)
+                                        outputView.post { outputView.setImageBitmap(output) }
+                                    }
+                            }
+                        }
+
+                        setupScaleListener(this, outputView, exoPlayer)
+                    }
+                }
+            )
+        }
+    }
+}
+
+// Tách helper để tái sử dụng scale logic
+private fun setupScaleListener(container: FrameLayout, targetView: View, exoPlayer: ExoPlayer) {
+    var containerW = 0
+    var containerH = 0
+    var videoW = 0
+    var videoH = 0
+
+    fun updateScale() {
+        if (containerW <= 0 || containerH <= 0 || videoW <= 0 || videoH <= 0) return
+        val fillScale = maxOf(containerW.toFloat() / videoH, containerH.toFloat() / videoW)
+        targetView.scaleX = videoW * fillScale / containerW
+        targetView.scaleY = videoH * fillScale / containerH
+    }
+
+    container.addOnLayoutChangeListener { _, left, top, right, bottom, _, _, _, _ ->
+        containerW = right - left
+        containerH = bottom - top
+        updateScale()
+    }
+
+    exoPlayer.addListener(object : Player.Listener {
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            videoW = videoSize.width
+            videoH = videoSize.height
+            updateScale()
+        }
+    })
+}
+
+// Helper: apply mask bitmap
+private fun applySegmentationMask(
+    original: Bitmap, mask: ByteBuffer, maskW: Int, maskH: Int
+): Bitmap {
+    val result = original.copy(Bitmap.Config.ARGB_8888, true)
+    mask.rewind()
+    for (y in 0 until maskH) {
+        for (x in 0 until maskW) {
+            val confidence = mask.float  // 0 = nền, 1 = người
+            if (confidence < 0.5f) {
+                // Scale tọa độ mask → tọa độ bitmap gốc
+                val bx = (x.toFloat() / maskW * original.width).toInt()
+                val by = (y.toFloat() / maskH * original.height).toInt()
+                result.setPixel(bx, by, Color.TRANSPARENT)
+            }
+        }
+    }
+    return result
 }
 
 fun resolveVideoUrl(url: String): String {
