@@ -111,6 +111,4 @@ object RetrofitInstance {
             .build()
             .create(GeminiService::class.java)
     }
-
-
 }
