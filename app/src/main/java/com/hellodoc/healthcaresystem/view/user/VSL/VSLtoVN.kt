@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.view.user.otherUI
+package com.hellodoc.healthcaresystem.view.user.VSL
 
 import android.Manifest
 import android.content.pm.PackageManager

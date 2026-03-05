@@ -1,7 +1,8 @@
-package com.hellodoc.healthcaresystem.view.user.home.detection
+package com.hellodoc.healthcaresystem.view.user.VSL
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -31,18 +32,22 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.model.dataclass.requestmodel.Subtitle
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.AutoInputConversation
-import com.hellodoc.healthcaresystem.view.user.home.fasttalk.startSpeechToTextRealtime
-import com.hellodoc.healthcaresystem.view.user.supportfunction.vibrate
 import com.hellodoc.healthcaresystem.viewmodel.VSLViewModel
 
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import android.net.Uri
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.alpha
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -62,17 +67,12 @@ fun TranslateVoiceToVid(
     vslViewModel: VSLViewModel = hiltViewModel()
 ) {
     val context: Context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val vslResponse by vslViewModel.vslResponse.collectAsState()
 
-    var theirsSentence by remember { mutableStateOf("") }
-    var tempTheirSpeech by remember { mutableStateOf("") }
-
-    var isRecording by remember { mutableStateOf(false) }
-    var isContinuousListening by remember { mutableStateOf(false) }
-
-    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+    var displayText by remember { mutableStateOf("") }       // text đã hoàn chỉnh
+    var partialText by remember { mutableStateOf("") }       // text đang nói dở
+    var isListening by remember { mutableStateOf(false) }    // đang nghe hay không
 
     var hasCameraPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
@@ -88,6 +88,127 @@ fun TranslateVoiceToVid(
         hasAudioPermission = permissions[Manifest.permission.RECORD_AUDIO] ?: hasAudioPermission
     }
 
+    // Tạo recognizer với config silence detection
+    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+    val recognizerIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            // Tắt silence detection mặc định, tự xử lý bằng RMS
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 300L)
+        }
+    }
+
+    // Hàm khởi động lắng nghe
+    fun startListening() {
+        if (!hasAudioPermission) return
+        isListening = true
+        displayText = ""
+        speechRecognizer.startListening(recognizerIntent)
+    }
+
+    // Gắn listener cho recognizer
+    DisposableEffect(hasAudioPermission) {
+        if (!hasAudioPermission) return@DisposableEffect onDispose {}
+
+        // --- Tham số điều chỉnh độ nhạy ---
+        val SPEECH_RMS_THRESHOLD = 4f   // RMS > ngưỡng này = đang nói
+        val SILENCE_DURATION_MS = 500L // Im đủ lâu này (ms) → kết thúc câu
+
+        var speechDetected = false          // Đã từng nghe thấy giọng nói chưa
+        var belowThresholdSince = -1L       // Thời điểm RMS bắt đầu xuống thấp
+
+        speechRecognizer.setRecognitionListener(object : RecognitionListener {
+
+            override fun onRmsChanged(rmsdB: Float) {
+                val now = System.currentTimeMillis()
+
+                if (rmsdB >= SPEECH_RMS_THRESHOLD) {
+                    // 🎙️ Đang nghe thấy giọng nói
+                    speechDetected = true
+                    belowThresholdSince = -1L  // Reset timer im lặng
+
+                } else {
+                    // 🔇 RMS thấp (có thể ồn nhưng không có giọng nói rõ)
+                    if (speechDetected) {
+                        // Chỉ bắt đầu đếm sau khi đã từng nghe thấy giọng
+                        if (belowThresholdSince == -1L) {
+                            belowThresholdSince = now  // Bắt đầu đếm giờ
+                        } else if (now - belowThresholdSince >= SILENCE_DURATION_MS) {
+                            // ✅ Ngừng nói đủ lâu → force stop, onResults sẽ được gọi
+                            Log.d("SpeechDetect", "Phát hiện ngừng nói (RMS=$rmsdB), dừng lắng nghe")
+                            speechDetected = false
+                            belowThresholdSince = -1L
+                            speechRecognizer.stopListening()
+                        }
+                    }
+                }
+            }
+
+            override fun onBeginningOfSpeech() {
+                isListening = true
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {
+                val partial = partialResults
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull() ?: return
+                partialText = partial
+            }
+
+            override fun onResults(results: Bundle?) {
+                val result = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull() ?: ""
+
+                // Reset state
+                speechDetected = false
+                belowThresholdSince = -1L
+
+                if (result.isNotBlank()) {
+                    displayText = result
+                    partialText = ""
+                    vslViewModel.fetchVSL(Subtitle(text = result))
+                }
+
+                startListening()
+            }
+
+            override fun onEndOfSpeech() {}
+
+            override fun onError(error: Int) {
+                speechDetected = false
+                belowThresholdSince = -1L
+                partialText = ""
+
+                val shouldRestart = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH,
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
+                    SpeechRecognizer.ERROR_CLIENT -> true
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> false
+                    else -> true
+                }
+                if (shouldRestart) startListening()
+            }
+
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+
+        onDispose { speechRecognizer.destroy() }
+    }
+
+    // 🚀 Tự động bắt đầu lắng nghe khi có permission
+    LaunchedEffect(hasAudioPermission) {
+        if (hasAudioPermission) {
+            startListening()
+        }
+    }
+
+    // Xin permission khi vào màn hình
     LaunchedEffect(Unit) {
         if (!hasCameraPermission || !hasAudioPermission) {
             permissionLauncher.launch(
@@ -96,64 +217,24 @@ fun TranslateVoiceToVid(
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            speechRecognizer.destroy()
-        }
-    }
-
-    fun triggerListening() {
-        startSpeechToTextRealtime(
-            context = context,
-            speechRecognizer = speechRecognizer,
-            onFinal = { result ->
-                theirsSentence = ("$theirsSentence $result").trim()
-                tempTheirSpeech = ""
-
-                if (theirsSentence.isNotBlank()) {
-                    vslViewModel.fetchVSL(Subtitle(text = theirsSentence))
-                }
-
-                if (isContinuousListening) {
-                    triggerListening()
-                } else {
-                    isRecording = false
-                }
-            },
-            onPartial = { result ->
-                tempTheirSpeech = result
-            },
-            onEnd = {
-                if (isContinuousListening) {
-                    triggerListening()
-                } else {
-                    isRecording = false
-                }
-            }
-        )
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 1. LỚP NỀN: Camera Preview
+        // 1. Camera Preview
         if (hasCameraPermission) {
-            CameraPreviewView(
-                modifier = Modifier.fillMaxSize()
-            )
+            CameraPreviewView(modifier = Modifier.fillMaxSize())
         }
 
-        // 2. LỚP GIỮA: Trình phát Video nối tiếp
-        // Đã xóa điều kiện if (vslResponse.isNotEmpty()) để view luôn tồn tại
+        // 2. Video Player
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(0.3f)
                 .align(Alignment.Center),
             contentAlignment = Alignment.Center
         ) {
             SequentialVideoPlayer(
                 vslList = vslResponse,
-                trimStartMs = 500L,          // Bỏ 0.5 giây đầu
-                trimEndFromLastMs = 1_000L,  // Bỏ 1 giây cuối
+                trimStartMs = 500L,
+                trimEndFromLastMs = 1_000L,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .aspectRatio(9f / 16f)
@@ -161,47 +242,27 @@ fun TranslateVoiceToVid(
             )
         }
 
-        // 3. LỚP TRÊN CÙNG: UI Ghi âm và Text
+        // 3. UI text + trạng thái
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.BottomCenter)
         ) {
             AutoInputConversation(
-                onMicToggle = {
-                    vibrate(context)
-                    if (!isContinuousListening) {
-                        if (!hasAudioPermission) {
-                            permissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
-                        } else {
-                            isContinuousListening = true
-                            isRecording = true
-                            triggerListening()
-                        }
-                    } else {
-                        isContinuousListening = false
-                        isRecording = false
-                        speechRecognizer.stopListening()
-
-                        val finalSentence = (theirsSentence + " " + tempTheirSpeech).trim()
-                        if (finalSentence.isNotBlank()) {
-                            vslViewModel.fetchVSL(Subtitle(text = finalSentence))
-                            theirsSentence = finalSentence
-                            tempTheirSpeech = ""
-                        }
-                    }
-                },
+                // Bỏ onMicToggle thủ công, giờ là auto
+                onMicToggle = {},
                 onDelete = {
-                    theirsSentence = ""
-                    tempTheirSpeech = ""
+                    displayText = ""
+                    partialText = ""
                 },
-                inputText = (theirsSentence + if (tempTheirSpeech.isNotEmpty()) " $tempTheirSpeech" else "").trim(),
-                isRecording = isRecording
+                inputText = if (partialText.isNotEmpty()) "$displayText $partialText".trim() else displayText,
+                isRecording = isListening
             )
         }
     }
 }
-@androidx.annotation.OptIn(UnstableApi::class)
+
+@OptIn(UnstableApi::class)
 @Composable
 fun SequentialVideoPlayer(
     vslList: List<VSL>,
@@ -233,17 +294,17 @@ fun SequentialVideoPlayer(
             .setMediaSourceFactory(mediaSourceFactory)
             .build().apply {
                 playWhenReady = true
-                addListener(object : androidx.media3.common.Player.Listener {
+                addListener(object : Player.Listener {
 
                     // ✂️ START TRIM: seek ngay khi chuyển video
                     override fun onMediaItemTransition(
-                        mediaItem: androidx.media3.common.MediaItem?,
+                        mediaItem: MediaItem?,
                         reason: Int
                     ) {
                         if (trimStartMs > 0) seekTo(trimStartMs)
                     }
 
-                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    override fun onPlayerError(error: PlaybackException) {
                         Log.e("VideoPlayerError", "Lỗi: ${error.errorCodeName} | ${error.message}")
                     }
                 })
