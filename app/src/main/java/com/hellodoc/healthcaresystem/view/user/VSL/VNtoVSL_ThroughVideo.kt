@@ -50,6 +50,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.VSL
@@ -261,14 +262,13 @@ fun TranslateVoiceToVid(
         }
     }
 }
-
 @OptIn(UnstableApi::class)
 @Composable
 fun SequentialVideoPlayer(
     vslList: List<VSL>,
     modifier: Modifier = Modifier,
-    trimStartMs: Long = 0L,        // Bỏ X giây đầu
-    trimEndFromLastMs: Long = 0L,  // Bỏ Y giây cuối
+    trimStartMs: Long = 0L,
+    trimEndFromLastMs: Long = 0L,
 ) {
     val context = LocalContext.current
 
@@ -290,20 +290,28 @@ fun SequentialVideoPlayer(
         val mediaSourceFactory = DefaultMediaSourceFactory(context)
             .setDataSourceFactory(dataSourceFactory)
 
+        // ✅ Load control: buffer trước video tiếp theo
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                /* minBufferMs */        1_000,   // Bắt đầu phát khi có 1s trong buffer
+                /* maxBufferMs */        10_000,  // Buffer tối đa 10s
+                /* bufferForPlaybackMs */     500,// Chỉ cần 0.5s để bắt đầu phát
+                /* bufferForPlaybackAfterRebufferMs */ 1_000
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
+            .setLoadControl(loadControl)
             .build().apply {
                 playWhenReady = true
-                addListener(object : Player.Listener {
+                // Xóa dòng keepContentDuringLoad = true ❌
 
-                    // ✂️ START TRIM: seek ngay khi chuyển video
-                    override fun onMediaItemTransition(
-                        mediaItem: MediaItem?,
-                        reason: Int
-                    ) {
+                addListener(object : Player.Listener {
+                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         if (trimStartMs > 0) seekTo(trimStartMs)
                     }
-
                     override fun onPlayerError(error: PlaybackException) {
                         Log.e("VideoPlayerError", "Lỗi: ${error.errorCodeName} | ${error.message}")
                     }
@@ -311,16 +319,14 @@ fun SequentialVideoPlayer(
             }
     }
 
-    // ✂️ END TRIM: sau khi biết duration → tính endMs = duration - Y
-    // Polling 100ms để check position
+    // ✅ Preload: khi video hiện tại sắp kết thúc thì prepare video tiếp theo
     LaunchedEffect(exoPlayer, trimEndFromLastMs) {
         while (true) {
             delay(100)
             if (exoPlayer.isPlaying) {
-                val duration = exoPlayer.duration  // -1 nếu chưa biết
+                val duration = exoPlayer.duration
                 if (duration > 0 && trimEndFromLastMs > 0) {
                     val endMs = duration - trimEndFromLastMs
-                    // endMs phải lớn hơn trimStartMs mới hợp lệ
                     if (endMs > trimStartMs && exoPlayer.currentPosition >= endMs) {
                         exoPlayer.seekToNextMediaItem()
                     }
@@ -336,7 +342,6 @@ fun SequentialVideoPlayer(
             val mediaItems = vslList.map { vsl ->
                 val url = resolveVideoUrl(vsl.url)
                 Log.d("CheckVideoURL", "URL: $url")
-
                 val builder = MediaItem.Builder().setUri(Uri.parse(url))
                 when {
                     url.endsWith(".m3u8", ignoreCase = true) ||
@@ -364,6 +369,7 @@ fun SequentialVideoPlayer(
                 player = exoPlayer
                 useController = false
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                setKeepContentOnPlayerReset(true) // ✅ Đây là đủ
             }
         },
         update = { playerView -> playerView.player = exoPlayer }
