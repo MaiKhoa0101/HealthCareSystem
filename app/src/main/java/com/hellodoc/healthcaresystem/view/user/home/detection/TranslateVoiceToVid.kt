@@ -43,9 +43,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.alpha
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.AspectRatioFrameLayout
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.VSL
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -104,7 +107,7 @@ fun TranslateVoiceToVid(
             context = context,
             speechRecognizer = speechRecognizer,
             onFinal = { result ->
-                theirsSentence = (theirsSentence + " " + result).trim()
+                theirsSentence = ("$theirsSentence $result").trim()
                 tempTheirSpeech = ""
 
                 if (theirsSentence.isNotBlank()) {
@@ -149,10 +152,11 @@ fun TranslateVoiceToVid(
         ) {
             SequentialVideoPlayer(
                 vslList = vslResponse,
+                trimStartMs = 500L,          // Bỏ 0.5 giây đầu
+                trimEndFromLastMs = 1_000L,  // Bỏ 1 giây cuối
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .aspectRatio(16f / 9f)
-                    // Làm mờ hoàn toàn nếu không có video để tránh hiển thị 1 khối đen giữa màn hình
+                    .aspectRatio(9f / 16f)
                     .alpha(if (vslResponse.isNotEmpty()) 1f else 0f)
             )
         }
@@ -197,10 +201,13 @@ fun TranslateVoiceToVid(
         }
     }
 }
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun SequentialVideoPlayer(
     vslList: List<VSL>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trimStartMs: Long = 0L,        // Bỏ X giây đầu
+    trimEndFromLastMs: Long = 0L,  // Bỏ Y giây cuối
 ) {
     val context = LocalContext.current
 
@@ -227,11 +234,38 @@ fun SequentialVideoPlayer(
             .build().apply {
                 playWhenReady = true
                 addListener(object : androidx.media3.common.Player.Listener {
+
+                    // ✂️ START TRIM: seek ngay khi chuyển video
+                    override fun onMediaItemTransition(
+                        mediaItem: androidx.media3.common.MediaItem?,
+                        reason: Int
+                    ) {
+                        if (trimStartMs > 0) seekTo(trimStartMs)
+                    }
+
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                         Log.e("VideoPlayerError", "Lỗi: ${error.errorCodeName} | ${error.message}")
                     }
                 })
             }
+    }
+
+    // ✂️ END TRIM: sau khi biết duration → tính endMs = duration - Y
+    // Polling 100ms để check position
+    LaunchedEffect(exoPlayer, trimEndFromLastMs) {
+        while (true) {
+            delay(100)
+            if (exoPlayer.isPlaying) {
+                val duration = exoPlayer.duration  // -1 nếu chưa biết
+                if (duration > 0 && trimEndFromLastMs > 0) {
+                    val endMs = duration - trimEndFromLastMs
+                    // endMs phải lớn hơn trimStartMs mới hợp lệ
+                    if (endMs > trimStartMs && exoPlayer.currentPosition >= endMs) {
+                        exoPlayer.seekToNextMediaItem()
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(vslList) {
@@ -240,23 +274,20 @@ fun SequentialVideoPlayer(
 
             val mediaItems = vslList.map { vsl ->
                 val url = resolveVideoUrl(vsl.url)
-                Log.d("CheckVideoURL", "Resolved URL: $url")
+                Log.d("CheckVideoURL", "URL: $url")
 
                 val builder = MediaItem.Builder().setUri(Uri.parse(url))
-
-                // Chỉ set MIME type khi chắc chắn là HLS
                 when {
                     url.endsWith(".m3u8", ignoreCase = true) ||
                             url.contains("stream.mux.com") ->
                         builder.setMimeType(MimeTypes.APPLICATION_M3U8)
-                    // MP4 và các định dạng khác: để ExoPlayer tự nhận dạng
                 }
-
                 builder.build()
             }
 
             exoPlayer.setMediaItems(mediaItems)
             exoPlayer.prepare()
+            if (trimStartMs > 0) exoPlayer.seekTo(trimStartMs)
             exoPlayer.play()
         }
     }
@@ -271,7 +302,7 @@ fun SequentialVideoPlayer(
             PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = false
-                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             }
         },
         update = { playerView -> playerView.player = exoPlayer }
