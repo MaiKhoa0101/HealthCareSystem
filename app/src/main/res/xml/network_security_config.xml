@@ -27,6 +27,7 @@
         <domain includeSubdomains="true">192.168.1.225</domain>
         <domain includeSubdomains="true">192.168.1.227</domain>
         <domain includeSubdomains="true">192.168.1.222</domain>
+        <domain includeSubdomains="true">192.168.1.221</domain>
         <domain includeSubdomains="true">192.168.1.82</domain>
         <domain includeSubdomains="true">192.168.1.71</domain>
 

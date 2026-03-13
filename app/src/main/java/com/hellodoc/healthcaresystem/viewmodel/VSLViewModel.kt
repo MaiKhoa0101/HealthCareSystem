@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hellodoc.healthcaresystem.model.dataclass.requestmodel.Subtitle
+import com.hellodoc.healthcaresystem.view.user.supportfunction.TranslationManager
 import kotlinx.coroutines.flow.StateFlow
 import retrofit2.Response
 
@@ -29,17 +30,6 @@ class VSLViewModel @Inject constructor(
 
             // Tạm thời ẩn phần gọi API thật
              val response = vslRepository.getSignLanguageVideoPlaylist(subtitle)
-//
-//            // 1. Tạo một List chứa các object VSL giả (Mock Data)
-//            val mockData = listOf(
-//                VSL(
-//                    url = "http://qipedc.moet.gov.vn/videos/W04056B.mp4", // Chúc bạn Rickroll vui vẻ nhé =))
-//                    gross = "tôi yêu em"
-//                )
-//            )
-//
-//            // 2. Dùng Response.success() để bọc List đó lại thành 1 cục Response chuẩn của Retrofit
-//            val response = Response.success(mockData)
 
             if (response.isSuccessful) {
                 _vslResponse.value = response.body() ?: emptyList()
@@ -48,6 +38,45 @@ class VSLViewModel @Inject constructor(
                 _vslResponse.value = emptyList()
             }
         }
+    }
+
+
+    private val translationManager = TranslationManager()
+    private val _translatedText = MutableStateFlow<String?>(null)
+    val translatedText: StateFlow<String?> = _translatedText
+
+    init {
+        // Tải model ngay khi ViewModel khởi tạo
+        viewModelScope.launch {
+            translationManager.initialize()
+        }
+    }
+
+    fun translateViToEn(text: String) {
+        viewModelScope.launch {
+            try {
+                val result = translationManager.translateViToEn(text)
+                _translatedText.value = result
+            } catch (e: Exception) {
+                Log.e("VSLViewModel", "Translation error: ${e.message}")
+            }
+        }
+    }
+
+    fun translateEnToVi(text: String) {
+        viewModelScope.launch {
+            try {
+                val result = translationManager.translateEnToVi(text)
+                _translatedText.value = result
+            } catch (e: Exception) {
+                Log.e("VSLViewModel", "Translation error: ${e.message}")
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        translationManager.release()
     }
 
 }
