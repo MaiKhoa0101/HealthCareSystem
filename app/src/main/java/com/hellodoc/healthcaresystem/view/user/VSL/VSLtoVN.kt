@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hellodoc.healthcaresystem.view.user.home.detection.PoseOverlay
 import com.hellodoc.healthcaresystem.viewmodel.SignLanguageViewModel
 import java.util.concurrent.Executors
 
@@ -40,17 +41,15 @@ fun SignLanguageScreen(
     val isCameraActive by viewModel.isCameraActive.collectAsState()
     val predictionText by viewModel.prediction.collectAsState()
 
-    // 1. Tạo launcher để hứng kết quả khi người dùng chọn "Cho phép" hoặc "Từ chối"
+    // LẤY DỮ LIỆU LANDMARKS TỪ VIEWMODEL
+    val handResults by viewModel.handResults.collectAsState()
+    val poseResults by viewModel.poseResults.collectAsState()
+    val faceResults by viewModel.faceResults.collectAsState()
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            // Nếu người dùng đồng ý, bật camera ngay
-            viewModel.toggleCamera()
-        } else {
-            // Nếu từ chối, có thể hiện thông báo (Toast) ở đây
-            Log.e("Permission", "Camera permission denied")
-        }
+        if (isGranted) viewModel.toggleCamera() else Log.e("Permission", "Camera permission denied")
     }
 
     Column(
@@ -67,15 +66,25 @@ fun SignLanguageScreen(
             contentAlignment = Alignment.Center
         ) {
             if (isCameraActive) {
+                // LỚP 1: MÀN HÌNH CAMERA
                 CameraPreviewView(
                     onFrameCaptured = { bitmap ->
                         viewModel.processCameraFrame(bitmap)
                     }
                 )
+
+                // LỚP 2: KHUNG VẼ LANDMARK (Đè lên trên camera)
+                PoseOverlay(
+                    poseResults = poseResults,
+                    handResults = handResults,
+                    faceResults = faceResults,
+                    modifier = Modifier.matchParentSize() // Quan trọng: Phủ kín toàn bộ vùng Camera
+                )
             } else {
                 Text("Nhấn nút để bật Camera", color = Color.White)
             }
 
+            // Text kết quả góc dưới
             if (isCameraActive) {
                 Text(
                     text = predictionText,
@@ -107,15 +116,14 @@ fun SignLanguageScreen(
 
             Button(
                 onClick = {
-                    // 2. Logic kiểm tra quyền trước khi bật
                     if (isCameraActive) {
-                        viewModel.toggleCamera() // Đang bật thì tắt luôn, không cần hỏi
+                        viewModel.toggleCamera()
                     } else {
                         val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                            viewModel.toggleCamera() // Đã có quyền -> Bật
+                            viewModel.toggleCamera()
                         } else {
-                            permissionLauncher.launch(Manifest.permission.CAMERA) // Chưa có -> Hỏi
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     }
                 },
@@ -148,7 +156,6 @@ fun CameraPreviewView(onFrameCaptured: (Bitmap) -> Unit) {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-                // Lưu ý: Cần setOutputImageFormat để toBitmap() hoạt động mượt mà
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
@@ -156,8 +163,6 @@ fun CameraPreviewView(onFrameCaptured: (Bitmap) -> Unit) {
 
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
                     val bitmap = imageProxy.toBitmap()
-                    // Xoay bitmap nếu cần thiết (thường camera trước bị xoay 270 độ)
-                    // Ở đây gửi raw bitmap, logic xử lý có thể thêm sau
                     onFrameCaptured(bitmap)
                     imageProxy.close()
                 }
@@ -166,7 +171,7 @@ fun CameraPreviewView(onFrameCaptured: (Bitmap) -> Unit) {
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
-                        CameraSelector.DEFAULT_FRONT_CAMERA, // Đảm bảo máy test có camera trước
+                        CameraSelector.DEFAULT_BACK_CAMERA,
                         preview,
                         imageAnalysis
                     )

@@ -23,15 +23,9 @@ fun updateBoneRotation(
     boneName: String,
     x: Float, y: Float, z: Float
 ) {
-    // Engine hoặc modelInstance không hợp lệ → tuyệt đối không gọi xuống Filament
     if (modelInstance == null || !engine.isValid) return
-
-    // ⭐ THÊM KIỂM TRA NÀY
-    // Nếu góc xoay là 0, bỏ qua (giữ nguyên trạng thái hiện tại)
-    if (x == 0f && y == 0f && z == 0f) {
-        return
-    }
-    println("vào được updatebone với x y z là "+x+" "+y+" "+z +" boneName là "+boneName)
+    // XÓA ĐOẠN NÀY:
+    // if (x == 0f && y == 0f && z == 0f) return
 
     val asset = modelInstance.asset ?: return
     val boneEntity = asset.getFirstEntityByName(boneName)
