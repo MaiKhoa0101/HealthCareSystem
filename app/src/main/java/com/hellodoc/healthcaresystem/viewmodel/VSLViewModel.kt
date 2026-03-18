@@ -32,7 +32,7 @@ class VSLViewModel @Inject constructor(
              val response = vslRepository.getSignLanguageVideoPlaylist(subtitle)
 
             if (response.isSuccessful) {
-                _vslResponse.value = response.body() ?: emptyList()
+                _vslResponse.value = response.body()?.playlist ?: emptyList()
             } else {
                 Log.e("VSLViewModel", "Lỗi API: ${response.errorBody()?.string()}")
                 _vslResponse.value = emptyList()

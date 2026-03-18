@@ -1,6 +1,5 @@
 package com.hellodoc.healthcaresystem.viewmodel
 
-import SignLanguageInterpreter
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
@@ -12,6 +11,7 @@ import android.util.Log
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
+import com.hellodoc.healthcaresystem.interpreter.SignLanguageInterpreter
 
 class SignLanguageViewModel(application: Application) : AndroidViewModel(application) {
 

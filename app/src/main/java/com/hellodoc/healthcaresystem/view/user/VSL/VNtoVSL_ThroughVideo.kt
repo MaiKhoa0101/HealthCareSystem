@@ -125,7 +125,8 @@ fun TranslateVoiceToVid(
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES, true)
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L)
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 200L)
         }
     }
@@ -148,13 +149,10 @@ fun TranslateVoiceToVid(
             }
         }
 
-        // ✅ Initialize hardware noise suppression — thất bại thì vẫn chạy VAD bình thường
         val hardwareNsOk = audioRecord.initialize()
         Log.d("VAD", if (hardwareNsOk) "✅ Hardware NS enabled" else "⚠️ Hardware NS unavailable — software VAD only")
 
-        // ================================================================
-        // ⚙️ VAD PARAMETERS
-        // ================================================================
+        // ⚙️ VAD PARAMETERS (Giữ nguyên của bạn)
         val NOISE_ADAPT_RATE_SPEECH    = 0.001f
         val NOISE_ADAPT_RATE_SILENCE   = 0.05f
         val NOISE_FLOOR_INIT_MS        = 800L
@@ -169,18 +167,12 @@ fun TranslateVoiceToVid(
         val SUSTAINED_SPEECH_FRAMES    = 3
         val MIN_SPEECH_DURATION_MS     = 250L
         val MIN_CONFIDENCE             = 0.55f
-
-        // ================================================================
-        // ⚙️ NOISE SUPPRESSION PARAMETERS
-        // ================================================================
         val SPECTRAL_GATE_RATIO        = 1.8f
         val SPIKE_WINDOW_SIZE          = 5
         val SPIKE_RATIO_THRESHOLD      = 3.0f
         val NEAR_FIELD_SLOPE_THRESHOLD = 1.5f
 
-        // ================================================================
         // 🔧 VAD STATE
-        // ================================================================
         var smoothedRms             = 0f
         var speechProbability       = 0f
         var adaptiveNoiseFloor      = 2f
@@ -190,9 +182,12 @@ fun TranslateVoiceToVid(
         var speechStartTime         = -1L
         var belowThresholdSince     = -1L
         var consecutiveSpeechFrames = 0
+        var prevSmoothedRms         = 0f
         val recentEnergyWindow      = ArrayDeque<Float>(ENERGY_WINDOW_SIZE)
         val spikeDetectionWindow    = ArrayDeque<Float>(SPIKE_WINDOW_SIZE)
-        var prevSmoothedRms         = 0f
+
+        // TÍNH NĂNG MỚI: Theo dõi thời gian nhận diện ra chữ cuối cùng
+        var lastWordTime            = -1L
 
         fun resetState() {
             smoothedRms             = 0f
@@ -205,6 +200,7 @@ fun TranslateVoiceToVid(
             belowThresholdSince     = -1L
             consecutiveSpeechFrames = 0
             prevSmoothedRms         = 0f
+            lastWordTime            = -1L
             recentEnergyWindow.clear()
             spikeDetectionWindow.clear()
         }
@@ -237,8 +233,6 @@ fun TranslateVoiceToVid(
             if (cleaned.isBlank()) return
             Log.d("VAD", "🚀 Fire: \"$cleaned\"")
             partialText = ""
-
-            //Dịch sang tiếng anh rồi dịch lại tiếng việt gán cho cleaned
             vslViewModel.fetchVSL(Subtitle(text = cleaned))
         }
 
@@ -251,6 +245,26 @@ fun TranslateVoiceToVid(
 
             override fun onRmsChanged(rmsdB: Float) {
                 val now = System.currentTimeMillis()
+
+                // ========================================================
+                // ⏳ KIỂM TRA TIMEOUT 2 GIÂY THỰC TẾ (STRICT TIMEOUT)
+                // ========================================================
+                if (speechDetected) {
+                    val timeSinceStart = now - speechStartTime
+                    val timeSinceLastWord = if (lastWordTime != -1L) (now - lastWordTime) else 0L
+
+                    // 1. Có tiếng ồn nhưng 1 giây trôi qua Google không ra chữ nào
+                    val timeoutNoWords = partialText.isBlank() && timeSinceStart > 100L
+                    // 2. Đang nói nhưng dừng hoặc ngập ngừng quá 0.5 giây (không có từ mới cập nhật)98
+                    val timeoutAfterWords = partialText.isNotBlank() && timeSinceLastWord > 100L
+
+                    if (timeoutNoWords || timeoutAfterWords) {
+                        Log.d("VAD", "⏹️ TIMEOUT 2s: Không phát hiện từ mới -> Ép cắt ghi âm")
+                        speechRecognizer.stopListening() // Ép Google trả kết quả ngay lập tức
+                        return // Thoát hàm onRmsChanged
+                    }
+                }
+                // ========================================================
 
                 val alpha = if (rmsdB > smoothedRms) PROB_RISE_ALPHA else PROB_FALL_ALPHA
                 smoothedRms = alpha * rmsdB + (1 - alpha) * smoothedRms
@@ -266,7 +280,6 @@ fun TranslateVoiceToVid(
                             (1 - NOISE_ADAPT_RATE_SILENCE) * adaptiveNoiseFloor
                     if (now - calibrationStart >= NOISE_FLOOR_INIT_MS) {
                         isCalibrating = false
-                        Log.d("VAD", "📊 Noise floor = $adaptiveNoiseFloor")
                     }
                     prevSmoothedRms = smoothedRms
                     return
@@ -317,8 +330,8 @@ fun TranslateVoiceToVid(
                         } else if (now - belowThresholdSince >= VAD_HANGOVER_MS) {
                             val duration = now - speechStartTime
                             if (duration >= MIN_SPEECH_DURATION_MS) {
-                                Log.d("VAD", "⏹️ END ${duration}ms")
-                                fireRequest(partialText)
+                                Log.d("VAD", "⏹️ END ${duration}ms (Bởi VAD)")
+                                // Không cần gọi fireRequest ở đây, stopListening sẽ lo việc đó ở onResults
                                 speechRecognizer.stopListening()
                             } else {
                                 speechDetected          = false
@@ -333,8 +346,14 @@ fun TranslateVoiceToVid(
 
             override fun onPartialResults(partialResults: Bundle?) {
                 if (isCalibrating || !speechDetected) return
-                partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    ?.firstOrNull()?.let { partialText = it }
+                val newText = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull() ?: ""
+
+                // CẬP NHẬT THỜI GIAN KHI NHẬN DIỆN ĐƯỢC CHỮ MỚI
+                if (newText.isNotBlank() && newText != partialText) {
+                    partialText = newText
+                    lastWordTime = System.currentTimeMillis()
+                }
             }
 
             override fun onResults(results: Bundle?) {
@@ -352,7 +371,7 @@ fun TranslateVoiceToVid(
                             )
                         }
                 }
-                startListening()
+                startListening() // Tự động nghe lại vòng tiếp theo
             }
 
             override fun onBeginningOfSpeech() { isListening = true }
@@ -361,6 +380,7 @@ fun TranslateVoiceToVid(
             override fun onError(error: Int) {
                 resetState()
                 partialText = ""
+                // Lỗi 7 (NO_MATCH) và Lỗi 6 (SPEECH_TIMEOUT) được xử lý mượt mà và tự restart
                 if (error != SpeechRecognizer.ERROR_RECOGNIZER_BUSY) startListening()
             }
 
@@ -368,7 +388,6 @@ fun TranslateVoiceToVid(
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
 
-        // ✅ Release CẢ HAI trong cùng 1 onDispose
         onDispose {
             speechRecognizer.destroy()
             audioRecord.release()
