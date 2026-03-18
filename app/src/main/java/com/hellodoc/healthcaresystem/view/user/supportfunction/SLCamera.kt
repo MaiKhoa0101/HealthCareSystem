@@ -73,9 +73,9 @@ class SignLanguageInterpreter(private val context: Context) {
     private val HISTORY_SIZE   = 5
 
     // [OPT-6] Interval tăng để giảm tải
-    private val INFER_EVERY_N  = 4   // gốc: 3
-    private val MIRROR_EVERY_N = 4   // gốc: 2
-    private val MIRROR_WEIGHT  = 0.9f
+    private val INFER_EVERY_N  = 4
+    // MIRROR_EVERY_N đã bỏ — mirror luôn chạy mỗi lần infer
+    // MIRROR_WEIGHT đã bỏ — không giảm weight, lấy max(A, B) thẳng
 
     // [OPT-4/5] Throttle detector không cần thiết mỗi frame
     private val FACE_EVERY_N = 5    // face chỉ cho UI, ~6fps là đủ
@@ -115,15 +115,20 @@ class SignLanguageInterpreter(private val context: Context) {
     // ── State ──────────────────────────────────────────────────────────
     private var labels: List<String> = emptyList()
     private val predictionHistory = ArrayDeque<Pair<String, Float>>(HISTORY_SIZE + 1)
-    private var mirrorCache: Map<String, Float> = emptyMap()
-    private var mirrorCounter = 0
+    private var mirrorCounter = 0  // giữ lại để không lỗi nếu còn ref, không dùng nữa
     private var frameCounter  = 0
 
     // Cache kết quả pose/face để dùng lại cho frame bị throttle
     @Volatile private var lastPoseResult: PoseLandmarkerResult? = null
     @Volatile private var lastFaceResult: FaceLandmarkerResult? = null
 
-    // Frame rate limiting
+    // Tolerance cho NO HANDS: chỉ emit sau N frame liên tiếp không có tay
+    // Tránh 1 frame miss duy nhất (blur, góc tay) xóa sạch buffer
+    private var noHandsFrames = 0
+    private val NO_HANDS_TOLERANCE = 8
+
+    // Frame rate limiting — giảm từ 30 xuống 20fps
+    // 20fps đủ cho nhận diện ký hiệu, giảm 33% tải MediaPipe so với 30fps
     private var lastFrameTime     = 0L
     private val FRAME_DURATION_MS = 1000L / 30L
 
@@ -285,6 +290,7 @@ class SignLanguageInterpreter(private val context: Context) {
         // ── 2. Tay + Curl ────────────────────────────────────────────
         val hasHands = handResult != null && handResult.landmarks().isNotEmpty()
         if (hasHands) {
+            noHandsFrames = 0  // reset counter khi tay detect lại được
             val hands = handResult!!.landmarks()
             if (hands.size == 1) {
                 val h = hands[0]
@@ -329,13 +335,13 @@ class SignLanguageInterpreter(private val context: Context) {
 
         // ── 6. Xu ly khi khong co tay (clear buffer) ─────────────────
         if (!hasHands) {
-            val isFull = synchronized(ringLock) { bufferCount >= SEQ_LEN }
-            if (isFull) {
+            noHandsFrames++
+            if (noHandsFrames >= NO_HANDS_TOLERANCE) {
                 synchronized(ringLock) { bufferCount = 0; ringHead = 0 }
-                mirrorCache = emptyMap()
                 inferenceScope.launch(Dispatchers.Main) {
                     onResultListener?.invoke("[NO HANDS]", 0f)
                 }
+                noHandsFrames = 0
             }
             return
         }
@@ -363,29 +369,27 @@ class SignLanguageInterpreter(private val context: Context) {
         val count = synchronized(ringLock) { bufferCount }
         if (count < SEQ_LEN || labels.isEmpty() || module == null) return
 
-        // Pass A: goc — doc ring buffer vao scratchFlat (pre-allocated)
+        // Pass A: gốc
         flattenRingInto(scratchFlat)
         val resultA = runVSLModelOnFlat(scratchFlat) ?: return
 
-        // Pass B: mirror — chi chay moi MIRROR_EVERY_N frame
-        mirrorCounter++
-        if (mirrorCounter % MIRROR_EVERY_N == 0) {
-            flattenRingInto(scratchMirFlat)
-            mirrorFeatInto(feat201Norm, scratchMirror)
-            // Ghi de frame cuoi cua scratchMirFlat bang mirror version
-            val lastOff = (SEQ_LEN - 1) * FEAT_DIM
-            scratchMirror.copyInto(scratchMirFlat, destinationOffset = lastOff, endIndex = FEAT_DIM_201)
-            scratchMirFlat[lastOff + FEAT_DIM_201 + 6] = 1.0f
-            mirrorCache = runVSLModelOnFlat(scratchMirFlat) ?: emptyMap()
-        }
+        // Pass B: mirror — LUÔN chạy mỗi lần infer (bỏ throttle MIRROR_EVERY_N)
+        // Lý do: nếu người dùng thực hiện động tác bằng tay ngược (trái/phải đảo),
+        // mirror pass phải cập nhật liên tục mới bắt được — cache cũ sẽ miss
+        flattenRingInto(scratchMirFlat)
+        mirrorFeatInto(feat201Norm, scratchMirror)
+        val lastOff = (SEQ_LEN - 1) * FEAT_DIM
+        scratchMirror.copyInto(scratchMirFlat, destinationOffset = lastOff, endIndex = FEAT_DIM_201)
+        scratchMirFlat[lastOff + FEAT_DIM_201 + 6] = 1.0f
+        val resultB = runVSLModelOnFlat(scratchMirFlat) ?: emptyMap()
 
-        // Fusion: max(A, B × weight)
+        // Fusion: lấy max(A, B) — không giảm weight mirror
+        // Nếu model nhận ra bằng tay ngược (B), conf của B có thể cao hơn A → ưu tiên B
         val merged = HashMap<String, Float>(resultA.size * 2)
         merged.putAll(resultA)
-        for ((label, confB) in mirrorCache) {
-            val weighted = confB * MIRROR_WEIGHT
+        for ((label, confB) in resultB) {
             val existing = merged[label]
-            if (existing == null || weighted > existing) merged[label] = weighted
+            if (existing == null || confB > existing) merged[label] = confB
         }
 
         val topPreds = merged.entries.sortedByDescending { it.value }.take(TOP_K)
@@ -609,7 +613,7 @@ class SignLanguageInterpreter(private val context: Context) {
             handLandmarker?.close(); poseLandmarker?.close()
             faceLandmarker?.close(); module?.destroy()
             synchronized(ringLock) { bufferCount = 0; ringHead = 0 }
-            predictionHistory.clear(); mirrorCache = emptyMap()
+            predictionHistory.clear()
             Log.d(TAG, "Closed")
         } catch (e: Exception) {
             Log.e(TAG, "Loi close: ${e.message}")
@@ -619,6 +623,6 @@ class SignLanguageInterpreter(private val context: Context) {
     fun getDebugInfo(): String = """
         |Labels: ${labels.size} | Buffer: ${synchronized(ringLock){bufferCount}}/$SEQ_LEN
         |FPS: ${"%.1f".format(currentFPS)} | Frame: $frameCounter
-        |Inferring: ${isInferring.get()} | MirrorCache: ${mirrorCache.size}
+        |Inferring: ${isInferring.get()} | NoHandsFrames: $noHandsFrames
     """.trimMargin()
 }
