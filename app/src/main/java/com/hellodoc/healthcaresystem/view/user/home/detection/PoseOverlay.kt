@@ -41,7 +41,7 @@ fun PoseOverlay(
             // CameraX mặc định trả frame bị xoay 90 độ.
             // Công thức dưới đây ánh xạ (x,y) của frame gốc sang (cx, cy) của màn hình dọc.
             val mappedX = (1- y) * canvasWidth
-            val mappedY = ( x) * canvasHeight
+            val mappedY = (1- x) * canvasHeight
             return Offset(mappedX, mappedY)
         }
 

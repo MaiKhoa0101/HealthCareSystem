@@ -145,7 +145,6 @@ fun SignLanguageAnimatableScreen(
         animationJob.value = coroutineContext[kotlinx.coroutines.Job]
 
         try {
-            // ✅ FIX: Loại bỏ while(isActive), chỉ chạy 1 lần
             for (frameIndex in gestureFrames.indices step 5) {
                 if (!isActive) break // Check cancellation
 

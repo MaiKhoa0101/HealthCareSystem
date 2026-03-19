@@ -68,18 +68,23 @@ class SignLanguageInterpreter(private val context: Context) {
     private val FEAT_DIM     = 208   // 201 landmarks + 7 emotion
     private val FEAT_DIM_201 = 201
     private val TOP_K        = 5
-    private val CONF_THRESHOLD = 0.60f
-    private val STABLE_FRAMES  = 3
-    private val HISTORY_SIZE   = 5
+    private val CONF_THRESHOLD = 0.85f
+    private val STABLE_FRAMES  = 2
+    // HISTORY_SIZE=3: cần 3 inference liên tiếp đồng thuận mới đổi kết quả
+    // Gốc là 5 → delay thêm 4×133ms=532ms sau khi model đã chắc chắn
+    // 3 → delay tối đa 2×66ms=132ms — phản ứng nhanh hơn ~4x
+    private val HISTORY_SIZE   = 3
 
     // [OPT-6] Interval tăng để giảm tải
-    private val INFER_EVERY_N  = 4
+    // INFER_EVERY_N=2: inference mỗi 2 frame = mỗi 66ms (gốc là 4 frame = 133ms)
+    // Đánh đổi: tải CPU tăng 2x nhưng kết quả mới nhanh hơn 2x
+    private val INFER_EVERY_N  = 2
     // MIRROR_EVERY_N đã bỏ — mirror luôn chạy mỗi lần infer
     // MIRROR_WEIGHT đã bỏ — không giảm weight, lấy max(A, B) thẳng
 
     // [OPT-4/5] Throttle detector không cần thiết mỗi frame
     private val FACE_EVERY_N = 5    // face chỉ cho UI, ~6fps là đủ
-    private val POSE_EVERY_N = 2    // pose thay đổi chậm, ~15fps là đủ
+    private val POSE_EVERY_N = 2
 
     private val POSE_KEY_INDICES = intArrayOf(0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24)
     private val FINGER_JOINTS = arrayOf(
@@ -127,10 +132,14 @@ class SignLanguageInterpreter(private val context: Context) {
     private var noHandsFrames = 0
     private val NO_HANDS_TOLERANCE = 8
 
-    // Frame rate limiting — giảm từ 30 xuống 20fps
-    // 20fps đủ cho nhận diện ký hiệu, giảm 33% tải MediaPipe so với 30fps
+    // Theo dõi conf của inference gần nhất để phát hiện chuyển từ
+    // Khi conf đột ngột thấp sau khi đang cao → người dùng đang chuyển sang từ mới
+    // → reset history để kết quả mới không bị "kéo" bởi từ cũ
+    @Volatile private var lastInferenceConf = 0f
+    private val CONF_DROP_THRESHOLD = 0.60f
+
     private var lastFrameTime     = 0L
-    private val FRAME_DURATION_MS = 1000L / 30L
+    private val FRAME_DURATION_MS = 1000L / 32L
 
     // FPS monitoring
     private var fpsFrameCount = 0
@@ -396,6 +405,13 @@ class SignLanguageInterpreter(private val context: Context) {
         if (topPreds.isEmpty()) return
 
         val (label, conf) = topPreds[0].toPair()
+
+        // Phát hiện chuyển từ: conf đột ngột thấp sau khi đang cao
+        // → người dùng đang giữa 2 động tác → xóa history cũ để kết quả không bị "kéo lùi"
+        if (lastInferenceConf >= CONF_THRESHOLD && conf < CONF_DROP_THRESHOLD) {
+            predictionHistory.clear()
+        }
+        lastInferenceConf = conf
 
         // Majority vote
         predictionHistory.addLast(Pair(label, conf))
