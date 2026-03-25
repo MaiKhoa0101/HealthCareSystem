@@ -73,29 +73,76 @@ class SpecialtyViewModel @Inject constructor(
 
     fun fetchSpecialtyDoctor(specialtyID: String) {
         viewModelScope.launch {
+            getSpecialtyDoctorAsync(specialtyID)
+        }
+    }
+
+    suspend fun getSpecialtyDoctorAsync(specialtyID: String): List<Doctor>? {
+        return try {
+            val response = specialtyRepository.getSpecialtyById(specialtyID)
+            if (response.isSuccessful) {
+                val specialtyResponse = response.body()
+                if (specialtyResponse != null) {
+                    _specialty.value = specialtyResponse
+                    _doctors.value = specialtyResponse.doctors
+                    _filteredDoctors.value = specialtyResponse.doctors
+                    println("OK: Successfully retrieved ${specialtyResponse.doctors}")
+                    specialtyResponse.doctors
+                } else {
+                    _doctors.value = emptyList()
+                    println("API returned null response body")
+                    emptyList()
+                }
+            } else {
+                println("API fetch doctor by specialty Error: ${response.errorBody()?.string()}")
+                null
+            }
+        } catch (e: Exception) {
+            println("Exception: ${e.message}")
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private val _filteredDoctorsByName = MutableStateFlow<List<Doctor>>(emptyList())
+    val filteredDoctorsName: StateFlow<List<Doctor>> get() = _filteredDoctorsByName
+
+    fun fetchSpecialtyByName(name: String) {
+        viewModelScope.launch {
             try {
-                val response = specialtyRepository.getSpecialtyById(specialtyID)
+                val response = specialtyRepository.getSpecialtyByName(name)
                 if (response.isSuccessful) {
                     val specialtyResponse = response.body()
                     if (specialtyResponse != null) {
                         _specialty.value = specialtyResponse
                         _doctors.value = specialtyResponse.doctors
-                        _filteredDoctors.value = specialtyResponse.doctors
+                        _filteredDoctorsByName.value = specialtyResponse.doctors
                         println("OK: Successfully retrieved ${specialtyResponse.doctors}")
                     } else {
+                        _specialty.value = null
                         _doctors.value = emptyList()
                         println("API returned null response body")
                     }
                 } else {
+                    _specialty.value = null
+                    _doctors.value = emptyList()
+                    _filteredDoctorsByName.value = emptyList()
+                    val errorBody = response.errorBody()?.string()
                     println("API fetch doctor by specialty Error: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
+                _specialty.value = null
+                _doctors.value = emptyList()
+                _filteredDoctorsByName.value = emptyList()
                 println("Exception: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
 
+    fun clearSpecialty() {
+        _specialty.value = null
+    }
 
     private fun prepareFilePart(
         context: Context,

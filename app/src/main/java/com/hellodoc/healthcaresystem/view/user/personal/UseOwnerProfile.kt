@@ -63,6 +63,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,6 +115,7 @@ fun ProfileUserPage(
     // Lấy userId, role từ SharedPreferences chỉ 1 lần
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttribute("userId", context)
+        println("USERID NHAN DUOC LA " +  userId)
         userModel = userViewModel.getUserAttribute("role", context)
 
         if (userId.isNotEmpty()) {
@@ -160,7 +162,8 @@ fun ProfileUserPage(
                     modifier = Modifier.fillMaxWidth(),
                 ){
                     if (user == null) {
-                        UserSkeleton()
+
+                        UserSkeleton(navHostController)
                     } else {
                         ProfileSection(
                             user = user!!,
@@ -194,6 +197,7 @@ fun ProfileUserPage(
                             context = navHostController.context,
                             youTheCurrentUserUseThisApp = user!!,
                             userReported = it,
+                            postId = post.id,
                             onClickShowPostReportDialog = { showPostReportDialog = false }
                         )
                     }
@@ -315,7 +319,7 @@ fun ProfileSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp) // Tổng chiều cao header + phần avatar lòi ra
+                .heightIn(min = 280.dp) // Dynamic height for long names
         ) {
             // Background Header
             AsyncImage(
@@ -350,9 +354,8 @@ fun ProfileSection(
             // Avatar overlapping
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 20.dp)
-                    .offset(y = (-20).dp)
+                    .align(Alignment.TopStart)
+                    .padding(start = 20.dp, top = 140.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -376,19 +379,22 @@ fun ProfileSection(
             // Info Section (Name & Email) aligned with Avatar
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 150.dp, bottom = 20.dp) // Căn lề trái tránh avatar, căn lề dưới để khớp
+                    .align(Alignment.TopStart)
+                    .padding(start = 150.dp, top = 210.dp, end = 16.dp, bottom = 12.dp)
             ) {
                 Text(
                     text = user.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    letterSpacing = 0.5.sp,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = user.email,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
             }
         }

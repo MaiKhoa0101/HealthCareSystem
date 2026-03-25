@@ -43,12 +43,15 @@ import com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import androidx.compose.runtime.getValue
 
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+
 @Composable
 fun Setting(
     navHostController: NavHostController,
     sharedPreferences: SharedPreferences,
     onToggleTheme: () -> Unit,
-    darkTheme: Boolean
+    darkTheme: Boolean,
+    socketManager: SocketManager // Add this
 ) {
     val context = LocalContext.current
     val userViewModel: UserViewModel = hiltViewModel()
@@ -65,38 +68,47 @@ fun Setting(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header with Gradient
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(top = 40.dp, bottom = 20.dp) // Adjust for status bar
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.primaryContainer
         ) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                            )
+                        )
+                    )
+                    .height(64.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
+                IconButton(
+                    onClick = { navHostController.popBackStack() },
                     modifier = Modifier
-                        .size(28.dp)
-                        .clickable { navHostController.popBackStack() },
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
                 Text(
                     text = "Cài đặt",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.align(Alignment.Center)
                 )
-                
-                Spacer(modifier = Modifier.size(28.dp)) // Balance the back icon
             }
         }
 
@@ -120,17 +132,24 @@ fun Setting(
                 onClick = { navHostController.navigate("activity_manager") }
             )
 
+            SettingItem(
+                text = "Quản lý khiếu nại",
+                icon = Icons.Default.Report,
+                onClick = { navHostController.navigate("report_manager") }
+            )
+
             // Logout
             SettingItem(
                 text = "Đăng xuất",
                 icon = Icons.Default.Logout,
-                onClick = { logoutWithGoogle(context, sharedPreferences) },
+                onClick = { logoutWithGoogle(context, sharedPreferences, socketManager) },
                 isDestructive = true
             )
         }
     }
 }
 
+// ... SettingItem remains same ...
 @Composable
 fun SettingItem(
     text: String,
@@ -186,7 +205,7 @@ fun SettingItem(
     }
 }
 
-private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences) {
+private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferences, socketManager: SocketManager) {
     // Initialize Firebase Auth
     val auth = FirebaseAuth.getInstance()
 
@@ -199,6 +218,9 @@ private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferen
 
     // Clear saved token
     clearToken(sharedPreferences)
+    
+    // Disconnect Socket
+    socketManager.disconnect()
 
     // Sign out from Firebase Auth
     auth.signOut()

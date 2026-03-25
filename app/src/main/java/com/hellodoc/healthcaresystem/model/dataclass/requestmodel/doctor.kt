@@ -26,6 +26,7 @@ data class ModifyClinicRequest(
     val oldServices: List<ServiceOutput>,
     val images: List<Uri>,
     val hasHomeService: Boolean,
+    val specialtyId: String,
     val isClinicPaused: Boolean
 )
 

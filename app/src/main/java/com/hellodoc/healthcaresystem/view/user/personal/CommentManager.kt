@@ -1,6 +1,8 @@
 package com.hellodoc.healthcaresystem.view.user.personal
 
 import android.content.SharedPreferences
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -53,27 +58,49 @@ fun CommentHistoryScreen(navHostController: NavHostController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                                )
+                            )
+                        )
+                        .height(64.dp)
+                ) {
+                    IconButton(
+                        onClick = { navHostController.popBackStack() },
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(start = 8.dp)
                     ) {
-                        Text("Lịch sử bình luận", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = "Trở lại",
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .padding(end = 20.dp)
-                                .clickable {
-                                    navHostController.popBackStack()
-                                }
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Back Button",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
+
+                    Text(
+                        text = "Lịch sử bình luận",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp
+                        ),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -91,6 +118,18 @@ fun CommentHistoryScreen(navHostController: NavHostController) {
 
 @Composable
 fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: NavHostController) {
+    if (comment == null) {
+        Log.w("CommentCard", "Nhận được comment null, bỏ qua render")
+
+        return
+    }
+
+    // Kiểm tra post có null không
+    val post = comment.post
+    if (post == null) {
+        Log.w("CommentCard", "Post null trong comment, bỏ qua render")
+        return
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,11 +139,12 @@ fun CommentCard(comment: ManagerResponse, dateText: String, navHostController: N
             .padding(12.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
+
         Column(modifier = Modifier.padding(16.dp)) {
 
             // Hình ảnh bài viết
             AsyncImage(
-                model = comment.post.media[0] ?: "",
+                model = comment.post.media?.getOrNull(0) ?: "",
                 contentDescription = "Ảnh bài viết",
                 modifier = Modifier
                     .fillMaxWidth()

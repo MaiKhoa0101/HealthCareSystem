@@ -1,7 +1,7 @@
 package com.hellodoc.healthcaresystem.roomDb.mapper
 
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.AppointmentResponse
-import com.hellodoc.healthcaresystem.roomDb.data.entity.AppointmentEntity
+import com.hellodoc.healthcaresystem.model.roomDb.data.entity.AppointmentEntity
 
 // Response -> Entity (Fixed với null safety)
 fun AppointmentResponse.toEntity(): AppointmentEntity {
@@ -9,7 +9,6 @@ fun AppointmentResponse.toEntity(): AppointmentEntity {
         id = this.id ?: "",
         patientId = this.patient?.id ?: "", // Thêm null check
         doctorId = this.doctor?.id ?: "", // Thêm null check
-        specialtyId = this.doctor?.specialty?.id ?: "", // Thêm null check
         appointmentDate = this.date ?: "",
         appointmentTime = this.time ?: "",
         status = this.status ?: "SCHEDULED",
@@ -21,7 +20,8 @@ fun AppointmentResponse.toEntity(): AppointmentEntity {
         doctorName = this.doctor?.name,
         doctorAvatarUrl = this.doctor?.avatarURL,
         patientName = this.patient?.name,
-        specialtyName = this.doctor?.specialty?.name
+        patientAvatarUrl = this.patient?.avatarURL,
+        specialtyName = this.doctor?.specialty
     )
 }
 
@@ -32,7 +32,6 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             id = this.id ?: "",
             patientId = this.patient?.id ?: "",
             doctorId = this.doctor?.id ?: "",
-            specialtyId = this.doctor?.specialty?.id ?: "",
             appointmentDate = this.date ?: "",
             appointmentTime = this.time ?: "",
             status = this.status ?: "SCHEDULED",
@@ -44,7 +43,8 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             doctorName = this.doctor?.name,
             doctorAvatarUrl = this.doctor?.avatarURL,
             patientName = this.patient?.name,
-            specialtyName = this.doctor?.specialty?.name
+            patientAvatarUrl = this.patient?.avatarURL,
+            specialtyName = this.doctor?.specialty
         )
     } catch (e: Exception) {
         println("Lỗi convert appointment ${this.id}: ${e.message}")
@@ -55,7 +55,6 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             id = this.id ?: "ERROR_${System.currentTimeMillis()}",
             patientId = "",
             doctorId = "",
-            specialtyId = "",
             appointmentDate = this.date ?: "",
             appointmentTime = this.time ?: "",
             status = "ERROR",
@@ -67,6 +66,7 @@ fun AppointmentResponse.toEntitySafe(): AppointmentEntity {
             doctorName = null,
             doctorAvatarUrl = null,
             patientName = null,
+            patientAvatarUrl = null,
             specialtyName = null
         )
     }
@@ -79,16 +79,14 @@ fun AppointmentEntity.toResponse(): AppointmentResponse {
         doctor = AppointmentResponse.Doctor(
             id = this.doctorId,
             name = this.doctorName ?: "",
-            specialty = AppointmentResponse.Specialty(
-                id = this.specialtyId,
-                name = this.specialtyName ?: ""
-            ),
+            specialty = this.specialtyName ?: "",
             avatarURL = this.doctorAvatarUrl ?: ""
         ),
         patientModel = "",
         patient = AppointmentResponse.Patient(
             id = this.patientId,
-            name = this.patientName ?: ""
+            name = this.patientName ?: "",
+            avatarURL = this.patientAvatarUrl ?: ""
         ),
         date = this.appointmentDate,
         time = this.appointmentTime,

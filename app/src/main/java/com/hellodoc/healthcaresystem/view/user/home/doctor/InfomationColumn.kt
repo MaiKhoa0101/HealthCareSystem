@@ -226,21 +226,21 @@ fun Introduce(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                LazyRow {
-                    items(service.imageService) { imageUrl ->
-                        Image(
-                            painter = rememberAsyncImagePainter(imageUrl),
-                            contentDescription = "Hinh anh dich vu",
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(120.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable {
-                                    onImageClick(imageUrl)
-                                },
-                        )
-                    }
-                }
+//                LazyRow {
+//                    items(service.imageService) { imageUrl ->
+//                        Image(
+//                            painter = rememberAsyncImagePainter(imageUrl),
+//                            contentDescription = "Hinh anh dich vu",
+//                            modifier = Modifier
+//                                .padding(end = 8.dp)
+//                                .size(120.dp)
+//                                .clip(RoundedCornerShape(8.dp))
+//                                .clickable {
+//                                    onImageClick(imageUrl)
+//                                },
+//                        )
+//                    }
+//                }
             }
         }
     }

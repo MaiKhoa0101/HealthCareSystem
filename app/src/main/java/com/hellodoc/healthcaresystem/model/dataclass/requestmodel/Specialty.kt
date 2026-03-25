@@ -8,3 +8,6 @@ data class SpecialtyRequest(
     val description: String
 )
 
+data class GetDoctorBySpecialtyNameRequest(
+    val name: String
+)

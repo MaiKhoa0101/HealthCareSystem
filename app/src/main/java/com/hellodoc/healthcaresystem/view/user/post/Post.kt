@@ -88,6 +88,7 @@ import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MediaType
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
+import com.hellodoc.healthcaresystem.view.user.supportfunction.VideoPlayer
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -106,6 +107,11 @@ fun PostColumn(
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
     val userViewModel: UserViewModel = hiltViewModel()
     val userWhoInteractWithThisPost by userViewModel.you.collectAsState()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        userViewModel.getYou(context)
+
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -115,42 +121,52 @@ fun PostColumn(
             var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
             Box (modifier = Modifier.fillMaxWidth()) {
-                Post(
-                    navHostController = navHostController,
-                    postViewModel = postViewModel,
-                    post = post,
-                    userWhoInteractWithThisPost = userWhoInteractWithThisPost!!,
-                    onClickReport = {
+                if (userWhoInteractWithThisPost != null) {
+                    Post(
+                        navHostController = navHostController,
+                        postViewModel = postViewModel,
+                        post = post,
+                        userWhoInteractWithThisPost = userWhoInteractWithThisPost!!,
+                        onClickReport = {
 //                        showOptionsMenu = true
-                        showPostReportDialog = !showPostReportDialog
-                    },
-                    onClickDelete = {
+                            showPostReportDialog = !showPostReportDialog
+                        },
+                        onClickDelete = {
 //                        showOptionsMenu = true
-                        showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                    },
-                )
+                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                        },
+                    )
 
-                if (showPostReportDialog) {
-                    post.userInfo?.let {
-                        ReportPostUser(
-                            context = navHostController.context,
-                            youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
-                            userReported = it,
-                            onClickShowPostReportDialog = { showPostReportDialog = false }
+                    if (showPostReportDialog) {
+                        post.userInfo?.let {
+                            ReportPostUser(
+                                context = navHostController.context,
+                                youTheCurrentUserUseThisApp = userWhoInteractWithThisPost,
+                                userReported = it,
+                                postId = post.id,
+                                onClickShowPostReportDialog = { showPostReportDialog = false }
+                            )
+                        }
+                    }
+
+                    if (showPostDeleteConfirmDialog) {
+                        ConfirmDeletePostModal(
+                            postId = post.id,
+                            postViewModel = postViewModel,
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "MyPrefs",
+                                Context.MODE_PRIVATE
+                            ),
+                            onClickShowConfirmDeleteDialog = {
+                                showPostDeleteConfirmDialog = false
+                            },
                         )
                     }
                 }
-
-                if (showPostDeleteConfirmDialog) {
-                    ConfirmDeletePostModal(
-                        postId = post.id,
-                        postViewModel = postViewModel,
-                        sharedPreferences = navHostController.context.getSharedPreferences(
-                            "MyPrefs",
-                            Context.MODE_PRIVATE
-                        ),
-                        onClickShowConfirmDeleteDialog = { showPostDeleteConfirmDialog = false },
-                    )
+                else{
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
+                        Text("Không tìm thấy bài viết hoặc lỗi server,\nvui lòng thử lại sau")
+                    }
                 }
             }
         }
@@ -235,38 +251,6 @@ fun Post(
     }
 }
 
-@OptIn(UnstableApi::class)
-@Composable
-fun VideoPlayer(
-    videoUrl: String,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    val mediaItem = MediaItem.fromUri(videoUrl)
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(mediaItem)
-            prepare()
-        }
-    }
-
-    DisposableEffect(
-        AndroidView(
-            factory = {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                    useController = true
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                }
-            },
-            modifier = modifier
-        )
-    ) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateTime(isoString: String): String {
@@ -298,6 +282,16 @@ fun PostHeader(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
+                modifier = Modifier.clickable {
+                    if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
+                        navHostController.navigate("otherUserProfile/${post.userInfo?.id}"){
+                            restoreState = true
+                            launchSingleTop = true
+                        }
+                    } else {
+                        navHostController.navigate("personal")
+                    }
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
@@ -305,40 +299,24 @@ fun PostHeader(
                     contentDescription = "Avatar of ${post.userInfo?.name}",
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
-                                navHostController.navigate("otherUserProfile/${post.userInfo?.id}"){
-                                    restoreState = true
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                navHostController.navigate("personal")
-                            }
-                        },
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Column(
-                    modifier = Modifier.clickable {
-                        if (post.userInfo?.id != userWhoInteractWithThisPost.id) {
-                            navHostController.navigate("otherUserProfile/${post.userInfo?.id}")
-                        } else {
-                            navHostController.navigate("personal")
-                        }
-                    }
-                ) {
+                Column() {
                     Text(
                         text = post.userInfo?.name ?: "Người dùng ẩn",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = formatDateTime(post.createdAt),
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -397,7 +375,8 @@ fun PostBody(post: PostResponse){
     Text(
         text = post.content,
         fontSize = 15.sp,
-        modifier = Modifier.padding(start = 8.dp)
+        modifier = Modifier.padding(start = 8.dp),
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 
@@ -727,7 +706,7 @@ fun SkeletonAsyncImage(url: String, modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Gray)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             )
         }
     )
@@ -852,6 +831,7 @@ fun MediaDetailDialog(
                             videoUrl = mediaUrls[page],
                             modifier = Modifier.fillMaxSize()
                         )
+
                     }
                     else -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

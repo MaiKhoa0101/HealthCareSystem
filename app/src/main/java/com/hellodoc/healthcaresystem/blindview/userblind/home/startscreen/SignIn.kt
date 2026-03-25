@@ -180,7 +180,7 @@ class SignIn : BaseActivity() {
                     } else {
                         val errorBody = response.errorBody()?.string()
                         Log.e("LOGIN", "Login failed: $errorBody")
-                        Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody.message", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {

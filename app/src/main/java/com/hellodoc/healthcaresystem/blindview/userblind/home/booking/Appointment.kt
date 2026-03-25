@@ -324,6 +324,7 @@ fun AppointmentCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 if (isDoctor) {
                     if (selectedTab == 0) {
                         OutlinedButton(onClick = {

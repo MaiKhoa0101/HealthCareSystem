@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.hellodoc.healthcaresystem"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -54,6 +54,12 @@ android {
         viewBinding = true
         compose = true
     }
+    sourceSets["main"].assets.srcDirs("src/main/assets")
+
+    aaptOptions {
+        noCompress += "glb"
+    }
+
 }
 
 dependencies {
@@ -97,7 +103,11 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.auth)
     implementation(libs.common)
+    implementation(libs.litertlm)
+    implementation(libs.androidx.foundation.layout.android)
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("io.mockk:mockk:1.13.8")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -120,8 +130,10 @@ dependencies {
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
     //Hiển thị video
-    implementation("androidx.media3:media3-exoplayer:1.7.1")
-    implementation("androidx.media3:media3-ui:1.7.1")
+    implementation("androidx.media3:media3-exoplayer:1.9.2")
+    implementation("androidx.media3:media3-ui:1.9.2")
+    implementation("androidx.media3:media3-datasource-okhttp:1.2.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.9.2")
 
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
@@ -136,5 +148,26 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     ksp("androidx.hilt:hilt-compiler:1.3.0")
 
+    // Filament dependencies
+    implementation("io.github.sceneview:arsceneview:2.0.3")
+
+    implementation("com.google.zxing:core:3.5.2")
+    // Socket.IO
+    implementation("io.socket:socket.io-client:2.1.1")
+
+    // CameraX core library using the camera2 implementation
+    val camerax_version = "1.3.1"
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-view:${camerax_version}")
+
+    // TensorFlow Lite (để chạy model của bạn)
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+
+    // MediaPipe (để lấy landmarks làm đầu vào cho model của bạn)
+    implementation("com.google.mediapipe:tasks-vision:0.10.9")
 
 }

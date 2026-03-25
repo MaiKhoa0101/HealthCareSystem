@@ -105,34 +105,14 @@ class SecondSignUp : BaseActivity() {
                 return@setOnClickListener
             }
 
-            registerUser(username, phoneNumber, password)
-
-        }
-    }
-
-    private fun registerUser(username: String, phone:String, password: String) {
-        CoroutineScope(Dispatchers.IO).launch { //khởi chạy Coroutine trên background Thread
-            try {
-                val response = RetrofitInstance.api.signUp(SignUpRequest(username, email, phone, password))
-
-                //chuyển về main thread
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful) {
-                        //toast chỉ có thể chạy ở main thread
-                        Toast.makeText(this@SecondSignUp, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@SecondSignUp, SignUpSuccess::class.java))
-                    } else {
-                        // Lấy lỗi từ API
-                        val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@SecondSignUp, "Lỗi: $errorBody", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SecondSignUp, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+            // Chuyển sang màn hình chọn role
+            val intent = Intent(this, ThirdSignUp::class.java).apply {
+                putExtra("email", email)
+                putExtra("username", username)
+                putExtra("phone", phoneNumber)
+                putExtra("password", password)
             }
+            startActivity(intent)
         }
     }
-
 }

@@ -59,11 +59,14 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetNewsCommentResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
 import com.hellodoc.healthcaresystem.viewmodel.NewsViewModel
+import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -278,6 +281,12 @@ private fun CommentContent(
     postViewModel: PostViewModel,
     uiState: CommentUIState
 ) {
+    val userViewModel: UserViewModel = hiltViewModel()
+    val you by userViewModel.you.collectAsState()
+    val context= LocalContext.current
+    LaunchedEffect(Unit){
+        userViewModel.getYou(context)
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -287,15 +296,18 @@ private fun CommentContent(
             Text(text = comment.content)
         }
 
-        ReportCommentFunction(
-            comment = comment,
-            postId = postId,
-            postViewModel = postViewModel,
-            setEditingCommentId = { uiState.editingCommentId = it },
-            setEditedCommentContent = { uiState.editedCommentContent = it },
-            activeMenuCommentId = uiState.activeMenuCommentId,
-            setActiveMenuCommentId = { uiState.activeMenuCommentId = it }
-        )
+
+        if (you?.id == comment.user.id) {
+            ReportCommentFunction(
+                comment = comment,
+                postId = postId,
+                postViewModel = postViewModel,
+                setEditingCommentId = { uiState.editingCommentId = it },
+                setEditedCommentContent = { uiState.editedCommentContent = it },
+                activeMenuCommentId = uiState.activeMenuCommentId,
+                setActiveMenuCommentId = { uiState.activeMenuCommentId = it }
+            )
+        }
     }
 }
 

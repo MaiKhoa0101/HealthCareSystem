@@ -28,9 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hellodoc.healthcaresystem.R
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Neo4jResultItem
 import com.hellodoc.healthcaresystem.view.user.home.fasttalk.speakText
 import com.hellodoc.healthcaresystem.view.user.post.ZoomableImage
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -213,6 +219,8 @@ object FocusTTS {
     private val initLock = Any()
     private val continuations = mutableMapOf<String, CancellableContinuation<Unit>>()
 
+    private var currentUtteranceId: String? = null
+
     fun init(context: Context) {
         synchronized(initLock) {
             if (tts != null) return
@@ -223,16 +231,25 @@ object FocusTTS {
 
                     tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                         override fun onStart(utteranceId: String?) {
-                            // Không cần xử lý gì
+                            currentUtteranceId = utteranceId
                         }
 
                         override fun onDone(utteranceId: String?) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
                             utteranceId?.let { id ->
                                 continuations.remove(id)?.resume(Unit)
                             }
                         }
 
                         override fun onError(utteranceId: String?) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
+                            utteranceId?.let { id ->
+                                continuations.remove(id)?.resume(Unit)
+                            }
+                        }
+
+                        override fun onStop(utteranceId: String?, interrupted: Boolean) {
+                            if (currentUtteranceId == utteranceId) currentUtteranceId = null
                             utteranceId?.let { id ->
                                 continuations.remove(id)?.resume(Unit)
                             }
@@ -243,7 +260,17 @@ object FocusTTS {
         }
     }
 
+    fun isReady(): Boolean = ready
+
+    suspend fun waitUntilReady() {
+        while (!ready) {
+            delay(100)
+        }
+    }
+
     suspend fun speakAndWait(text: String) = suspendCancellableCoroutine { continuation ->
+        stop() // Aggressively stop all previous speech and cancel other continuations
+
         if (!ready || tts == null) {
             continuation.resume(Unit)
             return@suspendCancellableCoroutine
@@ -251,19 +278,25 @@ object FocusTTS {
 
         val utteranceId = System.currentTimeMillis().toString()
         continuations[utteranceId] = continuation
+        currentUtteranceId = utteranceId
 
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
 
         continuation.invokeOnCancellation {
             continuations.remove(utteranceId)
-            tts?.stop()
+            if (currentUtteranceId == utteranceId) {
+                tts?.stop()
+                currentUtteranceId = null
+            }
         }
     }
 
     fun speak(text: String) {
+        stop() // Aggressively stop all previous speech
         if (!ready || tts == null) return
-        tts?.stop()
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, System.currentTimeMillis().toString())
+        val utteranceId = System.currentTimeMillis().toString()
+        currentUtteranceId = utteranceId
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 
     fun isSpeaking(): Boolean = tts?.isSpeaking == true
@@ -282,10 +315,90 @@ object FocusTTS {
     }
 }
 
+fun formatTimeToVietnamese(time: String): String {
+    // Expected format "HH:mm" or "HH:mm:ss"
+    val parts = time.split(":")
+    if (parts.size < 2) return time
+
+    val hour24 = parts[0].toIntOrNull() ?: return time
+    val minute = parts[1].toIntOrNull() ?: return time
+
+    val period = when (hour24) {
+        in 0..3 -> "đêm"
+        in 4..10 -> "sáng"
+        in 11..12 -> "trưa"
+        in 13..17 -> "chiều"
+        in 18..23 -> "tối"
+        else -> "tối"
+    }
+
+    val hour12 = when {
+        hour24 == 0 -> 12
+        hour24 > 12 -> hour24 - 12
+        else -> hour24
+    }
+
+    val minuteStr = when (minute) {
+        0 -> ""
+        else -> minute.toString()
+    }
+
+    return "$hour12 giờ $minuteStr $period".replace("  ", " ").trim()
+}
+
+fun formatTimeToVietnamese(hour: Int, minute: Int): String {
+    val timeStr = String.format("%02d:%02d", hour, minute)
+    return formatTimeToVietnamese(timeStr)
+}
+
+
 suspend fun speakQueue(vararg texts: String) {
     println("speakQueue: $texts")
     for (text in texts) {
         FocusTTS.speakAndWait(text)
         delay(400) // Khoảng nghỉ giữa các câu
+    }
+}
+
+@Singleton
+class JsonAssetHelper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    fun getLocalNeo4jData(fileName: String): List<Neo4jResultItem> {
+        println("--- BẮT ĐẦU DEBUG ASSETS ---")
+
+        // 1. Kiểm tra xem file có tồn tại trong assets không
+        try {
+            val allFiles = context.assets.list("") ?: emptyArray()
+            println("📂 Các file hiện có trong assets: ${allFiles.joinToString()}")
+
+            if (fileName !in allFiles) {
+                println("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file '$fileName' trong danh sách trên.")
+                println("👉 Hãy kiểm tra kỹ: Chữ hoa/thường (FullData.json khác fulldata.json), đuôi file (.json.json?)")
+                return emptyList()
+            } else {
+                println("✅ Đã tìm thấy file '$fileName'. Bắt đầu đọc...")
+            }
+        } catch (e: Exception) {
+            println("Lỗi khi liệt kê assets: ${e.message}")
+        }
+
+        return try {
+            // 2. Đọc file
+            val jsonString = context.assets.open(fileName).bufferedReader().use { it.readText() }
+            println("📖 Đọc thành công! Độ dài chuỗi JSON: ${jsonString.length} ký tự")
+
+            // 3. Parse JSON
+            val listType = object : TypeToken<List<Neo4jResultItem>>() {}.type
+            val result = Gson().fromJson<List<Neo4jResultItem>>(jsonString, listType)
+
+            println("✅ Parse thành công: ${result?.size ?: 0} phần tử")
+            result ?: emptyList()
+
+        } catch (e: Exception) {
+            println("❌ LỖI KHI ĐỌC/PARSE: ${e}")
+            e.printStackTrace() // Quan trọng: Xem logcat để biết lỗi là FileNotFound hay JsonSyntax
+            emptyList()
+        }
     }
 }

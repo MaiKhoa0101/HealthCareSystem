@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hellodoc.healthcaresystem.requestmodel.Content
 import com.hellodoc.healthcaresystem.requestmodel.CreateCommentPostRequest
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
@@ -17,11 +19,14 @@ import com.hellodoc.healthcaresystem.requestmodel.UpdateFavoritePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CreatePostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.CommentPostResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GestureCodeResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ManagerResponse
+import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.SubtitleResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.repository.GeminiRepository
 import com.hellodoc.healthcaresystem.model.repository.PostRepository
+import com.hellodoc.healthcaresystem.model.repository.SubtitleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +56,8 @@ import kotlin.text.trim
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val geminiRepository: GeminiRepository
+    private val geminiRepository: GeminiRepository,
+    private val subtitleRepository: SubtitleRepository,
     ) : ViewModel() {
     private val _posts = MutableStateFlow<List<PostResponse>>(emptyList())
     val posts: StateFlow<List<PostResponse>> = _posts
@@ -95,35 +101,41 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    suspend fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false): Boolean {
-        if (_isLoading.value) return false
-        _isLoading.value = true
-        return try {
-            val response = postRepository.getAllPosts(skip, limit)
-            if (response.isSuccessful) {
-                println("Get post: "+response.body())
-                val result = response.body()
-                val newPosts = result?.posts ?: emptyList()
-                val hasMore = result?.hasMore ?: false
-
-                if (append) {
-                    val current = _posts.value
-                    _posts.value = current + newPosts
-                } else {
-                    _posts.value = newPosts
-                }
-                _hasMorePosts.value = hasMore
-                true
-            } else {
-                Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Post Fetch Error", e)
-            false
+    fun fetchPosts(skip: Int = 0, limit: Int = 10, append: Boolean = false) {
+        // Tránh gọi nhiều lần cùng lúc
+        if (_isLoadingMorePosts.value) {
+            println("⚠️ Đang load, bỏ qua request mới")
+            return
         }
-        finally {
-            _isLoading.value = false
+
+        viewModelScope.launch {
+            _isLoadingMorePosts.value = true
+            try {
+                println("📡 Fetching posts: skip=$skip, limit=$limit, append=$append")
+                val response = postRepository.getAllPosts(skip, limit)
+
+                if (response.isSuccessful) {
+                    val result = response.body()
+                    val newPosts = result?.posts ?: emptyList()
+                    val hasMore = result?.hasMore ?: false
+
+                    println("✅ Nhận được ${newPosts.size} posts, hasMore=$hasMore")
+
+                    if (append) {
+                        _posts.value += newPosts
+                    } else {
+                        _posts.value = newPosts
+                    }
+                    _hasMorePosts.value = hasMore
+                } else {
+                    Log.e("PostViewModel", "❌ Lỗi API: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "❌ Exception khi fetch posts", e)
+            } finally {
+                _isLoadingMorePosts.value = false
+                println("🏁 Load more hoàn tất")
+            }
         }
     }
 
@@ -520,6 +532,11 @@ class PostViewModel @Inject constructor(
                         Toast.makeText(context, "Đăng bài thành công", Toast.LENGTH_SHORT).show()
                     }
                     fetchPosts()
+                    if (response.body()?.media?.isNotEmpty() == true){
+                        for ( i in 0 until response.body()!!.media.size){
+                            getSubtitle(response.body()!!.media[i])
+                        }
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string().orEmpty()
                     _uiStatePost.value = UiState.Error("Đăng bài thất bại: $errorBody")
@@ -539,6 +556,7 @@ class PostViewModel @Inject constructor(
                 delay(2000)
                 _uploadProgress.value = 0f
                 _uiStatePost.value = UiState.Idle
+                fetchPosts()
             }
         }
     }
@@ -829,5 +847,111 @@ class PostViewModel @Inject constructor(
         _posts.value = emptyList()
     }
 
+    //
+    private val _subtitle = MutableStateFlow<SubtitleResponse?>(null)
+    val subtitle: StateFlow<SubtitleResponse?> get() = _subtitle
+
+    fun getSubtitle(
+        videoUrl: String
+    ){
+        viewModelScope.launch {
+            try {
+                println("VideoPlayer Get subtitle: $videoUrl")
+                val response = subtitleRepository.getSubtitle(videoUrl)
+                if (response.isSuccessful) {
+                    println("Get subtitle: " + response.body())
+                    _subtitle.value = response.body()
+                } else {
+                    Log.e("PostViewModel", "Lỗi API: ${response.errorBody()?.string()}")
+                }
+            }
+            catch (e: Exception) {
+                Log.e("PostViewModel", "Get Subtitle Error", e)
+            }
+        }
+    }
+
+    private val _gestureCode = MutableStateFlow<List<GestureCodeResponse>>(emptyList())
+    val gestureCode: StateFlow<List<GestureCodeResponse>> get() = _gestureCode
+
+
+    fun getGestureCode(videoUrl: String) {
+        viewModelScope.launch {
+            try {
+                println("urlVideo: "+videoUrl )
+                val response = postRepository.getGestureCode(videoUrl)
+                println("Kết quả trả về: "+response.body())
+                // 1. Kiểm tra body khác null an toàn hơn dùng !!
+                val responseBody = response.body()
+                if (response.isSuccessful && responseBody != null ) {
+                    println("Có tồn tại subtitle " + response.body())
+                    val downloadUrl = responseBody.wordCodes
+
+                    if (downloadUrl.isNullOrEmpty()) {
+                        Log.e("API", "Download URL trống")
+                        return@launch
+                    }
+
+                    println("Download URL: $downloadUrl")
+
+                    // 2. Tải JSON từ URL (IO Thread)
+                    val jsonContent = withContext(Dispatchers.IO) {
+                        try {
+                            val url = java.net.URL(downloadUrl)
+                            val connection = url.openConnection()
+                            connection.connectTimeout = 15000
+                            connection.readTimeout = 15000
+                            connection.getInputStream().bufferedReader().use { it.readText() }
+                        } catch (e: Exception) {
+                            Log.e("API", "Lỗi tải JSON: ${e.message}", e)
+                            null
+                        }
+                    }
+
+                    // 3. Parse JSON
+                    if (!jsonContent.isNullOrEmpty()) {
+                        Log.d("API", "JSON length: ${jsonContent.length}")
+
+                        try {
+                            // FIX: Dùng TypeToken để giữ được kiểu List<GestureCodeResponse>
+                            val type = object : TypeToken<List<GestureCodeResponse>>() {}.type
+                            val gestureData: List<GestureCodeResponse> = Gson().fromJson(jsonContent, type)
+                            println("có $gestureData gestureCode dc lấy")
+                            _gestureCode.value = gestureData
+
+                        } catch (e: Exception) {
+                            Log.e("API", "Lỗi parse JSON: ${e.message}")
+                        }
+                    }
+                } else {
+                    // Nếu thất bại thì gọi API post video
+                    Log.w("API", "Get thất bại, đang thử Post lại video...")
+                    postVideoToGetGestureCode(videoUrl)
+                }
+            } catch (e: Exception) {
+                println("Lỗi ở getGestureCode $e")
+            }
+        }
+    }
+
+    fun postVideoToGetGestureCode(
+        videoUrl: String
+    ){
+        viewModelScope.launch {
+            try{
+                val response = postRepository.postVideoToGetGestureCode(videoUrl)
+                println("KẾt quả lấy được là " + response.body())
+                if (response.isSuccessful) {
+                    println("Post video thành công và lấy được listcode: "+ response.body()?.size)
+                    _gestureCode.value = response.body()!!
+                }
+                println("Response ko thành coonng "+response)
+            }
+            catch (e:Exception){
+                println("Lỗi ở postVideoToGetGestureCode $e")
+
+            }
+        }
+    }
 
 }

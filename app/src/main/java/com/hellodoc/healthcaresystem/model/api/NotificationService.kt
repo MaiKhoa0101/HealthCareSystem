@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.api
+package com.hellodoc.healthcaresystem.model.api
 
 import com.hellodoc.healthcaresystem.requestmodel.CreateNotificationRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NotificationResponse

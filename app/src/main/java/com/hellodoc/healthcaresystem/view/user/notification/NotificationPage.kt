@@ -10,6 +10,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -94,12 +96,20 @@ fun NotificationPage(
         // Enhanced Header with unread badge and actions
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shadowElevation = 4.dp
+            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.primaryContainer
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                            )
+                        )
+                    )
                     .padding(vertical = 16.dp, horizontal = 16.dp)
             ) {
                 // Title with badge
@@ -110,8 +120,9 @@ fun NotificationPage(
                 ) {
                     Text(
                         text = "Thông báo",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         fontSize = 26.sp,
+                        letterSpacing = 0.5.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     if (unreadCount > 0) {
@@ -155,7 +166,10 @@ fun NotificationPage(
                         TextButton(
                             onClick = {
                                 notificationViewModel.markAllAsRead(userId)
-                            }
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DoneAll,

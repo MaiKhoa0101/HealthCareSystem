@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/third_sign_up"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:padding="10dp">
+
+        <!-- Nút quay lại -->
+        <ImageButton
+            android:id="@+id/returnButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/arrow_back"
+            android:contentDescription="Quay lại"
+            android:layout_gravity="start" />
+
+        <!-- Tiêu đề -->
+        <TextView
+            android:id="@+id/signuptitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đăng ký"
+            android:textColor="@color/black"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bạn là ..."
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"/>
+
+        <RadioGroup
+            android:id="@+id/role_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/role_user"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Người bình thường"
+                android:textSize="18sp"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/edit_text_background"
+                android:button="@null"
+                android:drawableEnd="?android:attr/listChoiceIndicatorSingle"/>
+
+            <RadioButton
+                android:id="@+id/role_blind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Người khiếm thị"
+                android:textSize="18sp"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/edit_text_background"
+                android:button="@null"
+                android:drawableEnd="?android:attr/listChoiceIndicatorSingle"/>
+
+            <RadioButton
+                android:id="@+id/role_deaf"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Người khiếm thính"
+                android:textSize="18sp"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/edit_text_background"
+                android:button="@null"
+                android:drawableEnd="?android:attr/listChoiceIndicatorSingle"/>
+
+            <RadioButton
+                android:id="@+id/role_mute"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Người khiếm khẩu"
+                android:textSize="18sp"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/edit_text_background"
+                android:button="@null"
+                android:drawableEnd="?android:attr/listChoiceIndicatorSingle"/>
+
+        </RadioGroup>
+
+        <!-- Nút đăng ký -->
+        <Button
+            android:id="@+id/signupbtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ĐĂNG KÝ"
+            android:backgroundTint="@color/bluetheme"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:layout_marginTop="32dp"
+            android:paddingVertical="12dp"/>
+
+    </LinearLayout>
+</ScrollView>

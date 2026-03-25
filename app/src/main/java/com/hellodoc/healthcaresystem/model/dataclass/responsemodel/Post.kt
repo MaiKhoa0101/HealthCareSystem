@@ -87,7 +87,7 @@ data class ManagerResponse(
 data class CommentPost(
     @SerializedName("_id") val id: String,
     val content: String,
-    val media: List<String>
+    val media: List<String>?
 )
 
 data class GetCommentPageResponse(

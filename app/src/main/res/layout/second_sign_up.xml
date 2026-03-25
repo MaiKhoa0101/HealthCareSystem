@@ -176,12 +176,12 @@
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
 
-        <!-- Nút đăng ký -->
+        <!-- Nút tiếp tục -->
         <Button
             android:id="@+id/signupbtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ĐĂNG KÝ"
+            android:text="TIẾP TỤC"
             android:backgroundTint="@color/bluetheme"
             android:textColor="@color/white"
             android:textSize="18sp"

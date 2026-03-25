@@ -1,0 +1,852 @@
+[
+  {
+    "frame": 0,
+    "timestamp": 0.0,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 8,
+    "timestamp": 0.267,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 16,
+    "timestamp": 0.534,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 24,
+    "timestamp": 0.801,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 32,
+    "timestamp": 1.068,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 40,
+    "timestamp": 1.335,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=90)",
+          "ring": "ring_01_l(x=0, y=0, z=90)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_01_r(x=10, y=-45, z=-15); thumb_02_r(x=0, y=-10, z=15); thumb_03_r(x=0, y=0, z=20)",
+          "index": "index_01_r(x=0, y=0, z=90)",
+          "middle": "middle_01_r(x=0, y=0, z=90)",
+          "ring": "ring_01_r(x=0, y=0, z=90)",
+          "pinky": "pinky_01_r(x=0, y=0, z=90)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 48,
+    "timestamp": 1.602,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=55); index_02_l(x=0, y=0, z=60); index_03_l(x=0, y=0, z=20)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=-90, y=8.5, z=-80)",
+        "lowerarm_r": "lowerarm_r(x=-90, y=8.5, z=-80)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 56,
+    "timestamp": 1.869,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_01_l(x=10, y=45, z=-15); thumb_02_l(x=0, y=10, z=15); thumb_03_l(x=0, y=0, z=20)",
+          "index": "index_01_l(x=0, y=0, z=55); index_02_l(x=0, y=0, z=60); index_03_l(x=0, y=0, z=20)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=-90, y=8.5, z=-80)",
+        "lowerarm_r": "lowerarm_r(x=-90, y=8.5, z=-80)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 64,
+    "timestamp": 2.135,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_01_l(x=10, y=45, z=-15); thumb_02_l(x=0, y=10, z=15); thumb_03_l(x=0, y=0, z=20)",
+          "index": "index_01_l(x=0, y=0, z=55); index_02_l(x=0, y=0, z=60); index_03_l(x=0, y=0, z=20)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=-90, y=8.5, z=-80)",
+        "lowerarm_r": "lowerarm_r(x=-90, y=8.5, z=-80)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 72,
+    "timestamp": 2.402,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_01_l(x=10, y=45, z=-15); thumb_02_l(x=0, y=10, z=15); thumb_03_l(x=0, y=0, z=20)",
+          "index": "index_01_l(x=0, y=0, z=55); index_02_l(x=0, y=0, z=60); index_03_l(x=0, y=0, z=20)",
+          "middle": "middle_01_l(x=0, y=0, z=90)",
+          "ring": "ring_01_l(x=0, y=0, z=90)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=-90, y=8.5, z=-80)",
+        "lowerarm_r": "lowerarm_r(x=-90, y=8.5, z=-80)",
+        "hand_r": "hand_r(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 80,
+    "timestamp": 2.669,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=90)",
+          "ring": "ring_01_l(x=0, y=0, z=90)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=-90, y=8.5, z=-80)",
+        "lowerarm_r": "lowerarm_r(x=-90, y=8.5, z=-80)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 88,
+    "timestamp": 2.936,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=-90, y=8.5, z=-80)",
+        "lowerarm_l": "lowerarm_l(x=-90, y=8.5, z=-80)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=-30,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 96,
+    "timestamp": 3.203,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 104,
+    "timestamp": 3.47,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 112,
+    "timestamp": 3.737,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 120,
+    "timestamp": 4.004,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  },
+  {
+    "frame": 128,
+    "timestamp": 4.271,
+    "gestures": {
+      "spine": {
+        "spine_01": "spine_01(z=-15)",
+        "spine_02": "spine_02(z=-20)",
+        "spine_03": "spine_03(z=-25)"
+      },
+      "neck_head": {
+        "neck": "neck(x=0,y=0,z=0)",
+        "head": "head(x=0,y=0,z=0)"
+      },
+      "facial": {
+        "jaw": "jaw(z=0)",
+        "eyelid_l": "eyelid_l(z=0)",
+        "eyelid_r": "eyelid_r(z=0)",
+        "eyes": "eye_l(y=0); eye_r(y=0)",
+        "eyebrows": "eyebrow_l(z=0);eyebrow_r(z=0)",
+        "mouth_l": "mouth_l(x=0,y=0,z=0)",
+        "mouth_r": "mouth_r(x=0,y=0,z=0)"
+      },
+      "left_arm": {
+        "shoulder_l": "shoulder_l(x=0,y=0,z=0)",
+        "upperarm_l": "upperarm_l(x=0, y=80, z=0)",
+        "lowerarm_l": "lowerarm_l(x=0, y=0, z=0)",
+        "hand_l": "hand_l(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_l(x=0, y=0, z=0); thumb_03_l(x=0, y=0, z=0)",
+          "index": "index_01_l(x=0, y=0, z=0); index_02_l(x=0, y=0, z=0); index_03_l(x=0, y=0, z=0)",
+          "middle": "middle_01_l(x=0, y=0, z=0); middle_02_l(x=0, y=0, z=0); middle_03_l(x=0, y=0, z=0)",
+          "ring": "ring_01_l(x=0, y=0, z=0); ring_02_l(x=0, y=0, z=0); ring_03_l(x=0, y=0, z=0)",
+          "pinky": "pinky_01_l(x=0, y=0, z=0); pinky_02_l(x=0, y=0, z=0); pinky_03_l(x=0, y=0, z=0)"
+        }
+      },
+      "right_arm": {
+        "shoulder_r": "shoulder_r(x=0,y=0,z=0)",
+        "upperarm_r": "upperarm_r(x=0, y=80, z=0)",
+        "lowerarm_r": "lowerarm_r(x=0, y=0, z=0)",
+        "hand_r": "hand_r(x=0,y=0,z=0)",
+        "fingers": {
+          "thumb": "thumb_02_r(x=0, y=0, z=0); thumb_03_r(x=0, y=0, z=0)",
+          "index": "index_01_r(x=0, y=0, z=0); index_02_r(x=0, y=0, z=0); index_03_r(x=0, y=0, z=0)",
+          "middle": "middle_01_r(x=0, y=0, z=0); middle_02_r(x=0, y=0, z=0); middle_03_r(x=0, y=0, z=0)",
+          "ring": "ring_01_r(x=0, y=0, z=0); ring_02_r(x=0, y=0, z=0); ring_03_r(x=0, y=0, z=0)",
+          "pinky": "pinky_01_r(x=0, y=0, z=0); pinky_02_r(x=0, y=0, z=0); pinky_03_r(x=0, y=0, z=0)"
+        }
+      }
+    }
+  }
+]

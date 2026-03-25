@@ -9,13 +9,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,7 +25,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -40,10 +46,10 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.blindview.userblind.home.root.HomeBlindActivity
-import com.hellodoc.healthcaresystem.blindview.userblind.home.startscreen.Intro2
+import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.chatAi.GeminiChatScreen
 import com.hellodoc.healthcaresystem.view.user.home.news.NewsDetailScreen
 import com.hellodoc.healthcaresystem.view.user.home.bmiChecking.BMICheckerScreen
@@ -66,16 +72,60 @@ import com.hellodoc.healthcaresystem.view.user.personal.Setting
 import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import com.hellodoc.healthcaresystem.view.user.home.doctor.ServiceSelectionScreen
+import com.hellodoc.healthcaresystem.view.user.home.report.reportManager
+import com.hellodoc.healthcaresystem.view.user.VSL.SignLanguageScreen
+import com.hellodoc.healthcaresystem.view.user.home.detection.Detection3DScreen
+import com.hellodoc.healthcaresystem.view.user.VSL.TranslateVoiceToVid
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SceneViewManager
+import com.hellodoc.healthcaresystem.viewmodel.StateViewModel
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 @HiltAndroidApp
-class MyApp : Application()
+class MyApp : Application(){
+
+    // CRITICAL: Dùng Main dispatcher để đảm bảo Engine.create() chạy trên Main thread
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d("MyApp", "🚀 Application onCreate")
+
+        // Khởi tạo SceneView trên Main thread
+        applicationScope.launch {
+            try {
+                SceneViewManager.initialize(applicationContext)
+                Log.d("MyApp", "✅ SceneView initialized successfully")
+            } catch (e: Exception) {
+                Log.e("MyApp", "❌ Failed to initialize SceneView", e)
+            }
+        }
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        Log.w("MyApp", "⚠️ Low memory warning")
+    }
+}
 
 @AndroidEntryPoint
 class HomeActivity : BaseActivity() {
+    @Inject
+    lateinit var socketManager: SocketManager
+
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun checkAndRequestNotificationPermission() {
@@ -99,6 +149,7 @@ class HomeActivity : BaseActivity() {
             }
         }
     }
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +157,7 @@ class HomeActivity : BaseActivity() {
         // Đây là yêu cầu bắt buộc của Android và Hilt.
         super.onCreate(savedInstanceState)
 
-        // (2) LOGIC KIỂM TRA ĐĂNG NHẬP (Giữ nguyên)
+        // (2) LOGIC KIỂM TRA ĐĂNG NHẬP
         val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
         val token = sharedPreferences.getString("access_token", null)
 
@@ -116,38 +167,44 @@ class HomeActivity : BaseActivity() {
             val intent = Intent(this, Intro2::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            finish() // Đóng HomeActivity
-            return   // Dừng hàm onCreate
+            finish()
+            return
         }
 
-        // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
-        Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
+        // (4) ĐÃ ĐĂNG NHẬP
+        Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity.")
+
+        // Check for Blind user role locally before setContent
+        // We use ViewModelProvider instead of hiltViewModel() since we are in Activity scope, NOT Composable
+        val userViewModel = androidx.lifecycle.ViewModelProvider(this)[UserViewModel::class.java]
+        if (userViewModel.getUserAttribute("role", this) == "Blind") {
+             val intent = Intent(this, HomeBlindActivity::class.java)
+             startActivity(intent)
+             finish()
+             return
+        }
+
+        // Connect Socket
+        socketManager.connect(token)
 
         firebaseAnalytics = Firebase.analytics
-        checkAndRequestNotificationPermission() //kiem tra quyen thong bao
+        checkAndRequestNotificationPermission()
 
-        enableEdgeToEdge()
         setContent {
             var darkTheme by rememberSaveable { mutableStateOf(false) }
             val navHostController = rememberNavController()
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            var userViewModel: UserViewModel = hiltViewModel()
-            if (userViewModel.getUserAttribute("role", this) == "Blind") {
-                //Intent qua intro1
-                val intent = Intent(this, HomeBlindActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
-            else{
-                HealthCareSystemTheme(darkTheme = darkTheme) {
-                    val context = LocalContext.current
-                    Index(
-                        context = context,
-                        navHostController = navHostController,
-                        onToggleTheme = { darkTheme = !darkTheme },
-                        darkTheme = darkTheme
-                    )
-                }
+            HealthCareSystemTheme(darkTheme = darkTheme) {
+                val context = LocalContext.current
+                val stateViewModel: StateViewModel =hiltViewModel()
+                val settings by stateViewModel.appSettings.collectAsState()
+                darkTheme = settings.isDarkMode
+                Index(
+                    context = context,
+                    navHostController = navHostController,
+                    onToggleTheme = { stateViewModel.toggleDarkMode() },
+                    darkTheme = darkTheme
+                )
             }
         }
     }
@@ -187,25 +244,55 @@ class HomeActivity : BaseActivity() {
 
         val showTopBars = currentRoute in listOf("home")
         val showFootBars = currentRoute in listOf("home", "appointment", "notification", "personal")
-        var showFullScreenComment by remember { mutableStateOf(false) } // Local state
-        Scaffold(
-            modifier = modifier.fillMaxSize(),
-            topBar = {
-                if (showTopBars && !showFullScreenComment) HeadBar()
-            },
-            bottomBar = {
-                if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)
+        var showFullScreenComment by remember { mutableStateOf(false) }
+
+        var isBarsVisible by remember { mutableStateOf(true) }
+
+        val nestedScrollConnection = remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    if (available.y < -15f) isBarsVisible = false
+                    if (available.y > 15f) isBarsVisible = true
+                    return Offset.Zero
+                }
             }
-        ) { paddingValues ->
+        }
+
+        // THAY ĐỔI LỚN: Dùng Box làm Root thay vì Scaffold
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
+        ) {
+            // 1. LỚP ĐÁY: Content (Chiếm full màn hình, không bao giờ bị tính toán lại kích thước)
             NavigationHost(
                 context = context,
                 navHostController = navHostController,
-                modifier = Modifier.padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 onToggleTheme = onToggleTheme,
                 darkTheme = darkTheme
             )
-        }
 
+            // 2. LỚP TRÊN CÙNG (TOP): Nổi đè lên content và chỉ trượt bằng GPU
+            AnimatedVisibility(
+                visible = showTopBars && !showFullScreenComment && isBarsVisible,
+                enter = slideInVertically(initialOffsetY = { -it }), // Bỏ expand đi
+                exit = slideOutVertically(targetOffsetY = { -it }),  // Bỏ shrink đi
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                HeadBar()
+            }
+
+            // 3. LỚP TRÊN CÙNG (BOTTOM)
+            AnimatedVisibility(
+                visible = showFootBars && !showFullScreenComment && isBarsVisible,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it }),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                FootBar(currentRoute, navHostController)
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -217,145 +304,230 @@ class HomeActivity : BaseActivity() {
         onToggleTheme: () -> Unit,
         darkTheme: Boolean
     ) {
+
+
         val userViewModel: UserViewModel = hiltViewModel()
         val sharedPreferences = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
         val user by userViewModel.user.collectAsState()
         val defaultDestination = intent.getStringExtra("navigate-to") ?: "home"
-        NavHost(
-            navController = navHostController,
-            startDestination = defaultDestination,
-            modifier = modifier
-        ) {
-            composable("fast_talk") {
-                FastTalk(navHostController, context)
-            }
-            composable("home") {
-                HealthMateHomeScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    navHostController = navHostController,
-                )
-            }
-            composable("news_detail") {
-                NewsDetailScreen(navHostController)
-            }
-            composable("appointment") {
-                AppointmentListScreen(navHostController)
-            }
-            composable("notification") {
-                NotificationPage(context, navHostController)
-            }
-            composable("personal") {
-                ProfileUserPage(
-                    navHostController
-                )
-            }
-            composable(
-                "otherUserProfile/{userOwnerID}",
-                arguments = listOf(
-                    navArgument("userOwnerID")
-                    { type = NavType.StringType
-                    }
-                )
-            ) { backStackEntry ->
-                val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
-                ProfileOtherUserPage(
-                    navHostController,
-                    userOwnerID
-                )
-            }
-            composable("create_post") {
-                CreatePostScreen(context, navHostController)
-            }
-            composable("editProfile") {
-                EditUserProfile(navHostController)
-            }
-            composable("doctorRegister") {
-                RegisterClinic(navHostController)
-            }
-            composable("editClinic") {
-                EditClinicServiceScreen(navHostController)
-            }
-            composable("gemini_help") {
-                GeminiChatScreen(navHostController)
-            }
-            composable("other_user_profile") {
-                DoctorScreen(context, navHostController)
-            }
-            composable("appointment-detail") {
-                AppointmentDetailScreen(
-                    context = context,
-                    navHostController = navHostController
-                )
-            }
-            composable("doctor_list") {
-                DoctorListScreen(
-                    context = context,
-//                    onBack = {
-//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
-//                        startActivity(intent)
-//                    },
-                    navHostController = navHostController
-                )
-            }
-            composable("booking-calendar") {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    BookingCalendarScreen(context = context, navHostController = navHostController)
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navHostController,
+                startDestination = defaultDestination,
+                modifier = modifier
+            ) {
+                composable("fast_talk") {
+                    FastTalk(navHostController, context)
                 }
-            }
-            composable("booking") {
-                Column(modifier = Modifier.fillMaxSize()) {
+                composable("home") {
+                    HealthMateHomeScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        navHostController = navHostController,
+                    )
+                }
+                composable("text_to_video"){
+                    TranslateVoiceToVid(navHostController)
+                }
+                composable("news_detail") {
+                    NewsDetailScreen(navHostController)
+                }
+                composable("appointment") {
+                    AppointmentListScreen(navHostController)
+                }
+                composable("notification") {
+                    NotificationPage(context, navHostController)
+                }
+                composable("personal") {
+                    ProfileUserPage(
+                        navHostController
+                    )
+                }
+                composable(
+                    "otherUserProfile/{userOwnerID}",
+                    arguments = listOf(
+                        navArgument("userOwnerID")
+                        {
+                            type = NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+                    val userOwnerID = backStackEntry.arguments?.getString("userOwnerID") ?: ""
+                    ProfileOtherUserPage(
+                        navHostController,
+                        userOwnerID
+                    )
+                }
+                composable("create_post") {
+                    CreatePostScreen(context, navHostController)
+                }
+                composable("editProfile") {
+                    EditUserProfile(navHostController)
+                }
+                composable("doctorRegister") {
+                    RegisterClinic(navHostController)
+                }
+                composable("editClinic") {
+                    EditClinicServiceScreen(navHostController)
+                }
+                composable("gemini_help") {
+                    GeminiChatScreen(navHostController)
+                }
+                composable("other_user_profile") {
+                    DoctorScreen(context, navHostController)
+                }
+                composable("appointment-detail") {
                     AppointmentDetailScreen(
                         context = context,
                         navHostController = navHostController
                     )
                 }
-            }
-            composable("booking-confirm") {
-                ConfirmBookingScreen(context = context, navHostController = navHostController)
-            }
-            composable("bmi-checking") {
-                BMICheckerScreen(navHostController)
-            }
-            composable("activity_manager") {
-                ActivityManagerScreen(
-                    onBack = { navHostController.popBackStack() },
-                    navHostController
-                )
-            }
-            composable("userComment") {
-                CommentHistoryScreen(navHostController)
-            }
-            composable("userFavorite") {
-                FavouriteHistoryScreen(navHostController)
-            }
-            composable(
-                route = "edit_post/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                CreatePostScreen(context, navHostController, postId = postId)
-            }
-            composable(
-                route = "post-detail/{postId}",
-                arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
-                PostDetailScreen(navHostController, postId)
-            }
+                composable("doctor_list") {
+                    DoctorListScreen(
+                        context = context,
+//                    onBack = {
+//                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
+//                        startActivity(intent)
+//                    },
+                        navHostController = navHostController
+                    )
+                }
+                composable("booking-calendar") {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        BookingCalendarScreen(
+                            context = context,
+                            navHostController = navHostController
+                        )
+                    }
+                }
+                composable("booking") {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AppointmentDetailScreen(
+                            context = context,
+                            navHostController = navHostController
+                        )
+                    }
+                }
+                composable("booking-confirm") {
+                    ConfirmBookingScreen(context = context, navHostController = navHostController)
+                }
 
-            composable("setting") {
-                Setting(
-                    navHostController,
-                    sharedPreferences,
-                    onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme
-                )
+                composable(
+                    route = "service-selection/{appointmentId}/{doctorId}/{patientName}",
+                    arguments = listOf(
+                        navArgument("appointmentId") { type = NavType.StringType },
+                        navArgument("doctorId") { type = NavType.StringType },
+                        navArgument("patientName") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
+                    val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                    val patientName = backStackEntry.arguments?.getString("patientName") ?: ""
+
+                    ServiceSelectionScreen(
+                        navHostController = navHostController,
+                        appointmentId = appointmentId,
+                        doctorId = doctorId,
+                        patientName = patientName
+                    )
+                }
+                composable("bmi-checking") {
+                    BMICheckerScreen(navHostController)
+                }
+                composable("activity_manager") {
+                    ActivityManagerScreen(
+                        onBack = { navHostController.popBackStack() },
+                        navHostController
+                    )
+                }
+                composable("report_manager") {
+                    reportManager(context = context, navHostController)
+                }
+                composable("userComment") {
+                    CommentHistoryScreen(navHostController)
+                }
+                composable("userFavorite") {
+                    FavouriteHistoryScreen(navHostController)
+                }
+                composable(
+                    route = "edit_post/{postId}",
+                    arguments = listOf(navArgument("postId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    CreatePostScreen(context, navHostController, postId = postId)
+                }
+                composable(
+                    route = "post-detail/{postId}",
+                    arguments = listOf(navArgument("postId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    PostDetailScreen(navHostController, postId)
+                }
+
+                composable("setting") {
+                    Setting(
+                        navHostController,
+                        sharedPreferences,
+                        onToggleTheme = onToggleTheme,
+                        darkTheme = darkTheme,
+                        socketManager = socketManager
+                    )
+                }
+                composable("editOptionPage") {
+                    EditOptionPage(navHostController)
+                }
+                composable("comment_history") {
+                    CommentHistoryScreen(navHostController)
+                }
+                composable("favourite_history") {
+                    FavouriteHistoryScreen(navHostController)
+                }
+                composable("sign_language") {
+                    SignLanguageScreen()
+                }
+                composable("detection_3d") {
+                    Detection3DScreen(navHostController)
+                }
+
             }
-            composable("editOptionPage") {
-                EditOptionPage(navHostController)
-            }
+//            // LỚP 2: Floating 3D Assistant (Nằm đè lên trên)
+//            // Chỉ hiển thị khi Engine đã sẵn sàng (is3DReady = true)
+//            val is3DReady by SceneViewManager.initializationState.collectAsState()
+//            var is3DExpanded by remember { mutableStateOf(false) }
+//
+//            if (is3DReady) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .zIndex(100f) // Đảm bảo luôn nằm trên cùng
+//                        .padding(bottom = 80.dp, end = 16.dp), // Chỉnh padding để không che BottomBar
+//                    contentAlignment = Alignment.BottomEnd
+//                ) {
+//                    Floating3DAssistant(
+//                        isExpanded = is3DExpanded,
+//                        onExpandChange = { newValue -> is3DExpanded = newValue },
+//                        // Lấy dữ liệu an toàn từ Manager
+//                        engine = SceneViewManager.getEngine(),
+//                        modelInstance = SceneViewManager.getModelInstance(),
+//                        environment = SceneViewManager.getEnvironment()
+//                    )
+//                }
+//            } else {
+//                // Optional: Loading nhỏ ở góc nếu chưa load xong
+//                Box(
+//                    modifier = Modifier
+//                        .padding(bottom = 80.dp, end = 16.dp)
+//                        .align(Alignment.BottomEnd),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    CircularProgressIndicator(
+//                        modifier = Modifier.size(24.dp),
+//                        strokeWidth = 2.dp,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            }
+
         }
-
     }
 
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +42,7 @@ import com.hellodoc.core.common.activity.BaseActivity
 import com.hellodoc.healthcaresystem.blindview.userblind.home.tutorial.Tutorial
 import com.hellodoc.healthcaresystem.view.user.home.doctor.EditClinicServiceScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.RegisterClinic
-import com.hellodoc.healthcaresystem.ui.theme.HealthCareSystemTheme
+import com.hellodoc.healthcaresystem.view.ui.theme.HealthCareSystemTheme
 import com.hellodoc.healthcaresystem.view.user.home.chatAi.GeminiChatScreen
 import com.hellodoc.healthcaresystem.view.user.home.news.NewsDetailScreen
 import com.hellodoc.healthcaresystem.view.user.home.bmiChecking.BMICheckerScreen
@@ -53,7 +54,6 @@ import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorListScreen
 import com.hellodoc.healthcaresystem.view.user.notification.NotificationPage
 import com.hellodoc.healthcaresystem.view.user.personal.ActivityManagerScreen
 import com.hellodoc.healthcaresystem.view.user.home.doctor.DoctorScreen
-import com.hellodoc.healthcaresystem.view.user.home.fasttalk.FastTalk
 import com.hellodoc.healthcaresystem.view.user.home.startscreen.Intro2
 import com.hellodoc.healthcaresystem.view.user.personal.EditUserProfile
 import com.hellodoc.healthcaresystem.view.user.personal.CommentHistoryScreen
@@ -65,13 +65,20 @@ import com.hellodoc.healthcaresystem.view.user.post.PostDetailScreen
 import com.hellodoc.healthcaresystem.view.user.post.CreatePostScreen
 import com.hellodoc.healthcaresystem.view.user.supportfunction.FocusTTS
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
+import com.hellodoc.healthcaresystem.model.socket.SocketManager
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.content.edit
+import com.hellodoc.healthcaresystem.blindview.userblind.home.doctor.DoctorListBlindScreen
+import com.hellodoc.healthcaresystem.view.user.supportfunction.SoundManager
 
 public lateinit var firebaseAnalytics: FirebaseAnalytics
 
 @AndroidEntryPoint
 class HomeBlindActivity : BaseActivity() {
+    @Inject
+    lateinit var socketManager: SocketManager
+
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
 
     // 1. Định nghĩa key để kiểm tra người dùng lần đầu
@@ -123,6 +130,9 @@ class HomeBlindActivity : BaseActivity() {
         // (4) ĐÃ ĐĂNG NHẬP: Tiếp tục thiết lập Activity
         Log.d("AuthCheck", "Đã tìm thấy token, tiếp tục vào HomeActivity." + token)
 
+        // Connect Socket
+        socketManager.connect(token)
+
         firebaseAnalytics = Firebase.analytics
         checkAndRequestNotificationPermission() //kiem tra quyen thong bao
 
@@ -140,6 +150,14 @@ class HomeBlindActivity : BaseActivity() {
             HealthCareSystemTheme(darkTheme = darkTheme) {
                 val context = LocalContext.current
                 FocusTTS.init(context)
+                SoundManager.init(context)
+
+                DisposableEffect(Unit) {
+                    onDispose {
+                        FocusTTS.shutdown()
+                        SoundManager.release()
+                    }
+                }
 
                 Index(
                     context = context,
@@ -193,9 +211,6 @@ class HomeBlindActivity : BaseActivity() {
             modifier = modifier.fillMaxSize(),
             topBar = {
                 if (showTopBars && !showFullScreenComment) HeadBar()
-            },
-            bottomBar = {
-                if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)
             }
         ) { paddingValues ->
             NavigationHost(
@@ -297,6 +312,19 @@ class HomeBlindActivity : BaseActivity() {
             composable("gemini_help") {
                 GeminiChatScreen(navHostController)
             }
+            composable("booking_blind") {
+                BookingBlindScreen(navHostController)
+            }
+            composable(
+                "rebooking_blind/{doctorId}/{specialtyName}"
+            ) { backStackEntry ->
+                val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                val specialtyName = backStackEntry.arguments?.getString("specialtyName") ?: ""
+                ReBookingBlindScreen(navHostController, doctorId = doctorId, specialtyName = specialtyName)
+            }
+            composable("appointment_blind") {
+                AppointmentBlindScreen(navHostController)
+            }
             composable("other_user_profile") {
                 DoctorScreen(context, navHostController)
             }
@@ -313,6 +341,13 @@ class HomeBlindActivity : BaseActivity() {
 //                        val intent = Intent(this@DoctorListActivity, HomeActivity::class.java)
 //                        startActivity(intent)
 //                    },
+                    navHostController = navHostController
+                )
+            }
+            composable("blind_doctor_list")
+            {
+                DoctorListBlindScreen(
+                    context = context,
                     navHostController = navHostController
                 )
             }
@@ -367,8 +402,15 @@ class HomeBlindActivity : BaseActivity() {
                     navHostController,
                     sharedPreferences,
                     onToggleTheme = onToggleTheme,
-                    darkTheme = darkTheme
+                    darkTheme = darkTheme,
+                    socketManager = socketManager
                 )
+            }
+            composable("virtual_assistant_blind") {
+                VirtualAssistantScreen(navHostController)
+            }
+            composable("smart_booking_blind") {
+                SmartBookingScreen(navHostController)
             }
         }
 

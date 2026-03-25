@@ -19,3 +19,11 @@ data class UpdateAppointmentRequest(
     val date: String,
     val notes: String
 )
+
+data class SuggestedAppointmentRequest(
+    val specialtyId: String,
+    val fromDate: String,
+    val toDate: String,
+    val fromHour: String,
+    val toHour: String
+)

@@ -1,20 +1,24 @@
 package com.hellodoc.healthcaresystem.model.retrofit
 
 import com.hellodoc.healthcaresystem.model.api.AdminService
-import com.hellodoc.healthcaresystem.api.AppointmentService
+import com.hellodoc.healthcaresystem.model.api.AppointmentService
 import com.hellodoc.healthcaresystem.model.api.AuthService
 import com.hellodoc.healthcaresystem.api.DoctorService
 import com.hellodoc.healthcaresystem.api.FAQItemService
 import com.hellodoc.healthcaresystem.api.GeminiService
 import com.hellodoc.healthcaresystem.api.MedicalOptionService
 import com.hellodoc.healthcaresystem.api.NewsService
-import com.hellodoc.healthcaresystem.api.NotificationService
+import com.hellodoc.healthcaresystem.model.api.NotificationService
 import com.hellodoc.healthcaresystem.model.api.PostService
 import com.hellodoc.healthcaresystem.api.ReportService
 import com.hellodoc.healthcaresystem.api.ReviewService
 import com.hellodoc.healthcaresystem.model.api.FastTalkService
+import com.hellodoc.healthcaresystem.model.api.GestureCodeService
 import com.hellodoc.healthcaresystem.model.api.SpecialtyService
+import com.hellodoc.healthcaresystem.model.api.SubtitleService
 import com.hellodoc.healthcaresystem.model.api.UserService
+import com.hellodoc.healthcaresystem.model.api.DetectionApiService
+import com.hellodoc.healthcaresystem.model.api.VSLService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,22 +32,22 @@ import java.util.concurrent.TimeUnit
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitInstance {
-//    private const val BASE_URL = "http://192.168.1.225:4000"
+//   private const val BASE_URL = "http://192.168.1.225:4000"
 //   private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    private const val BASE_URL = "http://192.168.1.239:4000"
+    const val BASE_URL = "http://192.168.1.222:4000"
+    const val BASE_URL_DETECTION = "https://lorriane-noncongregative-benson.ngrok-free.dev/"
 
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     @Provides
     @Singleton
-
     fun provideRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -52,9 +56,9 @@ object RetrofitInstance {
             .build()
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
-        .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
-        .readTimeout(60, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
+        .connectTimeout(120, TimeUnit.SECONDS)  // Thời gian timeout kết nối
+        .writeTimeout(120, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
+        .readTimeout(120, TimeUnit.SECONDS)     // Thời gian timeout đọc dữ liệu
         .build()
 
     // Tạo instance Retrofit duy nhất
@@ -84,6 +88,20 @@ object RetrofitInstance {
     @Provides fun provideGeminiService(retrofit: Retrofit): GeminiService = retrofit.create(GeminiService::class.java)
     @Provides fun provideAuthService(retrofit: Retrofit): AuthService = retrofit.create(AuthService::class.java)
     @Provides fun provideFastTalk(retrofit: Retrofit): FastTalkService = retrofit.create(FastTalkService::class.java)
+    @Provides fun provideSubtitleService(retrofit: Retrofit): SubtitleService = retrofit.create( SubtitleService::class.java)
+    @Provides fun provideGestureCode(retrofit: Retrofit): GestureCodeService = retrofit.create(GestureCodeService::class.java)
+    @Provides fun provideVSLService(retrofit: Retrofit): VSLService = retrofit.create(VSLService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDetectionApiService(client: OkHttpClient): DetectionApiService {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL_DETECTION)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(DetectionApiService::class.java)
+    }
 
 
     val geminiService: GeminiService by lazy {

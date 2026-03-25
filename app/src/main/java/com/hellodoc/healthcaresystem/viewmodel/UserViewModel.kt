@@ -5,13 +5,14 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
-import com.hellodoc.healthcaresystem.view.user.home.startscreen.SignIn
+
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.OtpResponse
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
@@ -28,7 +29,6 @@ import androidx.core.content.edit
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val userRepo: UserRepository
-
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -112,7 +112,9 @@ class UserViewModel @Inject constructor(
 
     fun requestOtp(email: String) {
         viewModelScope.launch {
-            _otpResult.value = userRepo.requestOtp(email)
+            val res = userRepo.requestOtp(email)
+            _otpResult.value = res
+
         }
     }
 
@@ -174,19 +176,24 @@ class UserViewModel @Inject constructor(
                 )
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
+                    Toast.makeText(context, "Cập nhật thông tin thành công!", Toast.LENGTH_SHORT).show()
                     getAllUsers()
                     _updateSuccess.value = true
                 }
                 else {
-                    Log.e("UserViewModel", "Cập nhật thất bại: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("UserViewModel", "Cập nhật thất bại: $errorBody")
+                    Toast.makeText(context, "Cập nhật thất bại: ${response.message()}", Toast.LENGTH_SHORT).show()
                     _updateSuccess.value = false
                 }
-                _isUpdating.value = false
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}")
-                _updateSuccess.value = false }
+                Log.e("UserViewModel", "Lỗi khi cập nhật user: ${e.message}", e)
+                Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                _updateSuccess.value = false
+            }
             finally {
                 _isUpdating.value = false
+                _isUserLoading.value = false
             }
         }
     }
@@ -213,7 +220,7 @@ class UserViewModel @Inject constructor(
         val sharedPreferences: SharedPreferences =
             context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         clearToken(sharedPreferences)
-        val intent = Intent(context, SignIn::class.java)
+        val intent = Intent(context, com.hellodoc.healthcaresystem.view.user.home.startscreen.StartScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
     }

@@ -1,4 +1,4 @@
-package com.hellodoc.healthcaresystem.roomDb.data.entity
+package com.hellodoc.healthcaresystem.model.roomDb.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -9,7 +9,6 @@ data class AppointmentEntity(
     val id: String,
     val patientId: String,
     val doctorId: String,
-    val specialtyId: String,
     val appointmentDate: String,
     val appointmentTime: String,
     val location: String,
@@ -23,6 +22,6 @@ data class AppointmentEntity(
     val doctorName: String?,
     val doctorAvatarUrl: String?,
     val patientName: String?,
+    val patientAvatarUrl: String?,
     val specialtyName: String?
 )
-

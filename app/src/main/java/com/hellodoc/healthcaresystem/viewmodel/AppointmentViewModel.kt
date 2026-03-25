@@ -297,15 +297,18 @@ class AppointmentViewModel @Inject constructor(
                 if(response.isSuccessful) {
                     val result = response.body()
                     Log.d("Cancel", "Thành công: ${result?.message}")
-
+                    _appointmentUpdated.value = true
                     //gọi lại api để load lại ds
                     getAppointmentUser(userId)
                     getAppointmentDoctor(userId)
                 } else {
-                    Log.e("Cancel", "Lỗi mạng/API: ${response.errorBody()?.string()}")
+                    val errorMsg = response.errorBody()?.string() ?: "Lỗi không xác định"
+                    Log.e("Cancel", "Lỗi mạng/API: $errorMsg")
+                    _appointmentError.value = errorMsg
                 }
             } catch (e: Exception) {
                 Log.e("Cancel", "Lỗi mạng/API: ${e.localizedMessage}")
+                _appointmentError.value = e.localizedMessage
             }
         }
     }

@@ -128,3 +128,54 @@ fun InputConversation(onMicToggle: () -> Unit,onDelete:()->Unit,inputText:String
         }
     }
 }
+
+@Composable
+fun AutoInputConversation(
+    onMicToggle: () -> Unit,
+    onDelete: () -> Unit,
+    inputText: String,
+    isRecording: Boolean
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Khung chứa Text hiển thị
+        Text(
+            text = inputText.ifEmpty { if (isRecording) "Đang nghe..." else "Nhấn để nói" },
+            modifier = Modifier.weight(1f).padding(end = 8.dp),
+            fontWeight = FontWeight.Bold,
+            color = if (isRecording) androidx.compose.ui.graphics.Color.Blue else androidx.compose.ui.graphics.Color.Black
+        )
+
+        // Nút xóa (Chỉ hiện khi có chữ và không đang ghi âm)
+        if (inputText.isNotEmpty() && !isRecording) {
+            Icon(
+                imageVector = Icons.Default.Backspace,
+                contentDescription = "Xóa cả câu",
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .clickable { onDelete() }
+                    .padding(10.dp),
+                tint = androidx.compose.ui.graphics.Color.Red
+            )
+        }
+
+        // Nút Mic
+        Icon(
+            imageVector = if (isRecording) Icons.Default.Hearing else Icons.Default.Mic,
+            contentDescription = if (isRecording) "Đang ghi âm" else "Bắt đầu ghi âm",
+            modifier = Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .clickable { onMicToggle() }
+                .padding(10.dp),
+            // Đổi màu Mic sang Đỏ khi đang thu âm để trực quan hơn
+            tint = if (isRecording) androidx.compose.ui.graphics.Color.Red else androidx.compose.ui.graphics.Color.Gray
+        )
+    }
+}

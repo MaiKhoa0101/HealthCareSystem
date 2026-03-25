@@ -249,11 +249,12 @@ fun ReviewItem(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = "Star",
-                    tint = MaterialTheme.colorScheme.outlineVariant,
+                    tint = MaterialTheme.colorScheme.primary, // hoặc Color(0xFFFFC107)
                     modifier = Modifier.size(16.dp)
                 )
             }
         }
+
 
         Text(
             text = review.comment ?: "Không có nội dung",

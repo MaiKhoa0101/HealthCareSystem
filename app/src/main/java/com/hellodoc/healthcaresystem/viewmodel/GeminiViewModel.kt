@@ -17,9 +17,14 @@ import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ChatMessage
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.MessageType
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.Specialty
+import com.hellodoc.healthcaresystem.model.repository.AppointmentRepository
 import com.hellodoc.healthcaresystem.model.repository.DoctorRepository
 import com.hellodoc.healthcaresystem.model.repository.PostRepository
+import com.hellodoc.healthcaresystem.model.repository.SpecialtyRepository
 import com.hellodoc.healthcaresystem.model.retrofit.RetrofitInstance
+import com.hellodoc.healthcaresystem.requestmodel.SuggestedAppointmentRequest
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import com.hellodoc.healthcaresystem.view.user.supportfunction.extractFrames
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -38,7 +43,9 @@ import kotlinx.coroutines.Job
 
 // Quản lý API keys
 object ApiKeyManager {
-    private val apiKeys = BuildConfig.API_KEYS.split(",")
+    //Lấy trong localproperty
+    private val apiKeys = BuildConfig.API_KEYS.split(",").map { it.trim() }
+
     private var currentIndex = 0
     private val invalidKeys = mutableSetOf<Int>()
 
@@ -256,7 +263,9 @@ class GeminiHelper() {
 @HiltViewModel
 class GeminiViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val doctorRepository:DoctorRepository
+    private val doctorRepository: DoctorRepository,
+    private val specialtyRepository: SpecialtyRepository,
+    private val appointmentRepository: AppointmentRepository
 ) : ViewModel() {
     private val _question = MutableStateFlow("")
     val question: StateFlow<String> get() = _question
@@ -317,7 +326,7 @@ class GeminiViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val analysis = analyzeQueryWithAI(query)
-                println("analyst la: "+analysis.toString())
+                //println("analyst la: "+analysis.toString())
                 val jobs = mutableListOf<Job>()
                 if (analysis.intent == "hỏi sức khoẻ") {
                     jobs+= launch {
@@ -676,4 +685,75 @@ class GeminiViewModel @Inject constructor(
         return ""
     }
 
+    suspend fun analyzeSymptomsForSpecialty(symptoms: String, specialtyNames: List<String>): Int? {
+        // Gọi API backend trước
+        try {
+            val apiResponse = specialtyRepository.analyzeSpecialty(symptoms, specialtyNames)
+            if (apiResponse.isSuccessful) {
+                val index = apiResponse.body()
+                if (index != null && index != -1 && index in specialtyNames.indices) {
+                    Log.d("GeminiViewModel", "Dùng kết quả từ backend API: $index")
+                    return index
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("GeminiViewModel", "Lỗi khi gọi backend specialty analyze: ${e.message}")
+        }
+
+        // Fallback sang Gemini nếu backend trả về -1 hoặc lỗi
+        Log.d("GeminiViewModel", "Fallback sang Gemini analysis")
+        val prompt = """
+            chuyên ngành [${specialtyNames.joinToString(", ")}]. Phân tích câu "$symptoms" và chỉ trả về index chuyên ngành phù hợp, không trả gì thêm
+        """.trimIndent()
+
+        val response = askGeminiWithPrompt(prompt).trim()
+        return try {
+            val index = response.filter { it.isDigit() }.toInt()
+            if (index in specialtyNames.indices) index else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun analyzeDateTimeRange(text: String, currentDateTime: String): SuggestedAppointmentRequest? {
+        val prompt = """
+            Hiện tại là: $currentDateTime. 
+            Phân tích câu nói của người dùng: "$text" để trích xuất khoảng ngày và giờ rảnh.
+            Trả về kết quả dưới dạng JSON với định dạng sau:
+            {
+                "fromDate": "YYYY-MM-DD",
+                "toDate": "YYYY-MM-DD",
+                "fromHour": "HH:mm",
+                "toHour": "HH:mm"
+            }
+            Nếu người dùng chỉ nhắc đến thứ trong tuần, hãy xác định ngày tương ứng của tuần hiện tại. Nếu ngày đó đã trôi qua so với thời điểm hiện tại, thì sử dụng ngày tương ứng của tuần kế tiếp.
+            Nếu người dùng không nói tháng hoặc năm thì mặc định lấy tháng hoặc năm hiện tại theo $currentDateTime.
+            Về cách nói giờ, 1 giờ rưỡi chiều thì hiểu là 13:30, 5 giờ sáng thì hiểu là 17:00
+            Nếu không thể xác định, hãy trả về giá trị null cho các trường.
+            Chỉ trả về JSON, không giải thích gì thêm.
+        """.trimIndent()
+
+        val response = askGeminiWithPrompt(prompt).replace("```json", "").replace("```", "").trim()
+        return try {
+            val fromDate = extractJsonValue(response, "fromDate")
+            val toDate = extractJsonValue(response, "toDate")
+            val fromHour = extractJsonValue(response, "fromHour")
+            val toHour = extractJsonValue(response, "toHour")
+
+            if (fromDate.isNotBlank() && toDate.isNotBlank() && fromHour.isNotBlank() && toHour.isNotBlank()) {
+                SuggestedAppointmentRequest(
+                    specialtyId = "", // Sẽ được điền ở Screen
+                    fromDate = fromDate,
+                    toDate = toDate,
+                    fromHour = fromHour,
+                    toHour = toHour
+                )
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun getSuggestedAppointments(request: SuggestedAppointmentRequest) = 
+        appointmentRepository.getSuggestedAppointments(request)
 }

@@ -1,6 +1,7 @@
 package com.hellodoc.healthcaresystem.blindview.userblind.home.root
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
@@ -19,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -41,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -87,11 +90,9 @@ fun HealthMateHomeScreen(
     navHostController: NavHostController,
 ) {
     val context = LocalContext.current
-    // Sử dụng rememberLazyListState thay vì rememberSaveable với LazyListState.Saver cho LazyColumn
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Biến trạng thái để theo dõi bài viết hiện tại đang được tập trung (index 0, 1, 2, ...)
     var currentPostIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val doctorViewModel: DoctorViewModel = hiltViewModel()
@@ -103,44 +104,32 @@ fun HealthMateHomeScreen(
     val userViewModel: UserViewModel = hiltViewModel()
     val faqItemViewModel: FAQItemViewModel = hiltViewModel()
 
-    // Collect states
     val user by userViewModel.user.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
     val posts by postViewModel.posts.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    var showReportBox by remember { mutableStateOf(false) }
-    var userModel by remember { mutableStateOf("") }
-    var doneListening by remember { mutableStateOf(false) }
+
+
+
+
+
     LaunchedEffect(Unit) {
-        val username = userViewModel.getUserAttribute("name", context)
-        userModel = userViewModel.getUserAttribute("role", context)
 
         userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
-        // Bắt đầu fetch bài viết từ đầu
         postViewModel.fetchPosts()
 
         doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
         medicalOptionViewModel.fetchMedicalOptions()
         newsViewModel.getAllNews()
         delay(2000)
-        speakQueue(
-            "Bạn đang trong trang chủ chứa các bài viết",
-            "Chạm để nghe bài viết hiện tại",
-            "Trượt lên để xem bài viết mới hơn, trượt xuống để quay lại bài viết cũ hơn.",
-            "Ấn giữ màn hình để nghe lại hướng dẫn và hỗ trợ"// Hướng dẫn đã được đảo ngược
-        )
-        delay(2000)
-        doneListening = true
+
+        FocusTTS.speak("Đây là trang chủ chứa các bài viết, nhấn vào màn hình để tôi đọc nội dung bài viết cho bạn, trượt lên hoặc xuống để chuyển bài viết, trượt sang phải hoặc trái để chuyển trang.")
+
     }
 
-    // Xử lý load thêm bài viết (Load More)
     LaunchedEffect(currentPostIndex, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
-            // Kiểm tra nếu người dùng đang ở 2 bài viết cuối cùng của danh sách đã tải
             val threshold = posts.size - 2
             currentPostIndex >= threshold
         }.distinctUntilChanged().collect { isNearEnd ->
@@ -155,18 +144,14 @@ fun HealthMateHomeScreen(
         }
     }
 
-    // Xử lý cuộn và TTS khi currentPostIndex thay đổi
     LaunchedEffect(currentPostIndex, posts.size) {
         if (posts.isNotEmpty() && currentPostIndex >= 0 && currentPostIndex < posts.size) {
             coroutineScope.launch {
-                // Cuộn đến item đang được focus
                 listState.animateScrollToItem(currentPostIndex)
 
-                // Cung cấp phản hồi TTS cho bài viết hiện tại
                 val post = posts[currentPostIndex]
                 val postContent = post.content?.takeIf { it.isNotBlank() } ?: "Bài viết này không có nội dung văn bản."
 
-                // Xử lý media type an toàn (giả định post.media là List<MediaResponse> với thuộc tính type)
                 val mediaInfo = if (post.media.isNotEmpty()) {
                     val mediaType = post.media.first()
                     if (mediaType.startsWith("image")) "Bài viết này có kèm ảnh minh họa."
@@ -187,42 +172,62 @@ fun HealthMateHomeScreen(
         }
     }
 
-    if (doneListening) {
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    postViewModel.closeAllPostMenus()
+                }
+            }
+    ) {
+        var offsetY by remember { mutableFloatStateOf(0f) }
+        var offsetX by remember { mutableFloatStateOf(0f) }
+        val dragThreshold = 100f
+        val horizontalDragThreshold = 150f // Ngưỡng cho vuốt ngang
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        // Đóng menu khi chạm bất kỳ đâu ngoài bài viết (ngoài các thao tác đã định nghĩa)
-                        postViewModel.closeAllPostMenus()
-                        showReportBox = false
-                    }
-                }
-        ) {
-            // --- TikTok/Paging Scroll Logic ---
-            var offsetY by remember { mutableFloatStateOf(0f) }
-            val dragThreshold = 100f // Ngưỡng trượt để chuyển bài
+                .background(MaterialTheme.colorScheme.background)
+                .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            offsetY = 0f
+                            offsetX = 0f
+                        }
+                    ) { change, dragAmount ->
+                        val dragX = dragAmount.x
+                        val dragY = dragAmount.y
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .pointerInput(posts.size, isLoadingMorePosts, currentPostIndex) {
-                        detectVerticalDragGestures(
-                            onDragEnd = {
-                                offsetY = 0f // Reset offset sau khi thả tay
+                        // Kiểm tra hướng vuốt chính (ngang hay dọc)
+                        if (kotlin.math.abs(dragX) > kotlin.math.abs(dragY)) {
+                            // Vuốt ngang
+                            offsetX += dragX
+
+                            if (offsetX < -horizontalDragThreshold) {
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.navigate("booking_blind")
+                                offsetX = 0f
+                            } else if (offsetX > horizontalDragThreshold) {
+                                SoundManager.playSwipe()
+                                vibrate(context)
+                                navHostController.navigate("virtual_assistant_blind")
+                                offsetX = 0f
                             }
-                        ) { _, dragAmount ->
-                            offsetY += dragAmount
+                        } else {
+                            // Vuốt dọc
+                            offsetY += dragY
 
-                            // 1. Swipe UP (Trượt lên) -> Chuyển đến bài MỚI HƠN (index + 1)
-                            if (offsetY < -dragThreshold) { // dragAmount âm khi trượt lên
+                            // Swipe UP -> Bài mới hơn
+                            if (offsetY < -dragThreshold) {
                                 val nextIndex = currentPostIndex + 1
                                 if (nextIndex < posts.size) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     currentPostIndex = nextIndex
-                                    offsetY = 0f // Reset ngay sau khi hành động
+                                    offsetY = 0f
                                     coroutineScope.launch {
                                         FocusTTS.speakAndWait("Đã chuyển đến bài viết mới.")
                                     }
@@ -239,14 +244,14 @@ fun HealthMateHomeScreen(
                                 }
                             }
 
-                            // 2. Swipe DOWN (Trượt xuống) -> Quay lại bài CŨ HƠN (index - 1)
-                            if (offsetY > dragThreshold) { // dragAmount dương khi trượt xuống
+                            // Swipe DOWN -> Bài cũ hơn
+                            if (offsetY > dragThreshold) {
                                 val previousIndex = currentPostIndex - 1
                                 if (previousIndex >= 0) {
                                     SoundManager.playSwipe()
                                     vibrate(context)
                                     currentPostIndex = previousIndex
-                                    offsetY = 0f // Reset ngay sau khi hành động
+                                    offsetY = 0f
                                     coroutineScope.launch {
                                         FocusTTS.speakAndWait("Đã quay lại bài viết trước đó")
                                     }
@@ -258,67 +263,63 @@ fun HealthMateHomeScreen(
                                 }
                             }
                         }
-                    },
-                state = listState,
-                userScrollEnabled = false // Vô hiệu hóa cuộn tự nhiên để chỉ dùng cuộn bằng tay (custom paging)
-            ) {
-                items(posts) { post ->
-                    var showPostReportDialog by remember { mutableStateOf(false) }
-                    var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
+                    }
+                },
+            state = listState,
+            userScrollEnabled = false
+        ) {
+            items(posts) { post ->
+                var showPostReportDialog by remember { mutableStateOf(false) }
+                var showPostDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-                    // CRUCIAL: Sử dụng fillParentMaxSize() để mỗi item chiếm trọn kích thước của LazyColumn
-                    Box(modifier = Modifier.fillParentMaxSize()) {
-                        Post(
-                            navHostController = navHostController,
-                            postViewModel = postViewModel,
-                            post = post,
-                            userWhoInteractWithThisPost = user!!,
-                            onClickReport = {
-                                showPostReportDialog = !showPostReportDialog
-                            },
-                            onClickDelete = {
-                                showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
-                            },
-                        )
+                Box(modifier = Modifier.fillParentMaxSize()) {
+                    Post(
+                        navHostController = navHostController,
+                        postViewModel = postViewModel,
+                        post = post,
+                        userWhoInteractWithThisPost = user!!,
+                        onClickReport = {
+                            showPostReportDialog = !showPostReportDialog
+                        },
+                        onClickDelete = {
+                            showPostDeleteConfirmDialog = !showPostDeleteConfirmDialog
+                        },
+                    )
 
-                        if (showPostReportDialog) {
-                            post.userInfo?.let {
-                                ReportPostUser(
-                                    context = navHostController.context,
-                                    youTheCurrentUserUseThisApp = user!!,
-                                    userReported = it,
-                                    onClickShowPostReportDialog = { showPostReportDialog = false }
-                                )
-                            }
-                        }
-
-                        if (showPostDeleteConfirmDialog) {
-                            ConfirmDeletePostModal(
+                    if (showPostReportDialog) {
+                        post.userInfo?.let {
+                            ReportPostUser(
+                                context = navHostController.context,
+                                youTheCurrentUserUseThisApp = user!!,
+                                userReported = it,
                                 postId = post.id,
-                                postViewModel = postViewModel,
-                                sharedPreferences = navHostController.context.getSharedPreferences(
-                                    "user_prefs",
-                                    Context.MODE_PRIVATE
-                                ),
-                                onClickShowConfirmDeleteDialog = {
-                                    showPostDeleteConfirmDialog = false
-                                },
+                                onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }
+                    }
+
+                    if (showPostDeleteConfirmDialog) {
+                        ConfirmDeletePostModal(
+                            postId = post.id,
+                            postViewModel = postViewModel,
+                            sharedPreferences = navHostController.context.getSharedPreferences(
+                                "user_prefs",
+                                Context.MODE_PRIVATE
+                            ),
+                            onClickShowConfirmDeleteDialog = {
+                                showPostDeleteConfirmDialog = false
+                            },
+                        )
                     }
                 }
             }
         }
+
     }
-    else{
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ){
-            Text("Đang hướng dẫn...")
-        }
-    }
+
 }
+
+
 
 @Composable
 fun BackToTopButton(

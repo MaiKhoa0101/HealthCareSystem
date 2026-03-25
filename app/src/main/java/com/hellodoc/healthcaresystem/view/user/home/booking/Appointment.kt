@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -76,6 +79,8 @@ fun AppointmentListScreen(navHostController: NavHostController) {
             userViewModel.getUser(it)
             appointmentViewModel.getAppointmentUser(it)
             appointmentViewModel.getAppointmentDoctor(it)
+            // Thêm log để kiểm tra userId
+            println("=== USER ID: $it ===")
         }
     }
 
@@ -125,15 +130,35 @@ fun AppointmentScreenUI(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Text(
-            text = "Danh sách lịch hẹn",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier
-                .padding(top = 48.dp, bottom = 16.dp)
-                .align(Alignment.CenterHorizontally)
-        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.primaryContainer
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                            )
+                        )
+                    )
+                    .height(64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Danh sách lịch hẹn",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.5.sp
+                    )
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -265,7 +290,7 @@ fun AppointmentCard(
 ) {
     val isPatient = roleSelectedTab == 0
     val isDoctor = roleSelectedTab == 1
-    val avatarUrl = if (isDoctor) null else appointment.doctor.avatarURL
+    val avatarUrl = if (isDoctor) appointment.patient.avatarURL else appointment.doctor.avatarURL
     val displayName = if (isDoctor) appointment.patient.name else appointment.doctor.name
     val noteForDoctor = appointment.notes
 
@@ -382,17 +407,32 @@ fun AppointmentCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (isDoctor) {
+                    println("DOCTOR chon huy " + appointment.id + " "+ userID)
                     if (selectedTab == 0) {
                         Button(
                             onClick = { appointmentViewModel.cancelAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE0E0E0),
+                                contentColor = Color.Black
+                            ),
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Hủy")
                         }
                         Button(
-                            onClick = { appointmentViewModel.confirmAppointmentDone(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1E293B), contentColor = androidx.compose.ui.graphics.Color.White),
+                            onClick = {
+                                // Điều hướng đến màn hình chọn dịch vụ
+                                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("appointmentId", appointment.id)
+                                    set("doctorId", appointment.doctor.id)
+                                    set("patientName", appointment.patient.name)
+                                }
+                                navHostController.navigate("service-selection/${appointment.id}/${appointment.doctor.id}/${appointment.patient.name}")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1E293B),
+                                contentColor = Color.White
+                            ),
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Hoàn thành")
@@ -400,7 +440,10 @@ fun AppointmentCard(
                     } else {
                         Button(
                             onClick = { appointmentViewModel.deleteAppointment(appointment.id, userID) },
-                            colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE0E0E0), contentColor = androidx.compose.ui.graphics.Color.Black),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE0E0E0),
+                                contentColor = Color.Black
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Xóa")

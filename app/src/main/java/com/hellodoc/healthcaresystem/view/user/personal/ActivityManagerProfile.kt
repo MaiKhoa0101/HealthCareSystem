@@ -11,14 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.runtime.Composable
 
 import androidx.compose.ui.Alignment
@@ -85,31 +89,47 @@ fun ActivityManagerScreen(onBack: () -> Unit, navHostController: NavHostControll
     }
 }
 
- @Composable
- fun TopBar(title: String,onClick: () -> Unit) {
-     Box(
-         modifier = Modifier
-             .fillMaxWidth()
-             .background(MaterialTheme.colorScheme.primaryContainer)
-             .height(56.dp)
-     ) {
-         // Nút quay lại
-         Icon(
-             imageVector = Icons.Filled.ArrowBack,
-             contentDescription = "Back Button",
-             tint = MaterialTheme.colorScheme.onBackground,
-             modifier = Modifier
-                 .align(Alignment.CenterStart)
-                 .padding(start = 16.dp)
-                 .clickable { onClick() }
-         )
+@Composable
+fun TopBar(title: String, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = onClick,
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-         // Tiêu đề ở giữa
-         Text(
-             text = title,
-             color = MaterialTheme.colorScheme.onBackground,
-             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-             modifier = Modifier.align(Alignment.Center)
-         )
-     }
- }
+            Text(
+                text = title,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                ),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+}

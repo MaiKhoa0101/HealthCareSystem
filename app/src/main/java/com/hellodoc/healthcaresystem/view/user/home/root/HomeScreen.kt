@@ -1,7 +1,6 @@
 package com.hellodoc.healthcaresystem.view.user.home.root
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -19,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,20 +60,33 @@ import coil.request.ImageRequest
 import com.hellodoc.core.common.skeletonloading.SkeletonBox
 import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetDoctorResponse
-import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetMedicalOptionResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.GetSpecialtyResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.NewsResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.PostResponse
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.UiState
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.view.model_human.Floating3DAssistant
 import com.hellodoc.healthcaresystem.view.user.home.confirm.ConfirmDeletePostModal
 
 import com.hellodoc.healthcaresystem.view.user.home.report.ReportPostUser
 import com.hellodoc.healthcaresystem.view.user.post.Post
 import com.hellodoc.healthcaresystem.viewmodel.*
+import io.github.sceneview.environment.Environment
+import io.github.sceneview.model.ModelInstance
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberEnvironmentLoader
+import io.github.sceneview.rememberModelLoader
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
+import kotlin.random.Random
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -95,9 +108,9 @@ fun HealthMateHomeScreen(
         }
     }
 
+
     val doctorViewModel: DoctorViewModel = hiltViewModel()
     val specialtyViewModel: SpecialtyViewModel = hiltViewModel()
-    val medicalOptionViewModel: MedicalOptionViewModel = hiltViewModel()
     val geminiViewModel: GeminiViewModel = hiltViewModel()
     val postViewModel: PostViewModel = hiltViewModel()
     val newsViewModel: NewsViewModel = hiltViewModel()
@@ -107,7 +120,7 @@ fun HealthMateHomeScreen(
     // Collect states with loading information
     val doctorState by doctorViewModel.doctors.collectAsState()
     val specialtyState by specialtyViewModel.specialties.collectAsState()
-    val medicalOptionState by medicalOptionViewModel.medicalOptions.collectAsState()
+    val medicalOptions = listOf("Tính BMI", "Fast Talk", "Ngôn ngữ kí hiệu", "Mô hình 3d", "Tiếng việt sang video cử chỉ")
     val question by geminiViewModel.question.collectAsState()
     val answer by geminiViewModel.answer.collectAsState()
     val newsState by newsViewModel.newsList.collectAsState()
@@ -117,84 +130,231 @@ fun HealthMateHomeScreen(
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var showReportBox by remember { mutableStateOf(false) }
     var postIndex by remember { mutableStateOf(0) }
-    var userModel by remember { mutableStateOf("") }
-    var username = ""
-    LaunchedEffect(Unit) {
-        username = userViewModel.getUserAttribute("name", context)
-        userModel = userViewModel.getUserAttribute("role", context)
+    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
 
-        userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
-        postViewModel.fetchPosts()
-        postIndex=10
-        println("Gọi 1 voi index: "+ postIndex)
 
-        doctorViewModel.fetchDoctors()
-        specialtyViewModel.fetchSpecialties()
-        medicalOptionViewModel.fetchMedicalOptions()
-//        medicalOptionViewModel.fetchRemoteMedicalOptions()
-        newsViewModel.getAllNews()
-    }
-
+    val posts by postViewModel.posts.collectAsState()
     val hasMorePosts by postViewModel.hasMorePosts.collectAsState()
     val isLoadingMorePosts by postViewModel.isLoadingMorePosts.collectAsState()
 
     val progress by postViewModel.uploadProgress.collectAsState()
     val uiStatePost by postViewModel.uiStatePost.collectAsState()
-    val posts by postViewModel.posts.collectAsState()
 
+    // Load initial posts chỉ 1 lần
+    LaunchedEffect(Unit) {
+        userViewModel.getUser(userViewModel.getUserAttribute("userId", context))
+        doctorViewModel.fetchDoctors()
+        specialtyViewModel.fetchSpecialties()
+        newsViewModel.getAllNews()
+
+        // Chỉ fetch nếu chưa có posts
+        if (posts.isEmpty()) {
+            postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
+        }
+    }
+
+    // Load more khi scroll
     LaunchedEffect(listState, hasMorePosts, isLoadingMorePosts) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val total = layoutInfo.totalItemsCount
-            lastVisible >= total - 2
-        }.distinctUntilChanged().collect { isAtEnd ->
-            if (isAtEnd && hasMorePosts && !isLoadingMorePosts) {
-                println("Load more với skip=${posts.size}")
-                postViewModel.fetchPosts(
-                    skip = posts.size,
-                    limit = 10,
-                    append = true
-                )
+
+            // Kiểm tra nếu đang ở gần cuối danh sách
+            lastVisible >= total - 3 && total > 0
+        }
+            .distinctUntilChanged()
+            .collect { isNearEnd ->
+                if (isNearEnd && hasMorePosts && !isLoadingMorePosts) {
+                    println("🔄 Load more với skip=${posts.size}")
+                    postViewModel.fetchPosts(
+                        skip = posts.size,
+                        limit = 10,
+                        append = true
+                    )
+                }
             }
+    }
+
+    // Refresh khi quay lại home (nếu cần)
+    LaunchedEffect(navHostController.currentBackStackEntry,uiStatePost) {
+        val currentRoute = navHostController.currentBackStackEntry?.destination?.route
+        if (currentRoute == "home") {
+            postViewModel.fetchPosts(skip = 0, limit = 10, append = false)
         }
     }
 
-    LaunchedEffect(navHostController.currentBackStackEntry) {
-        if (navHostController.currentBackStackEntry?.destination?.route == "home") {
-            if (postViewModel.posts == emptyList<PostResponse>()) {
-                postIndex = 0
-                postViewModel.clearPosts()
-                postViewModel.fetchPosts()
-            }
-        }
-    }
 
-
-
+    // State quản lý trạng thái mở rộng của nút 3D
+    var is3DExpanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            // Bắt sự kiện nhấn vào vùng trống để tắt 3D
             .pointerInput(Unit) {
                 detectTapGestures {
                     postViewModel.closeAllPostMenus()
                     showReportBox = false
+
+                    // Logic tắt 3D khi bấm ra ngoài
+                    if (is3DExpanded) {
+                        is3DExpanded = false
+                    }
                 }
             }
     ) {
+        // HelloDoc Welcome atmosphere
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
+
             item(key = "header") {
                 Column(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                    MaterialTheme.colorScheme.background
+                                )
+                            )
+                        )
                         .padding(16.dp)
+                        .padding(top = 80.dp)
                 ) {
+                    // Premium HelloDoc Welcome Banner
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth() // 1. Xác định kích thước tổng thể trước
+
+                            // 2. Đổ bóng (Shadow) phải nằm ngoài cùng (trước clip/background) để không bị cắt mất
+                            .shadow(
+                                elevation = 12.dp,
+                                shape = RoundedCornerShape(24.dp) // Shape của bóng phải khớp với shape của Box
+                            )
+
+                            // 3. Cắt bo góc (Clip) để các layer màu/ảnh sau đó nằm gọn trong hình dáng này
+                            .clip(RoundedCornerShape(24.dp))
+
+                            // 4. Tô màu nền (Background)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.background,
+                                        MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            )
+
+                            // 5. Vẽ viền (Border) đè lên background (hoặc bao quanh)
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+
+                            // 6. Padding nội dung (Cuối cùng): Tạo khoảng cách giữa viền và nội dung bên trong Box
+                            .padding(20.dp)
+                    ){
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Welcome to HelloDoc",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    letterSpacing = 2.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "SỨC KHỎE LÀ VÀNG",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(MaterialTheme.colorScheme.primary))
+                                Text(
+                                    text = " 2026 ",
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                                Box(modifier = Modifier.height(1.dp).width(30.dp).background(MaterialTheme.colorScheme.primary))
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    // Header with Greeting and Profile
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Chào mừng quay lại, 👋",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = user?.name ?: "Người dùng",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            )
+                        }
+
+                        // Profile Icon
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .shadow(8.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .padding(2.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            if (!user?.avatarURL.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(user?.avatarURL)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "User Avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.doctor), // Fallback to a default icon
+                                    contentDescription = "User Avatar",
+                                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
+                    // AI Search Bar
                     AssistantQueryRow(
                         navHostController = navHostController,
                         onSubmit = { query ->
@@ -202,41 +362,29 @@ fun HealthMateHomeScreen(
                             showDialog = true
                         }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     if (newsState.isEmpty()) {
-//                        EmptyList("tin mới")
                         NewsSkeletonList()
                     } else {
-                        MarqueeNewsTicker(user = user,newsList = newsState, navHostController = navHostController)
+                        MarqueeNewsTicker(user = user, newsList = newsState, navHostController = navHostController)
                     }
                 }
-                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
             }
 
             item(key = "services") {
-                if (medicalOptionState.isEmpty()) {
-//                    EmptyList("dịch vụ hệ thống")
-                    Column {
-                        SkeletonBox(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(0.4f)
-                                .height(24.dp),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        ServiceSkeletonGrid()
-                    }
-                } else {
-                    SectionHeader(title = "Dịch vụ toàn diện")
-                    println("Dich vụ gồm: "+medicalOptionState)
-                    GridServiceList(medicalOptionState) { medicalOption ->
-                        when (medicalOption.name) {
-                            "Tính BMI" -> navHostController.navigate("bmi-checking")
-                            "Fast Talk" -> navHostController.navigate("fast_talk")
-                            else -> {
+                SectionHeader(title = "Dịch vụ toàn diện")
+                GridServiceList(medicalOptions) { optionName ->
+                    when (optionName) {
+                        "Tính BMI" -> navHostController.navigate("bmi-checking")
+                        "Fast Talk" -> navHostController.navigate("fast_talk")
+                        "Ngôn ngữ kí hiệu" -> navHostController.navigate("sign_language")
+                        "Mô hình 3d" -> navHostController.navigate("detection_3d")
+                        "Tiếng việt sang video cử chỉ" -> navHostController.navigate("text_to_video")
 
-                            }
+                        else -> {
+
                         }
                     }
                 }
@@ -288,6 +436,7 @@ fun HealthMateHomeScreen(
                                 context = navHostController.context,
                                 youTheCurrentUserUseThisApp = user!!,
                                 userReported = it,
+                                postId = post.id,
                                 onClickShowPostReportDialog = { showPostReportDialog = false }
                             )
                         }
@@ -325,9 +474,6 @@ fun HealthMateHomeScreen(
             }
 
 
-            item(key = "bottom_space") {
-                Spacer(modifier = Modifier.height(100.dp))
-            }
         }
 
         if (isScrollButtonVisible) {
@@ -396,7 +542,31 @@ fun HealthMateHomeScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
+
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .zIndex(100f)
+//                .padding(bottom = 40.dp, end = 10.dp),
+//            contentAlignment = Alignment.BottomEnd
+//        ) {
+//            Floating3DAssistant(
+//                isExpanded = is3DExpanded,
+//                onExpandChange = { newValue ->
+//                    // CHỈ CHO PHÉP THAY ĐỔI KHI KHÔNG CLEANUP
+//                    if (is3DResourcesReady) {
+//                        is3DExpanded = newValue
+//                    } else {
+//                        android.util.Log.w("VideoPlayer", "Cannot change 3D state: Cleaning up or resources not ready")
+//                    }
+//                },
+//                engine = engine,
+//                modelInstance = ericModelInstance,
+//                environment = globalEnvironment
+//            )
+//        }
     }
 }
 
@@ -475,113 +645,183 @@ fun MarqueeNewsTicker(
 ) {
     var showAllNews by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (!showAllNews) {
-            val firstHalf = newsList.take(newsList.size / 2)
-            val secondHalf = newsList.drop(newsList.size / 2)
-
-            var firstIndex by remember { mutableStateOf(0) }
-            var secondIndex by remember { mutableStateOf(0) }
-
-            LaunchedEffect(firstIndex, firstHalf) {
-                if (firstHalf.isNotEmpty()) {
-                    while (!showAllNews) {
-                        val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
-                        val delayTime = calculateDynamicDelay(currentTitle)
-                        delay(delayTime)
-                        firstIndex = (firstIndex + 1) % firstHalf.size
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.background,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+        shadowElevation = 4.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // News Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Newspaper,
+                        contentDescription = null,
+                        modifier = Modifier.padding(6.dp).size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Tin tức",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (newsList.size > 2) {
+                    TextButton(
+                        onClick = { showAllNews = !showAllNews },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(
+                            text = if (showAllNews) "Thu gọn" else "Xem thêm",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Icon(
+                            imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
 
-            LaunchedEffect(secondIndex, secondHalf) {
-                if (secondHalf.isNotEmpty()) {
-                    while (!showAllNews) {
-                        val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
-                        val delayTime = calculateDynamicDelay(currentTitle)
-                        delay(delayTime)
-                        secondIndex = (secondIndex + 1) % secondHalf.size
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (!showAllNews) {
+                val firstHalf = newsList.take(newsList.size / 2)
+                val secondHalf = newsList.drop(newsList.size / 2)
+
+                var firstIndex by remember { mutableStateOf(0) }
+                var secondIndex by remember { mutableStateOf(0) }
+
+                LaunchedEffect(firstIndex, firstHalf) {
+                    if (firstHalf.isNotEmpty()) {
+                        while (!showAllNews) {
+                            val currentTitle = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty())
+                            val delayTime = calculateDynamicDelay(currentTitle)
+                            delay(delayTime)
+                            firstIndex = (firstIndex + 1) % firstHalf.size
+                        }
                     }
                 }
-            }
 
-            // Nội dung marquee
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            firebaseAnalytics.logEvent("reading_news", bundleOf(
-                                "Id_user" to user?.id,
-                                "name_user" to user?.name,
-                                "reading_new_id" to firstHalf[firstIndex].id
-                            ))
-                            firstHalf.getOrNull(firstIndex)?.let { news ->
-                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                                navHostController.navigate("news_detail")
-                            }
+                LaunchedEffect(secondIndex, secondHalf) {
+                    if (secondHalf.isNotEmpty()) {
+                        while (!showAllNews) {
+                            val currentTitle = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty())
+                            val delayTime = calculateDynamicDelay(currentTitle)
+                            delay(delayTime)
+                            secondIndex = (secondIndex + 1) % secondHalf.size
                         }
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                            spacing = MarqueeSpacing(50.dp),
-                            velocity = 50.dp,
-                        ),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Divider(color = MaterialTheme.colorScheme.onBackground, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            firebaseAnalytics.logEvent("reading_news", bundleOf(
-                                "Id_user" to user?.id,
-                                "name_user" to user?.name,
-                                "reading_new_id" to secondHalf[secondIndex].id
-                            ))
-                            secondHalf.getOrNull(secondIndex)?.let { news ->
-                                navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
-                                navHostController.navigate("news_detail")
-                            }
-                        }
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                            spacing = MarqueeSpacing(50.dp),
-                            velocity = 50.dp,
-                        ),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                )
-            }
-        } else {
-            NewsItemList(newsList = newsList, navHostController = navHostController)
-        }
+                    }
+                }
 
-        // Nút xem thêm luôn nằm dưới cùng, tách riêng
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Icon(
-                imageVector = if (showAllNews) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (showAllNews) "Thu gọn" else "Xem thêm",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .clickable { showAllNews = !showAllNews }
-                    .size(30.dp)
-            )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Line 1
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                firstHalf.getOrNull(firstIndex)?.let { news ->
+                                    firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                        "Id_user" to user?.id,
+                                        "name_user" to user?.name,
+                                        "reading_new_id" to news.id
+                                    ))
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                    navHostController.navigate("news_detail")
+                                }
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = forceMarqueeText(firstHalf.getOrNull(firstIndex)?.title.orEmpty()).lowercase(),
+                            modifier = Modifier
+                                .weight(1f)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                    spacing = MarqueeSpacing(50.dp),
+                                    velocity = 50.dp,
+                                ),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            maxLines = 1,
+                        )
+                    }
+
+                    if (secondHalf.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        // Line 2
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    secondHalf.getOrNull(secondIndex)?.let { news ->
+                                        firebaseAnalytics.logEvent("reading_news", bundleOf(
+                                            "Id_user" to user?.id,
+                                            "name_user" to user?.name,
+                                            "reading_new_id" to news.id
+                                        ))
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.set("selectedNews", news)
+                                        navHostController.navigate("news_detail")
+                                    }
+                                }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = forceMarqueeText(secondHalf.getOrNull(secondIndex)?.title.orEmpty()).lowercase(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                        spacing = MarqueeSpacing(50.dp),
+                                        velocity = 50.dp,
+                                    ),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                ),
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
+            } else {
+                NewsItemList(newsList = newsList, navHostController = navHostController)
+            }
         }
     }
 }
@@ -592,26 +832,50 @@ fun showToast(context: Context, message: String) {
 }
 
 @Composable
-fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        fontSize = 20.sp,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(8.dp)
-    )
-}
-
-@Composable
-fun EmptyList(name: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun SectionHeader(title: String, isExpanded: Boolean = false, onSeeAllClick: (() -> Unit)? = null) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Không có $name",
-            style = MaterialTheme.typography.bodyLarge
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary // Use brand yellow
+            )
         )
+        if (onSeeAllClick != null) {
+            Surface(
+                onClick = onSeeAllClick,
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer, // Solid Brand Yellow
+                modifier = Modifier.clickableWithScale { onSeeAllClick() },
+                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isExpanded) "Thu gọn" else "Xem tất cả",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.DoubleArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -648,42 +912,85 @@ fun AssistantQueryRow(
     onSubmit: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-    Row(
+    OutlinedTextField(
+        value = text,
+        onValueChange = { text = it },
+        placeholder = {
+            Text(
+                "Bạn muốn hỏi gì hôm nay?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = R.drawable.ai_hellodoc_logo),
+                contentDescription = "AI Assistant Icon",
+                modifier = Modifier.size(50.dp),
+                tint = MaterialTheme.colorScheme.tertiary
+            )
+        },
+        trailingIcon = {
+            Surface(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(40.dp)
+                    .clickableWithScale {
+                        if (text.isNotBlank()) {
+                            navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
+                            text = ""
+                            navHostController.navigate("gemini_help")
+                        }
+                    },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary, // Use brand yellow
+                shadowElevation = 4.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Submit",
+                        tint = Color.Black, // Dark icon on yellow background
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        },
+        shape = RoundedCornerShape(24.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+        ),
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.fillMaxWidth(0.9f)) {
-            TextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text("Đặt câu hỏi cho Trợ lý AI", color = MaterialTheme.colorScheme.onBackground) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.background,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.background
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Icon(
-            imageVector = Icons.Default.DoubleArrow,
-            contentDescription = "submit question for AI",
-            modifier = Modifier
-                .size(20.dp)
-                .clickable {
-                    if (text.isNotBlank()) {
-                        navHostController.currentBackStackEntry?.savedStateHandle?.set("first_question", text)
-                        text = ""
-                        navHostController.navigate("gemini_help")
-                    }
-                },
-            tint = MaterialTheme.colorScheme.onBackground
-        )
+            .background(Color.Transparent)
+            .shadow(8.dp, RoundedCornerShape(24.dp)),
+        singleLine = true
+    )
+}
+
+@Composable
+fun Modifier.clickableWithScale(
+    onClick: () -> Unit
+): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        label = "scale"
+    )
+
+    return this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
+        .clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
 }
 
 @Composable
@@ -700,7 +1007,7 @@ fun NewsSkeletonItem() {
                 .padding(end = 32.dp),
         )
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer, thickness = 1.dp)
     }
 }
 
@@ -738,7 +1045,7 @@ fun NewsItem(
             )
         }
         Spacer(modifier = Modifier.height(5.dp))
-        Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
     }
 }
 @Composable
@@ -786,44 +1093,66 @@ fun ServiceSkeletonGrid() {
 
 
 @Composable
-fun GridServiceList(items: List<GetMedicalOptionResponse>, onClick: (GetMedicalOptionResponse) -> Unit) {
+fun GridServiceList(items: List<String>, onClick: (String) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         items.chunked(2).forEach { rowItems ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 rowItems.forEach { item ->
-                    key(item.id) {
-                        Box(
+                    key(item) {
+                        Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onClick(item) }
-                                .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp))
-                                .border(1.dp, MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
-                                .padding(16.dp)
-
+                                .height(85.dp)
+                                .clickableWithScale { onClick(item) },
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            tonalElevation = 4.dp,
+                            shadowElevation = 8.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = painterResource(id =
-                                        if (item.name == "Tính BMI") {
-                                            R.drawable.doctor
-                                        }
-                                        else {
-                                            R.drawable.speak
-                                        }
-                                    ),
-                                    contentDescription = item.name,
-                                    modifier = Modifier.size(40.dp),
-                                    contentScale = ContentScale.Fit
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(44.dp),
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Image(
+                                            painter = painterResource(
+                                                id = if (item == "Tính BMI") R.drawable.doctor else R.drawable.speak
+                                            ),
+                                            contentDescription = item,
+                                            modifier = Modifier.size(28.dp),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = item,
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        letterSpacing = 0.5.sp
+                                    )
                                 )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(text = item.name, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }
                 }
-
+                if (rowItems.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -907,46 +1236,24 @@ fun SpecialtyList(
     val displayedSpecialties = if (showAllSpecialties) specialties else specialties.take(6)
 
     Column {
-        // Header row with title and "See more" button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Chuyên khoa",
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
-
-            if (specialties.size > 6) {
-                Text(
-                    text = if (showAllSpecialties) "Thu gọn" else "Xem thêm",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable { showAllSpecialties = !showAllSpecialties }
-                        .padding(start = 8.dp)
-                )
-            }
-        }
+        SectionHeader(
+            title = "Chuyên khoa",
+            isExpanded = showAllSpecialties,
+            onSeeAllClick = if (specialties.size > 6) { { showAllSpecialties = !showAllSpecialties } } else null
+        )
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier.padding(vertical = 8.dp)
         ) {
-            item { Spacer(modifier = Modifier.width(8.dp)) }
-            items(displayedSpecialties,  key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
+            items(displayedSpecialties, key = { specialty -> "specialty_${specialty.id}" }) { specialty ->
                 SpecialtyItem(
                     navHostController = navHostController,
                     specialty = specialty,
                     onClick = { showToast(context, "Đã chọn: ${specialty.name}") }
                 )
             }
-            item { Spacer(modifier = Modifier.width(8.dp)) }
         }
     }
 }
@@ -957,14 +1264,16 @@ fun SpecialtyItem(
     specialty: GetSpecialtyResponse,
     onClick: () -> Unit
 ) {
-    Box(
+    Surface(
         modifier = Modifier
-            .width(150.dp)
-            .height(130.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(16.dp))
-            .clickable {
+            .width(110.dp)
+            .height(150.dp)
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(28.dp),
+                clip = false
+            )
+            .clickableWithScale {
                 firebaseAnalytics.logEvent("specialty_selected", bundleOf(
                     "ID_specialty" to specialty.id,
                     "Name_of_specialty" to specialty.name,
@@ -972,51 +1281,61 @@ fun SpecialtyItem(
                 onClick()
                 navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyId", specialty.id)
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyName", specialty.name)
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.apply {
                     set("specialtyDesc", specialty.description)
                 }
                 navHostController.navigate("doctor_list")
-            }
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
+            },
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        tonalElevation = 4.dp
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(12.dp)
         ) {
-            if (!specialty.icon.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(specialty.icon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.doctor),
-                    contentDescription = specialty.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
+            // Icon Container
+            Surface(
+                modifier = Modifier.size(70.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (specialty.icon.isNotBlank()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(specialty.icon)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = specialty.name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.doctor),
+                            contentDescription = specialty.name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(5.dp))
+            
+            Spacer(modifier = Modifier.height(14.dp))
+            
             Text(
                 text = specialty.name,
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp,
+                    fontSize = 12.sp
                 ),
-                modifier = Modifier.fillMaxWidth(), // Đảm bảo chiếm hết chiều rộng để căn giữa chính xác
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis, // Thêm dấu "..." nếu quá 2 dòng
-                softWrap = true // Cho phép xuống dòng mềm
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -1105,44 +1424,25 @@ fun DoctorList(
     var showAllDoctors by remember { mutableStateOf(false) }
     val displayedDoctors = if (showAllDoctors) doctors else doctors.take(6)
 
-    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Bác sĩ nổi bật",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            if (doctors.size > 6) {
-                Text(
-                    text = if (showAllDoctors) "Thu gọn" else "Xem thêm",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable { showAllDoctors = !showAllDoctors }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        SectionHeader(
+            title = "Bác sĩ nổi bật",
+            isExpanded = showAllDoctors,
+            onSeeAllClick = if (doctors.size > 6) { { showAllDoctors = !showAllDoctors } } else null
+        )
+
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .padding(vertical = 8.dp)
         ) {
-            items(displayedDoctors,  key = { doctor -> "doctor_${doctor.id}" }) { doctor ->
+            items(displayedDoctors, key = { doctor -> "doctor_${doctor.id}" }) { doctor ->
                 DoctorItem(doctor) {
                     firebaseAnalytics.logEvent("doctor_selected", bundleOf(
                         "doctor_id" to doctor.id,
@@ -1156,60 +1456,73 @@ fun DoctorList(
             }
         }
     }
-    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.tertiaryContainer)
 }
 
 @Composable
 fun DoctorItem(doctor: GetDoctorResponse, onClick: () -> Unit) {
-    Column(
+    Surface(
         modifier = Modifier
-            .width(120.dp)
-            .clickable { onClick() }
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(150.dp)
+            .clickableWithScale { onClick() },
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shadowElevation = 8.dp,
+        tonalElevation = 4.dp
     ) {
-        if (!doctor.avatarURL.isNullOrBlank()) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(doctor.avatarURL)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = doctor.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(90.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                modifier = Modifier.size(90.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            ) {
+                if (!doctor.avatarURL.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(doctor.avatarURL)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.doctor),
+                        contentDescription = doctor.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = doctor.name,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.doctor),
-                contentDescription = doctor.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+            
+            Text(
+                text = doctor.specialty.name,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = doctor.name,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = doctor.specialty.name,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 

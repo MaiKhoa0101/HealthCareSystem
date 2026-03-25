@@ -74,6 +74,8 @@ fun ReportManagerScreen(
             ) {
                 LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     item {
+                        Spacer(modifier = Modifier.height(100.dp))
+
                         Text(
                             text = "Danh sách khiếu nại",
                             style = MaterialTheme.typography.headlineSmall,
