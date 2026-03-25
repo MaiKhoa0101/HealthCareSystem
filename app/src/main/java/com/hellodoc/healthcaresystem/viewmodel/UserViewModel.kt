@@ -171,8 +171,13 @@ class UserViewModel @Inject constructor(
                     "password",
                     updatedUser.password!!
                 )
+                val role = MultipartBody.Part.createFormData(
+                    "role",
+                    updatedUser.role
+                )
+
                 val response = userRepo.updateUserByID(
-                    id, avatar, address, name, email, phone, password
+                    id, avatar, address, name, email, phone, password,role
                 )
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Cập nhật thành công user ID: $id")
