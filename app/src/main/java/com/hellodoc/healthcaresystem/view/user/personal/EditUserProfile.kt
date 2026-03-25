@@ -221,7 +221,7 @@ fun ChangeAvatar(
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.clickable {
+            modifier = Modifier.clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.primary, CircleShape).clickable {
                 checkAndRequestPermission()
             }
         ) {
@@ -329,7 +329,7 @@ fun AcceptEditButton(
     // Điều hướng khi update thành công
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
-            navHostController.navigate("personal")
+            navHostController.popBackStack()
         }
     }
 

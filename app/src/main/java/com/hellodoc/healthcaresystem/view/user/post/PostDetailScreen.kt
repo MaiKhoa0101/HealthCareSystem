@@ -379,7 +379,7 @@ fun PostDetailHeader(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = post.createdAt ?: "Vừa xong", // Giả sử post có thuộc tính createdAt
+                    text = formatDateTime(post.createdAt) ?: "Vừa xong", // Giả sử post có thuộc tính createdAt
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp)

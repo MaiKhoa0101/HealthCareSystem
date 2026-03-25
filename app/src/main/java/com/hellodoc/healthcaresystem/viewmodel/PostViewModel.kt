@@ -771,11 +771,12 @@ class PostViewModel @Inject constructor(
                     MultipartBody.Part.createFormData("content", it)
                 }
 
-                // Sửa lại phần xử lý media cũ
-                val mediaParts = request.media?.mapIndexed { index, url ->
-                    MultipartBody.Part.createFormData("media[$index]", url)
+                // 🔥 SỬA TẠI ĐÂY: Dùng chung key "media" cho tất cả các item
+                val mediaParts = request.media?.map { url ->
+                    MultipartBody.Part.createFormData("media", url)
                 } ?: emptyList()
 
+                // Giữ nguyên logic chuẩn bị file images
                 val imageParts = request.images?.mapNotNull { uri ->
                     try {
                         prepareFilePart(context, uri, "images")
@@ -792,12 +793,7 @@ class PostViewModel @Inject constructor(
                     images = imageParts
                 )
 
-                if (response.isSuccessful) {
-                    _updateSuccess.value = true
-                    getPostById(postId, context)
-                } else {
-                    Log.e("PostViewModel", "Update error: ${response.errorBody()?.string()}")
-                }
+                // ... xử lý response
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Update exception", e)
             } finally {

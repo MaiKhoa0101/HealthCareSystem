@@ -25,9 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,7 +64,6 @@ fun NotificationPage(
         notificationViewModel.fetchNotificationByUserId(userId)
     }
 
-    // Pull to refresh handler
     LaunchedEffect(isRefreshing) {
         if (isRefreshing) {
             if (showOnlyUnread) {
@@ -79,7 +76,6 @@ fun NotificationPage(
         }
     }
 
-    // Update notifications when filter changes
     LaunchedEffect(showOnlyUnread) {
         if (showOnlyUnread) {
             notificationViewModel.fetchUnreadNotifications(userId)
@@ -93,21 +89,16 @@ fun NotificationPage(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Enhanced Header with unread badge and actions
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 8.dp,
+            shadowElevation = 4.dp,
             color = MaterialTheme.colorScheme.primaryContainer
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(                                MaterialTheme.colorScheme.primaryContainer,
-
-                        )
-                    .padding(vertical = 16.dp, horizontal = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
-                // Title with badge
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -121,29 +112,25 @@ fun NotificationPage(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     if (unreadCount > 0) {
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         UnreadBadge(count = unreadCount)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Filter and Actions Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Filter chips
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = !showOnlyUnread,
                             onClick = { showOnlyUnread = false },
                             label = { Text("Tất cả") },
                             leadingIcon = if (!showOnlyUnread) {
-                                { Icon(Icons.Default.Check, null, Modifier.size(18.dp)) }
+                                { Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
                             } else null
                         )
                         FilterChip(
@@ -151,35 +138,31 @@ fun NotificationPage(
                             onClick = { showOnlyUnread = true },
                             label = { Text("Chưa đọc") },
                             leadingIcon = if (showOnlyUnread) {
-                                { Icon(Icons.Default.Check, null, Modifier.size(18.dp)) }
+                                { Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
                             } else null
                         )
                     }
 
-                    // Mark all as read button
                     if (unreadCount > 0) {
                         TextButton(
-                            onClick = {
-                                notificationViewModel.markAllAsRead(userId)
-                            },
+                            onClick = { notificationViewModel.markAllAsRead(userId) },
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DoneAll,
-                                contentDescription = "Mark all as read",
-                                modifier = Modifier.size(18.dp)
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Đọc hết")
+                            Text("Đọc hết", fontSize = 13.sp)
                         }
                     }
                 }
             }
         }
 
-        // Content with pull-to-refresh
         Box(modifier = Modifier.fillMaxSize()) {
             if (notifications.isEmpty()) {
                 EnhancedEmptyState()
@@ -191,7 +174,6 @@ fun NotificationPage(
                 )
             }
 
-            // Pull to refresh indicator
             if (isRefreshing) {
                 LinearProgressIndicator(
                     modifier = Modifier
@@ -209,12 +191,9 @@ fun UnreadBadge(count: Int) {
     Surface(
         shape = CircleShape,
         color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.size(28.dp)
+        modifier = Modifier.size(26.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Text(
                 text = if (count > 99) "99+" else count.toString(),
                 color = Color.White,
@@ -234,7 +213,6 @@ fun EnhancedEmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Animated icon
         val infiniteTransition = rememberInfiniteTransition(label = "bell")
         val scale by infiniteTransition.animateFloat(
             initialValue = 1f,
@@ -249,28 +227,21 @@ fun EnhancedEmptyState() {
         Icon(
             imageVector = Icons.Outlined.Notifications,
             contentDescription = null,
-            modifier = Modifier
-                .size(120.dp)
-                .scale(scale)
-                .alpha(0.6f),
+            modifier = Modifier.size(100.dp).scale(scale).alpha(0.5f),
             tint = MaterialTheme.colorScheme.primary
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Chưa có thông báo",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = "Các thông báo mới sẽ xuất hiện ở đây",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
         )
     }
@@ -283,65 +254,37 @@ fun NotificationSectionFrame(
     notifications: List<NotificationResponse>,
     notificationViewModel: NotificationViewModel
 ) {
-    val sortedNotifications = notifications.sortedByDescending { notification ->
-        Instant.parse(notification.createdAt)
-    }
-
+    val sortedNotifications = notifications.sortedByDescending { Instant.parse(it.createdAt) }
     val today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))
 
-    val (todayNotifications, pastNotifications) = sortedNotifications.partition { notification ->
+    val (todayNotifications, pastNotifications) = sortedNotifications.partition {
         try {
-            val instant = Instant.parse(notification.createdAt)
-            val vietnamDate = instant.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()
-            vietnamDate == today
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
+            Instant.parse(it.createdAt)
+                .atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+                .toLocalDate() == today
+        } catch (e: Exception) { false }
     }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        contentPadding = PaddingValues(vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
         if (todayNotifications.isNotEmpty()) {
-            item {
-                SectionHeader(title = "Hôm nay")
-            }
-            items(
-                items = todayNotifications,
-                key = { it.id }
-            ) { notification ->
-                AnimatedNotificationCard(
-                    navHostController = navHostController,
-                    notification = notification,
-                    notificationViewModel = notificationViewModel
-                )
+            item { SectionHeader(title = "Hôm nay") }
+            items(todayNotifications, key = { it.id }) { notification ->
+                AnimatedNotificationCard(navHostController, notification, notificationViewModel)
             }
         }
-
         if (pastNotifications.isNotEmpty()) {
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 SectionHeader(title = "Trước đó")
             }
-            items(
-                items = pastNotifications,
-                key = { it.id }
-            ) { notification ->
-                AnimatedNotificationCard(
-                    navHostController = navHostController,
-                    notification = notification,
-                    notificationViewModel = notificationViewModel
-                )
+            items(pastNotifications, key = { it.id }) { notification ->
+                AnimatedNotificationCard(navHostController, notification, notificationViewModel)
             }
         }
-
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
@@ -350,9 +293,10 @@ fun SectionHeader(title: String) {
     Text(
         text = title,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        color = MaterialTheme.colorScheme.onSecondaryContainer,
-        modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp)
+        fontSize = 14.sp,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+        letterSpacing = 0.8.sp,
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp)
     )
 }
 
@@ -364,23 +308,14 @@ fun AnimatedNotificationCard(
     notificationViewModel: NotificationViewModel
 ) {
     var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        visible = true
-    }
+    LaunchedEffect(Unit) { visible = true }
 
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(animationSpec = tween(300)) +
-                expandVertically(animationSpec = tween(300)),
-        exit = fadeOut(animationSpec = tween(200)) +
-                shrinkVertically(animationSpec = tween(200))
+        enter = fadeIn(tween(300)) + expandVertically(tween(300)),
+        exit = fadeOut(tween(200)) + shrinkVertically(tween(200))
     ) {
-        NotificationCard(
-            navHostController = navHostController,
-            notification = notification,
-            notificationViewModel = notificationViewModel
-        )
+        NotificationCard(navHostController, notification, notificationViewModel)
     }
 }
 
@@ -396,31 +331,25 @@ fun NotificationCard(
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    // Delete confirmation dialog
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Xóa thông báo") },
             text = { Text("Bạn có chắc chắn muốn xóa thông báo này?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        notificationViewModel.deleteNotification(notification.id)
-                        showDeleteDialog = false
-                    }
-                ) {
+                TextButton(onClick = {
+                    notificationViewModel.deleteNotification(notification.id)
+                    showDeleteDialog = false
+                }) {
                     Text("Xóa", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Hủy")
-                }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Hủy") }
             }
         )
     }
 
-    // Bottom Sheet Modal
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -428,38 +357,39 @@ fun NotificationCard(
             containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp)
+                    .clickable {
+                        showBottomSheet = false
+                        showDeleteDialog = true
+                    }
+                    .padding(horizontal = 24.dp, vertical = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Delete option
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showBottomSheet = false
-                            showDeleteDialog = true
-                        }
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Xóa thông báo",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = "Xóa thông báo",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(22.dp)
+                )
+                Text(
+                    "Xóa thông báo",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
+
+    // ── Card chính ──────────────────────────────────────────────────────────
+    val isUnread = !notification.isRead
+    val cardBg = if (isUnread)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+    else
+        MaterialTheme.colorScheme.surface
 
     Card(
         modifier = Modifier
@@ -467,76 +397,68 @@ fun NotificationCard(
             .padding(vertical = 4.dp)
             .combinedClickable(
                 onClick = {
-                    if (!notification.isRead) {
-                        notificationViewModel.markAsRead(notification.id)
+                    if (isUnread) notificationViewModel.markAsRead(notification.id)
+                    navHostController.navigate(notification.navigatePath){
+                        popUpTo(navHostController.graph.startDestinationId)
+                        launchSingleTop = true
                     }
-                    navHostController.navigate(notification.navigatePath)
                 },
-                onLongClick = {
-                    showBottomSheet = true
-                }
+                onLongClick = { showBottomSheet = true }
             ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.tertiaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (notification.isRead) 1.dp else 3.dp
-        )
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = if (isUnread)
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+            )
+        else null
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Notification Icon
-            NotificationIcon(
-                isRead = notification.isRead,
-                content = notification.content
-            )
+            // ── Icon ──────────────────────────────────────────────────────
+            NotificationIcon(isRead = !isUnread, content = notification.content)
 
-            // Content
+            // ── Nội dung ──────────────────────────────────────────────────
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Text(
                     text = notification.content,
-                    fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontWeight = if (isUnread) FontWeight.SemiBold else FontWeight.Normal,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.AccessTime,
+                        Icons.Outlined.AccessTime,
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     )
                     Text(
                         text = notification.createdAt.timeAgoInVietnam(),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     )
-                }
 
-                if (!notification.isRead) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    // Dot "chưa đọc" nhỏ gọn nằm cùng hàng thời gian
+                    if (isUnread) {
+                        Spacer(modifier = Modifier.width(4.dp))
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
@@ -544,21 +466,21 @@ fun NotificationCard(
                                 .background(MaterialTheme.colorScheme.primary)
                         )
                         Text(
-                            text = "Nhấn để xem chi tiết",
+                            text = "Mới",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             }
 
-            // Chevron
+            // ── Chevron ───────────────────────────────────────────────────
             Icon(
-                imageVector = Icons.Default.ChevronRight,
+                Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                modifier = Modifier.align(Alignment.CenterVertically)
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -586,16 +508,13 @@ fun NotificationIcon(isRead: Boolean, content: String) {
             MaterialTheme.colorScheme.surfaceVariant
         else
             MaterialTheme.colorScheme.primaryContainer,
-        modifier = Modifier.size(48.dp)
+        modifier = Modifier.size(44.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(22.dp),
                 tint = if (isRead)
                     MaterialTheme.colorScheme.onSurfaceVariant
                 else
@@ -612,16 +531,13 @@ fun String.timeAgoInVietnam(): String {
         val vietnamTime = instant.atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
         val now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         val duration = Duration.between(vietnamTime, now)
-
         when {
-            duration.toMinutes() < 1 -> "Vừa xong"
+            duration.toMinutes() < 1  -> "Vừa xong"
             duration.toMinutes() < 60 -> "${duration.toMinutes()} phút trước"
-            duration.toHours() < 24 -> "${duration.toHours()} giờ trước"
-            duration.toDays() == 1L -> "Hôm qua"
-            duration.toDays() < 7 -> "${duration.toDays()} ngày trước"
+            duration.toHours()   < 24 -> "${duration.toHours()} giờ trước"
+            duration.toDays()  == 1L  -> "Hôm qua"
+            duration.toDays()   < 7  -> "${duration.toDays()} ngày trước"
             else -> vietnamTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         }
-    } catch (e: Exception) {
-        "Không xác định"
-    }
+    } catch (e: Exception) { "Không xác định" }
 }

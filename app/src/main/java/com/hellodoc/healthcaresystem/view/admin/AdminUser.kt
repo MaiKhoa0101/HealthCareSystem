@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.hellodoc.healthcaresystem.requestmodel.UpdateUserInput
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.User
+import com.hellodoc.healthcaresystem.view.user.post.formatDateTime
 import com.hellodoc.healthcaresystem.viewmodel.UserViewModel
 
 @Composable
@@ -181,8 +182,8 @@ fun AccountRow2(
         TableCell(account.phone, width = 150.dp)
         TableCell(account.address, width = 120.dp)
         TableCellImage(account.avatarURL.ifBlank { "" }, width = 150.dp)
-        TableCell(account.createdAt, width = 150.dp)
-        TableCell(account.updatedAt, width = 120.dp)
+        TableCell(formatDateTime(account.createdAt), width = 150.dp)
+        TableCell(formatDateTime(account.updatedAt), width = 120.dp)
         Box(
             modifier = Modifier
                 .width(100.dp),
