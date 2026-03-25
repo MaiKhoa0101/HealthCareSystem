@@ -154,7 +154,7 @@ fun ProfileUserPage(
             }
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
             state = listState
         ) {
             item{

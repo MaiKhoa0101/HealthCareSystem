@@ -91,7 +91,7 @@ fun NotificationPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Enhanced Header with unread badge and actions
         Surface(
@@ -102,14 +102,9 @@ fun NotificationPage(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f)
-                            )
+                    .background(                                MaterialTheme.colorScheme.primaryContainer,
+
                         )
-                    )
                     .padding(vertical = 16.dp, horizontal = 16.dp)
             ) {
                 // Title with badge

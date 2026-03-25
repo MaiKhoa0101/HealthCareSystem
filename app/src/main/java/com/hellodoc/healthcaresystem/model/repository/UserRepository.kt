@@ -31,7 +31,8 @@ interface UserRepository {
         name: MultipartBody.Part?,
         email: MultipartBody.Part?,
         phone: MultipartBody.Part?,
-        password: MultipartBody.Part?
+        password: MultipartBody.Part?,
+        role: MultipartBody.Part?
     ): Response<User>
 
 }
@@ -144,7 +145,8 @@ class UserRepositoryImpl @Inject constructor(
         name: MultipartBody.Part?,
         email: MultipartBody.Part?,
         phone: MultipartBody.Part?,
-        password: MultipartBody.Part?
+        password: MultipartBody.Part?,
+        role: MultipartBody.Part?
     ): Response<User> {
         return try {
             adminService.updateUserByID(
@@ -154,7 +156,8 @@ class UserRepositoryImpl @Inject constructor(
                 email = email,
                 address = address,
                 phone = phone,
-                password = password
+                password = password,
+                role = role
             )
         } catch (e: Exception) {
             Log.e("UserRepository", "updateUserByID failed: ${e.message}")

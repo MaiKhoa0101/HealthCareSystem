@@ -98,7 +98,7 @@ interface PostRepository {
         keyword: String
     ):Response<List<PostResponse>>
 
-    suspend fun getGestureCode(urlMedia:String):Response<WordCode>
+    suspend fun getGestureCode(urlMedia: String): Response<List<GestureCodeResponse>>
     suspend fun postVideoToGetGestureCode(urlMedia: String):Response<List<GestureCodeResponse>>
 }
 

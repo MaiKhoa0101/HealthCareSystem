@@ -33,6 +33,7 @@ interface AdminService {
         @Part address: MultipartBody.Part?,
         @Part phone: MultipartBody.Part?,
         @Part password: MultipartBody.Part?,
+        @Part role: MultipartBody.Part?
     ):  Response<User>
 
 

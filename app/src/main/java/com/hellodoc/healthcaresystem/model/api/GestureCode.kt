@@ -20,7 +20,7 @@ interface GestureCodeService {
     @GET("gesture_code/get_gesture_code")
     suspend fun getGestureCode(
         @Query("videoUrl") videoUrl: String
-    ): Response<WordCode>
+    ): Response<List<GestureCodeResponse>>
 
     @POST("gesture_code/post_video_url")
     suspend fun postVideoToGetGestureCode(
