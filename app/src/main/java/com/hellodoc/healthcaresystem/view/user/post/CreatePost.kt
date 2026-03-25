@@ -8,15 +8,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,7 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,9 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -54,7 +45,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,23 +67,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -103,7 +84,6 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import com.hellodoc.healthcaresystem.R
 import com.hellodoc.healthcaresystem.requestmodel.CreatePostRequest
 import com.hellodoc.healthcaresystem.requestmodel.UpdatePostRequest
 import com.hellodoc.healthcaresystem.model.dataclass.responsemodel.ContainerPost
@@ -154,13 +134,14 @@ fun CreatePostScreen(
     }
 
     // Loading & dialog
-    val posts by postViewModel.posts.collectAsState()
+    val post by postViewModel.post.collectAsState()
     val updateSuccess by postViewModel.updateSuccess.collectAsState()
     val isUpdating by postViewModel.isUpdating.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
     var showContentEmptyDialog by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
@@ -196,12 +177,27 @@ fun CreatePostScreen(
         postId?.let { id -> postViewModel.getPostById(id, context) }
     }
 
-    // Nếu đang edit thì load dữ liệu cũ
-    LaunchedEffect(posts) {
-        if (postId != null && posts.isNotEmpty()) {
-            posts.firstOrNull { it.id == postId }?.let { post ->
-                postText = post.content ?: ""
-                selectedImageUris = post.media?.mapNotNull { Uri.parse(it) } ?: emptyList()
+    // Nếu đang edit thì load dữ liệu cũ (Chỉ load 1 lần duy nhất)
+    var isDataLoaded by remember { mutableStateOf(false) }
+
+    // Lắng nghe biến singlePost thay vì posts
+    LaunchedEffect(post) {
+        // Kiểm tra xem singlePost đã có dữ liệu và đúng ID bài cần sửa chưa
+        if (postId != null && !isDataLoaded && post?.id == postId) {
+
+            post?.let { existingPost ->
+                // 1. Gán text cũ
+                postText = existingPost.content ?: ""
+
+                // 2. Gán ảnh cũ
+                val existingUris = existingPost.media?.mapNotNull { Uri.parse(it) } ?: emptyList()
+                selectedImageUris = existingUris
+
+                // 3. Render danh sách ảnh
+                pairedList = existingUris.map { it to it }
+
+                // 4. Chốt sổ, không ghi đè nữa
+                isDataLoaded = true
             }
         }
     }
@@ -243,7 +239,7 @@ fun CreatePostScreen(
         }
 
         if (postId != null) {
-            val existingMediaUrls = posts.firstOrNull { it.id == postId }?.media ?: emptyList()
+            val existingMediaUrls = post?.media
             val newUris = selectedImageUris.filterNot { it.scheme in listOf("http", "https") }
 
             postViewModel.updatePost(
