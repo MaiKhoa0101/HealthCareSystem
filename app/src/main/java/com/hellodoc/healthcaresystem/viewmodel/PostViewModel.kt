@@ -792,8 +792,14 @@ class PostViewModel @Inject constructor(
                     media = mediaParts,
                     images = imageParts
                 )
+                if (response.isSuccessful) {
+                    _updateSuccess.value = true
+                    _uiStatePost.value = UiState.Success("Đăng bài thành công")
 
-                // ... xử lý response
+                } else {
+                    Log.e("PostViewModel", "Update post failed: ${response.errorBody()?.string()}")
+                }
+
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Update exception", e)
             } finally {

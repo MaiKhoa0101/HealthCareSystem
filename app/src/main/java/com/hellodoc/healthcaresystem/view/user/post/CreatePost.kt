@@ -227,6 +227,7 @@ fun CreatePostScreen(
     }
 
     // Validate & Post
+    // Validate & Post
     fun validateAndPost() {
         val trimmedText = postText.trim()
         if (trimmedText.isEmpty()) {
@@ -239,12 +240,18 @@ fun CreatePostScreen(
         }
 
         if (postId != null) {
-            val existingMediaUrls = post?.media
-            val newUris = selectedImageUris.filterNot { it.scheme in listOf("http", "https") }
+            // SỬA TẠI ĐÂY: Lọc ra các ảnh cũ (URL) VẪN CÒN ĐANG HIỂN THỊ trên UI
+            val remainingExistingMediaUrls = selectedImageUris
+                .filter { it.scheme in listOf("http", "https") }
+                .map { it.toString() }
+
+            // Lọc ra các ảnh mới (URI cục bộ) được thêm vào
+            val newUris = selectedImageUris
+                .filterNot { it.scheme in listOf("http", "https") }
 
             postViewModel.updatePost(
                 postId = postId,
-                request = UpdatePostRequest(trimmedText, existingMediaUrls, newUris),
+                request = UpdatePostRequest(trimmedText, remainingExistingMediaUrls, newUris),
                 context = context
             )
         } else {
@@ -300,8 +307,11 @@ fun CreatePostScreen(
                             context = context,
                             pairedList = pairedList,
                             onRemove = { uri ->
+                                // 1. Xóa khỏi danh sách URI gốc
                                 selectedImageUris = selectedImageUris - uri
-                                pairedList = selectedImageUris.zip(frameUris)
+
+                                // 2. Lọc bỏ cặp ảnh (pair) tương ứng ra khỏi pairedList
+                                pairedList = pairedList.filterNot { it.first == uri }
                             }
                         )
                     }
@@ -400,7 +410,11 @@ fun MediaPreviewList(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        items(pairedList) { (uri, frame) ->
+        items(
+            items = pairedList,
+            // THÊM DÒNG KEY NÀY VÀO: Lấy URI làm định danh duy nhất cho mỗi ảnh
+            key = { (uri, _) -> uri.toString() }
+        ) { (uri, frame) ->
             var isPressed by remember { mutableStateOf(false) }
             val scale by animateFloatAsState(
                 targetValue = if (isPressed) 0.95f else 1f,
