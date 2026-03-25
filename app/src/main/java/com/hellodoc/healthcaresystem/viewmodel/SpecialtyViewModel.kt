@@ -79,6 +79,7 @@ class SpecialtyViewModel @Inject constructor(
 
     suspend fun getSpecialtyDoctorAsync(specialtyID: String): List<Doctor>? {
         return try {
+            println("Gọi ở đây với specialty là $specialtyID")
             val response = specialtyRepository.getSpecialtyById(specialtyID)
             if (response.isSuccessful) {
                 val specialtyResponse = response.body()

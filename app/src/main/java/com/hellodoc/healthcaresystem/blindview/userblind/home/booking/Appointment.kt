@@ -149,6 +149,7 @@ fun AppointmentScreenUI(
                         else -> false
                     }
 
+                    //Làm cho tab bo góc
                     Tab(
                         selected = roleSelectedTab == index,
                         onClick = {
@@ -163,7 +164,11 @@ fun AppointmentScreenUI(
                                 fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isTabEnabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondaryContainer
                             )
-                        }
+                        },
+                        modifier = Modifier.background(
+                            if (isTabEnabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.secondaryContainer
+                            , RoundedCornerShape(8.dp)
+                        ).padding(horizontal = 16.dp).clip(RoundedCornerShape(8.dp))
                     )
                 }
             }

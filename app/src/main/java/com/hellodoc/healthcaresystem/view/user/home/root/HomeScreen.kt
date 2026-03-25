@@ -408,7 +408,6 @@ fun HealthMateHomeScreen(
 //                    EmptyList("bác sĩ")
                     DoctorSkeletonList()
                 } else {
-                    println("ko co bi empty")
                     DoctorList(navHostController = navHostController, doctors = doctorState)
                 }
             }

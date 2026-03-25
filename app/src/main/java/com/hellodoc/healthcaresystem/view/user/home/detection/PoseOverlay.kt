@@ -20,9 +20,30 @@ fun PoseOverlay(
     faceResults: FaceLandmarkerResult?,
     modifier: Modifier = Modifier
 ) {
+    // ❌ ĐÃ XÓA .rotate(90f) ở Modifier.
+    // Việc xoay phải được tính toán bằng tọa độ bên trong Canvas.
     Canvas(modifier = modifier.fillMaxSize()) {
-        val width = size.width
-        val height = size.height
+
+        // 1. Lấy kích thước của Canvas (khung Preview trên màn hình)
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // 2. Kích thước mặc định của ImageAnalysis (Thường là 480x640 hoặc 480x640 bị xoay ngang)
+        // Vì camera sau đang trả về luồng Bitmap nằm ngang (Landscape) cho MediaPipe,
+        // nên ImageWidth thực tế đang lớn hơn ImageHeight (ví dụ: 640x480).
+        // Khi vẽ lên màn hình dọc (Portrait), ta phải hoán đổi và tính toán lại.
+
+        // CÔNG THỨC ÁNH XẠ ĐẶC BIỆT CHO CAMERA SAU CỦA ANDROID
+        val scaleFactor = maxOf(canvasWidth, canvasHeight)
+
+        // Helper function để map toạ độ Landmark (x,y) -> Toạ độ Canvas (cx,cy)
+        fun mapPoint(x: Float, y: Float): Offset {
+            // CameraX mặc định trả frame bị xoay 90 độ.
+            // Công thức dưới đây ánh xạ (x,y) của frame gốc sang (cx, cy) của màn hình dọc.
+            val mappedX = (1- y) * canvasWidth
+            val mappedY = (1- x) * canvasHeight
+            return Offset(mappedX, mappedY)
+        }
 
         // 1. Draw Pose Landmarks (Includes Arms and basic Face)
         poseResults?.landmarks()?.forEach { landmarks ->
@@ -48,8 +69,8 @@ fun PoseOverlay(
                     val end = landmarks[connection.second]
                     drawLine(
                         color = Color.Cyan,
-                        start = Offset(start.x() * width, start.y() * height),
-                        end = Offset(end.x() * width, end.y() * height),
+                        start = mapPoint(start.x(), start.y()),
+                        end = mapPoint(end.x(), end.y()),
                         strokeWidth = 8f,
                         cap = StrokeCap.Round
                     )
@@ -59,7 +80,7 @@ fun PoseOverlay(
                 drawCircle(
                     color = Color.Yellow,
                     radius = 8f,
-                    center = Offset(landmark.x() * width, landmark.y() * height)
+                    center = mapPoint(landmark.x(), landmark.y())
                 )
             }
         }
@@ -72,8 +93,8 @@ fun PoseOverlay(
                 val end = landmarks[connection.second]
                 drawLine(
                     color = Color.Green,
-                    start = Offset(start.x() * width, start.y() * height),
-                    end = Offset(end.x() * width, end.y() * height),
+                    start = mapPoint(start.x(), start.y()),
+                    end = mapPoint(end.x(), end.y()),
                     strokeWidth = 6f,
                     cap = StrokeCap.Round
                 )
@@ -82,22 +103,21 @@ fun PoseOverlay(
                 drawCircle(
                     color = Color.Red,
                     radius = 6f,
-                    center = Offset(landmark.x() * width, landmark.y() * height)
+                    center = mapPoint(landmark.x(), landmark.y())
                 )
             }
         }
 
-        // 3. Draw Detailed Face Landmarks (if FaceLandmarker is used)
+        // 3. Draw Detailed Face Landmarks
         faceResults?.faceLandmarks()?.forEach { landmarks ->
-            // Drawing main contours: Eyes, Eyebrows, Lips
             val faceConnections = FaceLandmarker.FACE_LANDMARKS_TESSELATION
             faceConnections.forEach { connection ->
                 val start = landmarks[connection.start()]
                 val end = landmarks[connection.end()]
                 drawLine(
                     color = Color.Magenta.copy(alpha = 0.5f),
-                    start = Offset(start.x() * width, start.y() * height),
-                    end = Offset(end.x() * width, end.y() * height),
+                    start = mapPoint(start.x(), start.y()),
+                    end = mapPoint(end.x(), end.y()),
                     strokeWidth = 2f
                 )
             }

@@ -145,7 +145,6 @@ fun SignLanguageAnimatableScreen(
         animationJob.value = coroutineContext[kotlinx.coroutines.Job]
 
         try {
-            // ✅ FIX: Loại bỏ while(isActive), chỉ chạy 1 lần
             for (frameIndex in gestureFrames.indices step 5) {
                 if (!isActive) break // Check cancellation
 
@@ -268,23 +267,37 @@ fun SignLanguageAnimatableScreen(
     }
 
     LaunchedEffect(modelInstance) {
-        if (modelInstance != null) {
-            val asset = modelInstance.asset
-            val entities = asset.entities
-            Log.d("CheckBone", "=== DANH SÁCH TÊN XƯƠNG TRONG FILE 3D ===")
-            entities.forEach { entity ->
-                val name = asset.getName(entity)
-                if (!name.isNullOrEmpty()) {
-                    Log.d("CheckBone", "Bone Entity: $entity | Name: '$name'")
-                }
+        if (modelInstance == null) return@LaunchedEffect
+        val asset = modelInstance.asset
+        val tcm = engine?.transformManager ?: return@LaunchedEffect
+
+        val bonesOfInterest = listOf(
+            "upperarm_l", "upperarm_r",
+            "lowerarm_l", "lowerarm_r",
+            "hand_l", "hand_r",
+            "spine_01", "spine_02"
+        )
+
+        bonesOfInterest.forEach { boneName ->
+            val entity = asset.getFirstEntityByName(boneName)
+            if (entity == 0) {
+                Log.d("BoneAxis", "$boneName: NOT FOUND")
+                return@forEach
             }
 
-            val check = asset.getFirstEntityByName("upperarm_l")
-            if (check == 0) {
-                Log.e("CheckBone", "❌ LỖI: Không tìm thấy xương tên 'upperarm_l'")
-            } else {
-                Log.d("CheckBone", "✅ TÌM THẤY: 'upperarm_l' có Entity ID = $check")
-            }
+            val instance = tcm.getInstance(entity)
+            val mat = FloatArray(16)
+            tcm.getTransform(instance, mat)
+
+            // Mỗi cột của matrix = 1 trục
+            // Cột 0 (mat[0,1,2])  = hướng trục X local
+            // Cột 1 (mat[4,5,6])  = hướng trục Y local
+            // Cột 2 (mat[8,9,10]) = hướng trục Z local
+            Log.d("BoneAxis", "=== $boneName ===")
+            Log.d("BoneAxis", "  X-axis: (${mat[0]}, ${mat[1]}, ${mat[2]})")
+            Log.d("BoneAxis", "  Y-axis: (${mat[4]}, ${mat[5]}, ${mat[6]})")
+            Log.d("BoneAxis", "  Z-axis: (${mat[8]}, ${mat[9]}, ${mat[10]})")
+            Log.d("BoneAxis", "  Position: (${mat[12]}, ${mat[13]}, ${mat[14]})")
         }
     }
 
@@ -402,7 +415,171 @@ fun SignLanguageAnimatableScreen(
 
 
 }
+@Composable
+fun BoneAxisTestScreen(
+    engine: Engine?,
+    modelInstance: ModelInstance?,
+    environment: Environment?
+) {
+    data class TestStep(
+        val label: String,
+        val boneName: String,
+        val x: Float, val y: Float, val z: Float,
+        val expected: String
+    )
 
+    val testSteps = remember {
+        listOf(
+            TestStep("T-pose reset", "upperarm_l", 0f, 0f, 0f, "Tay về T-pose"),
+            TestStep("upperarm_l Y=45", "upperarm_l", 0f, 45f, 0f, "Tay xuống"),
+            TestStep("upperarm_l Y=-45", "upperarm_l", 0f, -45f, 0f, "Tay lên"),
+            //Lòng bàn tay xoay xuống mặt đất, thực hiện phép xoay 90 độ để kiểm tra cho thao tác xoay upperarm
+            TestStep("upperarm_l Y=45", "upperarm_l", 90f, 0f, 0f, "Lòng bàn tay xoay ra đằng sau cơ thể"),
+            TestStep("upperarm_l Y=-45", "upperarm_l", -90f, 0f, 0f, "Lòng bàn tay xoay ra đằng trước cơ thể"),
+            TestStep("upperarm_l Z=45", "upperarm_l", 0f, 0f, 45f, "Tay bẻ ra sau"),
+            TestStep("upperarm_l Z=-45", "upperarm_l", 0f, 0f, -45f, "Tay đưa ra trước"),
+            TestStep("Reset", "upperarm_l", 0f, 0f, 0f, "Reset"),
+            //lower arm xoay theo hướng cùng hướng và cùng hệ trục như upper arm
+            TestStep("hand_l Y=45", "hand_l", 0f, 0f, 45f, "Cổ tay cúi/ngửa?"),
+            TestStep("hand_l Y=-45", "hand_l", 0f, 0f, -45f, "Ngược lại?"),
+
+        )
+    }
+
+    var currentStep by remember { mutableStateOf(0) }
+    val step = testSteps[currentStep]
+
+    var characterNode by remember { mutableStateOf<ModelNode?>(null) }
+
+    // FIX 1: thêm scale + centerOrigin
+    LaunchedEffect(modelInstance) {
+        if (modelInstance != null) {
+            characterNode = ModelNode(
+                modelInstance = modelInstance,
+                scaleToUnits = 1.0f
+            ).apply {
+                position = Position(x = 0.0f, y = -3f, z = -0.75f)
+                scale = Position(x = 5f, y = 5f, z = 5f)
+                centerOrigin(Position(0f, 0f, 0f))
+                isEditable = true
+            }
+        }
+    }
+
+    LaunchedEffect(currentStep, engine, modelInstance) {
+        if (engine == null || !engine.isValid || modelInstance == null) return@LaunchedEffect
+        listOf("upperarm_l", "lowerarm_l", "hand_l").forEach { bone ->
+            updateBoneRotation(engine, modelInstance, bone, 0f, 0f, 0f)
+        }
+        updateBoneRotation(engine, modelInstance, step.boneName, step.x, step.y, step.z)
+        Log.d("BoneTest", "[${currentStep}] ${step.label} → (${step.x}, ${step.y}, ${step.z})")
+    }
+
+    val childNodes = remember(characterNode) {
+        if (characterNode != null) listOf(characterNode!!) else emptyList()
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // FIX 3: giữ cấu trúc Box + CircleShape + camera z=2f như bản gốc
+        if (engine != null && engine.isValid && modelInstance != null && environment != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(400.dp)
+                        .align(Alignment.Center)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Scene(
+                        engine = engine,
+                        mainLightNode = rememberMainLightNode(engine) {
+                            intensity = 70_000.0f
+                            isShadowCaster = true
+                        },
+                        cameraNode = rememberCameraNode(engine) {
+                            position = Position(z = 2f)
+                        },
+                        childNodes = childNodes,
+                        environment = environment,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        // Test UI overlay
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Step ${currentStep + 1}/${testSteps.size}  —  ${step.label}",
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = "${step.boneName}  (x=${step.x}, y=${step.y}, z=${step.z})",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "→ Quan sát: ${step.expected}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = { if (currentStep > 0) currentStep-- },
+                    enabled = currentStep > 0,
+                    modifier = Modifier.weight(1f)
+                ) { Text("← Trước") }
+
+                Button(
+                    onClick = { if (currentStep < testSteps.size - 1) currentStep++ },
+                    enabled = currentStep < testSteps.size - 1,
+                    modifier = Modifier.weight(1f)
+                ) { Text("Tiếp →") }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            OutlinedButton(
+                onClick = {
+                    if (engine != null && engine.isValid && modelInstance != null) {
+                        listOf(
+                            "upperarm_l", "upperarm_r", "lowerarm_l", "lowerarm_r",
+                            "hand_l", "hand_r", "spine_01", "spine_02", "spine_03"
+                        ).forEach { bone ->
+                            updateBoneRotation(engine, modelInstance, bone, 0f, 0f, 0f)
+                        }
+                        currentStep = 0
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Reset toàn bộ T-pose") }
+        }
+    }
+}
 // =======================
 // UPDATED ANIMATION LOGIC
 // =======================

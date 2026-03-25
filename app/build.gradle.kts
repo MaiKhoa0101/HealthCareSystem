@@ -169,5 +169,10 @@ dependencies {
 
     // MediaPipe (để lấy landmarks làm đầu vào cho model của bạn)
     implementation("com.google.mediapipe:tasks-vision:0.10.9")
+    implementation("com.google.mlkit:segmentation-selfie:16.0.0-beta6")
+    implementation("com.google.mlkit:translate:17.0.3")
+
+    implementation("org.pytorch:pytorch_android_lite:1.13.0")
+    implementation("org.pytorch:pytorch_android_torchvision_lite:1.13.0")
 
 }

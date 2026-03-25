@@ -878,78 +878,53 @@ class PostViewModel @Inject constructor(
     fun getGestureCode(videoUrl: String) {
         viewModelScope.launch {
             try {
-                println("urlVideo: "+videoUrl )
+                println("urlVideo: $videoUrl")
                 val response = postRepository.getGestureCode(videoUrl)
-                println("Kết quả trả về: "+response.body())
-                // 1. Kiểm tra body khác null an toàn hơn dùng !!
-                val responseBody = response.body()
-                if (response.isSuccessful && responseBody != null ) {
-                    println("Có tồn tại subtitle " + response.body())
-                    val downloadUrl = responseBody.wordCodes
 
-                    if (downloadUrl.isNullOrEmpty()) {
-                        Log.e("API", "Download URL trống")
-                        return@launch
-                    }
-
-                    println("Download URL: $downloadUrl")
-
-                    // 2. Tải JSON từ URL (IO Thread)
-                    val jsonContent = withContext(Dispatchers.IO) {
-                        try {
-                            val url = java.net.URL(downloadUrl)
-                            val connection = url.openConnection()
-                            connection.connectTimeout = 15000
-                            connection.readTimeout = 15000
-                            connection.getInputStream().bufferedReader().use { it.readText() }
-                        } catch (e: Exception) {
-                            Log.e("API", "Lỗi tải JSON: ${e.message}", e)
-                            null
-                        }
-                    }
-
-                    // 3. Parse JSON
-                    if (!jsonContent.isNullOrEmpty()) {
-                        Log.d("API", "JSON length: ${jsonContent.length}")
-
-                        try {
-                            // FIX: Dùng TypeToken để giữ được kiểu List<GestureCodeResponse>
-                            val type = object : TypeToken<List<GestureCodeResponse>>() {}.type
-                            val gestureData: List<GestureCodeResponse> = Gson().fromJson(jsonContent, type)
-                            println("có $gestureData gestureCode dc lấy")
-                            _gestureCode.value = gestureData
-
-                        } catch (e: Exception) {
-                            Log.e("API", "Lỗi parse JSON: ${e.message}")
-                        }
+                if (response.isSuccessful) {
+                    val gestureData = response.body()
+                    if (!gestureData.isNullOrEmpty()) {
+                        println("✅ Nhận được ${gestureData.size} words từ GET")
+                        _gestureCode.value = gestureData
+                    } else {
+                        // BE trả 200 nhưng body rỗng → gọi POST để process
+                        Log.w("API", "Body rỗng, gọi POST...")
+                        postVideoToGetGestureCode(videoUrl)
                     }
                 } else {
-                    // Nếu thất bại thì gọi API post video
-                    Log.w("API", "Get thất bại, đang thử Post lại video...")
+                    // 404 hoặc lỗi khác → gọi POST để process lần đầu
+                    Log.w("API", "GET thất bại (${response.code()}), gọi POST...")
                     postVideoToGetGestureCode(videoUrl)
                 }
+
             } catch (e: Exception) {
-                println("Lỗi ở getGestureCode $e")
+                println("Lỗi ở getGestureCode: $e")
+                // Network error → thử POST
+                postVideoToGetGestureCode(videoUrl)
             }
         }
     }
 
-    fun postVideoToGetGestureCode(
-        videoUrl: String
-    ){
+    fun postVideoToGetGestureCode(videoUrl: String) {
         viewModelScope.launch {
-            try{
+            try {
+                println("POST processing: $videoUrl")
                 val response = postRepository.postVideoToGetGestureCode(videoUrl)
-                println("KẾt quả lấy được là " + response.body())
-                if (response.isSuccessful) {
-                    println("Post video thành công và lấy được listcode: "+ response.body()?.size)
-                    _gestureCode.value = response.body()!!
-                }
-                println("Response ko thành coonng "+response)
-            }
-            catch (e:Exception){
-                println("Lỗi ở postVideoToGetGestureCode $e")
 
+                if (response.isSuccessful) {
+                    val gestureData = response.body()
+                    if (!gestureData.isNullOrEmpty()) {
+                        println("✅ POST thành công: ${gestureData.size} words")
+                        _gestureCode.value = gestureData
+                    } else {
+                        Log.w("API", "POST trả body rỗng")
+                    }
+                } else {
+                    Log.e("API", "POST thất bại: ${response.code()} ${response.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                println("Lỗi ở postVideoToGetGestureCode: $e")
             }
         }
     }
