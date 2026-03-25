@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -165,11 +166,13 @@ fun AppointmentScreenUI(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background, RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
         ) {
+            val selectedIndex = remember { mutableStateOf(0) }
+
             //Tabs chọn Vai trò
             TabRow(
                 selectedTabIndex = roleSelectedTab,
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground,
+                containerColor =  Color.Transparent,
+                contentColor = Color.Transparent,
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 roles.forEachIndexed { index, title ->
@@ -179,6 +182,7 @@ fun AppointmentScreenUI(
                         else -> false
                     }
 
+                    //Làm cho tab bo góc
                     Tab(
                         selected = roleSelectedTab == index,
                         onClick = {
@@ -191,9 +195,16 @@ fun AppointmentScreenUI(
                             Text(
                                 text = title,
                                 fontWeight = if (roleSelectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isTabEnabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.secondaryContainer
+                                color = if (roleSelectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                             )
-                        }
+                        },
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            //Hiển thị màu khi chọn
+                            .background(
+                            if (isTabEnabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.secondaryContainer
+                            , RoundedCornerShape(8.dp)
+                        )
                     )
                 }
             }
@@ -206,16 +217,25 @@ fun AppointmentScreenUI(
                     .padding(top = 16.dp, end = 16.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Box {
-                    OutlinedButton(
-                        onClick = { expanded = true },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(8.dp))
+                            .clickable{
+                                expanded = true
+                            }
+                            .padding(8.dp)
+                        ,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(text = tabs[selectedTab], color = MaterialTheme.colorScheme.onBackground)
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                            imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Dropdown",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
@@ -224,7 +244,7 @@ fun AppointmentScreenUI(
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background).border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(8.dp)).padding(horizontal= 5.dp).fillMaxWidth()
                     ) {
                         tabs.forEachIndexed { index, title ->
                             DropdownMenuItem(
